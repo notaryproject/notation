@@ -8,6 +8,9 @@ Based on this sketch, various prototypes will be built and iterated upon, instan
 
 ![Notary v2 e2e workflow](media/notary-e2e-scenarios.png)
 
+An outline of the e2e workflow ...
+> TODO: Complete description, based on the [Notary v2 e2e scenarios][nv2-scenarios]
+
 ## Base Artifacts
 
 To represent a set of public base artifacts, we will need to create a set of public content signed by their representative entities.
@@ -53,7 +56,9 @@ Linux image:
 
 The build environment can be triggered by a git commit to the backing git repo.
 
-## ACME Rockets Keys
+## ACME Rockets flow
+
+### ACME Rockets keys
 
 The ACME Rockets organization provides a set of keys that will be used for signing their corporate standard artifacts and their custom applications. The following keys will be created:
 
@@ -67,7 +72,7 @@ The ACME Rockets organization provides a set of keys that will be used for signi
 
 These keys will be stored in the companies key-vault solution.
 
-## Build Environment
+### ACME Rockets build environment
 
 In a build environment, the following occurs:
 
@@ -83,6 +88,14 @@ In a build environment, the following occurs:
 - The `./src` of the project is added as an additional OCI Artifact, supporting gpl type license requirements
 - An OCI-index that groups the above elements together as a single tag
 - All 4 artifacts (image, SBoM, src, index) are signed
+
+### ACME Rockets staging/validation
+
+### ACME Rockets production environment
+
+### ACME Rockets IoT environment
+
+An air-gapped environment that must account for secured and signed content.
 
 [nv2-scenarios]:        https://github.com/notaryproject/requirements/blob/master/scenarios.md
 [oci-artifacts]:        https://github.com/opencontainers/artifacts/
