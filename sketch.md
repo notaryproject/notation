@@ -2,21 +2,36 @@
 
 To enable various SMEs, project owners and customers the ability to provide feedback for the [Notary v2 e2e scenarios][nv2-scenarios], we provide the following sketch for what we intend to build.
 
+By developing a sketch, we enable a lightweight form of discussion of ideas, enabling collaboration across the different entities.
+
 Based on this sketch, various prototypes will be built and iterated upon, instanced in an [experimental environment](.experimental-environment.md).
 
 ## e2e Top View
 
-![Notary v2 e2e workflow](media/notary-e2e-scenarios.png)
+![Notary v2 e2e workflow](media/notary-e2e-scenarios.svg)
 
-An outline of the e2e workflow ...
 > TODO: Complete description, based on the [Notary v2 e2e scenarios][nv2-scenarios]
+
+To illustrate an e2e workflow, we provide the following example:
+
+- A public registry with public content (debian & node images)
+- A customer (ACME Rockets) with a cloud presence and an on-prem, IoT, air-gapped environment
+- Artifacts are signed, when pushed to the public registry
+- Public artifacts and their signatures are copied to the private registries of ACME Rockets
+- ACME Rockets will additionally certify the public content, adding a signature for the standard/approved base-artifacts
+- ACME Rockets builds many apps, including a `web` image that will be built from the `/base-artifact/node` image
+- As the `web` image moves from dev through production, additional signatures are added, providing proof the image was verified
+- Policy management in the staging environment requires a signature from development, and an SBoM of the content in the image.
+- Policy management in the production environment requires an additional signature from the staging environment.
+- The web image, along with its signatures are copied to the air-gapped environment for local verification and deployment
+- An additional signature is required to run in the secured IoT environments
 
 ## Base Artifacts
 
-To represent a set of public base artifacts, we will need to create a set of public content signed by their representative entities.
+To represent a set of public base artifacts, create a set of public artifacts signed by their representative entities.
 
 - Linux base image
-  - Signed by a fictitious penguin that mimics an entity that would own and sign a public linux image
+  - Signed by a fictitious penguin that mimics an entity that would own and sign a public linux image. We'll use debian as it's the base for the node image we'll use
   - Include a mock SBoM to represent the content in the image
 - Node base image
   - Signed by a fictitious entity that would represent the node community
@@ -27,34 +42,33 @@ To represent these base artifacts, which would be signed, we'll need to create t
 
 The creation and management of the base artifacts will duplicate much of the validation workflow for the developers app workflows As a result, we'll optimize the creation and maintenance of these artifacts.
 
-### Base artifact keys
-
-For the purpose of isolation, we will create an manage separate keys for the linux and node images.
-For simplicity of managing multiple key vault instances, the keys can be stored in the same key vault instance.
-
 ### Base artifact build environment
 
 A single build environment will be created to manage the building and signing of the linux and node images.
-With a focus on signing, we can optimize by simply importing a selected linux and node image.
+
+- For the purpose of isolation, we will create separate keys for the debian and node images.
+- For simplicity of managing multiple key vault instances, the node and debian keys will be stored in the same key vault instance.
+- With a focus on signing, we can optimize by simply importing a selected linux and node image.
+
 The imported content will be:
 
-Node image:
+**node image**:
 
-- Built FROM node
+- Built `FROM docker.io/node`
   - tagged `node:[version]-[os]-[version]`
   - Signed by the fictitious node community key
   - Include an SBoM `node:[version]-sbom`
   - Have an oci-index that includes the image and it's SBoM `node:[version]`
 
-Linux image:
+**debian image**:
 
-- Build FROM debian
+- Built `FROM docker.io/debian`
   - tagged `debian:[version]
-  - Signed by the fictitious linux distro key
+  - Signed by the fictitious penguin distro key
   - Include an SBoM `debian:[version]-sbom`
-  - Have an oci-index that includes the image an it's SBoM `debian:[version]
+  - Have an oci-index that includes the image an it's SBoM `debian:[version]`
 
-The build environment can be triggered by a git commit to the backing git repo.
+The build environment will be triggered by a git commit to the backing git repo to ease rebuilding.
 
 ## ACME Rockets flow
 

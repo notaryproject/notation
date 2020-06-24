@@ -26,7 +26,7 @@ Components to consider:
 - Policy Management - to leverage an SBoM and signatures to determine _if_ an artifact is trusted and should be deployed
 - Container host environments, like kubernetes
 
-![Notary v2 e2e workflow](media/notary-e2e-scenarios.png)
+![Notary v2 e2e workflow](media/notary-e2e-scenarios.svg)
 
 ## Prototyping approach
 
