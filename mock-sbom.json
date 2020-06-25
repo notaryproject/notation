@@ -1,0 +1,8 @@
+{
+    "author": "john doe",
+    "createdDate": "6/24/2020 10:10:20",
+    "packages": [
+        "foo.npm",
+        "bar.npm"
+    ]
+}

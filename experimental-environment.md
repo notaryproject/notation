@@ -12,7 +12,7 @@ For each milestone, we will provide instructions and scripts, to create the refe
 
 ## Milestone 0 environment
 
-### Mock public content
+### Mock public artifacts
 
 To represent a mock public registry, we'll need to build and host a mock docker hub environment. This includes the building and hosting of two base images: (linux and node)
 
