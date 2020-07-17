@@ -28,8 +28,9 @@ type Manifest struct {
 // Signature to verify the content
 type Signature struct {
 	Type      string   `json:"typ"`
+	Signature []byte   `json:"sig"`
 	Algorithm string   `json:"alg,omitempty"`
 	KeyID     string   `json:"kid,omitempty"`
 	X5c       [][]byte `json:"x5c,omitempty"`
-	Signature []byte   `json:"sig"`
+	Issuer    string   `json:"iss,omitempty"`
 }

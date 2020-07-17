@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/nv2/internal/crypto"
 	"github.com/notaryproject/nv2/pkg/signature"
+	"github.com/notaryproject/nv2/pkg/signature/gpg"
 	x509nv2 "github.com/notaryproject/nv2/pkg/signature/x509"
 	"github.com/urfave/cli/v2"
 )
@@ -27,8 +28,18 @@ var verifyCommand = &cli.Command{
 		&cli.StringSliceFlag{
 			Name:      "ca-cert",
 			Aliases:   []string{"c"},
-			Usage:     "CA certs for verification",
+			Usage:     "CA certs for verification [x509]",
 			TakesFile: true,
+		},
+		&cli.StringFlag{
+			Name:      "key-ring",
+			Usage:     "gpg public key ring file [gpg]",
+			Value:     gpg.DefaultPublicKeyRingPath(),
+			TakesFile: true,
+		},
+		&cli.BoolFlag{
+			Name:  "disable-gpg",
+			Usage: "disable GPG for verification [gpg]",
 		},
 	},
 	Action: runVerify,
@@ -83,6 +94,28 @@ func readSignatrueFile(path string) (sig signature.Signed, err error) {
 }
 
 func getSchemeForVerification(ctx *cli.Context) (*signature.Scheme, error) {
+	scheme := signature.NewScheme()
+
+	// add x509 verifier
+	verifier, err := getX509Verifier(ctx)
+	if err != nil {
+		return nil, err
+	}
+	scheme.RegisterVerifier(verifier)
+
+	// add gpg verifier
+	if !ctx.Bool("disable-gpg") {
+		verifier, err := gpg.NewVerifier(ctx.String("key-ring"))
+		if err != nil {
+			return nil, err
+		}
+		scheme.RegisterVerifier(verifier)
+	}
+
+	return scheme, nil
+}
+
+func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 	var roots *x509.CertPool
 	if caCerts := ctx.StringSlice("ca-cert"); len(caCerts) > 0 {
 		roots = x509.NewCertPool()
@@ -96,13 +129,5 @@ func getSchemeForVerification(ctx *cli.Context) (*signature.Scheme, error) {
 			}
 		}
 	}
-
-	verifier, err := x509nv2.NewVerifier(roots)
-	if err != nil {
-		return nil, err
-	}
-
-	scheme := signature.NewScheme()
-	scheme.RegisterVerifier(verifier)
-	return scheme, nil
+	return x509nv2.NewVerifier(roots)
 }
