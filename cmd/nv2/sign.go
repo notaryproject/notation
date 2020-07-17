@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/nv2/pkg/signature"
+	"github.com/notaryproject/nv2/pkg/signature/gpg"
 	"github.com/notaryproject/nv2/pkg/signature/x509"
 	"github.com/urfave/cli/v2"
 )
@@ -28,13 +29,25 @@ var signCommand = &cli.Command{
 		&cli.StringFlag{
 			Name:      "key",
 			Aliases:   []string{"k"},
-			Usage:     "siging key file",
+			Usage:     "siging key file [x509]",
 			TakesFile: true,
 		},
 		&cli.StringFlag{
 			Name:      "cert",
 			Aliases:   []string{"c"},
-			Usage:     "siging cert",
+			Usage:     "siging cert [x509]",
+			TakesFile: true,
+		},
+		&cli.StringFlag{
+			Name:      "key-ring",
+			Usage:     "gpg public key ring file [gpg]",
+			Value:     gpg.DefaultSecretKeyRingPath(),
+			TakesFile: true,
+		},
+		&cli.StringFlag{
+			Name:      "identity",
+			Aliases:   []string{"i"},
+			Usage:     "signer identity [gpg]",
 			TakesFile: true,
 		},
 		&cli.DurationFlag{
@@ -112,16 +125,22 @@ func prepareContentForSigning(ctx *cli.Context) (signature.Content, error) {
 }
 
 func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
-	scheme := signature.NewScheme()
+	var (
+		signer signature.Signer
+		err    error
+	)
 	switch method := ctx.String("method"); method {
 	case "x509":
-		signer, err := x509.NewSignerFromFiles(ctx.String("key"), ctx.String("cert"))
-		if err != nil {
-			return nil, err
-		}
-		scheme.RegisterSigner(signerID, signer)
+		signer, err = x509.NewSignerFromFiles(ctx.String("key"), ctx.String("cert"))
+	case "gpg":
+		signer, err = gpg.NewSigner(ctx.String("key-ring"), ctx.String("identity"))
 	default:
 		return nil, fmt.Errorf("unsupported signing method: %s", method)
 	}
+	scheme := signature.NewScheme()
+	if err != nil {
+		return nil, err
+	}
+	scheme.RegisterSigner(signerID, signer)
 	return scheme, nil
 }
