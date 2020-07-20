@@ -65,6 +65,9 @@ var signCommand = &cli.Command{
 			Aliases: []string{"o"},
 			Usage:   "write signature to a specific path",
 		},
+		usernameFlag,
+		passwordFlag,
+		insecureFlag,
 	},
 	Action: runSign,
 }
@@ -99,7 +102,12 @@ func runSign(ctx *cli.Context) error {
 	if path == "" {
 		path = strings.Split(content.Manifests[0].Digest, ":")[1] + ".nv2"
 	}
-	return ioutil.WriteFile(path, sigmaJSON, 0666)
+	if err := ioutil.WriteFile(path, sigmaJSON, 0666); err != nil {
+		return err
+	}
+
+	fmt.Println(content.Manifests[0].Digest)
+	return nil
 }
 
 func prepareContentForSigning(ctx *cli.Context) (signature.Content, error) {

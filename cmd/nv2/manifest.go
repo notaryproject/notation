@@ -6,7 +6,9 @@ import (
 	"math"
 	"net/url"
 	"os"
+	"strings"
 
+	"github.com/notaryproject/nv2/pkg/registry"
 	"github.com/notaryproject/nv2/pkg/signature"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
@@ -14,7 +16,7 @@ import (
 
 func getManifestFromContext(ctx *cli.Context) (signature.Manifest, error) {
 	if uri := ctx.Args().First(); uri != "" {
-		return getManfestsFromURI(uri)
+		return getManfestsFromURI(ctx, uri)
 	}
 	return getManifestFromReader(os.Stdin)
 }
@@ -34,13 +36,13 @@ func getManifestFromReader(r io.Reader) (signature.Manifest, error) {
 	}, nil
 }
 
-func getManfestsFromURI(uri string) (signature.Manifest, error) {
+func getManfestsFromURI(ctx *cli.Context, uri string) (signature.Manifest, error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {
 		return signature.Manifest{}, err
 	}
 	var r io.Reader
-	switch parsed.Scheme {
+	switch strings.ToLower(parsed.Scheme) {
 	case "file":
 		path := parsed.Path
 		if parsed.Opaque != "" {
@@ -52,6 +54,13 @@ func getManfestsFromURI(uri string) (signature.Manifest, error) {
 		}
 		defer file.Close()
 		r = file
+	case "docker", "oci":
+		remote := registry.NewClient(nil, &registry.ClientOptions{
+			Username: ctx.String("username"),
+			Password: ctx.String("password"),
+			Insecure: ctx.Bool("insecure"),
+		})
+		return remote.GetManifestMetadata(parsed)
 	default:
 		return signature.Manifest{}, fmt.Errorf("unsupported URI scheme: %s", parsed.Scheme)
 	}
