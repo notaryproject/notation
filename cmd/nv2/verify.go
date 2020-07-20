@@ -26,8 +26,13 @@ var verifyCommand = &cli.Command{
 			TakesFile: true,
 		},
 		&cli.StringSliceFlag{
-			Name:      "ca-cert",
+			Name:      "cert",
 			Aliases:   []string{"c"},
+			Usage:     "certs for verification [x509]",
+			TakesFile: true,
+		},
+		&cli.StringSliceFlag{
+			Name:      "ca-cert",
 			Usage:     "CA certs for verification [x509]",
 			TakesFile: true,
 		},
@@ -116,18 +121,28 @@ func getSchemeForVerification(ctx *cli.Context) (*signature.Scheme, error) {
 }
 
 func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
-	var roots *x509.CertPool
-	if caCerts := ctx.StringSlice("ca-cert"); len(caCerts) > 0 {
-		roots = x509.NewCertPool()
-		for _, path := range caCerts {
-			certs, err := crypto.ReadCertificateFile(path)
-			if err != nil {
-				return nil, err
-			}
-			for _, cert := range certs {
-				roots.AddCert(cert)
-			}
+	roots := x509.NewCertPool()
+
+	var certs []*x509.Certificate
+	for _, path := range ctx.StringSlice("cert") {
+		bundledCerts, err := crypto.ReadCertificateFile(path)
+		if err != nil {
+			return nil, err
+		}
+		certs = append(certs, bundledCerts...)
+		for _, cert := range bundledCerts {
+			roots.AddCert(cert)
 		}
 	}
-	return x509nv2.NewVerifier(roots)
+	for _, path := range ctx.StringSlice("ca-cert") {
+		bundledCerts, err := crypto.ReadCertificateFile(path)
+		if err != nil {
+			return nil, err
+		}
+		for _, cert := range bundledCerts {
+			roots.AddCert(cert)
+		}
+	}
+
+	return x509nv2.NewVerifier(certs, roots)
 }
