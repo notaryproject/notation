@@ -1,0 +1,93 @@
+{
+    "description": "Notary V2 Signature Config Specification",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://localhost:5000/schema/signature/config",
+    "type": "object",
+    "properties": {
+        "signed": {
+            "type": "object",
+            "properties": {
+                "exp": {
+                    "type": "integer",
+                    "description": "Expiration time. Ref RFC7519."
+                },
+                "nbf": {
+                    "type": "integer",
+                    "description": "Not before time. Ref RFC7519."
+                },
+                "iat": {
+                    "type": "integer",
+                    "description": "Issued at time. Ref RFC7519."
+                },
+                "manifests": {
+                    "type": "object",
+                    "description": "This is a collection of all the objects being signed.",
+                    "properties": {
+                        "digest": {
+                            "description": "The cryptographic checksum digest of the object, in the pattern '<algorithm>:<encoded>'",
+                            "$ref": "defs-descriptor.json#/definitions/digest"
+                        },
+                        "size": {
+                            "description": "The size in bytes of the referenced object.",
+                            "$ref": "defs.json#/definitions/int64"
+                        },
+                        "references": {
+                            "type": "array",
+                            "description": "Each element in this array represents a fully qualified tag reference to the object.",
+                            "minItems": 1,
+                            "items": {
+                                "type": "string",
+                                "description": "Example: localhost:5000/hello-world:latest"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "signatures": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "typ": {
+                        "type": "string",
+                        "description": "Media type. Ref RFC7519.",
+                        "enum": [
+                            "x509",
+                            "gpg"
+                        ]
+                    },
+                    "iss": {
+                        "type": "string",
+                        "description": "Issuer claim. Ref RFC7519."
+                    },
+                    "sig": {
+                        "type": "string",
+                        "description": "The signature blob."
+                    },
+                    "alg": {
+                        "type": "string",
+                        "description": "Signing algorithm. Ref RFC7515."
+                    },
+                    "x5c": {
+                        "type": "string",
+                        "description": "X509 public key certificate or certificate chain. Ref RFC7515."
+                    },
+                    "kid": {
+                        "type": "string",
+                        "description": "Signing key hint. Ref RFC7515."
+                    }
+                },
+                "required": [
+                    "typ",
+                    "sig"
+                ]
+            }
+        }
+    },
+    "required": [
+        "signed",
+        "signatures"
+    ]
+}

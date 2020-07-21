@@ -1,0 +1,190 @@
+openapi: '3.0.2'
+
+info:
+  title: Content Trust in OCI Distribution
+  description: Metadata API for signature related operations in an [OCI registry](https://github.com/opencontainers/distribution-spec).
+  version: '1.0'
+
+servers:
+  - url: http://localhost:5000/v2
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    signatures:
+      type: object
+      description: The list of signatures available for a given artifact.
+      properties:
+        digest:
+          type: string
+          description: The digest of the artifact manifest to which the signatures apply.
+          example: sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
+        signatures:
+          type: array
+          items:
+            type: string
+            description: The digest of the signature manifest.
+            example: sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
+
+    signature_config:
+      $ref: "../../schemas/signature-config-schema.json"
+
+    manifest:
+      $ref: "https://raw.githubusercontent.com/opencontainers/image-spec/master/schema/image-manifest-schema.json"
+
+  parameters:
+    repoParam:
+      name: repository
+      in: path
+      description: The name of the repository.
+      required: true
+      schema:
+        type: string
+
+    digestParam:
+      name: digest
+      in: path
+      description: The cryptographic checksum digest of the object, in the pattern '<algorithm>:<encoded>'
+      required: true
+      schema:
+        type: string
+
+    signatureManifestDigestParam:
+      $ref: "#/components/parameters/digestParam"
+
+paths:
+  /{repository}/manifests/{digest}:
+    get:
+      summary: Get manifest of object corresponding to the given digest in the given repository.
+      operationId: getManifest
+      security:
+        - basicAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/repoParam"
+        - $ref: "#/components/parameters/digestParam"
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/manifest"
+
+  /{repository}/manifests/{digest}/signatures/:
+    get:
+      summary: Get all available signatures that reference the given manifest digest in the given repository.
+      operationId: getSignatures
+      security:
+        - basicAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/repoParam"
+        - $ref: "#/components/parameters/digestParam"
+        - in: query
+          name: iss
+          description: Query parameter for issuer.
+          required: false
+          example: Open Image Scanner
+          schema:
+            type: string
+        - in: query
+          name: max
+          description: Query parameter for max number of items.
+          required: false
+          example: 10
+          schema:
+            type: integer
+        - in: query
+          name: last
+          description: Query parameter for the last item in previous query. Result set will include values lexically after last.
+          example: 5
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/signatures"
+
+  /{repository}/manifests/{digest}/signature/{digest}:
+    put:
+      summary: Link a signature to an image.
+      operationId: putSignature
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/repoParam"
+        - $ref: "#/components/parameters/digestParam"
+        - $ref: "#/components/parameters/signatureManifestDigestParam"
+      responses:
+        '201':
+          description: Accepted
+
+  /{repository}/blobs/{digest}:
+    get:
+      summary: Get a layer blob.
+      operationId: getBlob
+      security:
+        - basicAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/repoParam"
+        - $ref: "#/components/parameters/digestParam"
+      responses:
+        '307':
+          description: Temporary Redirect
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Location of the blob in the data server.
+          links:
+            GetSignatureConfigBlob:
+              operationRef: '#/paths/~1{blobLocation}/get'
+              parameters:
+                blobLocation: '$response.header.Location'
+              description: The URI in the `Location` header can be used to download the blob from the data server.
+
+  /{blobLocation}:
+    get:
+      summary: Download data from blob location. The location may contain a SAS key.
+      operationId: getContent
+      servers:
+        - url: http://localhost:5000/data/
+      parameters:
+        - in: path
+          name: blobLocation
+          description: The blob location in the data server. It may be a SAS URI.
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/octet-stream:
+              schema:
+                oneOf:
+                  - $ref:  "#/components/schemas/signature_config"
+                  - type: string
+                    format: binary
+              examples:
+                x509_x5c_config:
+                  externalValue: "../../docs/artifacts/examples/signature-config/x509_x5c_config.json"
+                  description: A x509 signature containing a x5c certificate chain.
+                x509_kid_config:
+                  externalValue: "../../docs/artifacts/examples/signature-config/x509_kid_config.json"
+                  description: A x509 signature containing a signing key ID reference.
+                gpg_config:
+                  externalValue: "../../docs/artifacts/examples/signature-config/gpg_config.json"
+                  description: A gpg signature containing the public key reference in the signature.

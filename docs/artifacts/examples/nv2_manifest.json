@@ -1,0 +1,9 @@
+{
+    "schemaVersion": 2,
+    "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+json",
+        "size": 970,
+        "digest": "sha256:3050007db1743bfb40df955fa99bfef7ab451a51"
+    },
+    "layers": []
+}
