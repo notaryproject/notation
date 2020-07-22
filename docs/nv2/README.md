@@ -40,7 +40,7 @@ By default, all keys sit in the directory `~/.gnupg`. If the `gpg` version is `>
 
 ```shell
 # Update to legacy public key ring 
-[ -f ~/.gnupg/pubring.gpg ] && gpg --export > ~/.gnupg/pubring.gpg
+[ ! -f ~/.gnupg/pubring.gpg ] && gpg --export > ~/.gnupg/pubring.gpg
 
 # Export legacy secret key ring
 gpg --export-secret-keys > ~/.gnupg/secring.gpg
@@ -77,7 +77,8 @@ The above commands build the image `example:latest` based on the local context, 
 To sign the manifest `example.json` using the GnuPG key identified by the identity name `Demo User`, run
 
 ```
-$ nv2 sign -m gpg -i "Demo User" -r example.registry.io/example:latest -e 8760h file:example.json sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
+$ nv2 sign -m gpg -i "Demo User" -r example.registry.io/example:latest -e 8760h file:example.json
+sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
 where the optional option `-r` declares the original reference, and the optional option `-e` specifies the expiry time (`8760h = 365 days`). On successful signing, `nv2` prints out the `sha256` digest of the manifest, and writes the `nv2` signature JSON file `<digest>.nv2` to the working directory. If the file name is not desired, option `-o` can be specified for the alternative file name.
@@ -269,7 +270,7 @@ sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 Since the tag might be changed during the verification process, it is required to pull by digest after verification.
 
 ```shell
-digest=$(nv2 sign -m gpg -i demo -o docker.nv2 docker://docker.io/library/hello-world:latest)
+digest=$(nv2 verify -f docker.nv2 docker://docker.io/library/hello-world:latest)
 if [ $? -eq 0 ]; then
     docker pull docker.io/library/hello-world@$digest
 fi
