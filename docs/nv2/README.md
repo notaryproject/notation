@@ -58,6 +58,55 @@ openssl req -x509 -sha256 -nodes -newkey rsa:2048 -keyout key.pem -out cert.pem 
 
 When generating the certificate, make sure that the Common Name (`CN`) is set properly in the `Subject` field. The Common Name will be verified against the claimed original references.
 
+## CLI Overview
+
+The two major commands of `nv2` are
+
+- `nv2 sign`
+
+  ```
+  NAME:
+     nv2 sign - signs artifacts or images
+  
+  USAGE:
+     nv2 sign [command options] [<scheme://reference>]
+  
+  OPTIONS:
+     --method value, -m value     siging method
+     --key value, -k value        siging key file [x509]
+     --cert value, -c value       siging cert [x509]
+     --key-ring value             gpg public key ring file [gpg] (default: "/home/demo/.gnupg/secring.gpg")
+     --identity value, -i value   signer identity [gpg]
+     --expiry value, -e value     expire duration (default: 0s)
+     --reference value, -r value  original references
+     --output value, -o value     write signature to a specific path
+     --username value, -u value   username for generic remote access
+     --password value, -p value   password for generic remote access
+     --insecure                   enable insecure remote access (default: false)
+     --help, -h                   show help (default: false)
+  ```
+
+- `nv2 verify`
+
+  ```
+  NAME:
+     nv2 verify - verifies artifacts or images
+  
+  USAGE:
+     nv2 verify [command options] [<scheme://reference>]
+  
+  OPTIONS:
+     --signature value, -s value, -f value  signature file
+     --cert value, -c value                 certs for verification [x509]
+     --ca-cert value                        CA certs for verification [x509]
+     --key-ring value                       gpg public key ring file [gpg] (default: "/home/demo/.gnupg/pubring.gpg")
+     --disable-gpg                          disable GPG for verification [gpg] (default: false)
+     --username value, -u value             username for generic remote access
+     --password value, -p value             password for generic remote access
+     --insecure                             enable insecure remote access (default: false)
+     --help, -h                             show help (default: false)
+  ```
+
 ## Offline Signing and Verification
 
 Signing and verification offline can be accomplished by the `nv2 sign` command and the `nv2 verify` command.
@@ -249,7 +298,7 @@ $ nv2 verify -f oci.nv2 oci://docker.io/library/hello-world:latest
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
 ```
 
-**NB** The digest of the OCI manifest is different from the Docker manifest for the same image since their format is different. Therefore, the signer should be careful with the manifest type when signing.
+**Note** The digest of the OCI manifest is different from the Docker manifest for the same image since their format is different. Therefore, the signer should be careful with the manifest type when signing.
 
 ### Insecure Registries
 

@@ -34,7 +34,7 @@ components:
             example: sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
 
     signature_config:
-      $ref: "../../schemas/signature-config-schema.json"
+      $ref: "../signature/schema.json"
 
     manifest:
       $ref: "https://raw.githubusercontent.com/opencontainers/image-spec/master/schema/image-manifest-schema.json"
@@ -180,11 +180,11 @@ paths:
                     format: binary
               examples:
                 x509_x5c_config:
-                  externalValue: "../../docs/artifacts/examples/signature-config/x509_x5c_config.json"
+                  externalValue: "../signature/examples/x509_x5c.nv2.json"
                   description: A x509 signature containing a x5c certificate chain.
                 x509_kid_config:
-                  externalValue: "../../docs/artifacts/examples/signature-config/x509_kid_config.json"
+                  externalValue: "../signature/examples/x509_kid.nv2.json"
                   description: A x509 signature containing a signing key ID reference.
                 gpg_config:
-                  externalValue: "../../docs/artifacts/examples/signature-config/gpg_config.json"
+                  externalValue: "../signature/examples/gpg.nv2.json"
                   description: A gpg signature containing the public key reference in the signature.
