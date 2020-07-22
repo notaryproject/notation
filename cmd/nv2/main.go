@@ -17,10 +17,6 @@ func main() {
 				Name:  "Shiwei Zhang",
 				Email: "shizh@microsoft.com",
 			},
-			{
-				Name:  "Aviral Takkar",
-				Email: "avtakkar@microsoft.com",
-			},
 		},
 		Commands: []*cli.Command{
 			signCommand,
