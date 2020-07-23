@@ -15,7 +15,7 @@ import (
 
 var verifyCommand = &cli.Command{
 	Name:      "verify",
-	Usage:     "verifies artifacts or images",
+	Usage:     "verifies OCI Artifacts",
 	ArgsUsage: "[<scheme://reference>]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{

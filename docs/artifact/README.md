@@ -1,4 +1,5 @@
 # Notary V2 Artifact
+
 [Notary v2 signatures](../signature/README.md) can be stored as [OCI artifacts](https://github.com/opencontainers/artifacts). Precisely, it is a [OCI manifest](https://github.com/opencontainers/image-spec/blob/master/manifest.md) with a config of type
 
 - `application/vnd.cncf.notary.config.v2+json`

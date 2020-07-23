@@ -17,7 +17,7 @@ const signerID = "nv2"
 
 var signCommand = &cli.Command{
 	Name:      "sign",
-	Usage:     "signs artifacts or images",
+	Usage:     "signs OCI Artifacts",
 	ArgsUsage: "[<scheme://reference>]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
