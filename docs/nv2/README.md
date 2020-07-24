@@ -28,69 +28,26 @@ go build -o nv2 ./cmd/nv2
 
 Next, install optional components:
 
-- Install [GnuPG](https://gnupg.org/) for `gpg`/`pgp` signing, and key management.
 - Install [docker-generate](https://github.com/shizhMSFT/docker-generate) for local Docker manifest generation and local signing.
 - Install [OpenSSL](https://www.openssl.org/) for key generation.
 
 ### Self-signed certificate key generation
 
-To generate a `x509` self-signed certificate key pair `key.pem` and `cert.pem`, run
+To generate a `x509` self-signed certificate key pair `example.key` and `example.crt`, run
 
-```shell
+``` shell
 openssl req \
   -x509 \
   -sha256 \
   -nodes \
-  -newkey \
-  rsa:2048 \
+  -newkey rsa:2048 \
   -days 365 \
-  -out cert.pem \
-  -keyout key.pem
+  -subj "/CN=registry.example.com/O=example inc/C=US/ST=Washington/L=Seattle" \
+  -keyout example.key \
+  -out example.crt
 ```
 
-Example Parameters
-
-| Parameter | Value |
-| - | - |
-| Country Name (2 letter code) [AU] | **US** |
-| State or Province Name (full name) [Some-State] | **Washington** |
-| Locality Name (eg, city) [] | **Seattle**|
-| Organization Name (eg, company) [Internet Widgits Pty Ltd] | **ACME Rockets**|
-| Organizational Unit Name (eg, section) [] | **.** |
-| Common Name (e.g. server FQDN or YOUR name) [] | **registry.acme-rockets.io**|
-| Email Address []:| **.** |
-
 When generating the certificate, make sure that the Common Name (`CN`) is set properly in the `Subject` field. The Common Name will be verified against the registry name within the signature.
-
-### GnuPG Key Generation
-
-- Generate a `gpg` key
-
-  ```shell
-  gpg --gen-key
-  ```
-
-  Example Parameters
-
-  | Parameter | Value |
-  | - | - |
-  | Real name | **acme-rockets** |
-  | Email address | **wabbit@acme-rockets.io** |
-
-  > **Note:** If the `gpg` version is `>= 2.1`, key export is required as all keys sit in the  `~/.gnupg` directory.  
-  > Golang tracking issue [golang/go#29082](https://github.com/golang/go/issues/29082)
-
-  - Update to legacy public key ring
-
-    ```shell
-    [ ! -f ~/.gnupg/pubring.gpg ] && gpg --export > ~/.gnupg/pubring.gpg
-    ```
-
-  - Export legacy secret key ring
-
-    ``` shell
-    gpg --export-secret-keys > ~/.gnupg/secring.gpg
-    ```
 
 ## Offline Signing
 
@@ -147,8 +104,8 @@ To sign the manifest `hello-world_v1-manifest.json` using the key `key.pem` from
 
 ```shell
 nv2 sign --method x509 \
-  -k key.pem \
-  -c cert.pem \
+  -k key.key \
+  -c cert.crt \
   -r registry.acme-rockets.io/hello-world:v1 \
   -o hello-world.signature.config.json \
   file:hello-world_v1-manifest.json
@@ -187,7 +144,7 @@ If the embedded cert chain `x5c` is not desired, it can be replaced by a key ID 
 
 ```shell
 nv2 sign -m x509 \
-  -k key.pem \
+  -k key.key \
   -r registry.acme-rockets.io/hello-world:v1 \
   -o hello-world.signature.config.json \
   file:hello-world_v1-manifest.json
@@ -308,7 +265,7 @@ Since the manifest was signed by a self-signed certificate, that certificate `ce
 ```shell
 nv2 verify \
   -f hello-world.signature.config.json \
-  -c cert.pem \
+  -c cert.crt \
   file:hello-world_v1-manifest.json
 ```
 
@@ -316,9 +273,9 @@ If the cert isn't self-signed, you can omit the `-c` parameter.
 
 ``` shell
 nv2 verify \
-  -f example.nv2 \
-  -c cert.pem \
-  file:example.json
+  -f hello-world.signature.config.json \
+  file:hello-world_v1-manifest.json
+
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
@@ -328,7 +285,10 @@ The command `nv2 verify` takes care of all signing methods. Since the original r
 
 ``` shell
 nv2 verify \
-  -f gpg.nv2 --disable-gpg file:example.json
+  -f hello-world.signature.config.json \
+  --disable-gpg \
+  file:hello-world_v1-manifest.json
+
 2020/07/20 23:54:35 verification failure: unknown signature type
 ```
 
@@ -354,7 +314,7 @@ sha256:49a1c8800c94df04e9658809b006fd8a686cab8028d33cfba2cc049724254202
 
 It is possible to use `digest` in the reference. For instance:
 
-```
+``` shell
 docker.io/library/hello-world@sha256:49a1c8800c94df04e9658809b006fd8a686cab8028d33cfba2cc049724254202
 ```
 
@@ -364,10 +324,18 @@ If neither `tag` nor `digest` is specified, the default tag `latest` is used.
 
 OCI registry works the same as Docker but with the scheme `oci`.
 
-```
-$ nv2 sign -m gpg -i demo -o oci.nv2 oci://docker.io/library/hello-world:latest
+``` shell
+nv2 sign -m gpg \
+  -i demo \
+  -o oci.nv2 \
+  oci://docker.io/library/hello-world:latest
+
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
-$ nv2 verify -f oci.nv2 oci://docker.io/library/hello-world:latest
+
+nv2 verify \
+  -f oci.nv2 \
+  oci://docker.io/library/hello-world:latest
+
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
 ```
 
@@ -377,13 +345,14 @@ sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
 
 To sign and verify images from insecure registries accessed via `HTTP`, such as `localhost`, the option `--insecure` is required.
 
-```
-$ docker tag example localhost:5000/example
-$ docker push localhost:5000/example
+``` shell
+docker tag example localhost:5000/example
+docker push localhost:5000/example
 The push refers to repository [localhost:5000/example]
 50644c29ef5a: Pushed
 latest: digest: sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55 size: 528
-$ nv2 verify -f gpg.nv2 --insecure docker://localhost:5000/example
+
+nv2 verify -f gpg.nv2 --insecure docker://localhost:5000/example
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
