@@ -1,6 +1,6 @@
 # Notary V2 (nv2) - Prototype
 
-`nv2` is a command line tool for signing and verifying manifest-based artifacts or images. This implementation supports `gpg` and `x509` signing mechanisms.
+`nv2` is a command line tool for signing and verifying manifest-based artifacts or images. This implementation supports `x509` signing mechanism.
 
 ## Prerequisites 
 
@@ -22,31 +22,10 @@ go build -o path/to/the/target ./cmd/nv2
 
 Next, install optional components:
 
-- Install [GnuPG](https://gnupg.org/) for `gpg`/`pgp` signing, and key management.
 - Install [docker-generate](https://github.com/shizhMSFT/docker-generate) for local Docker manifest generation and local signing.
 - Install [OpenSSL](https://www.openssl.org/) for key generation.
 
 ### Key Generation
-
-#### GnuPG Key Generation
-
-To generate a `gpg` key, run
-
-```shell
-gpg --gen-key
-```
-
-By default, all keys sit in the directory `~/.gnupg`. If the `gpg` version is `>= 2.1`, key export is required after key generation
-
-```shell
-# Update to legacy public key ring 
-[ ! -f ~/.gnupg/pubring.gpg ] && gpg --export > ~/.gnupg/pubring.gpg
-
-# Export legacy secret key ring
-gpg --export-secret-keys > ~/.gnupg/secring.gpg
-```
-
-until the issue [golang/go#29082](https://github.com/golang/go/issues/29082) is resolved.
 
 #### Self-signed Certificate Generation
 
@@ -62,50 +41,42 @@ When generating the certificate, make sure that the Common Name (`CN`) is set pr
 
 The two major commands of `nv2` are
 
-- `nv2 sign`
+```
+NAME:
+   nv2 sign - signs artifacts or images
 
-  ```
-  NAME:
-     nv2 sign - signs artifacts or images
-  
-  USAGE:
-     nv2 sign [command options] [<scheme://reference>]
-  
-  OPTIONS:
-     --method value, -m value     siging method
-     --key value, -k value        siging key file [x509]
-     --cert value, -c value       siging cert [x509]
-     --key-ring value             gpg public key ring file [gpg] (default: "/home/demo/.gnupg/secring.gpg")
-     --identity value, -i value   signer identity [gpg]
-     --expiry value, -e value     expire duration (default: 0s)
-     --reference value, -r value  original references
-     --output value, -o value     write signature to a specific path
-     --username value, -u value   username for generic remote access
-     --password value, -p value   password for generic remote access
-     --insecure                   enable insecure remote access (default: false)
-     --help, -h                   show help (default: false)
-  ```
+USAGE:
+   nv2 sign [command options] [<scheme://reference>]
 
-- `nv2 verify`
+OPTIONS:
+   --method value, -m value     signing method
+   --key value, -k value        signing key file [x509]
+   --cert value, -c value       signing cert [x509]
+   --expiry value, -e value     expire duration (default: 0s)
+   --reference value, -r value  original references
+   --output value, -o value     write signature to a specific path
+   --username value, -u value   username for generic remote access
+   --password value, -p value   password for generic remote access
+   --insecure                   enable insecure remote access (default: false)
+   --help, -h                   show help (default: false)
+```
 
-  ```
-  NAME:
-     nv2 verify - verifies artifacts or images
-  
-  USAGE:
-     nv2 verify [command options] [<scheme://reference>]
-  
-  OPTIONS:
-     --signature value, -s value, -f value  signature file
-     --cert value, -c value                 certs for verification [x509]
-     --ca-cert value                        CA certs for verification [x509]
-     --key-ring value                       gpg public key ring file [gpg] (default: "/home/demo/.gnupg/pubring.gpg")
-     --disable-gpg                          disable GPG for verification [gpg] (default: false)
-     --username value, -u value             username for generic remote access
-     --password value, -p value             password for generic remote access
-     --insecure                             enable insecure remote access (default: false)
-     --help, -h                             show help (default: false)
-  ```
+```
+NAME:
+   nv2 verify - verifies artifacts or images
+
+USAGE:
+   nv2 verify [command options] [<scheme://reference>]
+
+OPTIONS:
+   --signature value, -s value, -f value  signature file
+   --cert value, -c value                 certs for verification [x509]
+   --ca-cert value                        CA certs for verification [x509]
+   --username value, -u value             username for generic remote access
+   --password value, -p value             password for generic remote access
+   --insecure                             enable insecure remote access (default: false)
+   --help, -h                             show help (default: false)
+```
 
 ## Offline Signing and Verification
 
@@ -121,12 +92,12 @@ docker generate manifest example > example.json
 
 The above commands build the image `example:latest` based on the local context, and then generate its manifest file `example.json`.
 
-### Signing using GnuPG
+### Signing using `x509`
 
-To sign the manifest `example.json` using the GnuPG key identified by the identity name `Demo User`, run
+To sign the manifest `example.json` using the key `key.pem` from the `x509` certificate `cert.pem` with the Common Name `example.registry.io`, run
 
 ```
-$ nv2 sign -m gpg -i "Demo User" -r example.registry.io/example:latest -e 8760h file:example.json
+$ nv2 sign -m x509 -k key.pem -c cert.pem -r example.registry.io/example:latest -e 8760h file:example.json
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
@@ -136,73 +107,35 @@ In this example, the signature file name is `3351c53952446db17d21b86cfe5829ae70f
 
 ```json
 {
-  "signed": {
-    "exp": 1626792407,
-    "nbf": 1595256407,
-    "iat": 1595256407,
-    "manifests": [
-      {
+    "signed": {
         "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
         "size": 528,
         "references": [
-          "example.registry.io/example:latest"
-        ]
-      }
+            "example.registry.io/example:latest"
+        ],
+        "exp": 1627097957,
+        "nbf": 1595561957,
+        "iat": 1595561957
+    },
+    "signatures": [
+        {
+            "typ": "x509",
+            "sig": "o0pytd+Ck8ePDoFlqD76W8N4AiRf4MEqKGRbo/IvOvhxaE8PIzwcoIiLGgbeYUq9K6GRiEZlBiBtkc+OVf4Ld8AN4o1EMrqrmZXrZKB/l0xzs00Yei6Z0UzsdGi1FFtJzFq9BofDz7tK/0122iPu7u5riPXHexKiuPbfxhXd4hpktiXs/qHy9bMGhmlQIyup5IZ3EUMlEIlQchOZuj/xSxIzBaxYuTxFJOGSMviGZWI7hFrs2bisDdN/FQWjisPpUoA+S2NWLkpOCkFI2uSzFKTGKte6GkV2ygnGAU9cXfVIDBMxPBeDgA/vej3bA9263kY8NrXM8z1Kz4OJR11jrA==",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDHTCCAgWgAwIBAgIUGrRoPvh96XNsYpgYEGzbT5X+weQwDQYJKoZIhvcNAQELBQAwHjEcMBoGA1UEAwwTZXhhbXBsZS5yZWdpc3RyeS5pbzAeFw0yMDA3MjQwMzM2MjNaFw0yMTA3MjQwMzM2MjNaMB4xHDAaBgNVBAMME2V4YW1wbGUucmVnaXN0cnkuaW8wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC36/XRfhNMyM0kxuOlEleX28MGdzevJH7KWH4qZlswDnroVoAqydbyJ64X3w1wQHIuNA0fv2Nzz42QuHQ/30yjUH+6flLX0NbBE7dXFpQX+A+gA9fh5B1Iv8xtOA4GbcRe7tQqSwOzv4aOBMsfWONSkAp98gS50gSUxlyFOJB6+OQu/7qOtJp2adeqJl3NRcN/cZRHjf8wuJ1lW5bmlw0cqr0o0djO4LtFHUfLOel8ssuxZ0r4KJPrsIQnrqrdCcQks+0HMJcnCUGON+lCnjmZHy1Wnb2GJ2muC9dgvcAo/S9ACXTMTt/Y2+Pd8cvfJdGiqV+TzfMBElOBalizWmWnAgMBAAGjUzBRMB0GA1UdDgQWBBQ5jPzDjKFkIzWqw+bWXRQnIE0BDTAfBgNVHSMEGDAWgBQ5jPzDjKFkIzWqw+bWXRQnIE0BDTAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQAYWp48KRbJbUMWntg7OKDIeh23HE+YOLXXh2Zp8sB9hbMyg/GVvJLcqYokct3l2lFVszykw3s/eACkTne5sCktKewP63xQ58ZnYYg4iXFULbRHsltlVPniMjCKI/sb0C/Q/w6kynxfBlsD62ETVrgKGn1KJJCIaNqcTLvSS7yQ4Kb7abP5caRNxjsWz89j+MxE7F4uNLeLvFOMGSSwAbR2pWetvgvt7i/unGBEw2NP7Xqy9KUJsqBhfYlfmX4qPWWRVNeN/r4UrkYVpP+uYhvYWTNjDoYcgdXr08EkpkBsDWIUiDVpJEQBzmt8L9Oalf5lwqGGrsM0xf47H0G/PFD1"
+            ]
+        }
     ]
-  },
-  "signatures": [
-    {
-      "typ": "gpg",
-      "sig": "wsDcBAABCAAQBQJfFa5XCRBGnsnNNqPeHgAAlM0MAHFXZxyCgsxiGVat8YCRIhR7IoQe2scswGyvGGinYBy88EpKGFEAGO+Kt1frTQNW9kLYWmTw4EFctgMw+XxeDD/CI2rsMSluRh9h2t8xBsO9Ux+7eJoxSEsfU8Jc/YZWpGs/kJOGQ3ERjvPt+SCG0Y8tuNtjnzpV4Gz+8fLSlNZ7b3f+rd7nvvJuB8iWr+yojsCeWh/VGuibyqAXPKVxSrKgkmziyYK3O/0D3KhgyR+CMtjTXL5hP314Gpc415YyN82LC3L44okimN/+X3avX0vQkthiyVw+R+Vgmpa1qk1P/ySrs81yQgFBPBC7+m4n54TqsW46X/UlkQdfP/x5Jg3jUURKgQb0wSLvzbr7Jk1RiThlwjcLhM0VgRIUwbqcqjg/5UNvMRehD44PxQXRz5feZjER2awMyKqRZnImpm8Ub+hAjhqtLGYT34oU2lwctoObV4f4BzffY9kQ0x37PQ3V8aj8k6YFQZbB4vLgwtZdA2c1froVHyuRBUwLzSBevg==",
-      "iss": "Demo User <demo@example.com>"
-    }
-  ]
 }
 ```
 
-where the claims `exp`, `nbf`, `iat`, `iss` are specified by [RFC 7519](https://tools.ietf.org/html/rfc7519), and all those claims will be verified against the GnuPG signature `sig`.
+The detailed signature specification is [available](../signature/README.md).
 
-**NB** It is also possible to read local manifest file via an absolute path.
-
-```shell
-nv2 sign -m gpg -i "Demo User" file:///home/demo/example.json
-```
-
-### Signing using `x509`
-
-To sign the manifest `example.json` using the key `key.pem` from the `x509` certificate `cert.pem` with the Common Name `example.registry.io`, run
+**Note** It is also possible to read local manifest file via an absolute path.
 
 ```shell
-nv2 sign -m x509 -k key.pem -c cert.pem -r example.registry.io/example:latest -o example.nv2 file:example.json
-```
-
-The formatted signature file `example.nv2` is
-
-```json
-{
-  "signed": {
-    "iat": 1595257070,
-    "manifests": [
-      {
-        "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
-        "size": 528,
-        "references": [
-          "example.registry.io/example:latest"
-        ]
-      }
-    ]
-  },
-  "signatures": [
-    {
-      "typ": "x509",
-      "sig": "PnY2vpFJV0fayfGOAAxkokthImq932W8XutYCjGLgvBSqdzGM6VgbJhTgXGeettYv5S7A/FO6e319TxEFmx3ogf1bneOUOGDRCdEte+MupDhAISDkiN42Ktci18qFh7MlcR2DXFos5qux0H3Rrc5Rd6Hi4BTTTwHBjsbnNkN1aXuYmyrJZgYmlHBzfdbaDJRcNMo1RAX+j+BWsNZDv+Ae2dtcnoYc2gK5YC2YuNAsvtP4PpR0jtygpCDZjItdVNsJGMwB3dXHUes7Z88IX8hIKlEOt9qv4sq2iOBTju2zvzk4R/pCjUkbD6dOb+t2uyayXbvyAJbi/cEzsfCdwrXjg==",
-      "alg": "RS256",
-      "x5c": [
-        "MIIDpzCCAo+gAwIBAgIUb6xLgtw1gaM45RnNL9PPhGgvjtEwDQYJKoZIhvcNAQELBQAwYzELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEcMBoGA1UEAwwTZXhhbXBsZS5yZWdpc3RyeS5pbzAeFw0yMDA3MjAxNDU1MjJaFw0yMTA3MjAxNDU1MjJaMGMxCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQxHDAaBgNVBAMME2V4YW1wbGUucmVnaXN0cnkuaW8wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDYW9yzMDsdVpZVU5bTj64iww0AMDGY0qptRaD5ivJGE3RA1WVS/M6gWsOmIHxINiURvuwyG77iUPGq/dXUXjbkypWLcdyEpgpsQRss/lMKjYVayi11nOe6L9nv/1vJ7FPuaBLZJLUIX7+6+/GwQCIe5SmbFmEERNPZ24HdTA+q5jAynYJqJQAx1ReUXNu8jKMo9ZPq787VJIK8eiLn4gty/JfZ0VyobFHaCClbVp+nvfv6IeV+34pFcnPX0UaA4b0zerQIYfkaAAu5pQcR7W5KNQgMR0HIMdvw7Kkuzx30pwJA3i8X49D9nyalyW41wWRnNe8emAjgFkMFXMqlxNmxAgMBAAGjUzBRMB0GA1UdDgQWBBTrHl7XtUeE0biwJngTM2DtVz2LqTAfBgNVHSMEGDAWgBTrHl7XtUeE0biwJngTM2DtVz2LqTAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBAua2m0+i920V+KhzmAukJaEh1CkOXr1nFRN2eMuNO4H5l1NsMhtR2XXQkhap9GfSnS0BSIvJ9WbDWm7YBJFXo0zD9pbnlLEbnVtegDzUtEf+0yydKatTc+ClGVM+Cugrbbc7Jzb+hauh6WodYxUAMLUL7Ld4ae7x17VlpgQtRSMELJVrDXaabQXT7sY2pSomFBY5/3NnCJGUOLX0XLRU9dgjHqx1ARWeiJpvH/hV9w2o0jAM+W/vKJHXi4gz1StFLRv4C66cZbMH3yX7d4tlLB7V54ZU0jkRUOcWKFC9Cn4dRrs2dEjYgHRTuk2G3dcqxUCwWCaquuhjk1koi9xYA"
-      ]
-    }
-  ]
-}
+nv2 sign -m x509 -k key.pem -c cert.pem file:///home/demo/example.json
 ```
 
 If the embedded cert chain `x5c` is not desired, it can be replaced by a key ID `kid` by omitting the `-c` option.
@@ -215,37 +148,31 @@ The formatted resulted signature file `example.nv2` is
 
 ```json
 {
-  "signed": {
-    "iat": 1595259542,
-    "manifests": [
-      {
+    "signed": {
         "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
         "size": 528,
         "references": [
-          "example.registry.io/example:latest"
-        ]
-      }
+            "example.registry.io/example:latest"
+        ],
+        "iat": 1595562116
+    },
+    "signatures": [
+        {
+            "typ": "x509",
+            "sig": "rEVuMlvfrXjhPx+LgWSsRDyGrWiOuSG74l7ex4ekPwxIzetWe5q8/i8VGwnhAUQvHnq/TgFz9AoRjJECLUskJXrNTeDTcIrCudTZIri+urQkW7dj/mOt53Iq8X3tYGHfFX060I95WtPFwLxbO018THQbIrbhFoK9Lwotrk/k+9gMGwq5tZ6JMjfiHV61Ne1OKli5WZlpCjIjsScwmATMUyIc7or/c7w70L058QR6vZjZaDoMzXOYv6uiusj5wKCaySbsaNz07Gmx9DYRkbbDt7l5YjB4eC+gaH08Yrrbq/yWHyHlbR4EnKOJw5Ki1y4QKLRKWFjhw3tXdWacnD//7g==",
+            "alg": "RS256",
+            "kid": "DD2E:DW7J:OVJK:KCZR:2PGY:SYC5:WFJF:RMMV:FH6W:VGYM:2WW4:7ZGC"
+        }
     ]
-  },
-  "signatures": [
-    {
-      "typ": "x509",
-      "sig": "CIas/ACj5bI0aQHuQCGFRK5I7wKAFltide2a/7u5h5g5xIthbeDjGKUL8JNV9r1Bl2TlCQjyv8695eq8jpe4nlyWWkdf4S+79njLkvWhJiUakLHq4KV1gFUy1dUKSOLRA1YGiS30q0ZKUOiUUdiEF+OUqGc4bHvtrL9ByHA8QBffYvBHSqnzowu/yTwwmX9QvnGwh4ic4Hi4YhJpPwbIYvmcuiXtSgqj/oo2d+aVc+uj9QYp0/ETVl3h7HFZ5XjGB4SxxF77TxqsghpyojMOxf8bT8KxR7V05I1Acy6jmyXyh1pliF9ENdmvHQgSEbtXaWs+8tqkdZd+Y6BxpUA2tQ==",
-      "alg": "RS256",
-      "kid": "L7YO:TIUS:TSSY:DV6I:HOU4:YAIC:5HLB:JR7Y:W2EK:XU7W:L27M:YYHY"
-    }
-  ]
 }
 ```
-
-where the claims  `alg`, `x5c`, `kid` are specified by [RFC 7515](https://tools.ietf.org/html/rfc7515),
 
 ### Verifying
 
 To verify a manifest `example.json` with a signature file `example.nv2`, run
 
 ```shell
-nv2 verify -f example.nv2 file://example.json
+nv2 verify -f example.nv2 file:example.json
 ```
 
 Since the manifest was signed by a self-signed certificate, that certificate `cert.pem` is required to be provided to `nv2`.
@@ -257,12 +184,7 @@ sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 
 On successful verification, the `sha256` digest of the manifest is printed. Otherwise, `nv2` prints error messages and returns non-zero values.
 
-The command `nv2 verify` takes care of all signing methods. Since the original references of a manifest signed using `gpg` does not imply that it is signed by the domain owner, we should disable the `gpg` verification by setting the `--disable-gpg` option.
-
-```
-$ nv2 verify -f gpg.nv2 --disable-gpg file:example.json
-2020/07/20 23:54:35 verification failure: unknown signature type
-```
+The command `nv2 verify` takes care of all signing methods.
 
 ## Remote Manifests
 
@@ -270,12 +192,12 @@ With `nv2`, it is also possible to sign and verify a manifest or a manifest list
 
 ### Docker Registry
 
-Here is an example to sign and verify the image `hello-world` in DockerHub, i.e. `docker.io/library/hello-world:latest`, using `gpg`.
+Here is an example to sign and verify the image `hello-world` in DockerHub, i.e. `docker.io/library/hello-world:latest`, using `x509`.
 
 ```
-$ nv2 sign -m gpg -i demo -o docker.nv2 docker://docker.io/library/hello-world:latest
+$ nv2 sign -m x509 -k key.pem -o docker.nv2 docker://docker.io/library/hello-world:latest
 sha256:49a1c8800c94df04e9658809b006fd8a686cab8028d33cfba2cc049724254202
-$ nv2 verify -f docker.nv2 docker://docker.io/library/hello-world:latest
+$ nv2 verify -f docker.nv2 -c cert.pem docker://docker.io/library/hello-world:latest
 sha256:49a1c8800c94df04e9658809b006fd8a686cab8028d33cfba2cc049724254202
 ```
 
@@ -292,9 +214,9 @@ If neither `tag` nor `digest` is specified, the default tag `latest` is used.
 OCI registry works the same as Docker but with the scheme `oci`.
 
 ```
-$ nv2 sign -m gpg -i demo -o oci.nv2 oci://docker.io/library/hello-world:latest
+$ nv2 sign -m x509 -k key.pem -o oci.nv2 oci://docker.io/library/hello-world:latest
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
-$ nv2 verify -f oci.nv2 oci://docker.io/library/hello-world:latest
+$ nv2 verify -f oci.nv2 -c cert.pem oci://docker.io/library/hello-world:latest
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
 ```
 
@@ -310,7 +232,7 @@ $ docker push localhost:5000/example
 The push refers to repository [localhost:5000/example]
 50644c29ef5a: Pushed
 latest: digest: sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55 size: 528
-$ nv2 verify -f gpg.nv2 --insecure docker://localhost:5000/example
+$ nv2 verify -f example.nv2 --insecure docker://localhost:5000/example
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
@@ -319,7 +241,7 @@ sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 Since the tag might be changed during the verification process, it is required to pull by digest after verification.
 
 ```shell
-digest=$(nv2 verify -f docker.nv2 docker://docker.io/library/hello-world:latest)
+digest=$(nv2 verify -f docker.nv2 -c cert.pem docker://docker.io/library/hello-world:latest)
 if [ $? -eq 0 ]; then
     docker pull docker.io/library/hello-world@$digest
 fi

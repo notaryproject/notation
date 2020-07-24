@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/nv2/pkg/signature"
-	"github.com/notaryproject/nv2/pkg/signature/gpg"
 	"github.com/notaryproject/nv2/pkg/signature/x509"
 	"github.com/urfave/cli/v2"
 )
@@ -23,31 +22,19 @@ var signCommand = &cli.Command{
 		&cli.StringFlag{
 			Name:     "method",
 			Aliases:  []string{"m"},
-			Usage:    "siging method",
+			Usage:    "signing method",
 			Required: true,
 		},
 		&cli.StringFlag{
 			Name:      "key",
 			Aliases:   []string{"k"},
-			Usage:     "siging key file [x509]",
+			Usage:     "signing key file [x509]",
 			TakesFile: true,
 		},
 		&cli.StringFlag{
 			Name:      "cert",
 			Aliases:   []string{"c"},
-			Usage:     "siging cert [x509]",
-			TakesFile: true,
-		},
-		&cli.StringFlag{
-			Name:      "key-ring",
-			Usage:     "gpg public key ring file [gpg]",
-			Value:     gpg.DefaultSecretKeyRingPath(),
-			TakesFile: true,
-		},
-		&cli.StringFlag{
-			Name:      "identity",
-			Aliases:   []string{"i"},
-			Usage:     "signer identity [gpg]",
+			Usage:     "signing cert [x509]",
 			TakesFile: true,
 		},
 		&cli.DurationFlag{
@@ -100,13 +87,13 @@ func runSign(ctx *cli.Context) error {
 	}
 	path := ctx.String("output")
 	if path == "" {
-		path = strings.Split(content.Manifests[0].Digest, ":")[1] + ".nv2"
+		path = strings.Split(content.Manifest.Digest, ":")[1] + ".nv2"
 	}
 	if err := ioutil.WriteFile(path, sigmaJSON, 0666); err != nil {
 		return err
 	}
 
-	fmt.Println(content.Manifests[0].Digest)
+	fmt.Println(content.Manifest.Digest)
 	return nil
 }
 
@@ -119,10 +106,8 @@ func prepareContentForSigning(ctx *cli.Context) (signature.Content, error) {
 	now := time.Now()
 	nowUnix := now.Unix()
 	content := signature.Content{
+		Manifest: manifest,
 		IssuedAt: nowUnix,
-		Manifests: []signature.Manifest{
-			manifest,
-		},
 	}
 	if expiry := ctx.Duration("expiry"); expiry != 0 {
 		content.NotBefore = nowUnix
@@ -140,8 +125,6 @@ func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
 	switch method := ctx.String("method"); method {
 	case "x509":
 		signer, err = x509.NewSignerFromFiles(ctx.String("key"), ctx.String("cert"))
-	case "gpg":
-		signer, err = gpg.NewSigner(ctx.String("key-ring"), ctx.String("identity"))
 	default:
 		return nil, fmt.Errorf("unsupported signing method: %s", method)
 	}

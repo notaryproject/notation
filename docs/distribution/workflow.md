@@ -19,38 +19,35 @@ docker build -t hello-world:dev .
 Sign image `hello-world:dev`.
 
 ```shell
-docker generate manifest hello-world:dev | nv2 sign -m gpg -i demo -o hello-world.nv2
+docker generate manifest hello-world:dev | nv2 sign -m x509 -k key.pem -o hello-world.nv2
 ```
 
 This creates a signature `hello-world.nv2`.
 
 ```json
 {
-  "signed": {
-    "iat": 1595418878,
-    "manifests": [
-      {
+    "signed": {
         "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
-        "size": 528
-      }
+        "size": 528,
+        "iat": 1595562742
+    },
+    "signatures": [
+        {
+            "typ": "x509",
+            "sig": "UhKwzvYsYN/IBWT7N/19HuG6x/Jo15OrWlwB6X/AySMbnB76ZvzID6zHZxD1l9bDRugAL+HV1KGQV1Vv6P9b7NosT2Z0mbVeTdMltdZndRTZkv5ozZtUXgknuGg9EkvvNLP3THsfK6Tm5dU3uk+rdk//cJ+T9/sYizt0zzAXC0gR/MJ3SxXwaGyQ6TqqQr94QyzPgEpn5ActZwNJ4WRPRpTutic95Na99cxjAYLKyhusPUYbXu1BICUv2EkUviSISrtyM+yHe4tX1m5Q4Qc0+labgsD3K82ezCGhRYQb2jCPSlDw0r2x1s3KbK2dlGXpSgz9DrhM+x4L2UEyp0cnsg==",
+            "alg": "RS256",
+            "kid": "DD2E:DW7J:OVJK:KCZR:2PGY:SYC5:WFJF:RMMV:FH6W:VGYM:2WW4:7ZGC"
+        }
     ]
-  },
-  "signatures": [
-    {
-      "typ": "gpg",
-      "sig": "wsDcBAABCAAQBQJfGCj+CRDvXc1GQtqlQgAA+0QMABcsQ0wU2oY78SgHkm7MsYyHdsAkrWBpLG1hRT02InRj18LUmnwGrvpl6sZm7h5pYbfAg1tST9ta+KQCCXNzP4axGS6cNwilPh7V8kUCgXSPaYyzHIptpBbr5HIaOGBCNPIJTFmnvKGYum1AZng+YudRY2UalS1K4vYWMFEsS5xUJNwoHk06nr+DY68QEBUpBGf689iSH7eIGE9XN4+1mtpnOHhI33FbjCFf3ksh+caE91gch/H4H4CQ5RRfjuvnD0xEBVDCVA/0XygBR1IGT9upoVFUA8XNbuhtATej1MHpOd3mIfeg1rBb2sP0j5tZrbyjBBBB4EbI2GfRYfczlaqfRvmAug4AI9Ya7/RFaZTX15A9X+zTpLH0I34BWwh6BKF9TwoFybFPJODYdZ0+rOmE9Renlc4GwPn0LnXX/PVQ3h6rlWznpdaVUFSPYhPg4bbQnW3XL9nCM8zPu2oVoQGVVNqhIVZpq1es7zc0BkrTT+n3eJyBG/WiLpxwGJneNw==",
-      "iss": "Demo User <demo@example.com>"
-    }
-  ]
 }
-  ```
+```
 
 ### Validate
 
 Validate image `hello-world:dev`.
 
 ```
-$ docker generate manifest hello-world:dev | nv2 verify -f hello-world.nv2
+$ docker generate manifest hello-world:dev | nv2 verify -f hello-world.nv2 -c cert.pem
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
@@ -61,7 +58,7 @@ sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 Sign image `hello-world:dev`.
 
 ```shell
-docker generate manifest hello-world:dev | nv2 sign -m gpg -i demo -o hello-world.nv2
+docker generate manifest hello-world:dev | nv2 sign -m x509 -k key.pem -o hello-world.nv2
 ```
 
 This creates a signature `hello-world.nv2`.
@@ -94,8 +91,6 @@ A consumer of the target artifact, such as an orchestrator deploying an image, c
 Fetch the signatures on this artifact form the registry and verify each one of them (or a configured few). After fetching the signature artifact `hello-world.nv2`, the system will do the following equivalent 
 
 ```
-$ nv2 verify -f hello-world.nv2 --insecure docker://localhost:5000/hello-world:v1.0
+$ nv2 verify -f hello-world.nv2 -c cert.pem --insecure docker://localhost:5000/hello-world:v1.0
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
-
- As in our example, if `gpg` signatures are used, the consumer needs to have the verification keys configured in their local keyring.
