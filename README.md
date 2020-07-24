@@ -43,13 +43,19 @@ Their environemt is configured to only trust content from `docker.io` and `acme-
 
 #### Public non-certified content
 
-1. The user discovers some community content they wish to acquire, such as a new 
-2. The user copies the URI for the content, passing it to the docker cli.
-   - `docker run docker.io/hello-world:latest`
-3. The image runs, as verification passes.
+1. The user discovers some community content they wish to acquire, such as a new network-monitor project
+2. The user copies the URI for the content, passing it to the docker cli
+   - `docker run docker.io/wabbit-networks/net-monitor:latest`
+3. The image fails to run as the user has trust-required and doesn't have the wabbit-networks key.The docker cli produces an error with a url for acquiring the wabbit-networks key.
+4. The user can disable `trust-requried`, or acquire the required key.
+5. The user acquires the wabbit-networks key, saves it in their local store
+6. The user again runs:  
+   - `docker run docker.io/wabbit-networks/net-monitor:latest`  
+   and the image is sucessfully run
 
 ### Key acquisition
 
+TBD by the key-management working group
 
 ### Private Registry
 
