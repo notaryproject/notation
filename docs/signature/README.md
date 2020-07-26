@@ -201,29 +201,27 @@ Example showing a formatted `x509` signature file [examples/x509_kid.nv2.json](e
 
 ```json
 {
-    "signed": {
-        "exp": 1626938803,
-        "nbf": 1595402803,
-        "iat": 1595402803,
-        "manifests": [
-            {
-                "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
-                "size": 528,
-                "references": [
-                    "registry.example.com/example:latest",
-                    "registry.example.com/example:v1.0"
-                ]
-            }
+  "signed": {
+    "exp": 1626938803,
+    "nbf": 1595402803,
+    "iat": 1595402803,
+    "manifests": [
+      {
+        "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
+        "size": 528,
+        "references": [
+            "registry.example.com/example:latest",
+            "registry.example.com/example:v1.0"
         ]
-    },
-    "signatures": [
-        {
-            "typ": "x509",
-            "sig": "JQWZ9/H1oQyuBxyYsPaKE7Xh4+U0uITmPwRpPOBNFOxe0qnIxmkyQD0g/W5eQRt1Jwa+2hn35EamqERmdT6ji2f/6haqfIwcSjjaiDu1q1sXGDQhk+ZVzOCCcqRaFNV0fPRwaVMwxeizTUy9ENe1ksZqAPI1SCyzSr6pAa5xKeoJXFUToPjjMm1VMzwj9qwphGk8sXhSqCAt9P9/PV50pxuWU1Dbe+y6M6ZlnET2YIswBze3EjloROQtKniy87Xb2ZwJp81R0XUbWRk5LqiJVT9jDN8/RMDBvMj8eymrjbcb/F3TugvZ99jkkEVjk6tH+dvXu9HbS9HtGh0KRO1XQw==",
-            "alg": "RS256",
-            "kid": "SE4Z:F3CT:DZ64:ONJX:6CRE:PTD2:Z755:DG7W:TSUI:I5GZ:RFKR:JCHY"
-        }
+      }
     ]
+  },
+  "signature": {
+    "typ": "x509",
+    "sig": "JQWZ9/H1oQyuBxyYsPaKE7Xh4+U0uITmPwRpPOBNFOxe0qnIxmkyQD0g/W5eQRt1Jwa+2hn35EamqERmdT6ji2f/6haqfIwcSjjaiDu1q1sXGDQhk+ZVzOCCcqRaFNV0fPRwaVMwxeizTUy9ENe1ksZqAPI1SCyzSr6pAa5xKeoJXFUToPjjMm1VMzwj9qwphGk8sXhSqCAt9P9/PV50pxuWU1Dbe+y6M6ZlnET2YIswBze3EjloROQtKniy87Xb2ZwJp81R0XUbWRk5LqiJVT9jDN8/RMDBvMj8eymrjbcb/F3TugvZ99jkkEVjk6tH+dvXu9HbS9HtGh0KRO1XQw==",
+    "alg": "RS256",
+    "kid": "SE4Z:F3CT:DZ64:ONJX:6CRE:PTD2:Z755:DG7W:TSUI:I5GZ:RFKR:JCHY"
+  }
 }
 ```
 
