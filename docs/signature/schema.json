@@ -19,27 +19,21 @@
                     "type": "integer",
                     "description": "Issued at time. Ref RFC7519."
                 },
-                "manifests": {
-                    "type": "object",
-                    "description": "This is a collection of all the objects being signed.",
-                    "properties": {
-                        "digest": {
-                            "description": "The cryptographic checksum digest of the object, in the pattern '<algorithm>:<encoded>'",
-                            "$ref": "defs-descriptor.json#/definitions/digest"
-                        },
-                        "size": {
-                            "description": "The size in bytes of the referenced object.",
-                            "$ref": "defs.json#/definitions/int64"
-                        },
-                        "references": {
-                            "type": "array",
-                            "description": "Each element in this array represents a fully qualified tag reference to the object.",
-                            "minItems": 1,
-                            "items": {
-                                "type": "string",
-                                "description": "Example: localhost:5000/hello-world:latest"
-                            }
-                        }
+                "digest": {
+                    "description": "The cryptographic checksum digest of the object, in the pattern '<algorithm>:<encoded>'",
+                    "$ref": "defs-descriptor.json#/definitions/digest"
+                },
+                "size": {
+                    "description": "The size in bytes of the referenced object.",
+                    "$ref": "defs.json#/definitions/int64"
+                },
+                "references": {
+                    "type": "array",
+                    "description": "Each element in this array represents a fully qualified tag reference to the object.",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string",
+                        "description": "Example: localhost:5000/hello-world:latest"
                     }
                 }
             }
@@ -54,13 +48,8 @@
                         "type": "string",
                         "description": "Media type. Ref RFC7519.",
                         "enum": [
-                            "x509",
-                            "gpg"
+                            "x509"
                         ]
-                    },
-                    "iss": {
-                        "type": "string",
-                        "description": "Issuer claim. Ref RFC7519."
                     },
                     "sig": {
                         "type": "string",

@@ -151,10 +151,6 @@ Would push the following manifest:
 
     This REQUIRED property provides the base64-encoded signature binary of the specified signature type.
 
-  - **`iss`** *string*
-
-    This REQUIRED property for the `gpg` type indicates the name of the signer / issuer. Implementations MUST verify the issuer name against the user ID of the `gpg` signature.
-
   - **`alg`** *string*
 
     This REQUIRED property for the `x509` type identifies the cryptographic algorithm used to sign the content. This field is based on [RFC 7515 Section 4.1.1](https://tools.ietf.org/html/rfc7515#section-4.1.1).
@@ -229,3 +225,4 @@ Example showing a formatted `x509` signature file [examples/x509_kid.nv2.json](e
 [oci-artifacts]:        https://github.com/opencontainers/artifacts
 [oci-manifest]:         https://github.com/opencontainers/image-spec/blob/master/manifest.md
 [oci-manifest-list]:    https://github.com/opencontainers/image-spec/blob/master/image-index.md
+

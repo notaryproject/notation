@@ -1,6 +1,6 @@
 # Notary V2 (nv2) - Prototype
 
-`nv2` is a command line tool for signing and verifying [OCI Artifacts]. This implementation supports `x509` and `gpg` signing mechanisms.
+`nv2` is a command line tool for signing and verifying [OCI Artifacts]. This implementation supports `x509` signing mechanisms.
 
 ## Table of Contents
 
@@ -126,6 +126,7 @@ The formatted x509 signature: `hello-world.signature.config.json` is:
                 ]
             }
         ]
+
     },
     "signatures": [
         {
@@ -134,6 +135,7 @@ The formatted x509 signature: `hello-world.signature.config.json` is:
             "alg": "RS256",
             "x5c": [
                 "MIIDoDCCAoigAwIBAgIJAITsiynTSlpWMA0GCSqGSIb3DQEBCwUAMGUxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNoaW5ndG9uMRAwDgYDVQQHDAdTZWF0dGxlMRUwEwYDVQQKDAxBQ01FIFJvY2tldHMxGDAWBgNVBAMMD2FjbWUtcm9ja2V0cy5pbzAeFw0yMDA3MjIyMjAxMjZaFw0yMTA3MjIyMjAxMjZaMGUxCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApXYXNoaW5ndG9uMRAwDgYDVQQHDAdTZWF0dGxlMRUwEwYDVQQKDAxBQ01FIFJvY2tldHMxGDAWBgNVBAMMD2FjbWUtcm9ja2V0cy5pbzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAM5l9zOgzubTl/iLquIrVjNgM/7ZlUabsrisPtjN9d05T6FQQS8jYRuJN+XpTU6dWSP6AGf2bJCdX7TI04i/1Uci9TmzQrbp5aOCnIOIhOfX9W1TJ/7RMCw7BsROL8TVVDnMKJ8zde09svCZFDDzFpAbK0vYUnFb1+orlZ3wuALRw9VIxkZDBGrVE0UDqtnGbhw95V13Fiw4XMXN34bS/0alLnSOkTMMZbEXku54H4uNi9orcJ+rLvlvkFw2dQeSHmmHEqHnZkdQxs5HAky/4K2Eq/1DQhVi7Bg/YNC5IrNpw0picn5jqe3l8zjLpdUsVxgYN1G85DDqPDreah+EmCcCAwEAAaNTMFEwHQYDVR0OBBYEFE7L1GPDbahQusbLw3RPldzX5f0LMB8GA1UdIwQYMBaAFE7L1GPDbahQusbLw3RPldzX5f0LMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAJ7Ir7NgAmfaIhX1+oeGhz1hI+eY8EMSilGts+jIS8BOaBBrzbkVcnC4GKMnHQfXDNQUBW+gRML+ju2elSCrteZbbQU6UaO2er6pWXMQTFVw/nkK6lacNHGTGXbZOoKViAcRZkpVwdjKxmAhLDJcQJGwO+NKWf5WEo82HvwgaINvoEooe+NluN0CugQGdUhgJ+EkYx7jTa7XRpReH0aIsklzvjoakPBhCJ1xQ6VL3WV6zZCYwYUYVwpAMS8Gzo3aUhUwPS1W4mioRDqvJ8fKSkttNi8+N+pU65tKtAyRCvfl9KtJHQrgEqPwQYQ9bKt1H/7RI7oI4WoQ55iSgAU4Wyw="
+
             ]
         }
     ]
@@ -152,6 +154,7 @@ nv2 sign -m x509 \
 
 The formatted x509, without the `x5c` chain signature: `hello-world.signature.config.json` is:
 
+
 ```json
 {
     "signed": {
@@ -165,6 +168,7 @@ The formatted x509, without the `x5c` chain signature: `hello-world.signature.co
                 ]
             }
         ]
+
     },
     "signatures": [
         {
@@ -172,6 +176,7 @@ The formatted x509, without the `x5c` chain signature: `hello-world.signature.co
             "sig": "FyRRcAGi1qd0IHT8XoRh0vlGSkE4rjYpJzYEjodRQ2aUO0O/bBIzjV86UxqLnb1Y/GMU817YXeqHqDlySLWYoGKg+/aJGJDqbQpWIxUr6hhjGaxBYDZTt2ayzMAu5X/GNCx0vRLKl5dOOsgTO53QbuKEf4F3xxvQJv3rXHnObJbPSPCavxzs5TNRLepYEZzW1Mp5nkZT4l32/7QLnwwzTsJYGOMTmhGZ7O5LB/eeViKmwBJHXpNzd4rytFXccKlPuyUakSKgsPdTjEvY5UbFpH568wG21HXDQivz6qdST9eSVob2yUx7WV7z+2S2GfmiMZ30BMtKs4Jx1uPOY3Hk8g==",
             "alg": "RS256",
             "kid": "2MKO:CS4G:GP3F:HELH:TUI2:5YSX:NJNU:3O2N:LYM4:FBHC:T7NN:OM5A"
+
         }
     ]
 }
@@ -292,11 +297,13 @@ nv2 verify \
 2020/07/20 23:54:35 verification failure: unknown signature type
 ```
 
+
 ## Remote Manifests
 
 With `nv2`, it is also possible to sign and verify a manifest or a manifest list in a remote registry where the registry can be a docker registry or an OCI registry.
 
 ### Docker Registry
+
 
 Here is an example to sign and verify the image `hello-world` in DockerHub, i.e. `docker.io/library/hello-world:latest`, using `gpg`.
 
@@ -323,6 +330,7 @@ If neither `tag` nor `digest` is specified, the default tag `latest` is used.
 ### OCI Registry
 
 OCI registry works the same as Docker but with the scheme `oci`.
+
 
 ``` shell
 nv2 sign -m gpg \
@@ -351,8 +359,8 @@ docker push localhost:5000/example
 The push refers to repository [localhost:5000/example]
 50644c29ef5a: Pushed
 latest: digest: sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55 size: 528
+nv2 verify -f example.nv2 --insecure docker://localhost:5000/example
 
-nv2 verify -f gpg.nv2 --insecure docker://localhost:5000/example
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
 
@@ -361,11 +369,8 @@ sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 Since the tag might be changed during the verification process, it is required to pull by digest after verification.
 
 ```shell
-digest=$(nv2 verify -f docker.nv2 docker://docker.io/library/hello-world:latest)
+digest=$(nv2 verify -f docker.nv2 -c cert.crt docker://docker.io/library/hello-world:latest)
 if [ $? -eq 0 ]; then
     docker pull docker.io/library/hello-world@$digest
 fi
 ```
-
-[oci-artifacts]:    https://github.com/opencontainers/artifacts
-[oci-manifests]:    https://github.com/opencontainers/image-spec/blob/master/manifest.md

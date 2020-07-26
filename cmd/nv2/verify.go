@@ -8,7 +8,6 @@ import (
 
 	"github.com/notaryproject/nv2/internal/crypto"
 	"github.com/notaryproject/nv2/pkg/signature"
-	"github.com/notaryproject/nv2/pkg/signature/gpg"
 	x509nv2 "github.com/notaryproject/nv2/pkg/signature/x509"
 	"github.com/urfave/cli/v2"
 )
@@ -35,16 +34,6 @@ var verifyCommand = &cli.Command{
 			Name:      "ca-cert",
 			Usage:     "CA certs for verification [x509]",
 			TakesFile: true,
-		},
-		&cli.StringFlag{
-			Name:      "key-ring",
-			Usage:     "gpg public key ring file [gpg]",
-			Value:     gpg.DefaultPublicKeyRingPath(),
-			TakesFile: true,
-		},
-		&cli.BoolFlag{
-			Name:  "disable-gpg",
-			Usage: "disable GPG for verification [gpg]",
 		},
 		usernameFlag,
 		passwordFlag,
@@ -73,22 +62,13 @@ func runVerify(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if !containsManifest(content.Manifests, manifest) {
+	if content.Manifest.Digest != manifest.Digest || content.Manifest.Size != manifest.Size {
 		return fmt.Errorf("verification failure: manifest is not signed: %s", manifest.Digest)
 	}
 
 	// write out
 	fmt.Println(manifest.Digest)
 	return nil
-}
-
-func containsManifest(set []signature.Manifest, target signature.Manifest) bool {
-	for _, manifest := range set {
-		if manifest.Digest == target.Digest && manifest.Size == target.Size {
-			return true
-		}
-	}
-	return false
 }
 
 func readSignatrueFile(path string) (sig signature.Signed, err error) {
@@ -110,15 +90,6 @@ func getSchemeForVerification(ctx *cli.Context) (*signature.Scheme, error) {
 		return nil, err
 	}
 	scheme.RegisterVerifier(verifier)
-
-	// add gpg verifier
-	if !ctx.Bool("disable-gpg") {
-		verifier, err := gpg.NewVerifier(ctx.String("key-ring"))
-		if err != nil {
-			return nil, err
-		}
-		scheme.RegisterVerifier(verifier)
-	}
 
 	return scheme, nil
 }

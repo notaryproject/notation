@@ -134,14 +134,12 @@ func verifyReferences(raw []byte, cert *x509.Certificate) error {
 	}
 	roots := x509.NewCertPool()
 	roots.AddCert(cert)
-	for _, manifest := range content.Manifests {
-		for _, reference := range manifest.References {
-			if _, err := cert.Verify(x509.VerifyOptions{
-				DNSName: strings.SplitN(reference, "/", 2)[0],
-				Roots:   roots,
-			}); err != nil {
-				return err
-			}
+	for _, reference := range content.Manifest.References {
+		if _, err := cert.Verify(x509.VerifyOptions{
+			DNSName: strings.SplitN(reference, "/", 2)[0],
+			Roots:   roots,
+		}); err != nil {
+			return err
 		}
 	}
 	return nil
