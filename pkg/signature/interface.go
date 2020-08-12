@@ -2,11 +2,11 @@ package signature
 
 // Signer signs content
 type Signer interface {
-	Sign(content []byte) (Signature, error)
+	Sign(claims string) (string, []byte, error)
 }
 
 // Verifier verifies content
 type Verifier interface {
 	Type() string
-	Verify(content []byte, signature Signature) error
+	Verify(header Header, signed string, sig []byte) error
 }

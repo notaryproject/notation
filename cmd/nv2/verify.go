@@ -2,9 +2,8 @@ package main
 
 import (
 	"crypto/x509"
-	"encoding/json"
 	"fmt"
-	"os"
+	"io/ioutil"
 
 	"github.com/notaryproject/nv2/internal/crypto"
 	"github.com/notaryproject/nv2/pkg/signature"
@@ -14,7 +13,7 @@ import (
 
 var verifyCommand = &cli.Command{
 	Name:      "verify",
-	Usage:     "verifies artifacts or images",
+	Usage:     "verifies OCI Artifacts",
 	ArgsUsage: "[<scheme://reference>]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -38,6 +37,7 @@ var verifyCommand = &cli.Command{
 		usernameFlag,
 		passwordFlag,
 		insecureFlag,
+		mediaTypeFlag,
 	},
 	Action: runVerify,
 }
@@ -48,13 +48,13 @@ func runVerify(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sigma, err := readSignatrueFile(ctx.String("signature"))
+	sig, err := readSignatrueFile(ctx.String("signature"))
 	if err != nil {
 		return err
 	}
 
 	// core process
-	content, _, err := scheme.Verify(sigma)
+	claims, err := scheme.Verify(sig)
 	if err != nil {
 		return fmt.Errorf("verification failure: %v", err)
 	}
@@ -62,8 +62,8 @@ func runVerify(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if content.Manifest.Digest != manifest.Digest || content.Manifest.Size != manifest.Size {
-		return fmt.Errorf("verification failure: manifest is not signed: %s", manifest.Digest)
+	if manifest.Descriptor != claims.Manifest.Descriptor {
+		return fmt.Errorf("verification failure: %s: ", manifest.Digest)
 	}
 
 	// write out
@@ -71,14 +71,12 @@ func runVerify(ctx *cli.Context) error {
 	return nil
 }
 
-func readSignatrueFile(path string) (sig signature.Signed, err error) {
-	file, err := os.Open(path)
+func readSignatrueFile(path string) (string, error) {
+	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return sig, err
+		return "", err
 	}
-	defer file.Close()
-	err = json.NewDecoder(file).Decode(&sig)
-	return sig, err
+	return string(bytes), nil
 }
 
 func getSchemeForVerification(ctx *cli.Context) (*signature.Scheme, error) {

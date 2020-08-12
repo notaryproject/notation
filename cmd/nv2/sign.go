@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -16,7 +15,7 @@ const signerID = "nv2"
 
 var signCommand = &cli.Command{
 	Name:      "sign",
-	Usage:     "signs artifacts or images",
+	Usage:     "signs OCI Artifacts",
 	ArgsUsage: "[<scheme://reference>]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -55,6 +54,7 @@ var signCommand = &cli.Command{
 		usernameFlag,
 		passwordFlag,
 		insecureFlag,
+		mediaTypeFlag,
 	},
 	Action: runSign,
 }
@@ -67,54 +67,46 @@ func runSign(ctx *cli.Context) error {
 	}
 
 	// core process
-	content, err := prepareContentForSigning(ctx)
+	claims, err := prepareClaimsForSigning(ctx)
 	if err != nil {
 		return err
 	}
-	sig, err := scheme.Sign(signerID, content)
-	if err != nil {
-		return err
-	}
-	sigma, err := signature.Pack(content, sig)
+	sig, err := scheme.Sign(signerID, claims)
 	if err != nil {
 		return err
 	}
 
 	// write out
-	sigmaJSON, err := json.Marshal(sigma)
-	if err != nil {
-		return err
-	}
 	path := ctx.String("output")
 	if path == "" {
-		path = strings.Split(content.Manifest.Digest, ":")[1] + ".nv2"
+		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".nv2"
 	}
-	if err := ioutil.WriteFile(path, sigmaJSON, 0666); err != nil {
+	if err := ioutil.WriteFile(path, []byte(sig), 0666); err != nil {
 		return err
 	}
 
-	fmt.Println(content.Manifest.Digest)
+	fmt.Println(claims.Manifest.Digest)
 	return nil
 }
 
-func prepareContentForSigning(ctx *cli.Context) (signature.Content, error) {
+func prepareClaimsForSigning(ctx *cli.Context) (signature.Claims, error) {
 	manifest, err := getManifestFromContext(ctx)
 	if err != nil {
-		return signature.Content{}, err
+		return signature.Claims{}, err
 	}
 	manifest.References = ctx.StringSlice("reference")
 	now := time.Now()
 	nowUnix := now.Unix()
-	content := signature.Content{
+	claims := signature.Claims{
 		Manifest: manifest,
 		IssuedAt: nowUnix,
 	}
 	if expiry := ctx.Duration("expiry"); expiry != 0 {
-		content.NotBefore = nowUnix
-		content.Expiration = now.Add(expiry).Unix()
+		claims.NotBefore = nowUnix
+		claims.Expiration = now.Add(expiry).Unix()
 	}
 
-	return content, nil
+	return claims, nil
 }
 
 func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {

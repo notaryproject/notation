@@ -1,7 +1,6 @@
 package x509
 
 import (
-	"bytes"
 	"crypto"
 	"crypto/x509"
 	"encoding/json"
@@ -58,27 +57,37 @@ func (v *verifier) Type() string {
 	return Type
 }
 
-func (v *verifier) Verify(content []byte, sig signature.Signature) error {
-	if sig.Type != Type {
+func (v *verifier) Verify(header signature.Header, signed string, sig []byte) error {
+	if header.Type != Type {
 		return signature.ErrInvalidSignatureType
 	}
+	var params Parameters
+	if err := json.Unmarshal(header.Raw, &params); err != nil {
+		return err
+	}
 
-	key, cert, err := v.getVerificationKeyPair(sig)
+	key, cert, err := v.getVerificationKeyPair(params)
 	if err != nil {
 		return err
 	}
-	if err := key.Verify(bytes.NewReader(content), sig.Algorithm, sig.Signature); err != nil {
+	if err := key.Verify(strings.NewReader(signed), params.Algorithm, sig); err != nil {
 		return err
 	}
-	return verifyReferences(content, cert)
+
+	parts := strings.Split(signed, ".")
+	if len(parts) != 2 {
+		return errors.New("invalid signed content")
+	}
+
+	return verifyReferences(parts[1], cert)
 }
 
-func (v *verifier) getVerificationKeyPair(sig signature.Signature) (libtrust.PublicKey, *x509.Certificate, error) {
+func (v *verifier) getVerificationKeyPair(params Parameters) (libtrust.PublicKey, *x509.Certificate, error) {
 	switch {
-	case len(sig.X5c) > 0:
-		return v.getVerificationKeyPairFromX5c(sig.X5c)
-	case sig.KeyID != "":
-		return v.getVerificationKeyPairFromKeyID(sig.KeyID)
+	case len(params.X5c) > 0:
+		return v.getVerificationKeyPairFromX5c(params.X5c)
+	case params.KeyID != "":
+		return v.getVerificationKeyPairFromKeyID(params.KeyID)
 	default:
 		return nil, nil, errors.New("missing verification key")
 	}
@@ -127,14 +136,14 @@ func (v *verifier) getVerificationKeyPairFromX5c(x5c [][]byte) (libtrust.PublicK
 	return key, cert, nil
 }
 
-func verifyReferences(raw []byte, cert *x509.Certificate) error {
-	var content signature.Content
-	if err := json.Unmarshal(raw, &content); err != nil {
+func verifyReferences(seg string, cert *x509.Certificate) error {
+	claims, err := signature.DecodeClaims(seg)
+	if err != nil {
 		return err
 	}
 	roots := x509.NewCertPool()
 	roots.AddCert(cert)
-	for _, reference := range content.Manifest.References {
+	for _, reference := range claims.Manifest.References {
 		if _, err := cert.Verify(x509.VerifyOptions{
 			DNSName: strings.SplitN(reference, "/", 2)[0],
 			Roots:   roots,
