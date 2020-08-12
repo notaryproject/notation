@@ -26,30 +26,81 @@ Several options for how to persist a signature were explored. We measure these o
 
 To support the above requirements, signatures are stored as separate [OCI Artifacts][oci-artifacts]. They are maintained as any other artifact in a registry, supporting standard operations such as listing, deleting, garbage collection and any other content addressable operations within a registry.
 
-Following the [OCI Artifacts][oci-artifacts] design, signatures are identified with: `config.mediaType: "application/vnd.cncf.notary.config.v2+json"`.
+Following the [OCI Artifacts][oci-artifacts] design, signatures are identified with: `config.mediaType: "application/vnd.cncf.notary.config.v2+jwt"`.
 The config object contains the signature and signed content. See [nv2-signature-spec][nv2-signature-spec] for details.
-
-Storing a signature as a separate artifact enables the above goals, most importantly the ability to maintain the existing tag and and digest for a given artifact.
 
 ### Persistance as Manifest or Index
 
-Below will discuss the options and tradeoffs for persisting a signature as an [oci-manifest][oci-manifest] or [oci-index][oci-index].
+Storing a signature as a separate artifact enables the above goals, most importantly the ability to maintain the existing tag and and digest for a given artifact.
+
+[OCI Artifacts][oci-artifacts] currently supports [OCI manifest][oci-manifest], but doesn't yet support [OCI index][oci-index]. To work with what's currently supported, the following design is proposed.
+
+1. An artifact (`net-monitor:v1` container image) is pushed to a registry
+1. Signature artifacts are pushed using standard [OCI distribution][oci-distribution] apis. For example, using [ORAS][oras].
+
+* [Option 1: oci-manifest](#signature-persistance---option-1-oci-manifest)
+* [Option 2: oci-index](#signature-persistance---option-2-oci-index)
+
 | [OCI manifest](#signature-persistance---option-1-oci-manifest) | [OCI index](#signature-persistance---option-2-oci-index)  |
 | - | - |
 |![index](../../media/signature-as-manifest.png)| ![manifest](../../media/signature-as-index.png)
 
 ### Signature Persistance - Option 1: oci-manifest
 
-[OCI Artifacts][oci-artifacts] currently supports [OCI manifest][oci-manifest], but doesn't yet support [OCI manifest list/index][oci-index]. To work with what's currently supported, the following design is proposed.
-
-1. An artifact (`net-monitor:v1` container image) is pushed to the registry
-1. Signature artifacts are pushed using standard [OCI distribution][oci-distribution] apis. For example, using [ORAS][oras].
-
 The challenge with using oci-manifest is how the registry tracks the linkage between the signature and the original artifact.
+
+Example **manifest** for a **Notary v2 signature
+
+```json
+{
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.manifest.v2+json",
+  "config": {
+    "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+    "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+    "size": 1906
+  },
+  "layers": []
+}
+```
+
+**Pros with this approach:**
+
+* OCI Artifacts already supports manifest based artifacts, through the `manifest.config.mediaType`
+
+**Cons with this approach:**
+
+* Manifests have no means to reference other artifacts.
+* An alternative is required to link a target artifact with it's signature. Either through parsing the signature `manifest.config` object, or a separate API for linking objects.
 
 ### Signature Persistance - Option 2: oci-index
 
 This option is similar to using oci-manifest. However, instead of parsing the signature object to determine the linkage between an artifact and signature, the `index.manifests` collection is utilized.
+
+Example **index** for a **Notary v2 signature
+
+``` json
+{
+  "schemaVersion": 2.1,
+  "mediaType": "application/vnd.oci.image.index.v2+json",
+  "config": {
+    "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+    "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+    "size": 1906
+  },
+  "manifests": [
+    {
+      "mediaType": "application/vnd.oci.image.manifest.v1+json",
+      "digest": "sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c",
+      "size": 7023,
+      "platform": {
+        "architecture": "ppc64le",
+        "os": "linux"
+      }
+    }
+  ]
+}
+```
 
 **Pros with this approach:**
 
@@ -57,20 +108,36 @@ This option is similar to using oci-manifest. However, instead of parsing the si
 * Registries that support oci index already have infrastructure for tracking `index.manifests`, including delete operations and garbage collection.
 * Existing distribution-spec upload APIs are utilized.
 * Unlike the manifest proposal, no additional artifact handler would be required to parse the config object for linking artifacts.
-* Based on the artifact type:  `manifest.config.mediaType: "application/vnd.cncf.notary.config.v2+json"`, role check may be done to confirm the identity has a signer role.
+* Based on the artifact type:  `manifest.config.mediaType: "application/vnd.cncf.notary.config.v2+jwt"`, role check may be done to confirm the identity has a signer role.
+* As registry operators may offer role checking for different artifact types, signatures are just one of many types they may want to authorize.
 
 **Cons with this approach:**
 
 * OCI index does not yet support the [OCI config descriptor][oci-descriptor]. This would require a schema change to oci-index, with a version bump.
   * This has been a [desired item for OCI Artifacts][oci-artifacts-index] to support other artifact types which would base on Index.
-* An additional role check is performed, based on the artifact type.
+* An additional role check is performed, based on the artifact type. Also noted as a pro as registry operators may want to utilize this for other artifact types, making it a consistent model.
 
-## Linking signatures to artifacts
+> **Note:** this is the preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/)
 
-### Parse the signature object for the referenced artifact
+## Linking Signatures to Artifacts
+
+A signature is only interesting if it's linked to the object it's signing. The question is how.
+
+Four options are presented:
+
+1. [Option 1: Parse the config object](#linking-signatures---option-1-parse-the-config-object)
+1. [Option 2: Distinct Linking API](#linking-signatures---option-2-distinct-linking-api)
+1. [Option 3: Signature Upload API](#linking-signatures---option-3-signature-upload-api)
+1. [Option 4: Utilize OCI Index PUT](#linking-signatures---option-4-utilize-oci-index-put)
+
+### Linking Signatures - Option 1: Parse the config object
+
+While this option could be used for signature persistance options 1 & 2, it's really only needed for manifests. If an index is used, the linking can be performed based on the manifest list.
+
+Upon [manifest put][oci-dist-spec-manifest-put], perform the following steps:
 
 * The [nv2 signature specification][nv2-signature-spec] identifies the referenced artifact by its digest and optional tags.
-* As the registry receives artifacts, the artifact type is parsed, evaluating the `manifest.config.mediaType` of `"application/vnd.cncf.notary.config.v2+json"`
+* As the registry receives artifacts, the artifact type is parsed, evaluating the `manifest.config.mediaType` of `"application/vnd.cncf.notary.config.v2+jwt"`
 * A role check is performed, confirming the identity of the PUT has **signer** rights
 * The registry uses the config objects reference to link the signature with signed digest. This would enable registry tracking for garbage collection
 
@@ -89,17 +156,16 @@ Partial config object, referring to the digest and tag of the `net-monitor:v1` c
 
 **Pros with this approach:**
 
-* Utilize the existing OCI Artifact manifest design, requiring no additional changes to registry implementations.
-* Existing distribution-spec upload APIs are utilized
-* An artifact handler would be added to registries. Many already parse the config objects to understand which platform and architectures they support.
-* Based on the artifact type:  `manifest.config.mediaType: "application/vnd.cncf.notary.config.v2+json"`, role check may be done to confirm the identity has a signer role.
+* Existing [distribution-spec manifest put APIs][oci-dist-spec-manifest-put] are utilized
+* Rather than add a new linking API, an artifact handler would be added to registries. Many already parse the config objects to understand which platform and architectures they support.
 
 **Cons with this approach:**
 
-* An artifact handler is added that must parse the signature object, creating a new flow for tracking object linkage
-* An additional role check is performed, based on the artifact type.
+* A new model for tracking dependency linking
+* An artifact handler is required that  must parse the signature object for the linked artifact.
+* Based on the unique artifact type:  `manifest.config.mediaType: "application/vnd.cncf.notary.config.v2+jwt"`, a role check may be done to confirm the identity has a signer role.
 
-### Signature Linking - distinct API call
+### Linking Signatures - Option 2: Distinct Linking API
 
 Similar to the manifest or index options, the client pushes the artifact and signatures through standard oci-distribution upload apis.
 However, no linkage is made between the signature object and the signed artifact. Rather a signatures api is added.
@@ -121,7 +187,7 @@ PUT https://localhost:6000/v2/net-monitor/manifests/sha256:2235d2d22ae5ef400769f
 
 * The client must make two calls to achieve a single operation of uploading a signature object, which by definition has the linking information.
 
-### Unique Signature Upload API
+### Linking Signatures - Option 3: Signature Upload API
 
 In this option the signature artifact (manifest or index) is uploaded through a new signature API.
 
@@ -132,6 +198,19 @@ In this option the signature artifact (manifest or index) is uploaded through a 
 **Cons with this approach:**
 
 * Signature upload, which is just another artifact type, is uploaded differently than other artifacts.
+
+### Linking Signatures - Option 4: Utilize OCI Index PUT
+
+Utilizing the OCI Index, the manifest list is used to track dependencies.
+
+**Pros with this approach:**
+
+* Existing Index parsing logic is used to track despondencies
+* No additional distribution-spec APIs are required
+
+**Cons with this approach:**
+
+* OCI Index would need to support a config object:  [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/)
 
 ## Signature Discovery
 
@@ -200,156 +279,6 @@ Notary v2 requirements state an artifact can have more than one signature. The s
 
 To facilitate retrieving a list of signatures, we introduce two api patterns:
 
-## Storage Layout
-
-Here we illustrate how signature objects are stored in the registry storage backend as different OCI objects are pushed and linked together.
-
-On pushing target manifest `sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042` to repository `hello-world`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── hello-world
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        └── 90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
-                            └── link
-```
-
-On pushing signature manifest `sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b` to repository `hello-world`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── hello-world
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        ├── 90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
-                        │   └── link
-                        └── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                            └── link
-```
-
-On pushing signature manifest `sha256:1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c` to repository `hello-world`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── hello-world
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        ├── 90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
-                        │   └── link
-                        │── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │   └── link
-                        └── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                            └── link
-```
-
-On pushing signature manifest `sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c` to repository `hello-world`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── hello-world
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        ├── 90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
-                        │   └── link
-                        │── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │   └── link
-                        │── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │   └── link
-                        └── 2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                            └── link
-```
-
-On linking signature `sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b` to target manifest `90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── hello-world
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        ├── 90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
-                        │   ├── link
-                        │   └── signatures
-                        │       └── sha256
-                        │           └── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │               └── link
-                        │── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │   └── link
-                        │── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │   └── link
-                        └── 2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                            └── link
-```
-
-On linking signature `sha256:1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c` to target manifest `90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── hello-world
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        ├── 90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042
-                        │   ├── link
-                        │   └── signatures
-                        │       └── sha256
-                        |           └── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │               └── link
-                        │           └── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │               └── links
-                        │── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │   └── link
-                        │── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │   └── link
-                        └── 2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                            └── link
-```
-
-On linking signature `sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c` to target manifest `90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`:
-
-```
-<root>
-└── v2
-    └── repositories
-        └── net-monitor
-            └── _manifests
-                └── revisions
-                    └── sha256
-                        ├── 2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │   ├── link
-                        │   └── signatures
-                        │       └── sha256
-                        |           └── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │               └── link
-                        │           └── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │               └── link
-                        │           └── 2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │               └── link
-                        │── 007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
-                        │   └── link
-                        │── 1135d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                        │   └── link
-                        └── 2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c
-                            └── link
-```
-
 ## Example Artifacts
 
 The following are references used in the examples below.
@@ -367,10 +296,10 @@ These assume:
 |Artifact                               |`config.mediaType`                          |Tag                                          | Digest                                                                  |
 |---------------------------------------|--------------------------------------------|---------------------------------------------|-------------------------------------------------------------------------|
 |net-monitor image                      |`application/vnd.oci.image.config.v1+json`  |`registry.acme-rockets.com/net-monitor:v1`   |`sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c`|
-|wabbit-networks signature as a manifest|`application/vnd.cncf.notary.config.v2+json`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`|
-|wabbit-networks signature as an index  |`application/vnd.cncf.notary.config.v2+json`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`|
-|acme-rockets signature as a manifest   |`application/vnd.cncf.notary.config.v2+json`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b`|
-|acme-rockets signature as as an index  |`application/vnd.cncf.notary.config.v2+json`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b`|
+|wabbit-networks signature as a manifest|`application/vnd.cncf.notary.config.v2+jwt`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`|
+|wabbit-networks signature as an index  |`application/vnd.cncf.notary.config.v2+jwt`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`|
+|acme-rockets signature as a manifest   |`application/vnd.cncf.notary.config.v2+jwt`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b`|
+|acme-rockets signature as as an index  |`application/vnd.cncf.notary.config.v2+jwt`|`registry.acme-rockets.com/net-monitor@sha:*`|`sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b`|
 
 ### Example manifest for the **container image**: `registry.acme-rockets.com/net-monitor:v1`:
 
@@ -393,46 +322,6 @@ These assume:
       "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
       "digest": "sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736",
       "size": 73109
-    }
-  ]
-}
-```
-
-### Example **manifest** for a **Notary v2 signature**
-
-```json
-{
-  "schemaVersion": 2,
-  "mediaType": "application/vnd.oci.image.manifest.v2+json",
-  "config": {
-    "mediaType": "application/vnd.cncf.notary.config.v2+json",
-    "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
-    "size": 1906
-  },
-  "layers": []
-}
-```
-
-### Example **index** for a **Notary v2 signature**
-
-``` json
-{
-  "schemaVersion": 2.1,
-  "mediaType": "application/vnd.oci.image.index.v2+json",
-  "config": {
-    "mediaType": "application/vnd.cncf.notary.config.v2+json",
-    "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
-    "size": 1906
-  },
-  "manifests": [
-    {
-      "mediaType": "application/vnd.oci.image.manifest.v1+json",
-      "digest": "sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c",
-      "size": 7023,
-      "platform": {
-        "architecture": "ppc64le",
-        "os": "linux"
-      }
     }
   ]
 }
@@ -465,14 +354,15 @@ See [nv2 signature spec][nv2-signature-spec] for more details.
 }
 ```
 
-[cnab]:                     https://cnab.io
-[distribution-spec-paging]: https://github.com/opencontainers/distribution-spec/blob/master/spec.md#listing-image-tags
-[notaryv2-goals]:           https://github.com/notaryproject/requirements/blob/52c1ba2f5696a98b317aff84288d3564b4041ad5/README.md#goals
-[nv2-signature-spec]:       https://github.com/notaryproject/nv2/blob/efe151ddf6a7fd3848fea340cab7553d0a7d295b/docs/signature/README.md
-[oci-artifacts]:            https://github.com/opencontainers/artifacts
-[oci-artifacts-index]:      https://github.com/opencontainers/artifacts/issues/25
-[oci-index]:                https://github.com/opencontainers/image-spec/blob/master/image-index.md
-[oci-descriptor]:           https://github.com/opencontainers/image-spec/blob/master/descriptor.md
-[oci-distribution]:         https://github.com/opencontainers/distribution-spec
-[oci-manifest]:             https://github.com/opencontainers/image-spec/blob/master/manifest.md
-[oras]:                     https://github.com/deislabs/oras
+[cnab]:                       https://cnab.io
+[distribution-spec-paging]:   https://github.com/opencontainers/distribution-spec/blob/master/spec.md#listing-image-tags
+[notaryv2-goals]:             https://github.com/notaryproject/requirements/blob/52c1ba2f5696a98b317aff84288d3564b4041ad5/README.md#goals
+[nv2-signature-spec]:         https://github.com/notaryproject/nv2/blob/efe151ddf6a7fd3848fea340cab7553d0a7d295b/docs/signature/README.md
+[oci-artifacts]:              https://github.com/opencontainers/artifacts
+[oci-artifacts-index]:        https://github.com/opencontainers/artifacts/issues/25
+[oci-index]:                  https://github.com/opencontainers/image-spec/blob/master/image-index.md
+[oci-descriptor]:             https://github.com/opencontainers/image-spec/blob/master/descriptor.md
+[oci-distribution]:           https://github.com/opencontainers/distribution-spec
+[oci-manifest]:               https://github.com/opencontainers/image-spec/blob/master/manifest.md
+[oras]:                       https://github.com/deislabs/oras
+[oci-dist-spec-manifest-put]: https://github.com/opencontainers/distribution-spec/blob/master/spec.md#put-manifest
