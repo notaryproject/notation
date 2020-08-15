@@ -194,7 +194,7 @@ However, no linkage is made between the signature object and the signed artifact
    * Push **acme-rockets** signature artifact `sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b`
 1. Link **acme-rockets** signature to the `net-monitor:v1` container image
 
-``` REST
+```HTTP
 PUT https://localhost:6000/v2/net-monitor/manifests/sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c/signatures/sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b
 ```
 
@@ -381,7 +381,7 @@ Compliant client implementations SHOULD always use the `Link` header value when 
 
 To get the next result set, a client would issue the request as follows, using the URL encoded in the described `Link` header:
 
-``` HTTP
+```HTTP
 GET /v2/<name>/manifests/sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042/references/list?n=<n from the request>&last=<last tag value from previous response>
 ```
 
@@ -401,7 +401,7 @@ To support pagination (returning list results in pages) in a List method, the AP
 * define a `string` field `next_page_token` in the `List` method's response message. This field represents the pagination token to retrieve the next page of results. If the value is `""`, it means no further results for the request.
 To retrieve the next page of results, client **shall** pass the value of response's `next_page_token` in the subsequent `List` method call (in the request message's `page_token` field):
 
-``` HTTP
+```HTTP
 GET /v2/<name>/manifests/sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042/references/list?page_token=1&page_size=10&next_page_token=<token>
 ```
 
