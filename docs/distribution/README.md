@@ -170,7 +170,7 @@ Partial config object, referring to the digest and tag of the `net-monitor:v1` c
     "size": 528,
     "references": [
       "registry.acme-rockets.com/net-monitor:v1"
-    ],
+    ]
 ```
 
 **Pros with this approach:**
