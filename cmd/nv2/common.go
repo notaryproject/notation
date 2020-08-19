@@ -17,4 +17,9 @@ var (
 		Name:  "insecure",
 		Usage: "enable insecure remote access",
 	}
+	mediaTypeFlag = &cli.StringFlag{
+		Name:  "media-type",
+		Usage: "specify the media type of the manifest read from file or stdin",
+		Value: "application/vnd.docker.distribution.manifest.v2+json",
+	}
 )

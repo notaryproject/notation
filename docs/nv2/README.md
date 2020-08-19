@@ -72,6 +72,7 @@ OPTIONS:
    --username value, -u value   username for generic remote access
    --password value, -p value   password for generic remote access
    --insecure                   enable insecure remote access (default: false)
+   --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                   show help (default: false)
 ```
 
@@ -98,38 +99,35 @@ Notary v2 signing is accomplished by signing the OCI manifest representing the a
 
 ### Signing using `x509`
 
-To sign the manifest `hello-world_v1-manifest.json` using the key `key.pem` from the `x509` certificate `cert.pem` with the Common Name `registry.acme-rockets.io`, run
+To sign the manifest `hello-world_v1-manifest.json` using the key `key.key` from the `x509` certificate `cert.crt` with the Common Name `registry.acme-rockets.io`, run
 
 ```shell
 nv2 sign --method x509 \
   -k key.key \
   -c cert.crt \
   -r registry.acme-rockets.io/hello-world:v1 \
-  -o hello-world.signature.config.json \
+  -o hello-world.signature.config.jwt \
   file:hello-world_v1-manifest.json
 ```
 
-The formatted x509 signature: `hello-world.signature.config.json` is:
+The formatted x509 signature: `hello-world.signature.config.jwt` is:
 
 ``` json
 {
-    "signed": {
-        "digest": "sha256:5de47f48e0be1a9d41176a980728449a696fd4fcc37e9d99b8d26618c0f5bf51",
-        "size": 3056,
-        "references": [
-            "registry.acme-rockets.io/hello-world:v1"
-        ],
-        "iat": 1596020554
-    },
-    "signature": {
-        "typ": "x509",
-        "sig": "vUNmuwrdHmcMyvG//eZQLjmIz2gnOUFNaL5Y5Jc3x1oaYu3nFnJxBEkB8232l0zBmV30sVUX2vjao0IDgLMv0Q7VWT2hiTutocgf+oRq88Jz/xKGvByGUWmVyYx9sMW6R+JHK/LlzthCLgDoYTjFD9qDTHf+AWnmRNPLv5nSYNQrVSxNH22jiO3CV/bNEQD8xoR7kZOdov6QzNw3rAP+XvlKxdf/D7vcYdR0D5T9G5xGa72aQSZmzXL/Zd2V7JQnxyJmw6PL3moU1i/8t8RK7LbsU6slvTScLUokFLZxzqCz8TcjujtaThyyxPF47ekx/HVsKW0mYXidpgCOfl+nqw==",
-        "alg": "RS256",
-        "x5c": [
-            "MIIDJzCCAg+gAwIBAgIUMwVg7bpx8QmWaFzRcgpRFBN6JoQwDQYJKoZIhvcNAQELBQAwIzEhMB8GA1UEAwwYcmVnaXN0cnkuYWNtZS1yb2NrZXRzLmlvMB4XDTIwMDcyOTExMDIzMloXDTIxMDcyOTExMDIzMlowIzEhMB8GA1UEAwwYcmVnaXN0cnkuYWNtZS1yb2NrZXRzLmlvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx2mXqcXqkllwxj7S12WhVDsIu6y4ebZ/CwVwwime44yDcd0bcpdJExqIH/Qy6axQd/1zmLCHPeOXGFq48Ul0oS4Bawj1GEeLvB7VFvqB0KaBeAdxrZAvdKXCXIDH5qyFSGnOmvkja1BuR8XrH7tts5u56i+U3KEDBZg5tfx4cQuKKt0DfXZAL+4RZkNh1LoO77X0ThaBThFoRsg6aZA/cEpttoWmvnO6uUkK73oZEVgZNKGGIZZKzhUjnydRSTphp9GmZzbqUHlOiMvbzdtsQYC0qeQeNqua38HN93Ur3p+oH7oSrBWxX1Xlx933oVb+4G6h5oz0aZvMQ0G6gCLzjwIDAQABo1MwUTAdBgNVHQ4EFgQU8l2F7avSjFZ9TvnpHackunxSFcswHwYDVR0jBBgwFoAU8l2F7avSjFZ9TvnpHackunxSFcswDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAwECYhttcbCbqyi7DvOTHw5bixmxplbgD0AmMvE6Ci4P/MrooBququlkri/Jcp58GBaMjxItE4qVsaWwFCEvZEfP2xN4DAbr+rdrIFy9VYuwEIBs5l0ZLRH2H2N3HlqBzhYOjVzNlYfIqnqHUDip2VsUKqhcVFkCmb3cpJ1VNAgjQU2N60JUW28L0XrGyBctBIiicLvdP4NMhHP/hhN2vr2VGIyyo5XtP+QHFi/Uwa48BJ+c9bbVpXeghOMOPMeSJmJ2b/qlp95e/YHlSCfxDXyxZ70N2vBGecrc8ly4tD9KGLb9y3Q7RBgsagOFe7cGQ2db/t60AwTIxP0a9bIyJMg=="
-        ]
-    }
-}
+    "typ": "x509",
+    "alg": "RS256",
+    "x5c": [
+        "MIIDJzCCAg+gAwIBAgIUMwVg7bpx8QmWaFzRcgpRFBN6JoQwDQYJKoZIhvcNAQELBQAwIzEhMB8GA1UEAwwYcmVnaXN0cnkuYWNtZS1yb2NrZXRzLmlvMB4XDTIwMDcyOTExMDIzMloXDTIxMDcyOTExMDIzMlowIzEhMB8GA1UEAwwYcmVnaXN0cnkuYWNtZS1yb2NrZXRzLmlvMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx2mXqcXqkllwxj7S12WhVDsIu6y4ebZ/CwVwwime44yDcd0bcpdJExqIH/Qy6axQd/1zmLCHPeOXGFq48Ul0oS4Bawj1GEeLvB7VFvqB0KaBeAdxrZAvdKXCXIDH5qyFSGnOmvkja1BuR8XrH7tts5u56i+U3KEDBZg5tfx4cQuKKt0DfXZAL+4RZkNh1LoO77X0ThaBThFoRsg6aZA/cEpttoWmvnO6uUkK73oZEVgZNKGGIZZKzhUjnydRSTphp9GmZzbqUHlOiMvbzdtsQYC0qeQeNqua38HN93Ur3p+oH7oSrBWxX1Xlx933oVb+4G6h5oz0aZvMQ0G6gCLzjwIDAQABo1MwUTAdBgNVHQ4EFgQU8l2F7avSjFZ9TvnpHackunxSFcswHwYDVR0jBBgwFoAU8l2F7avSjFZ9TvnpHackunxSFcswDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAwECYhttcbCbqyi7DvOTHw5bixmxplbgD0AmMvE6Ci4P/MrooBququlkri/Jcp58GBaMjxItE4qVsaWwFCEvZEfP2xN4DAbr+rdrIFy9VYuwEIBs5l0ZLRH2H2N3HlqBzhYOjVzNlYfIqnqHUDip2VsUKqhcVFkCmb3cpJ1VNAgjQU2N60JUW28L0XrGyBctBIiicLvdP4NMhHP/hhN2vr2VGIyyo5XtP+QHFi/Uwa48BJ+c9bbVpXeghOMOPMeSJmJ2b/qlp95e/YHlSCfxDXyxZ70N2vBGecrc8ly4tD9KGLb9y3Q7RBgsagOFe7cGQ2db/t60AwTIxP0a9bIyJMg=="
+    ]
+}.{
+    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+    "digest": "sha256:24a74900a4e749ef31295e5aabde7093e3244b119582bd6e64b1a88c71c410d0",
+    "size": 3056,
+    "references": [
+        "registry.acme-rockets.io/hello-world:v1"
+    ],
+    "iat": 1597053936
+}.[Signature]
 ```
 
 If the embedded cert chain `x5c` is not desired, it can be replaced by a key ID `kid` by omitting the `-c` option.
@@ -138,30 +136,27 @@ If the embedded cert chain `x5c` is not desired, it can be replaced by a key ID 
 nv2 sign -m x509 \
   -k key.key \
   -r registry.acme-rockets.io/hello-world:v1 \
-  -o hello-world.signature.config.json \
+  -o hello-world.signature.config.jwt \
   file:hello-world_v1-manifest.json
 ```
 
-The formatted x509, without the `x5c` chain signature: `hello-world.signature.config.json` is:
+The formatted x509, without the `x5c` chain signature: `hello-world.signature.config.jwt` is:
 
 
 ```json
 {
-    "signed": {
-        "digest": "sha256:5de47f48e0be1a9d41176a980728449a696fd4fcc37e9d99b8d26618c0f5bf51",
-        "size": 3056,
-        "references": [
-            "registry.acme-rockets.io/hello-world:v1"
-        ],
-        "iat": 1596020616
-    },
-    "signature": {
-        "typ": "x509",
-        "sig": "OyRPlwwsO5mYDxKkiNeTQlSl4WV8SOiQMCJv4i1+sx7uv6Pe8dHDaPt1SE5s64HzFvo6s26PrfiPYp4RphQOd/KvW2Hh03nS8ZByE4NWFOE6VLQcfNpScba6Q9vAzc3TnZrg1c9t992MGuec1oZB9pR77Ms7Jv/+gZd1qr6VPpA0A6+UucEbN6+pKRTiPRx5WkFXTkN0a4jmlJnev6MyBY3VI0EzjLI4nbCu9P05e4SK1dO0hXtD7aQCf2CCVKdYNHAMX4pNPTLxS3a5p4CFjV3oCbZO6cYT/5ZxgQrVV7vaGEI1MGCOEXS2KSI14zO6KlU1awtOQq3g04e03O+SVQ==",
-        "alg": "RS256",
-        "kid": "RQGT:OPJI:IABT:DFXB:52VS:FNOJ:4XBS:H4KY:WHGM:HQMC:WSMN:LKXM"
-    }
-}
+    "typ": "x509",
+    "alg": "RS256",
+    "kid": "RQGT:OPJI:IABT:DFXB:52VS:FNOJ:4XBS:H4KY:WHGM:HQMC:WSMN:LKXM"
+}.{
+    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+    "digest": "sha256:24a74900a4e749ef31295e5aabde7093e3244b119582bd6e64b1a88c71c410d0",
+    "size": 3056,
+    "references": [
+        "registry.acme-rockets.io/hello-world:v1"
+    ],
+    "iat": 1597053992
+}.[Signature]
 ```
 
 The detailed signature specification is [available](../signature/README.md).
@@ -184,6 +179,7 @@ OPTIONS:
    --username value, -u value             username for generic remote access
    --password value, -p value             password for generic remote access
    --insecure                             enable insecure remote access (default: false)
+   --media-type value                     specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                             show help (default: false)
 ```
 
@@ -193,7 +189,7 @@ Since the manifest was signed by a self-signed certificate, that certificate `ce
 
 ```shell
 nv2 verify \
-  -f hello-world.signature.config.json \
+  -f hello-world.signature.config.jwt \
   -c cert.crt \
   file:hello-world_v1-manifest.json
 ```
@@ -202,7 +198,7 @@ If the cert isn't self-signed, you can omit the `-c` parameter.
 
 ``` shell
 nv2 verify \
-  -f hello-world.signature.config.json \
+  -f hello-world.signature.config.jwt \
   file:hello-world_v1-manifest.json
 
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
@@ -223,15 +219,16 @@ Here is an example to sign and verify the image `hello-world` in DockerHub, i.e.
 ``` shell
 nv2 sign -m x509 \
   -k key.key \
-  -o hello-world_latest.signature.config.json \
+  -o hello-world_latest.signature.config.jwt \
   docker://docker.io/library/hello-world:latest
 
 sha256:49a1c8800c94df04e9658809b006fd8a686cab8028d33cfba2cc049724254202
 
 nv2 verify \
   -c cert.crt \
-  -f hello-world_latest.signature.config.json \
+  -f hello-world_latest.signature.config.jwt \
   docker://docker.io/library/hello-world:latest
+
 sha256:49a1c8800c94df04e9658809b006fd8a686cab8028d33cfba2cc049724254202
 ```
 
@@ -251,14 +248,14 @@ OCI registry works the same as Docker but with the scheme `oci`.
 ``` shell
 nv2 sign -m x509 \
   -k key.key \
-  -o hello-world_latest.signature.config.json \
+  -o hello-world_latest.signature.config.jwt \
   oci://docker.io/library/hello-world:latest
 
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
 
 nv2 verify \
   -c cert.crt \
-  -f hello-world_latest.signature.config.json \
+  -f hello-world_latest.signature.config.jwt \
   oci://docker.io/library/hello-world:latest
 
 sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
@@ -286,7 +283,7 @@ sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 Since the tag might be changed during the verification process, it is required to pull by digest after verification.
 
 ```shell
-digest=$(nv2 verify -f hello-world_latest.signature.config.json -c cert.crt docker://docker.io/library/hello-world:latest)
+digest=$(nv2 verify -f hello-world_latest.signature.config.jwt -c cert.crt docker://docker.io/library/hello-world:latest)
 if [ $? -eq 0 ]; then
     docker pull docker.io/library/hello-world@$digest
 fi

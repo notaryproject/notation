@@ -3,6 +3,7 @@ package signature
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -30,61 +31,87 @@ func (s *Scheme) RegisterVerifier(verifier Verifier) {
 	s.verifiers[verifier.Type()] = verifier
 }
 
-// Sign signs content by a signer
-func (s *Scheme) Sign(signerID string, content Content) (Signature, error) {
-	bytes, err := json.Marshal(content)
+// Sign signs claims by a signer
+func (s *Scheme) Sign(signerID string, claims Claims) (string, error) {
+	bytes, err := json.Marshal(claims)
 	if err != nil {
-		return Signature{}, err
+		return "", err
 	}
 	return s.SignRaw(signerID, bytes)
 }
 
 // SignRaw signs raw content by a signer
-func (s *Scheme) SignRaw(signerID string, content []byte) (Signature, error) {
+func (s *Scheme) SignRaw(signerID string, content []byte) (string, error) {
 	signer, found := s.signers[signerID]
 	if !found {
-		return Signature{}, ErrUnknownSigner
+		return "", ErrUnknownSigner
 	}
-	return signer.Sign(content)
-}
 
-// Verify verifies signed data
-func (s *Scheme) Verify(signed Signed) (Content, Signature, error) {
-	sig, err := s.verifySignature(signed)
+	signed, sig, err := signer.Sign(EncodeSegment(content))
 	if err != nil {
-		return Content{}, sig, err
+		return "", nil
 	}
 
-	var content Content
-	if err := json.Unmarshal(signed.Signed, &content); err != nil {
-		return Content{}, sig, err
-	}
-
-	return content, sig, s.verifyContent(content)
+	return strings.Join([]string{
+		signed,
+		EncodeSegment(sig),
+	}, "."), nil
 }
 
-func (s *Scheme) verifySignature(signed Signed) (Signature, error) {
-	sig := signed.Signature
-	verifier, found := s.verifiers[sig.Type]
+// Verify verifies the JWT-like token
+func (s *Scheme) Verify(token string) (Claims, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return Claims{}, ErrInvalidToken
+	}
+
+	if err := s.verifySignature(parts); err != nil {
+		return Claims{}, err
+	}
+
+	claims, err := DecodeClaims(parts[1])
+	if err != nil {
+		return Claims{}, err
+	}
+
+	return claims, s.verifyClaims(claims)
+}
+
+func (s *Scheme) verifySignature(parts []string) error {
+	rawHeader, err := DecodeSegment(parts[0])
+	if err != nil {
+		return ErrInvalidToken
+	}
+	var header Header
+	if json.Unmarshal(rawHeader, &header); err != nil {
+		return ErrInvalidToken
+	}
+	header.Raw = rawHeader
+
+	verifier, found := s.verifiers[header.Type]
 	if !found {
-		return Signature{}, ErrUnknownSignatureType
+		return ErrUnknownSignatureType
 	}
 
-	content := []byte(signed.Signed)
-	if err := verifier.Verify(content, sig); err != nil {
-		return Signature{}, err
+	sig, err := DecodeSegment(parts[2])
+	if err != nil {
+		return ErrInvalidToken
 	}
 
-	return sig, nil
+	return verifier.Verify(
+		header,
+		strings.Join(parts[:2], "."),
+		sig,
+	)
 }
 
-func (s *Scheme) verifyContent(content Content) error {
+func (s *Scheme) verifyClaims(claims Claims) error {
 	now := time.Now().Unix()
-	if content.Expiration != 0 && now > content.Expiration {
-		return fmt.Errorf("content expired: %d: current: %d", content.Expiration, now)
+	if claims.Expiration != 0 && now > claims.Expiration {
+		return fmt.Errorf("content expired: %d: current: %d", claims.Expiration, now)
 	}
-	if content.NotBefore != 0 && now < content.NotBefore {
-		return fmt.Errorf("content is not available yet: %d: current: %d", content.NotBefore, now)
+	if claims.NotBefore != 0 && now < claims.NotBefore {
+		return fmt.Errorf("content is not available yet: %d: current: %d", claims.NotBefore, now)
 	}
 	return nil
 }
