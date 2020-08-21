@@ -3,13 +3,12 @@ package x509
 import (
 	"crypto"
 	"crypto/x509"
-	"encoding/json"
 	"errors"
 	"io"
 	"strings"
 
+	"github.com/docker/go/canonical/json"
 	"github.com/docker/libtrust"
-	cryptoutil "github.com/notaryproject/nv2/internal/crypto"
 	"github.com/notaryproject/nv2/pkg/signature"
 )
 
@@ -23,7 +22,7 @@ type signer struct {
 
 // NewSignerFromFiles creates a signer from files
 func NewSignerFromFiles(keyPath, certPath string) (signature.Signer, error) {
-	key, err := cryptoutil.ReadPrivateKeyFile(keyPath)
+	key, err := ReadPrivateKeyFile(keyPath)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +30,7 @@ func NewSignerFromFiles(keyPath, certPath string) (signature.Signer, error) {
 		return NewSigner(key, nil)
 	}
 
-	certs, err := cryptoutil.ReadCertificateFile(certPath)
+	certs, err := ReadCertificateFile(certPath)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +93,7 @@ func (s *signer) Sign(claims string) (string, []byte, error) {
 	} else {
 		header.KeyID = s.keyID
 	}
-	headerJSON, err := json.Marshal(header)
+	headerJSON, err := json.MarshalCanonical(header)
 	if err != nil {
 		return "", nil, err
 	}
