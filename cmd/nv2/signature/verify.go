@@ -1,17 +1,18 @@
-package main
+package signature
 
 import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 
-	"github.com/notaryproject/nv2/internal/crypto"
+	"github.com/notaryproject/nv2/cmd/nv2/common"
 	"github.com/notaryproject/nv2/pkg/signature"
 	x509nv2 "github.com/notaryproject/nv2/pkg/signature/x509"
 	"github.com/urfave/cli/v2"
 )
 
-var verifyCommand = &cli.Command{
+// VerifyCommand defines verify command
+var VerifyCommand = &cli.Command{
 	Name:      "verify",
 	Usage:     "verifies OCI Artifacts",
 	ArgsUsage: "[<scheme://reference>]",
@@ -34,10 +35,10 @@ var verifyCommand = &cli.Command{
 			Usage:     "CA certs for verification [x509]",
 			TakesFile: true,
 		},
-		usernameFlag,
-		passwordFlag,
-		insecureFlag,
-		mediaTypeFlag,
+		common.MediaTypeFlag,
+		common.UsernameFlag,
+		common.PasswordFlag,
+		common.InsecureFlag,
 	},
 	Action: runVerify,
 }
@@ -58,16 +59,18 @@ func runVerify(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("verification failure: %v", err)
 	}
-	manifest, err := getManifestFromContext(ctx)
+	manifest, err := common.GetManifestFromContext(ctx)
 	if err != nil {
 		return err
 	}
-	if manifest.Descriptor != claims.Manifest.Descriptor {
-		return fmt.Errorf("verification failure: %s: ", manifest.Digest)
+	descriptor := signature.DescriptorFromReference(manifest.Descriptor)
+
+	if descriptor != claims.Manifest.Descriptor {
+		return fmt.Errorf("verification failure: %s: ", descriptor.Digest)
 	}
 
 	// write out
-	fmt.Println(manifest.Digest)
+	fmt.Println(descriptor.Digest)
 	return nil
 }
 
@@ -97,7 +100,7 @@ func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 
 	var certs []*x509.Certificate
 	for _, path := range ctx.StringSlice("cert") {
-		bundledCerts, err := crypto.ReadCertificateFile(path)
+		bundledCerts, err := x509nv2.ReadCertificateFile(path)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +110,7 @@ func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 		}
 	}
 	for _, path := range ctx.StringSlice("ca-cert") {
-		bundledCerts, err := crypto.ReadCertificateFile(path)
+		bundledCerts, err := x509nv2.ReadCertificateFile(path)
 		if err != nil {
 			return nil, err
 		}

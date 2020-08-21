@@ -1,4 +1,4 @@
-package main
+package signature
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/notaryproject/nv2/cmd/nv2/common"
 	"github.com/notaryproject/nv2/pkg/signature"
 	"github.com/notaryproject/nv2/pkg/signature/x509"
 	"github.com/urfave/cli/v2"
@@ -13,7 +14,8 @@ import (
 
 const signerID = "nv2"
 
-var signCommand = &cli.Command{
+// SignCommand defines sign command
+var SignCommand = &cli.Command{
 	Name:      "sign",
 	Usage:     "signs OCI Artifacts",
 	ArgsUsage: "[<scheme://reference>]",
@@ -36,25 +38,17 @@ var signCommand = &cli.Command{
 			Usage:     "signing cert [x509]",
 			TakesFile: true,
 		},
-		&cli.DurationFlag{
-			Name:    "expiry",
-			Aliases: []string{"e"},
-			Usage:   "expire duration",
-		},
 		&cli.StringSliceFlag{
 			Name:    "reference",
 			Aliases: []string{"r"},
 			Usage:   "original references",
 		},
-		&cli.StringFlag{
-			Name:    "output",
-			Aliases: []string{"o"},
-			Usage:   "write signature to a specific path",
-		},
-		usernameFlag,
-		passwordFlag,
-		insecureFlag,
-		mediaTypeFlag,
+		common.ExpiryFlag,
+		common.OutputFlag,
+		common.MediaTypeFlag,
+		common.UsernameFlag,
+		common.PasswordFlag,
+		common.InsecureFlag,
 	},
 	Action: runSign,
 }
@@ -77,7 +71,7 @@ func runSign(ctx *cli.Context) error {
 	}
 
 	// write out
-	path := ctx.String("output")
+	path := ctx.String(common.OutputFlag.Name)
 	if path == "" {
 		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".nv2"
 	}
@@ -90,18 +84,20 @@ func runSign(ctx *cli.Context) error {
 }
 
 func prepareClaimsForSigning(ctx *cli.Context) (signature.Claims, error) {
-	manifest, err := getManifestFromContext(ctx)
+	manifest, err := common.GetManifestFromContext(ctx)
 	if err != nil {
 		return signature.Claims{}, err
 	}
-	manifest.References = ctx.StringSlice("reference")
 	now := time.Now()
 	nowUnix := now.Unix()
 	claims := signature.Claims{
-		Manifest: manifest,
+		Manifest: signature.Manifest{
+			Descriptor: signature.DescriptorFromReference(manifest.Descriptor),
+			References: ctx.StringSlice("reference"),
+		},
 		IssuedAt: nowUnix,
 	}
-	if expiry := ctx.Duration("expiry"); expiry != 0 {
+	if expiry := ctx.Duration(common.ExpiryFlag.Name); expiry != 0 {
 		claims.NotBefore = nowUnix
 		claims.Expiration = now.Add(expiry).Unix()
 	}

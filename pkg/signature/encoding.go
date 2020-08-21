@@ -2,8 +2,9 @@ package signature
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+
+	"github.com/docker/go/canonical/json"
 )
 
 // EncodeSegment JWT specific base64url encoding with padding stripped

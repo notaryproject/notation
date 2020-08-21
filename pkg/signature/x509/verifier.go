@@ -3,10 +3,10 @@ package x509
 import (
 	"crypto"
 	"crypto/x509"
-	"encoding/json"
 	"errors"
 	"strings"
 
+	"github.com/docker/go/canonical/json"
 	"github.com/docker/libtrust"
 	"github.com/notaryproject/nv2/pkg/signature"
 )

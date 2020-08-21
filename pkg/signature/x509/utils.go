@@ -1,4 +1,4 @@
-package crypto
+package x509
 
 import (
 	"crypto/x509"

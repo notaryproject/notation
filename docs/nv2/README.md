@@ -12,7 +12,7 @@
 
 ### Build and Install
 
-This plugin requires [golang](https://golang.org/dl/) with version `>= 1.14`.
+This binary requires [golang](https://golang.org/dl/) with version `>= 1.15`.
 
 To build and install, run
 
@@ -43,11 +43,13 @@ openssl req \
   -newkey rsa:2048 \
   -days 365 \
   -subj "/CN=registry.example.com/O=example inc/C=US/ST=Washington/L=Seattle" \
+  -addext "subjectAltName=DNS:registry.example.com" \
   -keyout example.key \
   -out example.crt
 ```
 
-When generating the certificate, make sure that the Common Name (`CN`) is set properly in the `Subject` field. The Common Name will be verified against the registry name within the signature.
+When generating the certificate, make sure that the Common Name (`CN`) in the `Subject` field and the Subject Alternative Name (`subjectAltName`) are set properly.
+The Common Name (`go < 1.15`) or the Subject Alternative Name (`go >= 1.15`) will be verified against the registry name within the signature.
 
 ## Offline Signing
 
@@ -66,13 +68,13 @@ OPTIONS:
    --method value, -m value     signing method
    --key value, -k value        signing key file [x509]
    --cert value, -c value       signing cert [x509]
-   --expiry value, -e value     expire duration (default: 0s)
    --reference value, -r value  original references
+   --expiry value, -e value     expire duration (default: 0s)
    --output value, -o value     write signature to a specific path
+   --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --username value, -u value   username for generic remote access
    --password value, -p value   password for generic remote access
    --insecure                   enable insecure remote access (default: false)
-   --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                   show help (default: false)
 ```
 
@@ -114,19 +116,19 @@ The formatted x509 signature: `hello-world.signature.config.jwt` is:
 
 ``` json
 {
-    "typ": "x509",
     "alg": "RS256",
+    "typ": "x509",
     "x5c": [
-        "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"
+        "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"
     ]
 }.{
-    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
     "digest": "sha256:24a74900a4e749ef31295e5aabde7093e3244b119582bd6e64b1a88c71c410d0",
-    "size": 3056,
+    "iat": 1597893535,
+    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
     "references": [
         "registry.acme-rockets.io/hello-world:v1"
     ],
-    "iat": 1597053936
+    "size": 3056
 }.[Signature]
 ```
 
@@ -145,17 +147,17 @@ The formatted x509, without the `x5c` chain signature: `hello-world.signature.co
 
 ```json
 {
-    "typ": "x509",
     "alg": "RS256",
-    "kid": "RQGT:OPJI:IABT:DFXB:52VS:FNOJ:4XBS:H4KY:WHGM:HQMC:WSMN:LKXM"
+    "kid": "JF3F:UG7I:NCNR:3TCC:XNW3:3ZIW:S77O:O2PT:QXC3:IQ5X:GMMS:CUYB",
+    "typ": "x509"
 }.{
-    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
     "digest": "sha256:24a74900a4e749ef31295e5aabde7093e3244b119582bd6e64b1a88c71c410d0",
-    "size": 3056,
+    "iat": 1597893598,
+    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
     "references": [
         "registry.acme-rockets.io/hello-world:v1"
     ],
-    "iat": 1597053992
+    "size": 3056
 }.[Signature]
 ```
 
@@ -176,16 +178,14 @@ OPTIONS:
    --signature value, -s value, -f value  signature file
    --cert value, -c value                 certs for verification [x509]
    --ca-cert value                        CA certs for verification [x509]
+   --media-type value                     specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --username value, -u value             username for generic remote access
    --password value, -p value             password for generic remote access
    --insecure                             enable insecure remote access (default: false)
-   --media-type value                     specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                             show help (default: false)
 ```
 
-To verify a manifest `example.json` with a signature file `example.nv2`, run
-
-Since the manifest was signed by a self-signed certificate, that certificate `cert.pem` is required to be provided to `nv2`.
+To verify a manifest `hello-world_v1-manifest.json` with a signature file `hello-world.signature.config.jwt`, run
 
 ```shell
 nv2 verify \
@@ -193,6 +193,8 @@ nv2 verify \
   -c cert.crt \
   file:hello-world_v1-manifest.json
 ```
+
+Since the manifest was signed by a self-signed certificate, that certificate `cert.crt` is required to be provided to `nv2`.
 
 If the cert isn't self-signed, you can omit the `-c` parameter.
 
