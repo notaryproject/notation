@@ -263,7 +263,6 @@ This model is a hybrid of the 1 & 2, but moves the persistance of the signature 
           "digest": "sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m",
           "size": 7023,
           "config_mediaType": "application/vnd.cncf.notary.config.v2+jwt"
-          }
         }
       ]
     }
