@@ -73,20 +73,21 @@ Private registries serve the follwing scenarios:
 
 ```json
 {
-    "signed": {
-        "exp": 1626938793,
-        "nbf": 1595402793,
-        "iat": 1595402793,
-        "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
-        "size": 528,
-        "references": [
-            "registry.acme-rockets.io/hello-world:latest",
-            "registry.acme-rockets.io/hello-world:v1.0"
-        ]
-    },
-    "signature": {
-        "typ": "x509",
-    ...
+  "signed": {
+      "exp": 1626938793,
+      "nbf": 1595402793,
+      "iat": 1595402793,
+      "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
+      "size": 528,
+      "references": [
+          "registry.acme-rockets.io/hello-world:latest",
+          "registry.acme-rockets.io/hello-world:v1.0"
+      ]
+  },
+    "signatures": [
+        {
+            "typ": "x509",
+  ...
 ```
 
 ## Prototype Scope

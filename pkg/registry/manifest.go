@@ -94,10 +94,6 @@ func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signat
 	}
 
 	header := resp.Header
-	mediaType := header.Get("Content-Type")
-	if mediaType == "" {
-		return signature.Manifest{}, fmt.Errorf("%v: missing Content-Type", url)
-	}
 	digest := header.Get("Docker-Content-Digest")
 	if digest == "" {
 		return signature.Manifest{}, fmt.Errorf("%v: missing Docker-Content-Digest", url)
@@ -111,10 +107,7 @@ func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signat
 		return signature.Manifest{}, fmt.Errorf("%v: invalid Content-Length", url)
 	}
 	return signature.Manifest{
-		Descriptor: signature.Descriptor{
-			MediaType: mediaType,
-			Digest:    digest,
-			Size:      size,
-		},
+		Digest: digest,
+		Size:   size,
 	}, nil
 }

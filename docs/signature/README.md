@@ -1,15 +1,15 @@
 # Notary V2 Signature Specification
 
-This section defines the signature file, which is a [JWT](https://tools.ietf.org/html/rfc7519) variant.
+This section defines the signature file, which is in JSON format with no whitespaces. Its JSON schema is available at [schema.json](schema.json).
 
 ## Signature Goals
 
 - Offline signature creation
-- Persistence within an [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registry
+- Persistance within an [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registry
 - Artifact and signature copying within and across [OCI Artifact][oci-artifacts] enabled, [distribution-spec][distribution-spec] based registries
 - Support public registry acquisition of content - where the public registry may host certified content as well as public, non-certified content
 - Support private registries, where public content may be copied to, and new content originated within
-- Air-gapped environments, where the originating registry of content is not accessible
+- Air-gapped environments, where the originating registry of content is not accessable
 - Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
 - Maintain the original artifact digest and collection of associated tags, supporting dev/ops deployment definitions
 
@@ -46,70 +46,47 @@ openssl req \
   -out example.crt
 ```
 
-An nv2 client would generate the following header and claims to be signed.
-
-The header would be a base64 URL encoded string without paddings:
-
-```
-eyJ0eXAiOiJ4NTA5IiwiYWxnIjoiUlMyNTYiLCJ4NWMiOlsiTUlJRHN6Q0NBcHVnQXdJQkFnSVVMMWFuRVUveUp5NjdWSlRiSGtOWDBiQk5BbkV3RFFZSktvWklodmNOQVFFTEJRQXdhVEVkTUJzR0ExVUVBd3dVY21WbmFYTjBjbmt1WlhoaGJYQnNaUzVqYjIweEZEQVNCZ05WQkFvTUMyVjRZVzF3YkdVZ2FXNWpNUXN3Q1FZRFZRUUdFd0pWVXpFVE1CRUdBMVVFQ0F3S1YyRnphR2x1WjNSdmJqRVFNQTRHQTFVRUJ3d0hVMlZoZEhSc1pUQWVGdzB5TURBM01qY3hORFF6TkRaYUZ3MHlNVEEzTWpjeE5EUXpORFphTUdreEhUQWJCZ05WQkFNTUZISmxaMmx6ZEhKNUxtVjRZVzF3YkdVdVkyOXRNUlF3RWdZRFZRUUtEQXRsZUdGdGNHeGxJR2x1WXpFTE1Ba0dBMVVFQmhNQ1ZWTXhFekFSQmdOVkJBZ01DbGRoYzJocGJtZDBiMjR4RURBT0JnTlZCQWNNQjFObFlYUjBiR1V3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRGtLd0FjVjQ0cHNqTjhubm8xZVozenYxWktVaEpBb3h3Qk9JR2ZJeEllK2lIdHBYTHZGRlZ3azVKYnh1K1BraWcyTjRCM0lscmovVnJ5aTBoeHA0bWFnMDJNNzMzYlhMUkVOU09GT05Sa3NscE84ekhVTjVwWWRuaFRTd1lUTGFwMSsxYmdjRlN1VVhMV2llcVpCNnFjN2tpdjNiajNTUGFmNDIrczQ4VjQ5dC9PcFh4THRnaVdMOVhrdURUWmN0cEpKQTR2SEhrNk91MGJjZzdpR20rTDF4d0lmYjhNbDRvV3ZUMFNGMzVmZ1cwOGJiTFhaMnYxWENMUnNyV1VnYnE0VStLeHRFcEczWElZY1loS3gxcklyVWhmRUprdUh6Z1BnbE0xMWdHNVcrQ3lmZyt3Zk9KaWc1cTZheElLV3pJZjZDOG04bG15NmJNK041RXNEOVN2QWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJUZjFoTTYvaWJHRit1L1NWQUs4OEZVTWp6Um9UQWZCZ05WSFNNRUdEQVdnQlRmMWhNNi9pYkdGK3UvU1ZBSzg4RlVNanpSb1RBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFCZ3ZWYXU1KzJ3QXVDc21PeXlHMjhoMXp5QzRJUG1NbXBSWlRET3AvcExkd1hlSGpKcjhrRUMzbDkycUpFdmMrV0Fib0oxUm91Y0h5Y1VlN1JXaDJDNlpGL1dQQ0JMeVdHd25seXFHeVJNOS9qODZVSjFPZ2l1Wmw3a2w5enh3V29heFBCQ21IYTBSSG93ZFFCN0FWbHBxZzFjN0ZoS2poVUNCbUdUNFZlOHRWMGhkWnRyWm9RVis2eEhQYlVkMzdLVjFCMUJtZm8zbzRla29KS2hVdTk5RW8wM09wRTNKTHRNMTNBMUh4QUJFdVFHSFRJMHR5Y0RCQmRSbjNiMDNIb0loVTBWbnFqdnBWMUtQdnNyZ1lpLzBWU3RMTmV6WlBnR2UwZkczWGd5OHlla2RCOU5NVW4relpMQVRJNCt6OGo0UUg1V2o1WlBhVWt5b0FEMm9VSk8iXX0
-```
-
-The parsed and formatted header would be:
-
-```json
-{
-    "typ": "x509",
-    "alg": "RS256",
-    "x5c": [
-        "MIIDszCCApugAwIBAgIUL1anEU/yJy67VJTbHkNX0bBNAnEwDQYJKoZIhvcNAQELBQAwaTEdMBsGA1UEAwwUcmVnaXN0cnkuZXhhbXBsZS5jb20xFDASBgNVBAoMC2V4YW1wbGUgaW5jMQswCQYDVQQGEwJVUzETMBEGA1UECAwKV2FzaGluZ3RvbjEQMA4GA1UEBwwHU2VhdHRsZTAeFw0yMDA3MjcxNDQzNDZaFw0yMTA3MjcxNDQzNDZaMGkxHTAbBgNVBAMMFHJlZ2lzdHJ5LmV4YW1wbGUuY29tMRQwEgYDVQQKDAtleGFtcGxlIGluYzELMAkGA1UEBhMCVVMxEzARBgNVBAgMCldhc2hpbmd0b24xEDAOBgNVBAcMB1NlYXR0bGUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDkKwAcV44psjN8nno1eZ3zv1ZKUhJAoxwBOIGfIxIe+iHtpXLvFFVwk5Jbxu+Pkig2N4B3Ilrj/Vryi0hxp4mag02M733bXLRENSOFONRkslpO8zHUN5pYdnhTSwYTLap1+1bgcFSuUXLWieqZB6qc7kiv3bj3SPaf42+s48V49t/OpXxLtgiWL9XkuDTZctpJJA4vHHk6Ou0bcg7iGm+L1xwIfb8Ml4oWvT0SF35fgW08bbLXZ2v1XCLRsrWUgbq4U+KxtEpG3XIYcYhKx1rIrUhfEJkuHzgPglM11gG5W+Cyfg+wfOJig5q6axIKWzIf6C8m8lmy6bM+N5EsD9SvAgMBAAGjUzBRMB0GA1UdDgQWBBTf1hM6/ibGF+u/SVAK88FUMjzRoTAfBgNVHSMEGDAWgBTf1hM6/ibGF+u/SVAK88FUMjzRoTAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBgvVau5+2wAuCsmOyyG28h1zyC4IPmMmpRZTDOp/pLdwXeHjJr8kEC3l92qJEvc+WAboJ1RoucHycUe7RWh2C6ZF/WPCBLyWGwnlyqGyRM9/j86UJ1OgiuZl7kl9zxwWoaxPBCmHa0RHowdQB7AVlpqg1c7FhKjhUCBmGT4Ve8tV0hdZtrZoQV+6xHPbUd37KV1B1Bmfo3o4ekoJKhUu99Eo03OpE3JLtM13A1HxABEuQGHTI0tycDBBdRn3b03HoIhU0VnqjvpV1KPvsrgYi/0VStLNezZPgGe0fG3Xgy8yekdB9NMUn+zZLATI4+z8j4QH5Wj5ZPaUkyoAD2oUJO"
-    ]
-}
-```
-
-The claims would be a base64 URL encoded string without paddings:
-
-```
-eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmRpc3RyaWJ1dGlvbi5tYW5pZmVzdC52Mitqc29uIiwiZGlnZXN0Ijoic2hhMjU2OmM0NTE2YjhhMzExZTg1ZjFmMmE2MDU3M2FiZjRjNmI3NDBjYTNhZGU0MTI3ZTI5YjA1NjE2ODQ4ZGU0ODdkMzQiLCJzaXplIjo1MjgsInJlZmVyZW5jZXMiOlsicmVnaXN0cnkuZXhhbXBsZS5jb20vZXhhbXBsZTpsYXRlc3QiLCJyZWdpc3RyeS5leGFtcGxlLmNvbS9leGFtcGxlOnYxLjAiXSwiZXhwIjoxNjI4NTg3MTE5LCJpYXQiOjE1OTcwNTExMTksIm5iZiI6MTU5NzA1MTExOX0
-```
-
-The parsed and formatted claims would be:
+An nv2 client would generate the following content to be signed:
 
 ``` JSON
 {
-    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-    "digest": "sha256:c4516b8a311e85f1f2a60573abf4c6b740ca3ade4127e29b05616848de487d34",
-    "size": 528,
-    "references": [
-        "registry.example.com/example:latest",
-        "registry.example.com/example:v1.0"
-    ],
-    "exp": 1628587119,
-    "iat": 1597051119,
-    "nbf": 1597051119
+  "signed": {
+      "exp": 1626938793,
+      "nbf": 1595402793,
+      "iat": 1595402793,
+      "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
+      "size": 528,
+      "references": [
+          "registry.example.com/hello-world:latest",
+          "registry.example.com/hello-world:v1.0"
+      ]
+  }
+```
+
+The signature of the above would be represented as:
+
+``` JSON
+{
+  "signature": {
+    "typ": "x509",
+    "sig": "uFKaCyQ4MtVHemfLVq5gYZyeiClS20tksXzP7hhpeqqjCNK9DiHnoDpkq91sutLqd1o6RCxpfFVuGXy20oqRu1/ZoXXAVC3y7lS6z/wqJ4VDBKSj/H6xyYn7pH3GE8GHR6kjFPqrGsl/OS4yYH2oNXEm9W8Pju2wC381+FCgf4LNf7k6u2Uf4Fb0/Fl40qzvr0m2Fv5pXtRY+wdJctqJb+t408VcXJkNj0U7xoOe0zUr3l1A6xLYqjd0ZY08JBQ8FQul0Vpxrmg0Xdtwd/wEolvia48lxD1x7yphW5bFvJOTd62rOJgd4uI7jYJF3ZLmwjY+geMk5e6Wkp5OyXGjXw==",
+    "alg": "RS256",
+    "x5c": [
+      "MIIDmzCCAoOgAwIBAgIUFSzsIT4/pKtGzywuZWWE7ydiLBIwDQYJKoZIhvcNAQELBQAwXTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEWMBQGA1UEAwwNKi5leGFtcGxlLmNvbTAeFw0yMDA3MjIwMzA2MTBaFw0yMTA3MjIwMzA2MTBaMF0xCzAJBgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQxFjAUBgNVBAMMDSouZXhhbXBsZS5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDM0MNLy/f1SyRM0ZQu3AtJnCU3O5x8nnOeV1mySmZNr2SCqR8+jENAoKE5FrrSi2ffMnFPP/7DqGnbb9+b1nD9ucFNsI1iW7IrF/GlqOM7jJhUMNnOyatz8mddtQgXr3SZ9bigbc/lxuVGacvi64DewoWzMFr4ZMGq8ik7aDnHryUDwXJFE+KGNbsReO1ePqKmPiLvkLG4sBTqeTuCk+Grrr5t1COujwuFWfhMjmRfq34QGqUZ3SHJYXPzOAxgV3fCmBP9IgHuSv/b1udx5Htf1BV7WlARtXfE21xuA6FM1Gq0pANUhcRF39KJRu4/RBZBmAxg7ces8hrZWTQ4LTo/AgMBAAGjUzBRMB0GA1UdDgQWBBR2pI+c2dexlOZCXLy84Baqu8NR8DAfBgNVHSMEGDAWgBR2pI+c2dexlOZCXLy84Baqu8NR8DAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQCH2tChjmvs6/2acw+cJYWkEExdXMEyjdUvqEIcs7W7Ce32My7RcMtJxybtqjV+UVghEVUzq1pNf0Dt5FhFkC6BDHnHv2SIO9jq2TvfDUcJgMMgwSZdSaISmxk+iFD9Cll+RU8KgeoYSnwojOixTksyeBRi5rePdO5smz/n4Bd4ToluKaw42tdWhF4SMgx2Y1nlyHpFlkdUYtJ6D8rOvbVRGQaxo8Td3mWCWPMBYcGvjwO9ESCP1JAK+Z6WXD46JWilsIUd3Y+0NrfvOYKUdhLWuz9LrQ5060qi1pHfYBOTAbyXfnW97EB3TAuMtqBBe6h3VNw00c1p7qrilE1Of9uN"
+    ]
+  }
 }
-```
-
-The signature of the above would be represented as a base64 URL encoded string without paddings:
-
-``` 
-MtQBOL2FERM2fMSikruHOMQdHuEXAE1wf6J6TfDY2W_7PfQQllBKbJJE0HqJ5ENAbuqNYHNZeIeKUCYFrNx2XgtrKuTe7WCa1ZZKDtp5bmANp484ekdl6lW23YB8r_SRtseJuibqjI3HuiMyELj9uYV1CdRYaD2BIZ_qxraYH1fMpjDWjehU4RYLI37hsSuDQ90o09BwaNfzbQXYPsGmkSUSmej7rOFPDnuwhNy4WcUed3kRKYEW8eIjO9OUBGQq3PWvhDjxZi3QF4QFDoiKBOXL70AjaiVIveQRkJI9-xHZSYwje9OFEMioeNWB5ceZR-r4L7VzDcU-Fxqjxn79Fw
-```
-
-Putting everything together:
-
-```
-eyJ0eXAiOiJ4NTA5IiwiYWxnIjoiUlMyNTYiLCJ4NWMiOlsiTUlJRHN6Q0NBcHVnQXdJQkFnSVVMMWFuRVUveUp5NjdWSlRiSGtOWDBiQk5BbkV3RFFZSktvWklodmNOQVFFTEJRQXdhVEVkTUJzR0ExVUVBd3dVY21WbmFYTjBjbmt1WlhoaGJYQnNaUzVqYjIweEZEQVNCZ05WQkFvTUMyVjRZVzF3YkdVZ2FXNWpNUXN3Q1FZRFZRUUdFd0pWVXpFVE1CRUdBMVVFQ0F3S1YyRnphR2x1WjNSdmJqRVFNQTRHQTFVRUJ3d0hVMlZoZEhSc1pUQWVGdzB5TURBM01qY3hORFF6TkRaYUZ3MHlNVEEzTWpjeE5EUXpORFphTUdreEhUQWJCZ05WQkFNTUZISmxaMmx6ZEhKNUxtVjRZVzF3YkdVdVkyOXRNUlF3RWdZRFZRUUtEQXRsZUdGdGNHeGxJR2x1WXpFTE1Ba0dBMVVFQmhNQ1ZWTXhFekFSQmdOVkJBZ01DbGRoYzJocGJtZDBiMjR4RURBT0JnTlZCQWNNQjFObFlYUjBiR1V3Z2dFaU1BMEdDU3FHU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRGtLd0FjVjQ0cHNqTjhubm8xZVozenYxWktVaEpBb3h3Qk9JR2ZJeEllK2lIdHBYTHZGRlZ3azVKYnh1K1BraWcyTjRCM0lscmovVnJ5aTBoeHA0bWFnMDJNNzMzYlhMUkVOU09GT05Sa3NscE84ekhVTjVwWWRuaFRTd1lUTGFwMSsxYmdjRlN1VVhMV2llcVpCNnFjN2tpdjNiajNTUGFmNDIrczQ4VjQ5dC9PcFh4THRnaVdMOVhrdURUWmN0cEpKQTR2SEhrNk91MGJjZzdpR20rTDF4d0lmYjhNbDRvV3ZUMFNGMzVmZ1cwOGJiTFhaMnYxWENMUnNyV1VnYnE0VStLeHRFcEczWElZY1loS3gxcklyVWhmRUprdUh6Z1BnbE0xMWdHNVcrQ3lmZyt3Zk9KaWc1cTZheElLV3pJZjZDOG04bG15NmJNK041RXNEOVN2QWdNQkFBR2pVekJSTUIwR0ExVWREZ1FXQkJUZjFoTTYvaWJHRit1L1NWQUs4OEZVTWp6Um9UQWZCZ05WSFNNRUdEQVdnQlRmMWhNNi9pYkdGK3UvU1ZBSzg4RlVNanpSb1RBUEJnTlZIUk1CQWY4RUJUQURBUUgvTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFCZ3ZWYXU1KzJ3QXVDc21PeXlHMjhoMXp5QzRJUG1NbXBSWlRET3AvcExkd1hlSGpKcjhrRUMzbDkycUpFdmMrV0Fib0oxUm91Y0h5Y1VlN1JXaDJDNlpGL1dQQ0JMeVdHd25seXFHeVJNOS9qODZVSjFPZ2l1Wmw3a2w5enh3V29heFBCQ21IYTBSSG93ZFFCN0FWbHBxZzFjN0ZoS2poVUNCbUdUNFZlOHRWMGhkWnRyWm9RVis2eEhQYlVkMzdLVjFCMUJtZm8zbzRla29KS2hVdTk5RW8wM09wRTNKTHRNMTNBMUh4QUJFdVFHSFRJMHR5Y0RCQmRSbjNiMDNIb0loVTBWbnFqdnBWMUtQdnNyZ1lpLzBWU3RMTmV6WlBnR2UwZkczWGd5OHlla2RCOU5NVW4relpMQVRJNCt6OGo0UUg1V2o1WlBhVWt5b0FEMm9VSk8iXX0.eyJtZWRpYVR5cGUiOiJhcHBsaWNhdGlvbi92bmQuZG9ja2VyLmRpc3RyaWJ1dGlvbi5tYW5pZmVzdC52Mitqc29uIiwiZGlnZXN0Ijoic2hhMjU2OmM0NTE2YjhhMzExZTg1ZjFmMmE2MDU3M2FiZjRjNmI3NDBjYTNhZGU0MTI3ZTI5YjA1NjE2ODQ4ZGU0ODdkMzQiLCJzaXplIjo1MjgsInJlZmVyZW5jZXMiOlsicmVnaXN0cnkuZXhhbXBsZS5jb20vZXhhbXBsZTpsYXRlc3QiLCJyZWdpc3RyeS5leGFtcGxlLmNvbS9leGFtcGxlOnYxLjAiXSwiZXhwIjoxNjI4NTg3MTE5LCJpYXQiOjE1OTcwNTExMTksIm5iZiI6MTU5NzA1MTExOX0.MtQBOL2FERM2fMSikruHOMQdHuEXAE1wf6J6TfDY2W_7PfQQllBKbJJE0HqJ5ENAbuqNYHNZeIeKUCYFrNx2XgtrKuTe7WCa1ZZKDtp5bmANp484ekdl6lW23YB8r_SRtseJuibqjI3HuiMyELj9uYV1CdRYaD2BIZ_qxraYH1fMpjDWjehU4RYLI37hsSuDQ90o09BwaNfzbQXYPsGmkSUSmej7rOFPDnuwhNy4WcUed3kRKYEW8eIjO9OUBGQq3PWvhDjxZi3QF4QFDoiKBOXL70AjaiVIveQRkJI9-xHZSYwje9OFEMioeNWB5ceZR-r4L7VzDcU-Fxqjxn79Fw
 ```
 
 ### Signature Persisted within an OCI Artifact Enabled Registry
 
-All values are persisted in a `signature.jwt` file. The file would be submitted to a registry as an Artifact with null layers.
-The `signature.jwt` would be persisted within the `manifest.config` object
+Both values are persisted in a `signature.json` file. The file would be submitted to a registry as an Artifact with null layers.
+The `signature.json` would be persisted wthin the `manifest.config` object
 
 ``` SHELL
 oras push \
   registry.example.com/hello-world:v1.0 \
-  --manifest-config signature.json:application/vnd.cncf.notary.config.v2+jwt
+  --manifest-config signature.json:application/vnd.cncf.notary.config.v2+json
 ```
 
 Would push the following manifest:
@@ -118,7 +95,7 @@ Would push the following manifest:
 {
   "schemaVersion": 2,
   "config": {
-    "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+    "mediaType": "application/vnd.cncf.notary.config.v2+json",
     "size": 1906,
     "digest": "sha256:c7848182f2c817415f0de63206f9e4220012cbb0bdb750c2ecf8020350239814"
   },
@@ -128,108 +105,120 @@ Would push the following manifest:
 
 ## *Signature* Property Descriptions
 
-### Header
+- **`signed`** *object*
 
-- **`typ`** *string*
+  This REQUIRED property provides the signed content.
 
-  This REQUIRED property identifies the signature type. Implementations MUST support at least the following types
+  - **`iat`** *integer*
 
-  - `x509`: X.509 public key certificates. Implementations MUST verify that the certificate of the signing key has the `digitalSignature` `Key Usage` extension ([RFC 5280 Section 4.2.1.3](https://tools.ietf.org/html/rfc5280#section-4.2.1.3)).
+    This OPTIONAL property identities the time at which the manifests were presented to the notary. This field is based on [RFC 7519 Section 4.1.6](https://tools.ietf.org/html/rfc7519#section-4.1.6). When used, it does not imply the issue time of any signature in the `signatures` property.
 
-  Implementations MAY support the following types
+  - **`nbf`** *integer*
 
-  - `tuf`: [The update framework](https://theupdateframework.io/).
+    This OPTIONAL property identifies the time before which the  signed content MUST NOT be accepted for processing. This field is based on [RFC 7519 Section 4.1.5](https://tools.ietf.org/html/rfc7519#section-4.1.5).
 
-  Although the signature file is a JWT, type `JWT` is not used as it is not an authentication or authorization token.
+  - **`exp`** *integer*
 
-- **`alg`** *string*
+    This OPTIONAL property identifies the expiration time on or after which the signed content MUST NOT be accepted for processing. This field is based on [RFC 7519 Section 4.1.4](https://tools.ietf.org/html/rfc7519#section-4.1.4).
 
-  This REQUIRED property for the `x509` type identifies the cryptographic algorithm used to sign the content. This field is based on [RFC 7515 Section 4.1.1](https://tools.ietf.org/html/rfc7515#section-4.1.1).
+  - **`digest`** *string*
 
-- **`x5c`** *array of strings*
+    This REQUIRED property is the *digest* of the target manifest, conforming to the requirements outlined in [Digests](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#digests). If the actual content is fetched according to the *digest*, implementations MUST verify the content against the *digest*.
 
-  This OPTIONAL property for the `x509` type contains the X.509 public key certificate or certificate chain corresponding to the key used to digitally sign the content. The certificates are encoded in base64. This field is based on [RFC 7515 Section 4.1.6](https://tools.ietf.org/html/rfc7515#section-4.1.6).
+  - **`size`** *integer*
 
-- **`kid`** *string*
+    This REQUIRED property is the *size* of the target manifest. If the actual content is fetched according the *digest*, implementations MUST verify the content against the *size*.
 
-  This OPTIONAL property for the `x509` type is a hint (key ID) indicating which key was used to sign the content. This field is based on [RFC 7515 Section 4.1.4](https://tools.ietf.org/html/rfc7515#section-4.1.4).
+  - **`references`** *array of strings*
 
-### Claims
+    This OPTIONAL property claims the manifest references of its origin. The format of the value MUST matches the [*reference* grammar](https://github.com/docker/distribution/blob/master/reference/reference.go). With used, the `x509` signatures are valid only if the domain names of all references match the Common Name (`CN`) in the `Subject` field of the certificate.
 
-- **`iat`** *integer*
+- **`signature`** *string*
 
-  This OPTIONAL property identities the time at which the manifests were presented to the notary. This field is based on [RFC 7519 Section 4.1.6](https://tools.ietf.org/html/rfc7519#section-4.1.6). When used, it does not imply the issue time of any signature in the `signatures` property.
+  This REQUIRED property provides the signature of the signed content. The entire signature file is valid if any signature is valid. The `signature` object is influenced by JSON Web Signature (JWS) at [RFC 7515](https://tools.ietf.org/html/rfc7515).
 
-- **`nbf`** *integer*
+  - **`typ`** *string*
 
-  This OPTIONAL property identifies the time before which the  signed content MUST NOT be accepted for processing. This field is based on [RFC 7519 Section 4.1.5](https://tools.ietf.org/html/rfc7519#section-4.1.5).
+    This REQUIRED property identifies the signature type. Implementations MUST support at least the following types
 
-- **`exp`** *integer*
+    - `x509`: X.509 public key certificates. Implementations MUST verify that the certificate of the signing key has the `digitalSignature` `Key Usage` extension ([RFC 5280 Section 4.2.1.3](https://tools.ietf.org/html/rfc5280#section-4.2.1.3)).
 
-  This OPTIONAL property identifies the expiration time on or after which the signed content MUST NOT be accepted for processing. This field is based on [RFC 7519 Section 4.1.4](https://tools.ietf.org/html/rfc7519#section-4.1.4).
+    Implementations MAY support the following types
 
-- **`mediaType`** *string*
+    - `tuf`: [The update framework](https://theupdateframework.io/).
 
-  This REQUIRED property contains the media type of the referenced content. Values MUST comply with [RFC 6838][rfc6838], including the [naming requirements in its section 4.2][rfc6838-s4.2].
+  - **`sig`** *string*
 
-- **`digest`** *string*
+    This REQUIRED property provides the base64-encoded signature binary of the specified signature type.
 
-  This REQUIRED property is the *digest* of the target manifest, conforming to the requirements outlined in [Digests](https://github.com/opencontainers/image-spec/blob/master/descriptor.md#digests). If the actual content is fetched according to the *digest*, implementations MUST verify the content against the *digest*.
+  - **`alg`** *string*
 
-- **`size`** *integer*
+    This REQUIRED property for the `x509` type identifies the cryptographic algorithm used to sign the content. This field is based on [RFC 7515 Section 4.1.1](https://tools.ietf.org/html/rfc7515#section-4.1.1).
 
-  This REQUIRED property is the *size* of the target manifest. If the actual content is fetched according the *digest*, implementations MUST verify the content against the *size*.
+  - **`x5c`** *array of strings*
 
-- **`references`** *array of strings*
+    This OPTIONAL property for the `x509` type contains the X.509 public key certificate or certificate chain corresponding to the key used to digitally sign the content. The certificates are encoded in base64. This field is based on [RFC 7515 Section 4.1.6](https://tools.ietf.org/html/rfc7515#section-4.1.6).
 
-  This OPTIONAL property claims the manifest references of its origin. The format of the value MUST matches the [*reference* grammar](https://github.com/docker/distribution/blob/master/reference/reference.go). With used, the `x509` signatures are valid only if the domain names of all references match the Common Name (`CN`) in the `Subject` field of the certificate.
+  - **`kid`** *string*
+
+    This OPTIONAL property for the `x509` type is a hint (key ID) indicating which key was used to sign the content. This field is based on [RFC 7515 Section 4.1.4](https://tools.ietf.org/html/rfc7515#section-4.1.4).
 
 ## Example Signatures
 
 ### x509 Signature
 
-Example showing a formatted `x509` signature file [examples/x509_x5c.nv2.jwt](examples/x509_x5c.nv2.jwt) with certificates provided by `x5c`:
+Example showing a formatted `x509` signature file [examples/x509_x5c.nv2.json](examples/x509_x5c.nv2.json) with certificates provided by `x5c`:
 
 ```json
 {
+  "signed": {
+    "exp": 1626938793,
+    "nbf": 1595402793,
+    "iat": 1595402793,
+    "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
+    "size": 528,
+    "references": [
+      "registry.example.com/example:latest",
+      "registry.example.com/example:v1.0"
+    ]
+  },
+  "signature": {
     "typ": "x509",
+    "sig": "uFKaCyQ4MtVHemfLVq5gYZyeiClS20tksXzP7hhpeqqjCNK9DiHnoDpkq91sutLqd1o6RCxpfFVuGXy20oqRu1/ZoXXAVC3y7lS6z/wqJ4VDBKSj/H6xyYn7pH3GE8GHR6kjFPqrGsl/OS4yYH2oNXEm9W8Pju2wC381+FCgf4LNf7k6u2Uf4Fb0/Fl40qzvr0m2Fv5pXtRY+wdJctqJb+t408VcXJkNj0U7xoOe0zUr3l1A6xLYqjd0ZY08JBQ8FQul0Vpxrmg0Xdtwd/wEolvia48lxD1x7yphW5bFvJOTd62rOJgd4uI7jYJF3ZLmwjY+geMk5e6Wkp5OyXGjXw==",
     "alg": "RS256",
     "x5c": [
-        "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"
+      "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"
     ]
-}.{
-    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-    "digest": "sha256:c4516b8a311e85f1f2a60573abf4c6b740ca3ade4127e29b05616848de487d34",
-    "size": 528,
-    "references": [
-        "registry.example.com/example:latest",
-        "registry.example.com/example:v1.0"
-    ],
-    "exp": 1628587119,
-    "iat": 1597051119,
-    "nbf": 1597051119
-}.[Signature]
+  }
+}
 ```
 
-Example showing a formatted `x509` signature file [examples/x509_kid.nv2.jwt](examples/x509_kid.nv2.jwt) with certificates referenced by `kid`:
+Example showing a formatted `x509` signature file [examples/x509_kid.nv2.json](examples/x509_kid.nv2.json) with certificates referenced by `kid`:
 
 ```json
 {
+  "signed": {
+    "exp": 1626938803,
+    "nbf": 1595402803,
+    "iat": 1595402803,
+    "manifests": [
+      {
+        "digest": "sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55",
+        "size": 528,
+        "references": [
+            "registry.example.com/example:latest",
+            "registry.example.com/example:v1.0"
+        ]
+      }
+    ]
+  },
+  "signature": {
     "typ": "x509",
+    "sig": "JQWZ9/H1oQyuBxyYsPaKE7Xh4+U0uITmPwRpPOBNFOxe0qnIxmkyQD0g/W5eQRt1Jwa+2hn35EamqERmdT6ji2f/6haqfIwcSjjaiDu1q1sXGDQhk+ZVzOCCcqRaFNV0fPRwaVMwxeizTUy9ENe1ksZqAPI1SCyzSr6pAa5xKeoJXFUToPjjMm1VMzwj9qwphGk8sXhSqCAt9P9/PV50pxuWU1Dbe+y6M6ZlnET2YIswBze3EjloROQtKniy87Xb2ZwJp81R0XUbWRk5LqiJVT9jDN8/RMDBvMj8eymrjbcb/F3TugvZ99jkkEVjk6tH+dvXu9HbS9HtGh0KRO1XQw==",
     "alg": "RS256",
-    "kid": "XP5O:Y7W2:PRB6:O355:56CC:P3A6:CBDV:EDMN:QZCK:W5PO:QMV3:T2LX"
-}.{
-    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
-    "digest": "sha256:c4516b8a311e85f1f2a60573abf4c6b740ca3ade4127e29b05616848de487d34",
-    "size": 528,
-    "references": [
-        "registry.example.com/example:latest",
-        "registry.example.com/example:v1.0"
-    ],
-    "exp": 1628587341,
-    "iat": 1597051341,
-    "nbf": 1597051341
-}.[Signature]
+    "kid": "SE4Z:F3CT:DZ64:ONJX:6CRE:PTD2:Z755:DG7W:TSUI:I5GZ:RFKR:JCHY"
+  }
+}
 ```
 
 [distribution-spec]:    https://github.com/opencontainers/distribution-spec

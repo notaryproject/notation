@@ -1,12 +1,10 @@
 package x509
 
 import (
+	"bytes"
 	"crypto"
 	"crypto/x509"
-	"encoding/json"
 	"errors"
-	"io"
-	"strings"
 
 	"github.com/docker/libtrust"
 	cryptoutil "github.com/notaryproject/nv2/internal/crypto"
@@ -68,46 +66,27 @@ func NewSigner(key libtrust.PrivateKey, certs []*x509.Certificate) (signature.Si
 	return s, nil
 }
 
-func (s *signer) Sign(claims string) (string, []byte, error) {
+func (s *signer) Sign(raw []byte) (signature.Signature, error) {
 	if s.cert != nil {
-		if err := verifyReferences(claims, s.cert); err != nil {
-			return "", nil, err
+		if err := verifyReferences(raw, s.cert); err != nil {
+			return signature.Signature{}, err
 		}
 	}
 
-	// Generate header
-	// We have to sign an empty string for the proper algorithm string first.
-	_, alg, err := s.key.Sign(io.MultiReader(), s.hash)
+	sig, alg, err := s.key.Sign(bytes.NewReader(raw), s.hash)
 	if err != nil {
-		return "", nil, err
+		return signature.Signature{}, err
 	}
-	header := Header{
-		Header: signature.Header{
-			Type: Type,
-		},
-		Parameters: Parameters{
-			Algorithm: alg,
-		},
+	sigma := signature.Signature{
+		Type:      Type,
+		Algorithm: alg,
+		Signature: sig,
 	}
+
 	if s.cert != nil {
-		header.X5c = s.rawCerts
+		sigma.X5c = s.rawCerts
 	} else {
-		header.KeyID = s.keyID
+		sigma.KeyID = s.keyID
 	}
-	headerJSON, err := json.Marshal(header)
-	if err != nil {
-		return "", nil, err
-	}
-
-	// Generate signature
-	signed := strings.Join([]string{
-		signature.EncodeSegment(headerJSON),
-		claims,
-	}, ".")
-
-	sig, _, err := s.key.Sign(strings.NewReader(signed), s.hash)
-	if err != nil {
-		return "", nil, err
-	}
-	return signed, sig, nil
+	return sigma, nil
 }

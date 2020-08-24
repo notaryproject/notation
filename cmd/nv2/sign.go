@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -54,7 +55,6 @@ var signCommand = &cli.Command{
 		usernameFlag,
 		passwordFlag,
 		insecureFlag,
-		mediaTypeFlag,
 	},
 	Action: runSign,
 }
@@ -67,46 +67,54 @@ func runSign(ctx *cli.Context) error {
 	}
 
 	// core process
-	claims, err := prepareClaimsForSigning(ctx)
+	content, err := prepareContentForSigning(ctx)
 	if err != nil {
 		return err
 	}
-	sig, err := scheme.Sign(signerID, claims)
+	sig, err := scheme.Sign(signerID, content)
+	if err != nil {
+		return err
+	}
+	sigma, err := signature.Pack(content, sig)
 	if err != nil {
 		return err
 	}
 
 	// write out
+	sigmaJSON, err := json.Marshal(sigma)
+	if err != nil {
+		return err
+	}
 	path := ctx.String("output")
 	if path == "" {
-		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".nv2"
+		path = strings.Split(content.Manifest.Digest, ":")[1] + ".nv2"
 	}
-	if err := ioutil.WriteFile(path, []byte(sig), 0666); err != nil {
+	if err := ioutil.WriteFile(path, sigmaJSON, 0666); err != nil {
 		return err
 	}
 
-	fmt.Println(claims.Manifest.Digest)
+	fmt.Println(content.Manifest.Digest)
 	return nil
 }
 
-func prepareClaimsForSigning(ctx *cli.Context) (signature.Claims, error) {
+func prepareContentForSigning(ctx *cli.Context) (signature.Content, error) {
 	manifest, err := getManifestFromContext(ctx)
 	if err != nil {
-		return signature.Claims{}, err
+		return signature.Content{}, err
 	}
 	manifest.References = ctx.StringSlice("reference")
 	now := time.Now()
 	nowUnix := now.Unix()
-	claims := signature.Claims{
+	content := signature.Content{
 		Manifest: manifest,
 		IssuedAt: nowUnix,
 	}
 	if expiry := ctx.Duration("expiry"); expiry != 0 {
-		claims.NotBefore = nowUnix
-		claims.Expiration = now.Add(expiry).Unix()
+		content.NotBefore = nowUnix
+		content.Expiration = now.Add(expiry).Unix()
 	}
 
-	return claims, nil
+	return content, nil
 }
 
 func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
