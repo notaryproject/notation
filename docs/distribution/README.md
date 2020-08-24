@@ -19,7 +19,7 @@ Several options for how to persist a signature were explored. We measure these o
 * Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
 * Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
 * Native persistance within an OCI Artifact enabled, distribution*spec based registry
-* Artifact and signature copying within and across OCI Artifact enabled, distribution*spec based registries
+* Artifact and signature copying within and across OCI Artifact enabled, distribution spec based registries
 * Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
 * Support private registries, where public content may be copied to, and new content originated within
 * Air-gapped environments, where the originating registry of content is not accessible
@@ -50,20 +50,58 @@ The challenge with using oci-manifest is how the registry tracks the linkage bet
 
 <img src="../../media/signature-as-manifest.png" width=400>
 
-Example **manifest** for a Notary v2 signature
+Example **manifests** for a container image (`net-monitor:v1`) and two signatures (**wabbit-networks**, **acme-rockets**):
 
-```json
-{
-  "schemaVersion": 2,
-  "mediaType": "application/vnd.oci.image.manifest.v2+json",
-  "config": {
-    "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
-    "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
-    "size": 1906
-  },
-  "layers": []
-}
-```
+1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
+    ```JSON
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:111ca3788f3464fd9a06386c4d7a8e3018b525278ac4b9da872943d4cfea111c",
+        "size": 1906
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+          "size": 32654
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736",
+          "size": 73109
+        }
+      ]
+    }
+    ```
+2. **manifest digest for the wabbit-networks signature** `sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
+        "size": 1906
+      },
+      "layers": []
+    }
+    ```
+3. **manifest digest for the acme-rockets signature** `sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c",
+        "size": 1906
+      },
+      "layers": []
+    }
+    ```
 
 **Pros with this approach:**
 
@@ -78,32 +116,80 @@ Example **manifest** for a Notary v2 signature
 
 This option is similar to using oci-manifest. However, instead of parsing the signature object to determine the linkage between an artifact and signature, the `index.manifests` collection is utilized.
 
-<img src="../../media/signature-as-index.png" width=400>
+<img src="../../media/signature-as-index.png" width=550>
 
-Example **index** for a Notary v2 signature
+Example **manifests** for a container image (`net-monitor:v1`) and two signatures (**wabbit-networks**, **acme-rockets**). The signatures are persisted as OCI Indexes, with a new `index.config` object:
 
-``` json
-{
-  "schemaVersion": 2.1,
-  "mediaType": "application/vnd.oci.image.index.v2+json",
-  "config": {
-    "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
-    "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
-    "size": 1906
-  },
-  "manifests": [
+1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
+    ```JSON
     {
-      "mediaType": "application/vnd.oci.image.manifest.v1+json",
-      "digest": "sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c",
-      "size": 7023,
-      "platform": {
-        "architecture": "ppc64le",
-        "os": "linux"
-      }
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:111ca3788f3464fd9a06386c4d7a8e3018b525278ac4b9da872943d4cfea111c",
+        "size": 1906
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+          "size": 32654
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736",
+          "size": 73109
+        }
+      ]
     }
-  ]
-}
-```
+    ```
+2. **index digest for the wabbit-networks signature** `sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.index.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
+        "size": 1906
+      },
+      "manifests": [
+        {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+          "size": 7023,
+          "platform": {
+            "architecture": "ppc64le",
+            "os": "linux"
+          }
+        }
+      ]
+    }
+    ```
+3. **index digest for the acme-rockets signature** `sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.index.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c",
+        "size": 1906
+      },
+      "manifests": [
+        {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+          "size": 7023,
+          "platform": {
+            "architecture": "ppc64le",
+            "os": "linux"
+          }
+        }
+      ]
+    }
+    ```
 
 **Pros with this approach:**
 
@@ -120,13 +206,123 @@ Example **index** for a Notary v2 signature
   * This has been a [desired item for OCI Artifacts][oci-artifacts-index] to support other artifact types which would base on Index.
 * An additional role check is performed, based on the artifact type. Also noted as a pro as registry operators may want to utilize this for other artifact types, making it a consistent model.
 
-> **Note:** this is our working/preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/)
+> **Note:** this is our working/preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/806)
 
 ### Signature Persistance - Option 3: oci-manifest linked through oci-index
 
 This model is a hybrid of the 1 & 2, but moves the persistance of the signature from the config object to a layer of an additional manifest.
 
-<img src="../../media/signature-as-manifest-via-index.png" width=650>
+<img src="../../media/signature-as-manifest-via-index.png" width=750>
+
+1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
+    ```JSON
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.oci.image.config.v1+json",
+        "digest": "sha256:111ca3788f3464fd9a06386c4d7a8e3018b525278ac4b9da872943d4cfea111c",
+        "size": 1906
+      },
+      "layers": [
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:9834876dcfb05cb167a5c24953eba58c4ac89b1adf57f28f2f9d09af107ee8f0",
+          "size": 32654
+        },
+        {
+          "mediaType": "application/vnd.oci.image.layer.v1.tar+gzip",
+          "digest": "sha256:ec4b8955958665577945c89419d1af06b5f7636b4ac3da7f12184802ad867736",
+          "size": 73109
+        }
+      ]
+    }
+    ```
+2. **index digest for the wabbit-networks signature** `sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.index.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
+        "size": 1906
+      },
+      "manifests": [
+        {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+          "size": 7023,
+          "platform": {
+            "architecture": "ppc64le",
+            "os": "linux"
+          }
+        },
+        {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m",
+          "size": 7023,
+          "config_mediaType": "application/vnd.cncf.notary.config.v2+jwt"
+          }
+        }
+      ]
+    }
+    ```
+3. **manifest digest for the wabbit-networks signature** `sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
+        "size": 1906
+      },
+      "layers": []
+    }
+    ```
+4. **index digest for the acme-rockets signature** `sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.index.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c",
+        "size": 1906
+      },
+      "manifests": [
+        {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+          "size": 7023,
+          "platform": {
+            "architecture": "ppc64le",
+            "os": "linux"
+          }
+        },
+        {
+          "mediaType": "application/vnd.oci.image.manifest.v1+json",
+          "digest": "sha256:333mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb333m",
+          "size": 7023,
+          "config_mediaType": "application/vnd.cncf.notary.config.v2+jwt"
+          }
+        }
+      ]
+    }
+5. **manifest digest for the acme-rockets signature** `sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`
+    ```json
+    {
+      "schemaVersion": 2,
+      "mediaType": "application/vnd.oci.image.manifest.v2+json",
+      "config": {
+        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "digest": "sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c",
+        "size": 1906
+      },
+      "layers": []
+    }
+    ```
 
 **Pros with this approach:**
 
@@ -155,7 +351,7 @@ If index is used, option 4 defers the linking to existing Index linking capabili
 
 Upon [manifest put][oci-dist-spec-manifest-put], perform the following steps:
 
-* The [nv2 signature specification][nv2-signature-spec] identifies the referenced artifact by its digest and optional tags.
+* The [proposed nv2 signature specification][nv2-signature-spec] identifies the referenced artifact by its digest and optional tags.
 * As the registry receives artifacts, the artifact type is parsed, evaluating the `manifest.config.mediaType` of `"application/vnd.cncf.notary.config.v2+jwt"`
 * A role check is performed, confirming the identity of the PUT has **signer** rights
 * The registry uses the config objects reference to link the signature with signed digest. This would enable registry tracking for garbage collection
@@ -320,7 +516,7 @@ Content-Type: application/json
 There are three identified patterns for paging results:
 
 1. [OCI distribution-spec Tag Listing](#distribution-spec---tags-listing-api)
-1. [Google API Design Guidelines](#dis)
+1. [Google API Design Guidelines](#google-paging-api)
 1. [Microsoft API Design Guidelines](https://github.com/microsoft/api-guidelines/blob/vNext/Guidelines.md#98-pagination)
 
 #### Distribution Spec - Tags Listing API
@@ -452,11 +648,27 @@ These assume:
 * Signature objects do NOT have tags. However, they are placed in the same repo as the artifact they reference.
 * Per the design options, a signature object may be persisted as an OCI Manifest or OCI Index.
 
-|Artifact                 |`config.mediaType`                         | Digest                                                                  |
-|-------------------------|-------------------------------------------|-------------------------------------------------------------------------|
-|`net-monitor:v1` image   |`application/vnd.oci.image.config.v1+json` |`sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c`|
-|wabbit-networks signature|`application/vnd.cncf.notary.config.v2+jwt`|`sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`|
-|acme-rockets signature   |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b`|
+### Artifacts submitted to a registry
+
+The following are artifacts that represent a container image, or signature artifact. Depending on the example above, the signatures are represented as an oci manifest or oci index.
+|Artifact                          |`config.mediaType`                         | Digest                                                                  |
+|----------------------------------|-------------------------------------------|-------------------------------------------------------------------------|
+|`net-monitor:v1` image **manifest**   |`application/vnd.oci.image.config.v1+json` |`sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m`|
+|`net-monitor:v1` multi-arch **index** |`application/vnd.oci.image.config.v1+json` |`sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i`|
+|wabbit-networks signature **manifest**|`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`|
+|wabbit-networks signature **index**   |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`|
+|acme-rockets signature **manifest**   |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`|
+|acme-rockets signature **index**      |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`|
+
+### Config Objects - referenced by manifests
+
+The following are descriptors, representing config objects within a manifest and/or index
+
+| Config Object | Config Digest |
+|-|-|
+|net-monitor image         |`sha256:111ca3788f3464fd9a06386c4d7a8e3018b525278ac4b9da872943d4cfea111c`|
+|wabbit-networks signature |`sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c`|
+|acme-rockets signature    |`sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c`|
 
 ### Example manifest for the **container image**: `registry.acme-rockets.com/net-monitor:v1`
 
@@ -466,7 +678,7 @@ These assume:
   "mediaType": "application/vnd.oci.image.manifest.v2+json",
   "config": {
     "mediaType": "application/vnd.oci.image.config.v1+json",
-    "digest": "sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c",
+    "digest": "sha256:1101a3788f3464fd9a06386c4d7a8e3018b525278ac4b9da872943d4cfe97fe8",
     "size": 1906
   },
   "layers": [
