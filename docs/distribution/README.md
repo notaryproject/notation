@@ -48,11 +48,12 @@ It's presumed artifact clients like docker, oras, buildkit would support these n
 
 The challenge with using oci-manifest is how the registry tracks the linkage between the signature and the original artifact.
 
-<img src="../../media/signature-as-manifest.png" width=400>
+<img src="../../media/signature-as-manifest.png" width=650>
 
 Example **manifests** for a container image (`net-monitor:v1`) and two signatures (**wabbit-networks**, **acme-rockets**):
 
-1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
+1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`
+
     ```JSON
     {
       "schemaVersion": 2,
@@ -76,7 +77,9 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
       ]
     }
     ```
+
 2. **manifest digest for the wabbit-networks signature** `sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`
+
     ```json
     {
       "schemaVersion": 2,
@@ -89,7 +92,35 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
       "layers": []
     }
     ```
+
+    The `manifest.config` contains the following signature information:
+
+    ```json
+    {
+        "signed": {
+            "mediaType": "application/vnd.oci.image.manifest.v2+json",
+            "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+            "size": 528,
+            "references": [
+                "registry.wabbit-networks.com/net-monitor:v1"
+            ],
+            "exp": 1627555319,
+            "nbf": 1596019319,
+            "iat": 1596019319
+        },
+        "signature": {
+            "typ": "x509",
+            "sig": "UFqN24K2fLj...",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDszCCApugAwIBAgIUL1anEU/..."
+            ]
+        }
+    }
+    ```
+
 3. **manifest digest for the acme-rockets signature** `sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`
+
     ```json
     {
       "schemaVersion": 2,
@@ -100,6 +131,32 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
         "size": 1906
       },
       "layers": []
+    }
+    ```
+
+    The `manifest.config` contains the following signature information:
+
+    ```json
+    {
+        "signed": {
+            "mediaType": "application/vnd.oci.image.manifest.v2+json",
+            "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+            "size": 528,
+            "references": [
+                "registry.acme-rockets.com/net-monitor:v1"
+            ],
+            "exp": 1627555319,
+            "nbf": 1596019319,
+            "iat": 1596019319
+        },
+        "signature": {
+            "typ": "x509",
+            "sig": "UFqN24K2fLj...",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDszCCApugAwIBAgIUL1anEU/..."
+            ]
+        }
     }
     ```
 
@@ -116,11 +173,12 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
 
 This option is similar to using oci-manifest. However, instead of parsing the signature object to determine the linkage between an artifact and signature, the `index.manifests` collection is utilized.
 
-<img src="../../media/signature-as-index.png" width=550>
+<img src="../../media/signature-as-index.png" width=650>
 
 Example **manifests** for a container image (`net-monitor:v1`) and two signatures (**wabbit-networks**, **acme-rockets**). The signatures are persisted as OCI Indexes, with a new `index.config` object:
 
 1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
+
     ```JSON
     {
       "schemaVersion": 2,
@@ -144,7 +202,9 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
       ]
     }
     ```
+
 2. **index digest for the wabbit-networks signature** `sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`
+
     ```json
     {
       "schemaVersion": 2,
@@ -167,7 +227,35 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
       ]
     }
     ```
+
+    The `manifest.config` contains the following signature information:
+
+    ```json
+    {
+        "signed": {
+            "mediaType": "application/vnd.oci.image.manifest.v2+json",
+            "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+            "size": 528,
+            "references": [
+                "registry.wabbit-networks.com/net-monitor:v1"
+            ],
+            "exp": 1627555319,
+            "nbf": 1596019319,
+            "iat": 1596019319
+        },
+        "signature": {
+            "typ": "x509",
+            "sig": "UFqN24K2fLj...",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDszCCApugAwIBAgIUL1anEU/..."
+            ]
+        }
+    }
+    ```
+
 3. **index digest for the acme-rockets signature** `sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`
+
     ```json
     {
       "schemaVersion": 2,
@@ -188,6 +276,32 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
           }
         }
       ]
+    }
+    ```
+
+    The `manifest.config` contains the following signature information:
+
+    ```json
+    {
+        "signed": {
+            "mediaType": "application/vnd.oci.image.manifest.v2+json",
+            "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+            "size": 528,
+            "references": [
+                "registry.acme-rockets.com/net-monitor:v1"
+            ],
+            "exp": 1627555319,
+            "nbf": 1596019319,
+            "iat": 1596019319
+        },
+        "signature": {
+            "typ": "x509",
+            "sig": "UFqN24K2fLj...",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDszCCApugAwIBAgIUL1anEU/..."
+            ]
+        }
     }
     ```
 
@@ -208,13 +322,24 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
 
 > **Note:** this is our working/preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/806)
 
+### Signature Persistance - Option 2a: oci-index signing a multi-arch manifest
+
+Takin the above scenario further, a signature can be associated with an individual manifest, or a signature can be applied to an index. The index could be a multi-arch index (windows & linux), or the index might represent a [CNAB][cnab].
+
+In the below case, the `net-monitor` software is available as windows (`net-monitor:v1-win`) and linux (`net-monitor:v1-lin`) images, as well as a multi-arch index (`net-monitor:v1`)
+The platform specific images, and the multi-arch index are all signed by **wabbit-networks** and **acme-rockets**.
+
+<img src="../../media/signature-as-index-signing-multi-arch-index.png" width=1100>
+
+
 ### Signature Persistance - Option 3: oci-manifest linked through oci-index
 
 This model is a hybrid of the 1 & 2, but moves the persistance of the signature from the config object to a layer of an additional manifest.
 
-<img src="../../media/signature-as-manifest-via-index.png" width=750>
+<img src="../../media/signature-as-manifest-via-index.png" width=950>
 
-1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
+1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`
+
     ```JSON
     {
       "schemaVersion": 2,
@@ -238,13 +363,15 @@ This model is a hybrid of the 1 & 2, but moves the persistance of the signature 
       ]
     }
     ```
+
 2. **index digest for the wabbit-networks signature** `sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`
+
     ```json
     {
       "schemaVersion": 2,
       "mediaType": "application/vnd.oci.image.index.v2+json",
       "config": {
-        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "mediaType": "application/vnd.cncf.notary.index.config.v2+jwt",
         "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
         "size": 1906
       },
@@ -267,7 +394,9 @@ This model is a hybrid of the 1 & 2, but moves the persistance of the signature 
       ]
     }
     ```
+
 3. **manifest digest for the wabbit-networks signature** `sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`
+
     ```json
     {
       "schemaVersion": 2,
@@ -280,13 +409,41 @@ This model is a hybrid of the 1 & 2, but moves the persistance of the signature 
       "layers": []
     }
     ```
+
+    The `manifest.config` contains the following signature information:
+
+    ```json
+    {
+        "signed": {
+            "mediaType": "application/vnd.oci.image.manifest.v2+json",
+            "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+            "size": 528,
+            "references": [
+                "registry.wabbit-networks.com/net-monitor:v1"
+            ],
+            "exp": 1627555319,
+            "nbf": 1596019319,
+            "iat": 1596019319
+        },
+        "signature": {
+            "typ": "x509",
+            "sig": "UFqN24K2fLj...",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDszCCApugAwIBAgIUL1anEU/..."
+            ]
+        }
+    }
+    ```
+
 4. **index digest for the acme-rockets signature** `sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`
+
     ```json
     {
       "schemaVersion": 2,
       "mediaType": "application/vnd.oci.image.index.v2+json",
       "config": {
-        "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
+        "mediaType": "application/vnd.cncf.notary.index.config.v2+jwt",
         "digest": "sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c",
         "size": 1906
       },
@@ -308,7 +465,10 @@ This model is a hybrid of the 1 & 2, but moves the persistance of the signature 
         }
       ]
     }
+    ```
+
 5. **manifest digest for the acme-rockets signature** `sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`
+
     ```json
     {
       "schemaVersion": 2,
@@ -319,6 +479,32 @@ This model is a hybrid of the 1 & 2, but moves the persistance of the signature 
         "size": 1906
       },
       "layers": []
+    }
+    ```
+
+    The `manifest.config` contains the following signature information:
+
+    ```json
+    {
+        "signed": {
+            "mediaType": "application/vnd.oci.image.manifest.v2+json",
+            "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+            "size": 528,
+            "references": [
+                "registry.acme-rockets.com/net-monitor:v1"
+            ],
+            "exp": 1627555319,
+            "nbf": 1596019319,
+            "iat": 1596019319
+        },
+        "signature": {
+            "typ": "x509",
+            "sig": "UFqN24K2fLj...",
+            "alg": "RS256",
+            "x5c": [
+                "MIIDszCCApugAwIBAgIUL1anEU/..."
+            ]
+        }
     }
     ```
 
