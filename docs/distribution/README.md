@@ -706,7 +706,7 @@ There are three identified patterns for paging results:
 #### Distribution Spec - Tags Listing API
 
 The [OCI distribution-spec][distribution-spec-paging] identifies paging with `n` and `last` parameters:
-[tags-api]
+[distribution-spec-paging]
 
 Get a list of paginated signatures from the registry. The response will include an opaque URL that can be followed to obtain the next page of results.
 
@@ -921,4 +921,3 @@ See [nv2 signature spec][nv2-signature-spec] for more details.
 [oci-manifest]:               https://github.com/opencontainers/image-spec/blob/master/manifest.md
 [oras]:                       https://github.com/deislabs/oras
 [oci-dist-spec-manifest-put]: https://github.com/opencontainers/distribution-spec/blob/master/spec.md#put-manifest
-[tags-api]:                   https://github.com/opencontainers/distribution-spec
