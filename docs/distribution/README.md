@@ -1,24 +1,24 @@
 # OCI Distribution - Notary v2 Signature Support
 
-To support [Notary v2 goals][notaryv2-goals], upload, persistance and discovery of signatures must be supported.
+To support [Notary v2 goals][notaryv2-goals], upload, Persistence and discovery of signatures must be supported.
 
 To minimize the complexity of registry operators and projects to adopt Notary v2, a balance between leveraging what already exists and new patterns to support secure discovery are explored.
 
 ## Table of Contents
 
-* [Signature Persistance](#signature-persistance)
+* [Signature Persistence](#signature-Persistence)
 * [Signature Push](#signature-push)
 * [Signature Discovery](#signature-discovery)
 * [Signature Pull](#signature-pull)
 * [Example Artifacts](#example-artifacts)
 
-## Signature Persistance
+## Signature Persistence
 
 Several options for how to persist a signature were explored. We measure these options against the [goals of Notary v2][notaryv2-goals], specifically:
 
 * Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
 * Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
-* Native persistance within an OCI Artifact enabled, distribution*spec based registry
+* Native Persistence within an OCI Artifact enabled, distribution*spec based registry
 * Artifact and signature copying within and across OCI Artifact enabled, distribution spec based registries
 * Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
 * Support private registries, where public content may be copied to, and new content originated within
@@ -31,7 +31,7 @@ The config object contains the signature and signed content. See [nv2-signature-
 
 Storing a signature as a separate artifact enables the above goals, most importantly the ability to maintain the existing tag and and digest for a given artifact.
 
-### Persistance as Manifest or Index
+### Persistence as Manifest or Index
 
 A typical signing workflow would involve:
 
@@ -40,11 +40,11 @@ A typical signing workflow would involve:
 
 It's presumed artifact clients like docker, oras, buildkit would support these new workflows. The question is what oci schema they are pushed with:
 
-* [Option 1: oci-manifest](#signature-persistance---option-1-oci-manifest)
-* [Option 2: oci-index](#signature-persistance---option-2-oci-index)
-* [Option 3: oci-manifest-linked through index](#signature-persistance---option-3-oci-manifest-linked-through-oci-index)
+* [Option 1: oci-manifest](#signature-Persistence---option-1-oci-manifest)
+* [Option 2: oci-index](#signature-Persistence---option-2-oci-index)
+* [Option 3: oci-manifest-linked through index](#signature-Persistence---option-3-oci-manifest-linked-through-oci-index)
 
-### Signature Persistance - Option 1: oci-manifest
+### Signature Persistence - Option 1: oci-manifest
 
 The challenge with using oci-manifest is how the registry tracks the linkage between the signature and the original artifact.
 
@@ -169,7 +169,7 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
 * Manifests have no means to reference other artifacts.
 * An alternative is required to link a target artifact with it's signature. Either through parsing the signature `manifest.config` object, or [a separate API for linking objects](#linking-signatures-to-artifacts).
 
-### Signature Persistance - Option 2: oci-index
+### Signature Persistence - Option 2: oci-index
 
 This option is similar to using oci-manifest. However, instead of parsing the signature object to determine the linkage between an artifact and signature, the `index.manifests` collection is utilized.
 
@@ -322,7 +322,7 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
 
 > **Note:** this is our working/preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/806)
 
-### Signature Persistance - Option 2a: oci-index signing a multi-arch manifest
+### Signature Persistence - Option 2a: oci-index signing a multi-arch manifest
 
 Takin the above scenario further, a signature can be associated with an individual manifest, or a signature can be applied to an index. The index could be a multi-arch index (windows & linux), or the index might represent a [CNAB][cnab].
 
@@ -332,9 +332,9 @@ The platform specific images, and the multi-arch index are all signed by **wabbi
 <img src="../../media/signature-as-index-signing-multi-arch-index.png" width=1100>
 
 
-### Signature Persistance - Option 3: oci-manifest linked through oci-index
+### Signature Persistence - Option 3: oci-manifest linked through oci-index
 
-This model is a hybrid of the 1 & 2, but moves the persistance of the signature from the config object to a layer of an additional manifest.
+This model is a hybrid of the 1 & 2, but moves the Persistence of the signature from the config object to a layer of an additional manifest.
 
 <img src="../../media/signature-as-manifest-via-index.png" width=950>
 
