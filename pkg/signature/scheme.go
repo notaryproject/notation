@@ -50,7 +50,7 @@ func (s *Scheme) SignRaw(signerID string, content []byte) (string, error) {
 
 	signed, sig, err := signer.Sign(EncodeSegment(content))
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	return strings.Join([]string{

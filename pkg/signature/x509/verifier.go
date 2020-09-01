@@ -144,8 +144,10 @@ func verifyReferences(seg string, cert *x509.Certificate) error {
 	roots := x509.NewCertPool()
 	roots.AddCert(cert)
 	for _, reference := range claims.Manifest.References {
+		domain := strings.SplitN(reference, "/", 2)[0]
+		domain = strings.SplitN(domain, ":", 2)[0]
 		if _, err := cert.Verify(x509.VerifyOptions{
-			DNSName: strings.SplitN(reference, "/", 2)[0],
+			DNSName: domain,
 			Roots:   roots,
 		}); err != nil {
 			return err

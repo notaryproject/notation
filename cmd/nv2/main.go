@@ -13,7 +13,7 @@ func main() {
 	app := &cli.App{
 		Name:    "nv2",
 		Usage:   "Notary V2 - Prototype",
-		Version: "0.3.1",
+		Version: "0.3.2",
 		Authors: []*cli.Author{
 			{
 				Name:  "Shiwei Zhang",
