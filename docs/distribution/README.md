@@ -551,6 +551,8 @@ Partial config object, referring to the digest and tag of the `net-monitor:v1` c
     "references": [
       "registry.acme-rockets.com/net-monitor:v1"
     ]
+  }
+}
 ```
 
 **Pros with this approach:**
@@ -625,10 +627,10 @@ The following options are offered:
 ### Signature Discovery - Option 1: Signature Listing API
 
 Similar to the [_tags api][tags-api], a new signatures API is proposed. The signatures API uses the digest as the path to find all signatures related to said digest.
-In the below example, the `net-monitor:v1` tag has a digest of: `sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`
+In the below example, the `net-monitor:v1` tag has a digest of: `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m`
 
 ```HTTP
-GET /v2/<name>/manifests/sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042/signatures/
+GET /v2/<name>/manifests/sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m/signatures/
 ```
 
 The response will be in the following format:
@@ -637,16 +639,18 @@ The response will be in the following format:
 200 OK
 Content-Type: application/json
 {
-  "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+  "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
+  "size": "1331",
   "signatures": [
     {
-      "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+      "digest": "sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1024",
       "signature-typ": "x509"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "signature-typ": "x509"
@@ -835,8 +839,8 @@ These assume:
 ### Artifacts submitted to a registry
 
 The following are artifacts that represent a container image, or signature artifact. Depending on the example above, the signatures are represented as an oci manifest or oci index.
-|Artifact                          |`config.mediaType`                         | Digest                                                                  |
-|----------------------------------|-------------------------------------------|-------------------------------------------------------------------------|
+|Artifact                              |`config.mediaType`                         | Digest                                                                  |
+|--------------------------------------|-------------------------------------------|-------------------------------------------------------------------------|
 |`net-monitor:v1` image **manifest**   |`application/vnd.oci.image.config.v1+json` |`sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m`|
 |`net-monitor:v1` multi-arch **index** |`application/vnd.oci.image.config.v1+json` |`sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i`|
 |wabbit-networks signature **manifest**|`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`|
