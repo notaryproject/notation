@@ -18,7 +18,7 @@ Several options for how to persist a signature were explored. We measure these o
 
 * Maintain the original artifact digest and collection of associated tags, supporting existing dev through deployment workflows
 * Multiple signatures per artifact, enabling the originating vendor signature, public registry certification and user/environment signatures
-* Native Persistence within an OCI Artifact enabled, distribution*spec based registry
+* Native Persistence within an OCI Artifact enabled, distribution spec based registry
 * Artifact and signature copying within and across OCI Artifact enabled, distribution spec based registries
 * Support multi-tenant registries enabling cloud providers and enterprises to support managed services at scale
 * Support private registries, where public content may be copied to, and new content originated within
@@ -228,7 +228,7 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
     }
     ```
 
-    The `manifest.config` contains the following signature information:
+    The `index.config` contains the following signature information:
 
     ```json
     {
@@ -364,7 +364,7 @@ This model is a hybrid of the 1 & 2, but moves the Persistence of the signature 
     }
     ```
 
-2. **index digest for the wabbit-networks signature** `sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`
+2. **index digest for the wabbit-networks signature of the `net-monitor:v1` image** `sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`
 
     ```json
     {
