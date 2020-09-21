@@ -34,11 +34,10 @@ Following the [OCI Artifacts][oci-artifacts] design, [Notary v2 signatures][nv2-
 
 <img src="../../media/signature-as-index.png" width=650>
 
-The above represents the `net-monitor:v1` container image, signed by it's originating author (**wabbit-networks**) as well as **acme-rockets** which imported the image into their private registry.  
+The above represents the `net-monitor:v1` container image, signed by it's originating author (**wabbit-networks**) as well as **acme-rockets** which imported the image into their private registry.
 The signatures are persisted as OCI Indexes, with a new `index.config` object storing the signature content:
 
-1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m"`  
-
+1. **manifest digest for the `net-monitor:v1` image:** `sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m`
     ```JSON
     {
       "schemaVersion": 2,
@@ -89,7 +88,7 @@ The signatures are persisted as OCI Indexes, with a new `index.config` object st
     ```
 
     The `index.config` contains the following signature information:
-
+`sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c`
     ```json
     {
         "signed": {
@@ -139,8 +138,8 @@ The signatures are persisted as OCI Indexes, with a new `index.config` object st
     }
     ```
 
-    The `manifest.config` contains the following signature information:
-
+    The `index.config` contains the following signature information:
+`sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c`
     ```json
     {
         "signed": {
@@ -180,7 +179,7 @@ The signatures are persisted as OCI Indexes, with a new `index.config` object st
 
 ### Signature Persistence - Signing Multi-arch Manifests
 
-Takin the above scenario further, a signature can be associated with an individual manifest, or a signature can be applied to an index. The index could be a multi-arch index (windows & linux), or the index might represent a [CNAB][cnab].
+Taking the above scenario further, a signature can be associated with an individual manifest, or a signature can be applied to an index. The index could be a multi-arch index (windows & linux), or the index might represent a [CNAB][cnab].
 
 In the below case, the `net-monitor` software is available as windows (`net-monitor:v1-win`) and linux (`net-monitor:v1-lin`) images, as well as a multi-arch index (`net-monitor:v1`)
 The platform specific images, and the multi-arch index are all signed by **wabbit-networks** and **acme-rockets**.
@@ -258,8 +257,8 @@ Using the existing [OCI distribution-spec push][oci-distribution-push-manifest] 
 
 ```json
 {
-  "schemaVersion": 3,
-  "mediaType": "application/vnd.oci.image.index.v1+json",
+  "schemaVersion": 2,
+  "mediaType": "application/vnd.oci.image.index.v2+json",
   "config": {
     "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
     "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
@@ -309,8 +308,8 @@ Push a signature artifact and an OCI index that contains a config property refer
 - index json:
     ```json
     {
-        "schemaVersion": 3,
-        "mediaType": "application/vnd.oci.image.index.v1+json",
+        "schemaVersion": 2,
+        "mediaType": "application/vnd.oci.image.index.v2+json",
         "config": {
             "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
             "digest": "sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c",
@@ -330,7 +329,7 @@ Push a signature artifact and an OCI index that contains a config property refer
     }
     ```
 
-Consistent with the current distribution implementation, on `PUT` the index appears as a manifest revision. 
+Consistent with the current distribution implementation, on `PUT`, the index appears as a manifest revision.
 
 The Notary v2 prototype adds referrer metadata for the **wabbit-networks** signature:
 
@@ -344,7 +343,7 @@ The Notary v2 prototype adds referrer metadata for the **wabbit-networks** signa
                     └── sha256
                         ├── 111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m
                         │   ├── link
-                        │   └── referrerMetadata
+                        │   └── ref
                         │       └── application/vnd.cncf.notary.config.v2+jwt
                         │           └── sha256
                         │               └── 222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c
@@ -360,8 +359,8 @@ Adding the **acme-rockets** signature:
 
   ```json
   {
-    "schemaVersion": 3,
-    "mediaType": "application/vnd.oci.image.index.v1+json",
+    "schemaVersion": 2,
+    "mediaType": "application/vnd.oci.image.index.v2+json",
     "config": {
       "mediaType": "application/vnd.cncf.notary.config.v2+jwt",
       "digest": "sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c",
@@ -393,7 +392,7 @@ The Notary v2 storage layout of 2 signature index objects:
                     └── sha256
                         ├── 111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m
                         │   ├── link
-                        │   └── referrerMetadata
+                        │   └── ref
                         │       └── application/vnd.cncf.notary.config.v2+jwt
                         │           └── sha256
                         │               ├── 222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c
@@ -479,7 +478,7 @@ manifestDigest="sha256:$(sha256sum $manifestFile | cut -d " " -f 1)" && \
 
 ```shell
 indexFile="index.json" && \
-  indexMediaType="application/vnd.oci.image.index.v1+json" && \
+  indexMediaType="application/vnd.oci.image.index.v2+json" && \
   configMediaType="application/vnd.cncf.notary.config.v2+jwt" && \
   signatureFileSize=`wc -c < $signatureFile` && \
   manifestMediaType="$(cat $manifestFile | jq -r '.mediaType')" && \
@@ -487,7 +486,7 @@ indexFile="index.json" && \
 
 cat <<EOF > $indexFile
 {
-  "schemaVersion": 3,
+  "schemaVersion": 2,
   "mediaType": "$indexMediaType",
   "config": {
     "mediaType": "$configMediaType",
