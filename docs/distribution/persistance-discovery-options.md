@@ -1,6 +1,8 @@
-# OCI Distribution - Notary v2 Signature Support
+# OCI Distribution - Notary v2 Signature Persistance & Discovery Options
 
-To support [Notary v2 goals][notaryv2-goals], upload, Persistence and discovery of signatures must be supported.
+> This document explores the various options that were considered for the prototype. The current implementation is documented under the [README.md](./README.md) document.
+
+To support [Notary v2 goals][notaryv2-goals], upload, persistence and discovery of signatures must be supported.
 
 To minimize the complexity of registry operators and projects to adopt Notary v2, a balance between leveraging what already exists and new patterns to support secure discovery are explored.
 
@@ -171,6 +173,8 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
 
 ### Signature Persistence - Option 2: oci-index
 
+> **Note:** this is our working prototype/preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/806)
+
 This option is similar to using oci-manifest. However, instead of parsing the signature object to determine the linkage between an artifact and signature, the `index.manifests` collection is utilized.
 
 <img src="../../media/signature-as-index.png" width=650>
@@ -318,9 +322,7 @@ Example **manifests** for a container image (`net-monitor:v1`) and two signature
 
 * OCI index does not yet support the [OCI config descriptor][oci-descriptor]. This would require a schema change to oci-index, with a version bump.
   * This has been a [desired item for OCI Artifacts][oci-artifacts-index] to support other artifact types which would base on Index.
-* An additional role check is performed, based on the artifact type. Also noted as a pro as registry operators may want to utilize this for other artifact types, making it a consistent model.
-
-> **Note:** this is our working/preferred method: See OCI image-spec issue: [Add Index Support for Artifact Type #806](https://github.com/opencontainers/image-spec/issues/806)
+* Registries that wish to implement role based authorization would implement and additional role check, based on the artifact type. Also noted as a pro as registry operators may want to utilize this for other artifact types, making it a consistent model. This likely minimizes this as a con-but noted for completeness.
 
 ### Signature Persistence - Option 2a: oci-index signing a multi-arch manifest
 
@@ -661,36 +663,38 @@ Content-Type: application/json
 
 ### Signature Discovery - Option 2: Generic Reference Listing API
 
-A slight alternative to the signatures API is to provide a generic reference listing API, where a paged collection of references are returned.
+A slight alternative to the signatures API is to provide a generic reference listing API, where a paged collection of references are returned. The intent is to provide a broader usage API, beyond the signature type. For example, returning any multi-arch index references.
 
-In the below example, the `net-monitor:v1` tag has a digest of: `sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042`
+<img src="../../media/signature-as-index-signing-multi-arch-index.png" width=950>
+
+Using the diagram above, the `net-monitor:v1` manifest tag (4) has a digest of: `sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm`. When requesting the referenced objects, we see 2 signature objects being returned (wabbit-networks (6) & acme-rockets(7)), and an OCI multi-arch index (1).
 
 ```HTTP
-GET /v2/<name>/manifests/sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042/references/
+GET /v2/<name>/manifests/sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm/references/
 ```
 
-The response will be in the following format:
+The response could be in the following format. Note the additional `config-mediaType` to identify the specific artifact type in the results.
 
 ```HTTP
 200 OK
 Content-Type: application/json
 {
-  "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+  "digest": "sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm",
   "references": [
     {
-      "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+      "digest": "sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1024",
       "config-mediaType": "application/vnd.cncf.notary.config.v2+jwt"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "config-mediaType": "application/vnd.cncf.notary.config.v2+jwt"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "config-mediaType": "application/vnd.oci.image.index.v1+json"
@@ -717,7 +721,7 @@ Get a list of paginated signatures from the registry. The response will include 
 Paginated tag results can be retrieved by adding an `n` parameter to the request URL, declaring that the response SHOULD be limited to `n` results. Starting a paginated flow MAY begin as follows:
 
 ```HTTP
-GET /v2/<name>/manifests/sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042/references/list?n=<integer>
+GET /v2/<name>/manifests/sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm/references/list?n=<integer>
 ```
 
 The above specifies that a tags response SHOULD be returned, from the start of the result set, ordered lexically, limiting the number of results to `n`. The response to such a request would look as follows:
@@ -727,23 +731,23 @@ The above specifies that a tags response SHOULD be returned, from the start of t
 Content-Type: application/json
 Link: <<url>?n=<n from the request>&last=<last tag value from previous response>>; rel="next"
 {
-  "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+  "digest": "sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm",
   "@nextLink": "{opaqueUrl}",
   "references": [
     {
-      "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+      "digest": "sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1024",
       "config-mediaType": "application/vnd.cncf.notary.config.v2+jwt"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "config-mediaType": "application/vnd.cncf.notary.config.v2+jwt"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "config-mediaType": "application/vnd.oci.image.index.v1+json"
@@ -786,30 +790,30 @@ To support pagination (returning list results in pages) in a List method, the AP
 To retrieve the next page of results, client **shall** pass the value of response's `next_page_token` in the subsequent `List` method call (in the request message's `page_token` field):
 
 ```HTTP
-GET /v2/<name>/manifests/sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042/references/list?page_token=1&page_size=10&next_page_token=<token>
+GET /v2/<name>/manifests/sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm/references/list?page_token=1&page_size=10&next_page_token=<token>
 ```
 
 The above specifies that a tags response SHOULD be returned, from the start of the result set, ordered lexically, limiting the number of results to `n`. The response to such a request would look as follows:
 
 ```json
 {
-  "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+  "digest": "sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm",
   "@next_page_token": "{opaqueUrl}",
   "references": [
     {
-      "digest": "sha256:90659bf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cbc042",
+      "digest": "sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1024",
       "config-mediaType": "application/vnd.cncf.notary.config.v2+jwt"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "config-mediaType": "application/vnd.cncf.notary.config.v2+jwt"
     },
     {
-      "digest": "sha256:007170c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75a153b",
+      "digest": "sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i",
       "mediaType": "application/vnd.oci.image.index.v1+json",
       "size": "1025",
       "config-mediaType": "application/vnd.oci.image.index.v1+json"
@@ -838,15 +842,18 @@ These assume:
 
 ### Artifacts submitted to a registry
 
-The following are artifacts that represent a container image, or signature artifact. Depending on the example above, the signatures are represented as an oci manifest or oci index.
-|Artifact                              |`config.mediaType`                         | Digest                                                                  |
-|--------------------------------------|-------------------------------------------|-------------------------------------------------------------------------|
-|`net-monitor:v1` image **manifest**   |`application/vnd.oci.image.config.v1+json` |`sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m`|
-|`net-monitor:v1` multi-arch **index** |`application/vnd.oci.image.config.v1+json` |`sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i`|
-|wabbit-networks signature **manifest**|`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`|
-|wabbit-networks signature **index**   |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`|
-|acme-rockets signature **manifest**   |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`|
-|acme-rockets signature **index**      |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`|
+The following are artifacts that represent container images and signature artifacts. Depending on the example above, the signatures are represented as an oci manifest or oci index. Some tags are re-used to represent platform neutral examples. For instance, `net-monitor:v1` is represented as both a default linux image manifest, and a multi-arch index. In some examples, the platform is removed from the tag for brevity and focus on the topic at hand. _It is not suggested `:v1` tags can point to multiple things at the same time._
+
+|Artifact                                  |`config.mediaType`                         | Digest                                                                  |
+|------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------|
+|`net-monitor:v1` image **manifest**       |`application/vnd.oci.image.config.v1+json` |`sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m`|
+|`net-monitor:v1-linux` image **manifest** |`application/vnd.oci.image.config.v1+json` |`sha256:11lma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11lm`|
+|`net-monitor:v1-win` image **manifest**   |`application/vnd.oci.image.config.v1+json` |`sha256:11wma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a11wm`|
+|`net-monitor:v1` multi-arch **index**     |`application/vnd.oci.image.config.v1+json` |`sha256:111ia2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111i`|
+|wabbit-networks signature **manifest**    |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222mbbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222m`|
+|wabbit-networks signature **index**       |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:222ibbf80b44ce6be8234e6ff90a1ac34acbeb826903b02cfa0da11c82cb222i`|
+|acme-rockets signature **manifest**       |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:333mc0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333m`|
+|acme-rockets signature **index**          |`application/vnd.cncf.notary.config.v2+jwt`|`sha256:333ic0c33ebc4a74a0a554c86ac2b28ddf3454a5ad9cf90ea8cea9f9e75c333i`|
 
 ### Config Objects - referenced by manifests
 
@@ -858,7 +865,7 @@ The following are descriptors, representing config objects within a manifest and
 |wabbit-networks signature |`sha256:222cb130c152895905abe66279dd9feaa68091ba55619f5b900f2ebed38b222c`|
 |acme-rockets signature    |`sha256:333cc44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b785c333c`|
 
-### Example manifest for the **container image**: `registry.acme-rockets.com/net-monitor:v1`
+### Example manifest for the platform agnostic **container image**: `registry.acme-rockets.com/net-monitor:v1`
 
 ```json
 {
@@ -866,7 +873,7 @@ The following are descriptors, representing config objects within a manifest and
   "mediaType": "application/vnd.oci.image.manifest.v2+json",
   "config": {
     "mediaType": "application/vnd.oci.image.config.v1+json",
-    "digest": "sha256:1101a3788f3464fd9a06386c4d7a8e3018b525278ac4b9da872943d4cfe97fe8",
+    "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
     "size": 1906
   },
   "layers": [
@@ -891,7 +898,7 @@ See [nv2 signature spec][nv2-signature-spec] for more details.
 ```json
 {
     "signed": {
-        "digest": "sha256:2235d2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49cc77c",
+        "digest": "sha256:111ma2d22ae5ef400769fa51c84717264cd1520ac8d93dc071374c1be49a111m",
         "size": 528,
         "references": [
             "registry.acme-rockets.com/net-monitor:v1"
