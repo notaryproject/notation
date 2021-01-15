@@ -13,6 +13,8 @@ Our design is based on TUF, and so builds onto a specification and implementatio
 
 ## Design
 
+<img src="images/Notary-v2_Design_Diagram.png">
+
 Our design uses the roles from TUF. Each role is associated with metadata that is signed with cryptographic keys associated with the role. Roles may have any number of cryptographic keys, and may require a threshold of signatures. The roles are:
 * The root role is the root of trust for the registry. It delegates to the other registry and repository controlled roles. Clients should be given the root public key at set up.
 * The snapshot role ensures that all metadata on the registry is current. This current metadata may point to older images (for example if both 1.0.9 and 1.1.0 are currently available), but the metadata itself must not be replayed (for example to a previous version that listed 1.0.9, but not 1.1.0).
@@ -33,6 +35,8 @@ Multi-role delegations allow an organization to delegate to a combination of rol
 For some client use cases, slight modifications are needed to the above workflow. These modifications do not affect metadata or images on the registry, but allow clients greater flexibility when interacting with the system.
 
 #### TAP 13: Client-side Selection of the Top-Level Target Files Through Mapping Metadata
+
+<img src="images/Notary_client_targets_proposal.png">
 
 In some cases, clients may not want to trust all images on a registry, or they may want multiple parties on a registry to agree on an image. To support these use cases, we introduce a new feature that allows a user to overwrite the registry’s top level targets metadata with another metadata file on the registry. This feature is described in detail in [TAP 13](https://github.com/theupdateframework/taps/pull/118), but in essence it continues to use the TUF client workflow, but replaces the targets metadata listed in root (the registry top level targets metadata) with a client defined metadata file. Because the user defines a targets metadata file on the registry, they maintain protection from the timestamp and snapshot roles.
 
@@ -62,6 +66,8 @@ In order to keep images isolated from other users of the registry, users can use
 For registries that contain a lot of images, we present some optimizations that may help with scalability.
 
 #### Snapshot Merkle Trees
+
+<img src="images/Snapshot_merkle_tree.png">
 
 The snapshot metadata file contains the name and version number of every metadata file on the registry. If there are a lot of metadata files (or if metadata filenames present a privacy concern), a registry may choose to instead use a snapshot merkle tree. Each metadata file is a leaf of the merkle tree, and client systems can use the root hash (signed by timestamp metadata) to ensure that a metadata file is contained in the current merkle tree. During this process, they only see secure hashes of other leaves in the tree. In this way, the merkle tree provides a distributed snapshot metadata file that requires the user to download less data and does not reveal any information about images the user is not authorized to view. More detail about this mechanism, and an analysis of the bandwidth savings is available in the [TAP](https://github.com/theupdateframework/taps/pull/125).
 
