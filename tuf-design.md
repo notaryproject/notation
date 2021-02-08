@@ -1,12 +1,16 @@
 # TUF + Notary v2 Design Overview
 
-Based on discussions over the past few months, we have been designing a variant of TUF for use in Notary v2. This document contains an overview of the workflow and features of this design. The goal of this design is to provide protection against [attacks on update systems](https://theupdateframework.io/security/) transparently to users. This means that most of the features described in this document will be part of automated processes.
+Based on discussions with the Notary v2 community over the past few months, we designed a variant of TUF for use in Notary v2. By including TUF in the design, Notary will be able to have built-in key management, ensure users get up-to-date tag resolutions, and provide transparent protection against [attacks on update systems](https://theupdateframework.io/security/). This document contains an overview of the workflow and features of the proposed tuf-notary design. Most of the features described in this document will be part of automated processes, and so will not require explicit interaction from the user unless an attack is detected.
+
+This design will be used in conjunction with the OCI artifact work done by others in the Notary v2 community to ensure compliance with the OCI specification and integration with existing registries.
 
 ## Basic properties
 
-Our design is based on TUF, and so builds onto a specification and implementation that has been used in the real world by PyPI, Google Fuschia, AWS, and more. TUF has support for integration with in-toto for complete supply chain security and has been subjected to multiple security audits. However, Notary requires a few additional considerations to address registry-specific use cases. Specifically, this design addresses the following use cases:
+This design is based on TUF, and so builds onto a specification and implementation used in real world systems such as PyPI, Google Fuschia, AWS, and more. TUF has been subjected to multiple security audits and can support integration with the in-toto supply chain security framework for end-to-end security.
+
+However, to address registry-specific use cases, Notary requires a few additional considerations. Specifically, this design addresses the following use cases:
 * Air-gapped environments: Clients who receive metadata after a delay will still be able to correctly verify this metadata, with minimal changes to their security guarantees.
-* Ephemeral clients: Clients cannot rely on existing state for security properties. Ephemeral clients receive some initialization data, but we want to minimize the overhead for creating ephemeral clients. To do so, we assume ephemeral obtain root private keys through a secure distribution method (like spiffe/spire), but they have no other initial state.
+* Ephemeral clients: Ephemeral clients cannot rely on existing state for security properties. They receive some minimal initialization data, so root private keys may be included in this configuration. If this creates too much overhead, ephemeral clients may instead obtain root private keys through a secure distribution method (like spiffe/spire).
 * Allowing users more control over key management: Users may not want to trust the registry for all key management. To address this, we introduce a new feature that allows  a user to use TUF verification while maintaining control of key management.
 * Balancing the needs of private and public registries: Our design aims to balance the needs of clients with private images with the needs of large, open source registries by providing some choices to registry operators.
 * Scalability: Registries often contain many more images than existing TUF implementations. We calculated metadata overheads for our new variant of TUF, and added some additional scalability options to ensure usability.
@@ -15,13 +19,14 @@ Our design is based on TUF, and so builds onto a specification and implementatio
 
 <img src="images/Notary-v2_Design_Diagram.png">
 
-Our design uses the roles from TUF. Each role is associated with metadata that is signed with cryptographic keys associated with the role. Roles may have any number of cryptographic keys, and may require a threshold of signatures. The roles are:
+Our design uses the roles from TUF. Each role is associated with metadata that is signed with cryptographic keys associated with the role. Roles may have any number of cryptographic keys, and may require a threshold of signatures. The roles in this design are as follows:
 * The root role is the root of trust for the registry. It delegates to the other registry and repository controlled roles. Clients should be given the root public key at set up.
 * The snapshot role ensures that all metadata on the registry is current. This current metadata may point to older images (for example if both 1.0.9 and 1.1.0 are currently available), but the metadata itself must not be replayed (for example to a previous version that listed 1.0.9, but not 1.1.0).
 * The timestamp role ensures timeliness of all metadata by listing a hash of the current snapshot metadata with the current timestamp. Clients can ensure that this timestamp is within a given window.
 * The targets role provides delegations to other targets roles and/or information about an image, including a cryptographic hash and space for metadata about the supply chain (in-toto metadata, SBOM, etc). There may be many targets roles on a registry. At a minimum, we expect:
-    * The registry’s top level targets role delegates responsibility for images to repositories on that registry.
+    * The registry’s top level targets role will delegate responsibility for images to repositories on that registry.
     * A repository’s top level targets role may contain images, or further delegations to teams or developers. We recommend multiple layers of delegation to prevent key sharing within an organization, but the exact layout is not prescribed. Delegations may use the ‘AND’ relationship to require that multiple parties agree on image contents.
+
 Using these roles, organizations can formalize their internal processes. For example, if images must be verified by both a developer team and a security team, the organization’s top level targets metadata can delegate all images to dev AND security.
 
 ### Using Multiple Signatures
@@ -38,22 +43,22 @@ For some client use cases, slight modifications are needed to the above workflow
 
 <img src="images/Notary_client_targets_proposal.png">
 
-In some cases, clients may not want to trust all images on a registry, or they may want multiple parties on a registry to agree on an image. To support these use cases, we introduce a new feature that allows a user to overwrite the registry’s top level targets metadata with another metadata file on the registry. This feature is described in detail in [TAP 13](https://github.com/theupdateframework/taps/pull/118), but in essence it continues to use the TUF client workflow, but replaces the targets metadata listed in root (the registry top level targets metadata) with a client defined metadata file. Because the user defines a targets metadata file on the registry, they maintain protection from the timestamp and snapshot roles.
+In some cases, clients may not want to trust all images on a registry, or they may want multiple parties on a registry to agree on an image. To support these use cases, we introduce a new feature that allows a user to overwrite the registry’s top level targets metadata with another metadata file on the registry. This feature is described in detail in [TAP 13](https://github.com/theupdateframework/taps/pull/118), but in essence it continues to use the TUF client workflow, but replaces the targets metadata listed in root (the registry top level targets metadata) with a client defined metadata file. Because the user defines a targets metadata file on the registry, they retain protection from the timestamp and snapshot roles.
 
 #### Timestamp verification for air-gapped environments
 
-Client systems that are not internet connected may receive metadata after a delay, and so will detect timestamp metadata as invalid. For these clients, we recommend that they either:
-* Set a wider window for the valid time (ie a couple of days), and allow any metadata that is valid within that window.
-* If that is not possible, they can keep track of the last timestamp they verified, and ensure that the new timestamp is more recent. This provides a weaker guarantee than ensuring that the time is current, but it allows a longer delay in receiving metadata.
+Client systems that are not internet connected may receive metadata after a delay. In this scenario timestamp metadata will be viewed as invalid. For these clients, we recommend that they either:
+* Set a wider window for the valid time (i.e. a couple of days), and accept any metadata that is valid within that window.
+* If that is not possible, the client can keep track of the last timestamp they verified, and ensure that the new timestamp is more recent. This provides a weaker guarantee than ensuring that the time is current, but it allows a longer delay in receiving metadata.
 These mitigations weaken some of the security guarantees of TUF, but this can be partly mitigated by having the transferring party (the party that gives the metadata to the offline device) perform TUF verification before passing the metadata to the non-connected device.
 
 ### Using multiple registries
 
 #### Image movement within/between registries
 
-An image may be moved between registries. To do so, the image index, and it’s associated targets metadata (unchanged) can be directly copied. Once copied, the relevant targets metadata on the new registry (ie the registry top level targets metadata or a repository metadata file) should add a delegation to the image. The registry’s snapshot metadata will need to update to include the new targets metadata. Changes to snapshot metadata may be batched, and should be automated. Timestamp metadata will already update periodically, so will automatically account for the new image.
+An image may be moved between registries. To do so, the image index, and it’s associated targets metadata (unchanged) can be directly copied. Once copied, the relevant targets metadata on the new registry (i.e. the registry top level targets metadata or a repository metadata file) should add a delegation to the image. The registry’s snapshot metadata will need to update to include the new targets metadata. Changes to snapshot metadata may be batched, and should be automated. As timestamp metadata already updates periodically, it will automatically account for the new image.
 
-If images are frequently moved, the registry may maintain a target metadata file with an online key to automate these transfers. The registry’s top level targets metadata can delegate to this online role, which can then delegate to new metadata without any human interaction. The decision whether to use offline or online keys for each targets metadata file is a tradeoff between automation and security, and may vary between registries.
+If images are frequently moved, the registry may maintain a target metadata file with an online key to automate these transfers. The registry’s top level targets metadata can delegate to this online role, which can then delegate to new metadata without any human interaction. The decision whether to use offline or online keys for each targets metadata file is a tradeoff between automation and security, and the relative merits of each approach may vary between registries.
 
 Images can be moved within a registry using a similar process. Aside from the delegation, all steps in this movement can be fully automated and transparent to developers.
 
