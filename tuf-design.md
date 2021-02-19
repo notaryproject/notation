@@ -62,6 +62,12 @@ If images are frequently moved, the registry may maintain a target metadata file
 
 Images can be moved within a registry using a similar process. Aside from the delegation, all steps in this movement can be fully automated and transparent to developers.
 
+##### Updating fully qualified references to artifacts
+
+When an artifact is moved to a new registry, the fully qualified reference to the artifact may be changed to reflect the new registry name. If the fully qualified reference is updated, targets metadata from the previous registry will no longer exactly match targets metadata on the new registry. For example, `wabbitnetworks.example.com/networking/net-monitor:1.0` may be renamed `acmerockets.example.com/net-monitor:1.0` when it is moved to the ACME Rockets registry.
+
+To address this without losing targets metadata from prior to the movement to a new registry, the client could specify that only the last part of the fully qualified reference (`net-monitor:1.0` in the above example) must match. With this option, the client will verify that all other metadata about the image (including the secure hash) is identical between the different targets metadata files, but the references may contain different repositories.
+
 #### Hiding images from other users
 
 In order to keep images isolated from other users of the registry, users can use [repository mapping metadata](https://github.com/theupdateframework/taps/blob/master/tap4.md). Developers can store private images on a separate registry (even if this registry is located on the same server), then users could use the map file to point to the private registry for specific images, and to a public registry for other images. The user would still need to provide credentials to the private registry so that the registry can enforce access control.
