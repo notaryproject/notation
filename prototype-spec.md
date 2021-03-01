@@ -44,6 +44,8 @@ When installing an image from a registry, a user may run `nv2 download imagename
 * Relevant delegated targets metadata. If the top-level targets metadata delegated the queried namespace to another targets metadata file, that file should be downloaded as well. Be aware that there may be multiple levels of delegated targets metadata.
 * The requested image.
 
+Metadata files may be stored on a different repository than the downloaded image. If so, the repository should contain a placeholder that redirects the user to download the metadata from the appropriate location. For example, if root metadata is shared between multiple repositories, it may be stored in a central location, with placeholders in each repository pointing the the location of the root metadata.
+
 The downloaded metadata files will be used in TUF verification as described in the [TUF specification](https://github.com/theupdateframework/specification/blob/master/tuf-spec.md#the-update-framework-specification).
 
 
