@@ -34,6 +34,8 @@ For each TUF root, there must be a process that generates snapshot and timestamp
 
 Changes to snapshot metadata may be batched, so multiple targets metadata versions may be added at once. To do so, the process can allow steps 1 and 2 to repeat any number of times before signing the snapshot metadata.
 
+Snapshot metadata may be stored in a [snapshot Merkle tree](https://github.com/theupdateframework/taps/blob/master/tap16.md) instead of a single metadata file to reduce the size of downloaded metadata. To do so, implementations should follow the same process as described here, but upload all snapshot Merkle metadata files and add the Merkle root hash to timestamp metadata. Implementations that use snapshot Merkle trees should support auditors as described in the TAP.
+
 ## User download
 
 When installing an image from a registry, a user may run `nv2 download imagename`. This command must download the following from the registry:
