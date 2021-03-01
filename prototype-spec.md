@@ -58,12 +58,15 @@ Old versions of root should stay on the registry to allow users with older root 
 
 ## Metadata Types
 
-### Signatures
+All TUF metadata should be stored in the registry as an OCI Artifact.
 
-All metadata files will include a signature in the following format.
+### Signatures and mediatype
+
+All metadata files will include a signature and mediatype in the following format.
 
 ```
 {
+  "mediatype" : "application/vnd.cncf.notary.tuf+json",
   "signed" : ROLE,
   "signatures" : [
     { "keyid" : KEYID,
@@ -263,6 +266,7 @@ where
 
 ```
 {
+ "mediatype" : "application/vnd.cncf.notary.tuf+json",
  "signatures": [
   {
    "keyid": "638a9a238471b2b6da3ee6b5d8cd515f59f07de8f6e50b2098935e0d00efc360",
@@ -371,6 +375,7 @@ where
 
 ```
 {
+ "mediatype" : "application/vnd.cncf.notary.tuf+json",
  "signatures": [
   {
    "keyid": "a05eb982a411de397adc3e553cbac8c057346750477ccfca02890ede8438e3a8",
@@ -401,6 +406,7 @@ where
 
 ```
 {
+ "mediatype" : "application/vnd.cncf.notary.tuf+json",
  "signatures": [
   {
    "keyid": "4ef5bb3d874885be40518d233c762fbc455e382989b4435f74379f70212ffe1a",
@@ -476,6 +482,7 @@ where
 
 ```
 {
+ "mediatype" : "application/vnd.cncf.notary.tuf+json",
  "signatures": [],
  "signed": {
   "_type": "targets",
@@ -695,6 +702,7 @@ where
 
 ```
 {
+ "mediatype" : "application/vnd.cncf.notary.tuf+json",
  "signatures": [
   {
    "keyid": "09d2912b04d0965464872958571927e7cdf67daf86db30a75205cd64c154c91f",
