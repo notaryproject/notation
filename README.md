@@ -3,7 +3,7 @@
 nv2 is an incubation and prototype for the [Notary v2][notary-v2] efforts, securing artifacts stored in [distribution-spec][distribution-spec] based registries.
 The `nv2` prototype covers the scenarios outlined in [notaryproject/requirements](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenarios). It also follows the [prototyping approach described here](https://github.com/stevelasker/nv2#prototyping-approach).
 
-![nv2-components](media/notary-e2e-scenarios.png)
+![nv2-components](media/notary-e2e-scenarios.svg)
 
 To enable the above workflow:
 
@@ -11,7 +11,7 @@ To enable the above workflow:
 - The [ORAS][oras] client (4) can then push the artifact (2) and the Notary v2 signature (3) to an OCI Artifacts supported registry (5)
 - In a subsequent prototype, signatures may be retrieved from the OCI Artifacts supported registry (5)
 
-![nv2-components](media/nv2-client-components.png)
+![nv2-components](./media/nv2-client-components.png)
 
 ## Table of Contents
 

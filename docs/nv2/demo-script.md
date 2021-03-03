@@ -190,6 +190,5 @@ To validate an image, `docker pull` with `docker notary --enabled` will attempt 
 
 This shows the target experience we're shooting for, within various build and container runtime tooling.
 
-
 [nv2-signature]:    ../signature/README.md
 [docker-generate]:  https://github.com/shizhMSFT/docker-generate
