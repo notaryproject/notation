@@ -42,9 +42,9 @@ openssl req \
   -nodes \
   -newkey rsa:2048 \
   -days 365 \
-  -subj "/CN=registry.example.com/O=example inc/C=US/ST=Washington/L=Seattle" \
-  -keyout example.key \
-  -out example.crt
+  -subj "/CN=registry.wabbit-networks.io/O=wabbit-networks inc/C=US/ST=Washington/L=Seattle" \
+  -keyout wabbit-networks.key \
+  -out wabbit-networks.crt
 ```
 
 When generating the certificate, make sure that the Common Name (`CN`) is set properly in the `Subject` field. The Common Name will be verified against the registry name within the signature.
@@ -82,35 +82,35 @@ Signing and verification are based on [OCI manifests](https://github.com/opencon
 
 Notary v2 signing is accomplished by signing the OCI manifest representing the artifact. When building docker images, the manifest is not generated until the image is pushed to a registry. To accomplish offline/local signing, the manifest must first exist.
 
-- Build the hello-world image
+- Build the sample `net-monitor` image
 
   ``` shell
   docker build \
-    -f Dockerfile.build \
-    -t registry.acme-rockets.io/hello-world:v1 \
-    https://github.com/docker-library/hello-world.git
+    -f Dockerfile \
+    -t registry.wabbit-networks.io/net-monitor:v1 \
+    https://github.com/wabbit-networks/net-monitor.git#main
   ```
 
-- Generate a manifest, saving it as `hello-world_v1-manifest.json`
+- Generate a manifest, saving it as `net-monitor_v1-manifest.json`
 
   ``` shell
-  docker generate manifest registry.acme-rockets.io/hello-world:v1 > hello-world_v1-manifest.json
+  docker generate manifest registry.wabbit-networks.io/net-monitor:v1 > net-monitor_v1-manifest.json
   ```
 
 ### Signing using `x509`
 
-To sign the manifest `hello-world_v1-manifest.json` using the key `key.key` from the `x509` certificate `cert.crt` with the Common Name `registry.acme-rockets.io`, run
+To sign the manifest `net-monitor_v1-manifest.json` using the `--key` from the `x509` `--cert` with the Common Name `registry.wabbit-networks.io`, run:
 
 ```shell
-nv2 sign --method x509 \
-  -k key.key \
-  -c cert.crt \
-  -r registry.acme-rockets.io/hello-world:v1 \
-  -o hello-world.signature.config.jwt \
-  file:hello-world_v1-manifest.json
+./nv2 sign --method x509 \
+  -k wabbit-networks.key \
+  -c wabbit-networks.crt \
+  -r registry.wabbit-networks.io/net-monitor:v1 \
+  -o net-monitor_v1.signature.config.jwt \
+  file:net-monitor_v1-manifest.json
 ```
 
-The formatted x509 signature: `hello-world.signature.config.jwt` is:
+The formatted x509 signature: `net-monitor_v1.signature.config.jwt` is:
 
 ``` json
 {
@@ -124,7 +124,7 @@ The formatted x509 signature: `hello-world.signature.config.jwt` is:
     "digest": "sha256:24a74900a4e749ef31295e5aabde7093e3244b119582bd6e64b1a88c71c410d0",
     "size": 3056,
     "references": [
-        "registry.acme-rockets.io/hello-world:v1"
+        "registry.wabbit-networks.io/net-monitor:v1"
     ],
     "iat": 1597053936
 }.[Signature]
@@ -133,15 +133,14 @@ The formatted x509 signature: `hello-world.signature.config.jwt` is:
 If the embedded cert chain `x5c` is not desired, it can be replaced by a key ID `kid` by omitting the `-c` option.
 
 ```shell
-nv2 sign -m x509 \
-  -k key.key \
-  -r registry.acme-rockets.io/hello-world:v1 \
-  -o hello-world.signature.config.jwt \
-  file:hello-world_v1-manifest.json
+./nv2 sign -m x509 \
+  -k wabbit-networks.key \
+  -r registry.wabbit-networks.io/net-monitor:v1 \
+  -o net-monitor_v1.signature.config.jwt \
+  file:net-monitor_v1-manifest.json
 ```
 
-The formatted x509, without the `x5c` chain signature: `hello-world.signature.config.jwt` is:
-
+The formatted x509, without the `x5c` chain signature: `net-monitor_v1.signature.config.jwt` is:
 
 ```json
 {
@@ -153,7 +152,7 @@ The formatted x509, without the `x5c` chain signature: `hello-world.signature.co
     "digest": "sha256:24a74900a4e749ef31295e5aabde7093e3244b119582bd6e64b1a88c71c410d0",
     "size": 3056,
     "references": [
-        "registry.acme-rockets.io/hello-world:v1"
+        "registry.wabbit-networks.io/net-monitor:v1"
     ],
     "iat": 1597053992
 }.[Signature]
@@ -188,18 +187,18 @@ To verify a manifest `example.json` with a signature file `example.nv2`, run
 Since the manifest was signed by a self-signed certificate, that certificate `cert.pem` is required to be provided to `nv2`.
 
 ```shell
-nv2 verify \
-  -f hello-world.signature.config.jwt \
-  -c cert.crt \
-  file:hello-world_v1-manifest.json
+./nv2 verify \
+  -f net-monitor_v1.signature.config.jwt \
+  -c wabbit-networks.crt \
+  file:net-monitor_v1-manifest.json
 ```
 
 If the cert isn't self-signed, you can omit the `-c` parameter.
 
 ``` shell
-nv2 verify \
-  -f hello-world.signature.config.jwt \
-  file:hello-world_v1-manifest.json
+./nv2 verify \
+  -f net-monitor_v1.signature.config.jwt \
+  file:net-monitor_v1-manifest.json
 
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```
@@ -244,8 +243,7 @@ If neither `tag` nor `digest` is specified, the default tag `latest` is used.
 
 OCI registry works the same as Docker but with the scheme `oci`.
 
-
-``` shell
+```shell
 nv2 sign -m x509 \
   -k key.key \
   -o hello-world_latest.signature.config.jwt \
