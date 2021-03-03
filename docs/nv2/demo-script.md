@@ -8,10 +8,6 @@ Perform the following steps prior to the demo:
 
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
 - [Install and Build the nv2 Prerequisites](./README.md#prerequisites)
-- Copy nv2 to the bin directory:
-  ```
-  sudo cp ./nv2 /usr/bin/nv2
-  ```
 - Create an empty working directory:
   ```bash
   mkdir nv2-demo
@@ -19,7 +15,6 @@ Perform the following steps prior to the demo:
   ```
 - Generate the Wabbit Networks Public and Private Keys:
   ```bash
-    # mkdir -p /usr/local/share/certs/private
   openssl req \
     -x509 \
     -sha256 \
@@ -51,6 +46,7 @@ If iterating through the demo, these are the steps required to reset to a clean 
   docker rm -f $(docker ps -a -q)
   docker run -d -p 80:5000 --restart always --name registry notaryv2/registry:nv2-prototype-1
   ```
+- Remove certs: `code ~/.docker/nv2.json`
 
 ## Demo Steps
 
@@ -161,7 +157,7 @@ rm  ~/.docker/nv2/sha256/*.*
 
 To validate an image, `docker pull` with `docker notary --enabled` will attempt to validate the image, based on the local keys.
 
-- Get the local manifest:
+- Attempt to pull the `net-monitor:v1` image:
   ```bash
   docker pull $image
   ```
@@ -186,6 +182,24 @@ To validate an image, `docker pull` with `docker notary --enabled` will attempt 
       "/home/stevelas/nv2-demo/wabbit-networks.crt"
     ]
   }
+  ```
+
+- Pull the `net-monitor:v1` image, using the public key for verification:
+  ```bash
+  docker pull $image
+  ```
+- The validated pull can be seen:
+  ```bash
+  v1 digest: sha256:48575dfb9ef2ebb9d67c6ed3cfbd784d635fcfae8ec820235ffa24968b3474dc size: 527
+  Looking up for signatures
+  Found 1 signatures
+  Found valid signature: sha256:282f5475ac4788f5c0ce3c0c44995726192385c2cae85d0f04da12595707a73f
+  The image is originated from:
+  - registry.wabbit-networks.io/net-monitor:v1
+  registry.wabbit-networks.io/net-monitor@sha256:48575dfb9ef2ebb9d67c6ed3cfbd784d635fcfae8ec820235ffa24968b3474dc: Pulling from net-monitor
+  Digest: sha256:48575dfb9ef2ebb9d67c6ed3cfbd784d635fcfae8ec820235ffa24968b3474dc
+  Status: Downloaded newer image for registry.wabbit-networks.io/net-monitor@sha256:48575dfb9ef2ebb9d67c6ed3cfbd784d635fcfae8ec820235ffa24968b3474dc
+  registry.wabbit-networks.io/net-monitor@sha256:48575dfb9ef2ebb9d67c6ed3cfbd784d635fcfae8ec820235ffa24968b3474dc  
   ```
 
 This shows the target experience we're shooting for, within various build and container runtime tooling.
