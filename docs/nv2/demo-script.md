@@ -40,13 +40,23 @@ Perform the following steps prior to the demo:
 
 If iterating through the demo, these are the steps required to reset to a clean state:
 
-- `unalias docker`
-- Reset the local registry:
+- Remove docker alias:
+  ```bash
+  unalias docker
   ```
+- Reset the local registry:
+  ```bash
   docker rm -f $(docker ps -a -q)
   docker run -d -p 80:5000 --restart always --name registry notaryv2/registry:nv2-prototype-1
   ```
-- Remove certs: `code ~/.docker/nv2.json`
+- Remove the `net-monitor:v1` image:
+  ```bash
+  docker rmi -f registry.wabbit-networks.io/net-monitor:v1
+  ```
+- Remove `wabbit-networks.crt` from `"verificationCerts"`:
+  ```bash
+  code ~/.docker/nv2.json
+  ```
 
 ## Demo Steps
 
@@ -97,63 +107,68 @@ To avoid having to type the fully qualified registry name, we'll create an envir
 export image=registry.wabbit-networks.io/net-monitor:v1
 ```
 
-### Wabbit Networks Build, Sign, Promote Process
+## Wabbit Networks Build, Sign, Promote Process
 
 Let's walk through the sequence of operations Wabbit Networks takes to build, sign and promote their software.
 
 Within the automation of Wabbit Networks, the following steps are completed:
 
-#### Build the `net-monitor` image
+### Build the `net-monitor` image
 
-  ```bash
-  docker build \
-      -t $image \
-      https://github.com/wabbit-networks/net-monitor.git#main
-  ```
+```bash
+docker build \
+    -t $image \
+    https://github.com/wabbit-networks/net-monitor.git#main
+```
 
-#### Acquire the private key
+### Acquire the private key
 
 - As a best practice, we'll always build on an ephemeral client, with no previous state.
 - The ephemeral client will retrieve the private signing key from the companies secured key vault provider.
 
 These specific steps are product/cloud specific, so we'll assume these steps have been completed.
 
-#### Sign the image
+### Sign the image
 
 Using the private key, we'll sign the net-monitor image. Note, we're signing the image with a registry name that we haven't yet pushed to. This enables offline signing scenarios. This is important as the image will eventually be published on `registry.wabbit-networks.io/`, however their internal staging and promotion process may publish to internal registries before promotion to the public registry.
 
-This generates an [nv2 signature][nv2-signature], persisted locally as `net-monitor_v1.signature.config.jwt`
+- Generate an [nv2 signature][nv2-signature], persisted locally as `net-monitor_v1.signature.config.jwt`
 
-```shell
-docker notary --enabled
+  ```shell
+  docker notary --enabled
 
-docker notary sign \
-  --key ./wabbit-networks.key \
-  --cert ./wabbit-networks.crt \
-  $image
+  docker notary sign \
+    --key ./wabbit-networks.key \
+    --cert ./wabbit-networks.crt \
+    $image
+  ```
+- view the signature referenced from docker notary sign
+  ```bash
+  cat <output reference>
+  ```
 
-# view the signature referenced from docker notary sign
-cat <output reference>
-```
+- View the manifest the signature is based upon:
+  ```bash
+  docker generate manifest $image
+  ```
 
-#### Push the image & signature to the registry
+### Push the image & signature to the registry
 
-These steps are broken out for clarity, as we hope all container builders will incorporate notary v2 into their build process.
+Push the image, and its signature in one user gesture. Note the push links the signature to the image for later retrevial by a `:tag` or `digest`.
 
 ```shell
 docker push $image
 ```
 
-#### Clear the local image
+### Clear the local image
 
-To simulate another client, we'll clear out the `net-monitor:v1` image
+- To simulate another client, we'll clear out the `net-monitor:v1` image
+  ```bash
+  docker rmi -f registry.wabbit-networks.io/net-monitor:v1
+  rm  ~/.docker/nv2/sha256/*.*
+  ```
 
-```bash
-docker rmi -f registry.wabbit-networks.io/net-monitor:v1
-rm  ~/.docker/nv2/sha256/*.*
-```
-
-#### Validate the image
+### Validate the image
 
 To validate an image, `docker pull` with `docker notary --enabled` will attempt to validate the image, based on the local keys.
 
