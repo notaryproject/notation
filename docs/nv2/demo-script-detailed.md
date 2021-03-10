@@ -79,6 +79,36 @@ Let's walk through the sequence of operations Wabbit Networks takes to build, si
 
 Within the automation of Wabbit Networks, the following steps are completed:
 
+1. Build the container image
+1. Sign the container image
+1. Create an SBoM
+1. Sign the SBoM
+1. Push the image, sbom, and the associated signatures to the registry
+
+### Summary of artifacts
+
+The following graph of artifacts will be created and pushed to the registry
+
+![](../../media/net-monitor-sbom-signed-detailed.svg)
+
+- the `net-monitor:v1` image
+  - the blob content of the `net-monitor:v1` image
+- a wabbit-networks signature of the `net-monitor:v1` image
+  - the blob content of the signature
+- an SBoM for the `net-monitor:v1` image
+  - the blob content of the sbom
+- a wabbit-networks signature of the `net-monitor:v1 sbom`
+  - the blob content of the signature for the sbom
+
+![](../../media/net-monitor-sbom-signed-artifacts.svg)
+
+Viewed with less detail, the above image represents 4 artifacts connected through linked manifests:
+
+1. the `net-monitor:v1` image
+1. a wabbit-networks signature of the `net-monitor:v1` image
+1. an SBoM for the `net-monitor:v1` image
+1. a wabbit-networks signature of the `net-monitor:v1 sbom`
+
 ### Build the `net-monitor` image
 
   ```bash
@@ -89,10 +119,11 @@ Within the automation of Wabbit Networks, the following steps are completed:
 
 ### Generate the manifest
 
-In normal docker operations, the image manifest is a hidden element the user doesn't have to deal with. For the sake full transparency, we'll highlight the full workflow by generating the manifest to sign the digest:
+Notary v2 signs the manifests of the content as they're represented within a registry. In normal docker operations, the image manifest is a hidden element the user doesn't have to deal with. For the sake full transparency, we'll highlight the full workflow by generating the manifest to sign the digest.
 
 ```bash
-docker generate manifest registry.wabbit-networks.io/net-monitor:v1 > net-monitor_v1-manifest.json
+docker generate manifest registry.wabbit-networks.io/net-monitor:v1 \
+  > net-monitor_v1-manifest.json
 
 # view the manifest
 cat ./net-monitor_v1-manifest.json
@@ -107,24 +138,46 @@ cat ./net-monitor_v1-manifest.json
 
 These specific steps are product/cloud specific, so we'll assume these steps have been completed and we have the required keys.
 
-### Sign the image
+### Sign and Push
 
 Using the private key, we'll sign the `net-monitor:v1` image. Note, we're signing the image with a registry name that we haven't yet pushed to. This enables offline signing scenarios. This is important as the image will eventually be published on `registry.wabbit-networks.io/`, however their internal staging and promotion process may publish to internal registries before promotion to the public registry.
 
-- Generates an [nv2 signature][nv2-signature], persisted locally as `net-monitor_v1.signature.jwt`
+- Generates an [nv2 signature][nv2-signature], persisted locally as `net-monitor_v1-signature.jwt`
 
   ```shell
   nv2 sign -m x509 \
-    -o net-monitor_v1.signature-jwt \
+    -o net-monitor_v1-signature.jwt \
     -k ~/.ssh/wabbit-networks.key \
     -r registry.wabbit-networks.io/net-monitor:v1 \
-    file:net-monitor_v1-manifest.json
+    file:./net-monitor_v1-manifest.json
 
   # view the signature
   cat ./net-monitor_v1-signature.jwt
   ```
 
-### Generate an SBoM
+- Push the container image
+
+  ```bash
+  docker push registry.wabbit-networks.io/net-monitor:v1
+  ```
+
+- Push the `net-monitor:v1` signature to the registry using ORAS
+
+  ```bash
+  # implies a new means to push an artifact to a repo, without a tag
+  # need a good design for how to declare content is pushed, where the digest is computed by ORAS, or the underlying tool
+  # linked-manifest uses digests to assure links are established to the specific artifact, avoiding conflicts to updating tags
+  # artifact-type replaces 
+  oras push registry.wabbit-networks.io/net-monitor \
+      --push-as-digest \
+      --artifact-type application/vnd.cncf.notary.v2 \
+      --manifest-type application/vnd.oci.artifact.manifest.v1 \
+      --manifests registry.wabbit-networks.io/net-monitor@sha256:12as1201... \
+      --plain-http \
+      ./net-monitor_v1.signature.jwt
+  ```
+
+## Generate an SBoM
 
 This demo focuses on the signing of additional content, including an SBoM. It doesn't focus on a specific SBoM format. As a result, we'll generate the most basic, and _admittedly_ useless SBoM document:
 
@@ -164,54 +217,6 @@ To enable a Notary v2 signature of an [oci.artifact.manifest][oci-artifact-manif
   cat ./net-monitor_v1-sbom.signature.jwt
   ```
 
-### Summary of artifacts
-
-At this point we have the following artifacts and content:
-
-![](../../media/net-monitor-sbom-signed-detailed.svg)
-
-- the `net-monitor:v1` image
-  - the blob content of the `net-monitor:v1` image
-- a wabbit-networks signature of the `net-monitor:v1` image
-  - the blob content of the signature
-- an SBoM for the `net-monitor:v1` image
-  - the blob content of the sbom
-- a wabbit-networks signature of the `net-monitor:v1` sbom
-  - the blob content of the signature for the sbom
-
-![](../../media/net-monitor-sbom-signed-artifacts.svg)
-
-Viewed with less detail, the above image represents 4 artifacts connected through linked manifests:
-
-1. the `net-monitor:v1` image
-1. a wabbit-networks signature of the `net-monitor:v1` image
-1. an SBoM for the `net-monitor:v1` image
-1. a wabbit-networks signature of the `net-monitor:v1` sbom
-
-### Push artifacts to the registry
-
-- Push the container image
-
-  ```bash
-  docker push registry.wabbit-networks.io/net-monitor:v1
-  ```
-
-- Push the `net-monitor:v1` signature to the registry using ORAS
-
-  ```bash
-  # implies a new means to push an artifact to a repo, without a tag
-  # need a good design for how to declare content is pushed, where the digest is computed by ORAS, or the underlying tool
-  # linked-manifest uses digests to assure links are established to the specific artifact, avoiding conflicts to updating tags
-  # artifact-type replaces 
-  oras push registry.wabbit-networks.io/net-monitor \
-      --push-as-digest \
-      --artifact-type application/vnd.cncf.notary.v2 \
-      --manifest-type application/vnd.oci.artifact.manifest.v1 \
-      --manifests registry.wabbit-networks.io/net-monitor@sha256:12as1201... \
-      --plain-http \
-      ./net-monitor_v1.signature.jwt
-  ```
-
 - Push the `net-monitor:v1` **sbom** to the registry using ORAS
 
   ```bash
@@ -219,7 +224,7 @@ Viewed with less detail, the above image represents 4 artifacts connected throug
       --push-as-digest \
       --artifact-type application/vnd.example.sbom.v0 \
       --manifest-type application/vnd.oci.artifact.manifest.v1 \
-      --manifest registry.wabbit-networks.io/net-monitor@sha256:12as1201... \
+      --manifests oci://registry.wabbit-networks.io/net-monitor@sha256:1a0a0a89a \
       --plain-http \
       ./sbom_v1-manifest.json
   # Note: need to capture the digest of the pushed SBoM, for the linkage of the signature
@@ -232,7 +237,7 @@ Viewed with less detail, the above image represents 4 artifacts connected throug
       --push-as-digest \
       --artifact-type application/vnd.cncf.notary.v2 \
       --manifest-type application/vnd.oci.artifact.manifest.v1 \
-      --manifest registry.wabbit-networks.io/net-monitor@sha256:12as1201... \
+      --manifests oci://registry.wabbit-networks.io/net-monitor@${NET_MONITOR_SBOM_DIGEST} \
       --plain-http \
       ./net-monitor_v1-sbom.signature.jwt
   ```
