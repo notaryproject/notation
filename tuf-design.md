@@ -4,6 +4,36 @@ Based on discussions with the Notary v2 community over the past few months, we d
 
 This design will be used in conjunction with the OCI artifact work done by others in the Notary v2 community to ensure compliance with the OCI specification and integration with existing registries.
 
+## Alignment with Notary v2 project goals
+
+The use of TUF in Notary v2 is part of an effort to address the [goals](https://github.com/notaryproject/requirements#goals) of the Notary v2 project.
+Specifically, TUF addresses the following goals:
+* "Signatures attesting to authenticity and/or certification" TUF targets
+   metadata provides signed information about images so that they can be
+   authenticated by users. TUF metadata shows not only that the image
+   and tag have been signed, but also provides clear information about who
+   certified the image and whether they were trusted to do so.
+* "Key hierarchies and delegation". TUF delegations provide a clear key
+   hierarchy and allow roles to delegate part of their responsibility to
+   another trusted role.
+* "Key revocation, including private and air-gapped registries". TUF provides
+   built-in implicit and explicit key revocation through the use of key
+   expiration and delegations. The design in this document
+   provides some adjustments to ensure this key revocation will be effective in
+   air-gapped registries.
+* "Key acquisition must support users from hobbyists, open source projects to
+   large software vendors" In this design, trust can be rooted at either the
+   repository or organization level so that larger organizations may control
+   their own root keys, while smaller projects can take advantage of centralized
+   root key management on public registries. From these root keys, delegations
+   allow for acquisition of keys for particular images.
+
+In addition to providing solutions to the above goals, this document describes
+some variations that have been made to TUF to ensure that it will work with the
+other goals of the Notary v2 effort, including interacting with OCI compliant
+registries, support for private registries, and allowing for movement between
+repositories or registries.
+
 ## Basic properties
 
 This design is based on TUF, and so builds onto a specification and implementation used in real world systems such as PyPI, Google Fuschia, AWS, and more. TUF has been subjected to multiple security audits and can support integration with the in-toto supply chain security framework for end-to-end security.
