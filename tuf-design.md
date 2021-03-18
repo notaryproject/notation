@@ -40,7 +40,7 @@ This design is based on TUF, and so builds onto a specification and implementati
 
 However, to address registry-specific use cases, Notary requires a few additional considerations. Specifically, this design addresses the following use cases:
 * Air-gapped environments: Clients who receive metadata after a delay will still be able to correctly verify this metadata, with minimal changes to their security guarantees.
-* Ephemeral clients: Ephemeral clients cannot rely on existing state for security properties. They receive some minimal initialization data, so root private keys may be included in this configuration. If this creates too much overhead, ephemeral clients may instead obtain root private keys through a secure distribution method (like spiffe/spire).
+* Ephemeral clients: Ephemeral clients cannot rely on existing state for security properties. They receive some minimal initialization data, so root public keys may be included in this configuration. If this creates too much overhead, ephemeral clients may instead obtain root public keys through a secure distribution method (like spiffe/spire).
 * Allowing users more control over key management: Users may not want to trust the registry for all key management. To address this, we introduce a new feature that allows  a user to use TUF verification while maintaining control of key management.
 * Balancing the needs of private and public registries: Our design aims to balance the needs of clients with private artifacts with the needs of large, open source registries by providing some choices to registry operators.
 * Scalability: Registries often contain many more artifacts than existing TUF implementations. We calculated metadata overheads for our new variant of TUF, and added some additional scalability options to ensure usability.
@@ -49,9 +49,9 @@ However, to address registry-specific use cases, Notary requires a few additiona
 
 <img src="images/Notary-v2_Design_Diagram.png">
 
-Our design uses the roles from TUF. Each role is associated with metadata that is signed with cryptographic keys associated with the role. Roles may have any number of cryptographic keys, and may require a threshold of signatures. The roles in this design are as follows:
-* The root role is the root of trust for the registry. It delegates to the other registry and repository controlled roles. Clients should be given the root public key at set up.
-* The snapshot role ensures that all metadata on the registry is current. This current metadata may point to older artifacts (for example if both 1.0.9 and 1.1.0 are currently available), but the metadata itself must not be replayed (for example to a previous version that listed 1.0.9, but not 1.1.0).
+This design uses the roles from TUF. Each role is associated with metadata that is signed with cryptographic keys associated with the role. Roles may have any number of cryptographic keys, and may require a threshold of signatures. The roles in this design are as follows:
+* The root role is the root of trust for the registry. It delegates to the other registry and repository controlled roles. Clients should be given the root public key at set up or using a secure out-of-band channel.
+* The snapshot role ensures that all metadata on the registry is current. This current metadata may point to older artifacts (for example if both 1.0.9 and 1.1.0 are currently available), but the metadata itself must not be replayed (for example to a previous version of the snapshot that listed 1.0.9, but not 1.1.0).
 * The timestamp role ensures timeliness of all metadata by listing a hash of the current snapshot metadata with the current timestamp. Clients can ensure that this timestamp is within a given window.
 * The targets role provides delegations to other targets roles and/or information about an artifact, including a cryptographic hash and space for metadata about the supply chain (in-toto metadata, SBOM, etc). There may be many targets roles on a registry. At a minimum, we expect:
     * The registry’s top level targets role will delegate responsibility for artifacts to repositories on that registry.
@@ -63,7 +63,9 @@ Using these roles, organizations can formalize their internal processes. For exa
 
 Users may want to verify that multiple parties have signed an artifact (per scenario #6 in the [requirements](https://github.com/notaryproject/requirements/blob/main/scenarios.md)). This may be to ensure that multiple teams have verified it (for example security and development teams), or that it has been approved by both the originator and an external company. Our design supports this use case through the use of [multi-role delegations](https://github.com/theupdateframework/taps/blob/master/tap3.md).
 
-Multi-role delegations allow an organization to delegate to a combination of roles, and require that these roles agree on the contents of an artifact. So, company A could delegate to security and development for packages, and these packages would be used only if both teams agreed on the artifact hash. This mechanism could be used for signatures that have been copied from another registry to ensure that the previous signatory, and the copier have both signed the artifact.
+Multi-role delegations allow an organization to delegate to a combination of roles, and require that these roles agree on the contents of an artifact. So, company A could delegate to both security and development teams for their artifacts, and these artifacts would be verified only if both teams agreed on the artifact hash. In this example, there would be three targets metadata files generated. One from company A that makes the delegation, one from the security team signing the package, and one from the development team signing the package. When moving signatures to a new registry, the registry may move only the development team's signature, or all three targets metadata files.
+
+This mechanism could be used for signatures that have been copied from another registry to ensure that the previous signatory, and the copier have both signed the artifact. To do so, the copier can create a targets metadata file that signs the artifact, then the new registry can specify in a targets metadata delegation that the artifact should be signed by both the copier and the original signatory.
 
 ### Client Customizations
 
@@ -80,13 +82,13 @@ In some cases, clients may not want to trust all artifacts on a registry, or the
 Client systems that are not internet connected may receive metadata after a delay. In this scenario timestamp metadata will be viewed as invalid. For these clients, we recommend that they either:
 * Set a wider window for the valid time (i.e. a couple of days), and accept any metadata that is valid within that window.
 * If that is not possible, the client can keep track of the last timestamp they verified, and ensure that the new timestamp is more recent. This provides a weaker guarantee than ensuring that the time is current, but it allows a longer delay in receiving metadata.
-These mitigations weaken some of the security guarantees of TUF, but this can be partly mitigated by having the transferring party (the party that gives the metadata to the offline device) perform TUF verification before passing the metadata to the non-connected device.
+Either of these solutions should be paired with having the transferring party (the party that is responsible for providing metadata and artifacts to offline devices) perform TUF verification. The transferring party can thus ensure that the metadata is up-to-date when it is first downloaded from the registry, providing some additional protection for the air-gapped user.
 
 ### Using multiple registries
 
 #### Artifact movement within/between registries
 
-An artifact may be moved between registries. To do so, the artifact, and it’s associated targets metadata (unchanged) can be directly copied. Once copied, the relevant targets metadata on the new registry (i.e. the registry top level targets metadata or a repository metadata file) should add a delegation to the artifact. The registry’s snapshot metadata will need to update to include the new targets metadata. Changes to snapshot metadata may be batched, and should be automated. As timestamp metadata already updates periodically, it will automatically account for the new artifact.
+An artifact may be moved between registries. To do so, the artifact, and its associated targets metadata (unchanged) can be directly copied. Once copied, the relevant targets metadata on the new registry (i.e. the registry top level targets metadata or a repository metadata file) should add a delegation to the artifact so that users of the registry can find the public keys for the copied metadata. The registry’s snapshot metadata will need to be updated to include the new targets metadata. Changes to snapshot metadata may be batched, and should be automated. As timestamp metadata already updates periodically, it will automatically account for the new artifact.
 
 If artifacts are frequently moved, the registry may maintain a target metadata file with an online key to automate these transfers. The registry’s top level targets metadata can delegate to this online role, which can then delegate to new metadata without any human interaction. The decision whether to use offline or online keys for each targets metadata file is a tradeoff between automation and security, and the relative merits of each approach may vary between registries.
 
@@ -100,7 +102,7 @@ To address this without losing targets metadata from prior to the movement to a 
 
 #### Hiding artifacts from other users
 
-In order to keep artifacts isolated from other users of the registry, users can use [repository mapping metadata](https://github.com/theupdateframework/taps/blob/master/tap4.md). Developers can store private artifacts on a separate registry (even if this registry is located on the same server), then users could use the map file to point to the private registry for specific artifacts, and to a public registry for other artifacts. The user would still need to provide credentials to the private registry so that the registry can enforce access control.
+In order to keep artifacts isolated from other users of the registry, developers can store private artifacts on a separate registry requiring no intermixing of content with other registries. If a user needs to access artifacts from multiple registries, they can configure their local [repository mapping metadata](https://github.com/theupdateframework/taps/blob/master/tap4.md) to point to the private registry for specific artifacts, and to a public registry for other artifacts. The user would still need to provide credentials to the private registry so that the registry can enforce access control.
 
 ### Scalability
 
