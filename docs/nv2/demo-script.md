@@ -1,6 +1,6 @@
 # nv2 Demo Script
 
-The following is a summary when presenting a demo of Notary v2.
+The following is a summary when presenting a demo of Notary v2 - prototype-2.
 
 ## Demo Setup
 
