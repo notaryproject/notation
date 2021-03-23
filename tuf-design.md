@@ -34,6 +34,19 @@ other goals of the Notary v2 effort, including interacting with OCI compliant
 registries, support for private registries, and allowing for movement between
 repositories or registries.
 
+## Alignment with Notary v2 key management goals
+
+TUF addresses the following key management goals:
+* "Artifact integrity, source, and signature expiry MUST be verifiable from the signature". TUF targets metadata provides verification of artifact integrity using a known trusted key.
+* "Moving an artifact from one repository to another SHOULD NOT invalidate the signature on the artifact." Delegations allow TUF metadata to be seamlessly copied between repositories.
+* "Publishers SHOULD be able to sign with keys stored on their local machines, secure tokens, Hardware Security Modules (HSMs), or cloud based Key Management Services." TUF explicitly supports both online and offline keys.
+* "Publishers SHOULD be able to generate multiple signatures for a single artifact." TUF delegations allow for creation and discovery of multiple targets metadata file for each artifact
+* "Publisher admins MUST have a mechanism to revoke signatures to indicate they are no longer trusted." TUF delegations and snapshot metadata can be used to revoke keys and allow clients to verify that they are using up-to-date and non-revoked keys.
+* "Trust stores MUST be configurable by the deployer admin." Deployer admins can set up TUF delegations, and may host their own TUF root metadata if they choose to do so.
+* "Deployer admins MUST be able to configure trusted entities for individual repositories and targets." Deployer admins can set up delegations.
+* "Deployers MUST be able to validate signatures on any version of an artifact including whether they have been revoked by the publisher." Deployers may sign any number of artifact versions. If they revoke an artifact, they can remove its targets metadata on their repository and users will see that it is no longer signed by the deployer.
+* "Signature validation MUST be enforceable in air-gapped environments." Air-gapped environments can configure an expiry window so that they can validate TUF metadata.
+
 ## Basic properties
 
 This design is based on TUF, and so builds onto a specification and implementation used in real world systems such as PyPI, Google Fuschia, AWS, and more. TUF has been subjected to multiple security audits and can support integration with the in-toto supply chain security framework for end-to-end security.
