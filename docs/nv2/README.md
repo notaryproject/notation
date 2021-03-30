@@ -71,7 +71,7 @@ OPTIONS:
    --output value, -o value     write signature to a specific path
    --username value, -u value   username for generic remote access
    --password value, -p value   password for generic remote access
-   --insecure                   enable insecure remote access (default: false)
+   --plain-http                 remote access via plain HTTP (default: false)
    --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                   show help (default: false)
 ```
@@ -177,7 +177,7 @@ OPTIONS:
    --ca-cert value                        CA certs for verification [x509]
    --username value, -u value             username for generic remote access
    --password value, -p value             password for generic remote access
-   --insecure                             enable insecure remote access (default: false)
+   --plain-http                           remote access via plain HTTP (default: false)
    --media-type value                     specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                             show help (default: false)
 ```
@@ -261,9 +261,9 @@ sha256:0ebe6f409b373c8baf39879fccee6cae5e718003ec3167ded7d54cb2b5da2946
 
 **Note** The digest of the OCI manifest is different from the Docker manifest for the same image since their format is different. Therefore, the signer should be careful with the manifest type when signing.
 
-### Insecure Registries
+### Plain-HTTP Registries
 
-To sign and verify images from insecure registries accessed via `HTTP`, such as `localhost`, the option `--insecure` is required.
+To sign and verify images from registries accessed via `HTTP`, such as `localhost`, the option `--plain-http` is required.
 
 ``` shell
 docker tag example localhost:5000/example
@@ -271,7 +271,7 @@ docker push localhost:5000/example
 The push refers to repository [localhost:5000/example]
 50644c29ef5a: Pushed
 latest: digest: sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55 size: 528
-nv2 verify -f example.nv2 --insecure docker://localhost:5000/example
+nv2 verify -f example.nv2 --plain-http docker://localhost:5000/example
 
 sha256:3351c53952446db17d21b86cfe5829ae70f823aff5d410fbf09dff820a39ab55
 ```

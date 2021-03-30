@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/notaryproject/notary/v2/signature"
 	"github.com/notaryproject/nv2/pkg/registry"
-	"github.com/notaryproject/nv2/pkg/signature"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
@@ -59,9 +59,9 @@ func getManfestsFromURI(ctx *cli.Context, uri string) (signature.Manifest, error
 		r = file
 	case "docker", "oci":
 		remote := registry.NewClient(nil, &registry.ClientOptions{
-			Username: ctx.String(usernameFlag.Name),
-			Password: ctx.String(passwordFlag.Name),
-			Insecure: ctx.Bool(insecureFlag.Name),
+			Username:  ctx.String(usernameFlag.Name),
+			Password:  ctx.String(passwordFlag.Name),
+			PlainHTTP: ctx.Bool(plainHTTPFlag.Name),
 		})
 		return remote.GetManifestMetadata(parsed)
 	default:

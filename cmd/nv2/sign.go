@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/notaryproject/nv2/pkg/signature"
-	"github.com/notaryproject/nv2/pkg/signature/x509"
+	"github.com/notaryproject/notary/v2/signature"
+	"github.com/notaryproject/notary/v2/signature/x509"
 	"github.com/urfave/cli/v2"
 )
 
@@ -53,7 +53,7 @@ var signCommand = &cli.Command{
 		},
 		usernameFlag,
 		passwordFlag,
-		insecureFlag,
+		plainHTTPFlag,
 		mediaTypeFlag,
 	},
 	Action: runSign,

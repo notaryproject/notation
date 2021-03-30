@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/notaryproject/nv2/pkg/signature"
+	"github.com/notaryproject/notary/v2/signature"
 	v1 "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
@@ -61,7 +61,7 @@ func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signat
 		reference = "latest"
 	}
 	scheme := "https"
-	if c.insecure {
+	if c.plainHTTP {
 		scheme = "http"
 	}
 	url := fmt.Sprintf("%s://%s/v2/%s/manifests/%s",

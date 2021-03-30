@@ -13,9 +13,9 @@ var (
 		Aliases: []string{"p"},
 		Usage:   "password for generic remote access",
 	}
-	insecureFlag = &cli.BoolFlag{
-		Name:  "insecure",
-		Usage: "enable insecure remote access",
+	plainHTTPFlag = &cli.BoolFlag{
+		Name:  "plain-http",
+		Usage: "remote access via plain HTTP",
 	}
 	mediaTypeFlag = &cli.StringFlag{
 		Name:  "media-type",
