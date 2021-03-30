@@ -3,6 +3,7 @@ module github.com/notaryproject/nv2
 go 1.14
 
 require (
+	github.com/docker/distribution v0.0.0-20210206161202-6200038bc715
 	github.com/notaryproject/notary/v2 v2.0.0-00010101000000-000000000000
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.1
