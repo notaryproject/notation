@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notary/v2/signature"
-	v1 "github.com/opencontainers/image-spec/specs-go/v1"
+	oci "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // GetManifestMetadata returns signature manifest information by URI scheme
@@ -36,8 +36,8 @@ func (c *Client) GetDockerManifestMetadata(uri *url.URL) (signature.Manifest, er
 // from a remote OCI manifest
 func (c *Client) GetOCIManifestMetadata(uri *url.URL) (signature.Manifest, error) {
 	return c.getManifestMetadata(uri,
-		v1.MediaTypeImageIndex,
-		v1.MediaTypeImageManifest,
+		oci.MediaTypeImageIndex,
+		oci.MediaTypeImageManifest,
 	)
 }
 

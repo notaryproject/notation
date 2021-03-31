@@ -2,7 +2,7 @@
 Docker CLI plugin to demonstrate Notary v2 integration with Docker CLI, leveraging the [notary v2 library](https://github.com/notaryproject/notary).
 
 ## Build and Install
-This plugin requires [golang](https://golang.org/dl/) with version `>= 1.14`.
+This plugin requires [golang](https://golang.org/dl/) with version `>= 1.16`.
 
 To build and install, run
 ```

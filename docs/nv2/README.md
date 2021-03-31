@@ -12,7 +12,7 @@
 
 ### Build and Install
 
-This plugin requires [golang](https://golang.org/dl/) with version `>= 1.14`.
+This plugin requires [golang](https://golang.org/dl/) with version `>= 1.16`.
 
 To build and install, run
 

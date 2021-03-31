@@ -3,7 +3,7 @@ package docker
 import (
 	"net/http"
 
-	"github.com/notaryproject/notary/v2/util"
+	"github.com/notaryproject/nv2/pkg/registry"
 )
 
 // Transport returns the configured round tripper for a host
@@ -16,5 +16,5 @@ func Transport(hostname string) (http.RoundTripper, error) {
 	if username == "" {
 		return tr, nil
 	}
-	return util.TransportWithBasicAuth(tr, hostname, username, password), nil
+	return registry.NewAuthtransport(tr, username, password), nil
 }

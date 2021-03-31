@@ -26,7 +26,7 @@ func NewClient(base http.RoundTripper, opts *ClientOptions) *Client {
 		opts = &ClientOptions{}
 	}
 	return &Client{
-		base:      newV2transport(base, opts.Username, opts.Password),
+		base:      NewAuthtransport(base, opts.Username, opts.Password),
 		plainHTTP: opts.PlainHTTP,
 	}
 }

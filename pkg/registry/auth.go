@@ -10,21 +10,23 @@ import (
 
 var authHeaderRegex = regexp.MustCompile(`(realm|service|scope)="([^"]*)`)
 
-type v2Transport struct {
+type authTransport struct {
 	base     http.RoundTripper
 	username string
 	password string
 }
 
-func newV2transport(base http.RoundTripper, username, password string) http.RoundTripper {
-	return &v2Transport{
+// NewAuthtransport creates wraps a round tripper with auth strategies.
+// It tries basic auth first and then falls back to token auth.
+func NewAuthtransport(base http.RoundTripper, username, password string) http.RoundTripper {
+	return &authTransport{
 		base:     base,
 		username: username,
 		password: password,
 	}
 }
 
-func (t *v2Transport) RoundTrip(originalReq *http.Request) (*http.Response, error) {
+func (t *authTransport) RoundTrip(originalReq *http.Request) (*http.Response, error) {
 	req := originalReq.Clone(originalReq.Context())
 	if t.username != "" {
 		req.SetBasicAuth(t.username, t.password)
@@ -57,7 +59,7 @@ func (t *v2Transport) RoundTrip(originalReq *http.Request) (*http.Response, erro
 	return t.base.RoundTrip(req)
 }
 
-func (t *v2Transport) fetchToken(params map[string]string) (string, *http.Response, error) {
+func (t *authTransport) fetchToken(params map[string]string) (string, *http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, params["realm"], nil)
 	if err != nil {
 		return "", nil, err
