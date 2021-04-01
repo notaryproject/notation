@@ -19,6 +19,9 @@ type authTransport struct {
 // NewAuthtransport creates wraps a round tripper with auth strategies.
 // It tries basic auth first and then falls back to token auth.
 func NewAuthtransport(base http.RoundTripper, username, password string) http.RoundTripper {
+	if base == nil {
+		base = http.DefaultTransport
+	}
 	return &authTransport{
 		base:     base,
 		username: username,

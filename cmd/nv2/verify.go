@@ -3,7 +3,7 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/notaryproject/notary/v2/signature"
 	x509nv2 "github.com/notaryproject/notary/v2/signature/x509"
@@ -62,7 +62,7 @@ func runVerify(ctx *cli.Context) error {
 		return err
 	}
 	if manifest.Descriptor != claims.Manifest.Descriptor {
-		return fmt.Errorf("verification failure: %s: ", manifest.Digest)
+		return fmt.Errorf("verification failure: %s", manifest.Digest)
 	}
 
 	// write out
@@ -71,7 +71,7 @@ func runVerify(ctx *cli.Context) error {
 }
 
 func readSignatrueFile(path string) (string, error) {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}

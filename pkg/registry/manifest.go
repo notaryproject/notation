@@ -43,32 +43,16 @@ func (c *Client) GetOCIManifestMetadata(uri *url.URL) (signature.Manifest, error
 
 // GetManifestMetadata returns signature manifest information
 func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signature.Manifest, error) {
-	host := uri.Host
-	if host == "docker.io" {
-		host = "registry-1.docker.io"
-	}
-	var repository string
-	var reference string
-	path := strings.TrimPrefix(uri.Path, "/")
-	if index := strings.Index(path, "@"); index != -1 {
-		repository = path[:index]
-		reference = path[index+1:]
-	} else if index := strings.Index(path, ":"); index != -1 {
-		repository = path[:index]
-		reference = path[index+1:]
-	} else {
-		repository = path
-		reference = "latest"
-	}
+	ref := ParseReferenceFromURL(uri)
 	scheme := "https"
 	if c.plainHTTP {
 		scheme = "http"
 	}
 	url := fmt.Sprintf("%s://%s/v2/%s/manifests/%s",
 		scheme,
-		host,
-		repository,
-		reference,
+		ref.Host(),
+		ref.Repository,
+		ref.ReferenceOrDefault(),
 	)
 	req, err := http.NewRequest(http.MethodHead, url, nil)
 	if err != nil {
