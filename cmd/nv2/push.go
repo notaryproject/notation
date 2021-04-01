@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/nv2/pkg/registry"
+	oci "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,36 +35,49 @@ func runPush(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return errors.New("no reference specified")
 	}
-	uri, err := url.Parse(ctx.Args().First())
-	if err != nil {
-		return err
-	}
+	uri := ctx.Args().First()
 	sig, err := os.ReadFile(ctx.String("signature"))
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getSignatureRepositoryFromURI(ctx, uri)
+
+	// core process
+	desc, err := pushSignature(ctx, uri, sig)
 	if err != nil {
 		return err
 	}
-	manifest, err := getManfestsFromURI(ctx, uri)
+
+	// write out
+	fmt.Println(desc.Digest)
+	return nil
+}
+
+func pushSignature(ctx *cli.Context, uri string, sig []byte) (oci.Descriptor, error) {
+	// initialize
+	parsedURI, err := url.Parse(uri)
 	if err != nil {
-		return err
+		return oci.Descriptor{}, err
+	}
+	sigRepo, err := getSignatureRepositoryFromURI(ctx, parsedURI)
+	if err != nil {
+		return oci.Descriptor{}, err
+	}
+	manifest, err := getManfestsFromURI(ctx, parsedURI)
+	if err != nil {
+		return oci.Descriptor{}, err
 	}
 	manifestDesc := registry.OCIDescriptorFromNotary(manifest.Descriptor)
 
 	// core process
 	sigDesc, err := sigRepo.Put(ctx.Context, sig)
 	if err != nil {
-		return fmt.Errorf("push signature failure: %v", err)
+		return oci.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
 	}
 
 	desc, err := sigRepo.Link(ctx.Context, manifestDesc, sigDesc)
 	if err != nil {
-		return fmt.Errorf("link signature failure: %v", err)
+		return oci.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
 	}
 
-	// write out
-	fmt.Println(desc.Digest)
-	return nil
+	return desc, nil
 }

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
 	"github.com/notaryproject/notary/v2/signature"
 	"github.com/notaryproject/notary/v2/signature/x509"
+	"github.com/notaryproject/nv2/internal/os"
 	"github.com/urfave/cli/v2"
 )
 
@@ -47,6 +47,14 @@ var signCommand = &cli.Command{
 			Usage:   "original references",
 		},
 		outputFlag,
+		&cli.BoolFlag{
+			Name:  "push",
+			Usage: "push after successful signing",
+		},
+		&cli.StringFlag{
+			Name:  "push-reference",
+			Usage: "different remote to store signature",
+		},
 		usernameFlag,
 		passwordFlag,
 		plainHTTPFlag,
@@ -77,8 +85,22 @@ func runSign(ctx *cli.Context) error {
 	if path == "" {
 		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".jwt"
 	}
-	if err := ioutil.WriteFile(path, []byte(sig), 0666); err != nil {
+	if err := os.WriteFile(path, []byte(sig)); err != nil {
 		return err
+	}
+
+	if ctx.Bool("push") {
+		uri := ctx.String("push-reference")
+		if uri == "" {
+			uri = ctx.Args().First()
+		}
+		if _, err := pushSignature(ctx, uri, []byte(sig)); err != nil {
+			return fmt.Errorf("fail to push signature to %q: %v: %v",
+				uri,
+				claims.Manifest.Digest,
+				err,
+			)
+		}
 	}
 
 	fmt.Println(claims.Manifest.Digest)
