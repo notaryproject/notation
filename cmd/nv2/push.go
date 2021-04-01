@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -30,6 +31,9 @@ var pushCommand = &cli.Command{
 
 func runPush(ctx *cli.Context) error {
 	// initialize
+	if !ctx.Args().Present() {
+		return errors.New("no reference specified")
+	}
 	uri, err := url.Parse(ctx.Args().First())
 	if err != nil {
 		return err

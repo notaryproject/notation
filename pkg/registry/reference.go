@@ -3,6 +3,8 @@ package registry
 import (
 	"net/url"
 	"strings"
+
+	"github.com/opencontainers/go-digest"
 )
 
 // Reference references to a descriptor in the registry
@@ -47,10 +49,15 @@ func (r Reference) Host() string {
 	return r.Registry
 }
 
-// ReferenceOrDefault returns the reference or the default reference if empty.
+// ReferenceOrDefault returns the reference or the default reference if empty
 func (r Reference) ReferenceOrDefault() string {
 	if r.Reference == "" {
 		return "latest"
 	}
 	return r.Reference
+}
+
+// Digest returns the reference as a digest
+func (r Reference) Digest() (digest.Digest, error) {
+	return digest.Parse(r.Reference)
 }

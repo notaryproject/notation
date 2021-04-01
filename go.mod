@@ -9,6 +9,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.6.3 // indirect
 	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7
 	github.com/notaryproject/notary/v2 v2.0.0-00010101000000-000000000000
+	github.com/opencontainers/artifacts v0.0.0-20210209205009-a282023000bd
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/urfave/cli/v2 v2.3.0

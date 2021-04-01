@@ -46,11 +46,7 @@ var signCommand = &cli.Command{
 			Aliases: []string{"r"},
 			Usage:   "original references",
 		},
-		&cli.StringFlag{
-			Name:    "output",
-			Aliases: []string{"o"},
-			Usage:   "write signature to a specific path",
-		},
+		outputFlag,
 		usernameFlag,
 		passwordFlag,
 		plainHTTPFlag,
@@ -77,9 +73,9 @@ func runSign(ctx *cli.Context) error {
 	}
 
 	// write out
-	path := ctx.String("output")
+	path := ctx.String(outputFlag.Name)
 	if path == "" {
-		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".nv2"
+		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".jwt"
 	}
 	if err := ioutil.WriteFile(path, []byte(sig), 0666); err != nil {
 		return err

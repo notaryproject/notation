@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notary/v2/signature"
+	artifactspec "github.com/opencontainers/artifacts/specs-go/v2"
 	oci "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
@@ -38,6 +39,7 @@ func (c *Client) GetOCIManifestMetadata(uri *url.URL) (signature.Manifest, error
 	return c.getManifestMetadata(uri,
 		oci.MediaTypeImageIndex,
 		oci.MediaTypeImageManifest,
+		artifactspec.MediaTypeArtifactManifest,
 	)
 }
 
