@@ -82,11 +82,13 @@ func runSign(ctx *cli.Context) error {
 
 	// write out
 	path := ctx.String(outputFlag.Name)
-	if path == "" {
-		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".jwt"
-	}
-	if err := os.WriteFile(path, []byte(sig)); err != nil {
-		return err
+	if path != "" || !ctx.Bool("push") {
+		if path == "" {
+			path = strings.Split(claims.Manifest.Digest, ":")[1] + ".jwt"
+		}
+		if err := os.WriteFile(path, []byte(sig)); err != nil {
+			return err
+		}
 	}
 
 	if ctx.Bool("push") {
