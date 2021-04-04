@@ -8,15 +8,19 @@ import (
 	"os"
 	"strings"
 
+	"github.com/notaryproject/notary/v2/signature"
 	"github.com/notaryproject/nv2/pkg/registry"
-	"github.com/notaryproject/nv2/pkg/signature"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
 
 func getManifestFromContext(ctx *cli.Context) (signature.Manifest, error) {
 	if uri := ctx.Args().First(); uri != "" {
-		return getManfestsFromURI(ctx, uri)
+		parsed, err := url.Parse(uri)
+		if err != nil {
+			return signature.Manifest{}, err
+		}
+		return getManfestsFromURI(ctx, parsed)
 	}
 	return getManifestFromReader(os.Stdin, ctx.String(mediaTypeFlag.Name))
 }
@@ -39,17 +43,13 @@ func getManifestFromReader(r io.Reader, mediaType string) (signature.Manifest, e
 	}, nil
 }
 
-func getManfestsFromURI(ctx *cli.Context, uri string) (signature.Manifest, error) {
-	parsed, err := url.Parse(uri)
-	if err != nil {
-		return signature.Manifest{}, err
-	}
+func getManfestsFromURI(ctx *cli.Context, uri *url.URL) (signature.Manifest, error) {
 	var r io.Reader
-	switch strings.ToLower(parsed.Scheme) {
+	switch strings.ToLower(uri.Scheme) {
 	case "file":
-		path := parsed.Path
-		if parsed.Opaque != "" {
-			path = parsed.Opaque
+		path := uri.Path
+		if uri.Opaque != "" {
+			path = uri.Opaque
 		}
 		file, err := os.Open(path)
 		if err != nil {
@@ -58,14 +58,17 @@ func getManfestsFromURI(ctx *cli.Context, uri string) (signature.Manifest, error
 		defer file.Close()
 		r = file
 	case "docker", "oci":
-		remote := registry.NewClient(nil, &registry.ClientOptions{
-			Username: ctx.String(usernameFlag.Name),
-			Password: ctx.String(passwordFlag.Name),
-			Insecure: ctx.Bool(insecureFlag.Name),
-		})
-		return remote.GetManifestMetadata(parsed)
+		remote := registry.NewClient(
+			registry.NewAuthtransport(
+				nil,
+				ctx.String(usernameFlag.Name),
+				ctx.String(passwordFlag.Name),
+			),
+			ctx.Bool(plainHTTPFlag.Name),
+		)
+		return remote.GetManifestMetadata(uri)
 	default:
-		return signature.Manifest{}, fmt.Errorf("unsupported URI scheme: %s", parsed.Scheme)
+		return signature.Manifest{}, fmt.Errorf("unsupported URI scheme: %s", uri.Scheme)
 	}
 	return getManifestFromReader(r, ctx.String(mediaTypeFlag.Name))
 }

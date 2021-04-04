@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/notaryproject/nv2/pkg/signature"
-	v1 "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/notaryproject/notary/v2/signature"
+	artifactspec "github.com/opencontainers/artifacts/specs-go/v2"
+	oci "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // GetManifestMetadata returns signature manifest information by URI scheme
@@ -36,39 +37,24 @@ func (c *Client) GetDockerManifestMetadata(uri *url.URL) (signature.Manifest, er
 // from a remote OCI manifest
 func (c *Client) GetOCIManifestMetadata(uri *url.URL) (signature.Manifest, error) {
 	return c.getManifestMetadata(uri,
-		v1.MediaTypeImageIndex,
-		v1.MediaTypeImageManifest,
+		oci.MediaTypeImageIndex,
+		oci.MediaTypeImageManifest,
+		artifactspec.MediaTypeArtifactManifest,
 	)
 }
 
 // GetManifestMetadata returns signature manifest information
 func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signature.Manifest, error) {
-	host := uri.Host
-	if host == "docker.io" {
-		host = "registry-1.docker.io"
-	}
-	var repository string
-	var reference string
-	path := strings.TrimPrefix(uri.Path, "/")
-	if index := strings.Index(path, "@"); index != -1 {
-		repository = path[:index]
-		reference = path[index+1:]
-	} else if index := strings.Index(path, ":"); index != -1 {
-		repository = path[:index]
-		reference = path[index+1:]
-	} else {
-		repository = path
-		reference = "latest"
-	}
+	ref := ParseReferenceFromURL(uri)
 	scheme := "https"
-	if c.insecure {
+	if c.plainHTTP {
 		scheme = "http"
 	}
 	url := fmt.Sprintf("%s://%s/v2/%s/manifests/%s",
 		scheme,
-		host,
-		repository,
-		reference,
+		ref.Host(),
+		ref.Repository,
+		ref.ReferenceOrDefault(),
 	)
 	req, err := http.NewRequest(http.MethodHead, url, nil)
 	if err != nil {

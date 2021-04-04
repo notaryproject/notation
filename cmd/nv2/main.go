@@ -11,7 +11,7 @@ func main() {
 	app := &cli.App{
 		Name:    "nv2",
 		Usage:   "Notary V2 - Prototype",
-		Version: "0.2.0",
+		Version: "0.4.0",
 		Authors: []*cli.Author{
 			{
 				Name:  "Shiwei Zhang",
@@ -21,6 +21,8 @@ func main() {
 		Commands: []*cli.Command{
 			signCommand,
 			verifyCommand,
+			pushCommand,
+			pullCommand,
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
-	"github.com/notaryproject/nv2/pkg/signature"
-	"github.com/notaryproject/nv2/pkg/signature/x509"
+	"github.com/notaryproject/notary/v2/signature"
+	"github.com/notaryproject/notary/v2/signature/x509"
+	"github.com/notaryproject/nv2/internal/os"
 	"github.com/urfave/cli/v2"
 )
 
@@ -46,14 +46,18 @@ var signCommand = &cli.Command{
 			Aliases: []string{"r"},
 			Usage:   "original references",
 		},
+		outputFlag,
+		&cli.BoolFlag{
+			Name:  "push",
+			Usage: "push after successful signing",
+		},
 		&cli.StringFlag{
-			Name:    "output",
-			Aliases: []string{"o"},
-			Usage:   "write signature to a specific path",
+			Name:  "push-reference",
+			Usage: "different remote to store signature",
 		},
 		usernameFlag,
 		passwordFlag,
-		insecureFlag,
+		plainHTTPFlag,
 		mediaTypeFlag,
 	},
 	Action: runSign,
@@ -77,12 +81,28 @@ func runSign(ctx *cli.Context) error {
 	}
 
 	// write out
-	path := ctx.String("output")
-	if path == "" {
-		path = strings.Split(claims.Manifest.Digest, ":")[1] + ".nv2"
+	path := ctx.String(outputFlag.Name)
+	if path != "" || !ctx.Bool("push") {
+		if path == "" {
+			path = strings.Split(claims.Manifest.Digest, ":")[1] + ".jwt"
+		}
+		if err := os.WriteFile(path, []byte(sig)); err != nil {
+			return err
+		}
 	}
-	if err := ioutil.WriteFile(path, []byte(sig), 0666); err != nil {
-		return err
+
+	if ctx.Bool("push") {
+		uri := ctx.String("push-reference")
+		if uri == "" {
+			uri = ctx.Args().First()
+		}
+		if _, err := pushSignature(ctx, uri, []byte(sig)); err != nil {
+			return fmt.Errorf("fail to push signature to %q: %v: %v",
+				uri,
+				claims.Manifest.Digest,
+				err,
+			)
+		}
 	}
 
 	fmt.Println(claims.Manifest.Digest)

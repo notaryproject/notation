@@ -3,11 +3,10 @@ package main
 import (
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 
-	"github.com/notaryproject/nv2/internal/crypto"
-	"github.com/notaryproject/nv2/pkg/signature"
-	x509nv2 "github.com/notaryproject/nv2/pkg/signature/x509"
+	"github.com/notaryproject/notary/v2/signature"
+	x509nv2 "github.com/notaryproject/notary/v2/signature/x509"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,7 +35,7 @@ var verifyCommand = &cli.Command{
 		},
 		usernameFlag,
 		passwordFlag,
-		insecureFlag,
+		plainHTTPFlag,
 		mediaTypeFlag,
 	},
 	Action: runVerify,
@@ -63,7 +62,7 @@ func runVerify(ctx *cli.Context) error {
 		return err
 	}
 	if manifest.Descriptor != claims.Manifest.Descriptor {
-		return fmt.Errorf("verification failure: %s: ", manifest.Digest)
+		return fmt.Errorf("verification failure: %s", manifest.Digest)
 	}
 
 	// write out
@@ -72,7 +71,7 @@ func runVerify(ctx *cli.Context) error {
 }
 
 func readSignatrueFile(path string) (string, error) {
-	bytes, err := ioutil.ReadFile(path)
+	bytes, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
@@ -97,7 +96,7 @@ func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 
 	var certs []*x509.Certificate
 	for _, path := range ctx.StringSlice("cert") {
-		bundledCerts, err := crypto.ReadCertificateFile(path)
+		bundledCerts, err := x509nv2.ReadCertificateFile(path)
 		if err != nil {
 			return nil, err
 		}
@@ -107,7 +106,7 @@ func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 		}
 	}
 	for _, path := range ctx.StringSlice("ca-cert") {
-		bundledCerts, err := crypto.ReadCertificateFile(path)
+		bundledCerts, err := x509nv2.ReadCertificateFile(path)
 		if err != nil {
 			return nil, err
 		}
