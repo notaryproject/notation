@@ -29,6 +29,18 @@ Our design uses the roles from TUF. Each role is associated with metadata that i
 
 Using these roles, organizations can formalize their internal processes. For example, if images must be verified by both a developer team and a security team, the organization’s top level targets metadata can delegate all images to dev AND security.
 
+### Key revocation
+In order to revoke a key using this design, the delegator (either root or a delegating targets role) simply replaces the revoked key with a new, trusted key, and uploads the new signed metadata. The snapshot and timestamp roles will ensure that all users are aware of the revocation and can immediately use the new one.
+
+A single root key may be replaced using a similar method. A threshold of other trusted root keys may sign a new root metadata file that replaces a root key.
+
+If a threshold of root keys are compromised, an out of band mechanism must be used to re-establish trust. However, the use of thresholds and offline keys should make this very rare.
+
+### Rescinding a signature
+A vulnerability may be discovered in an artifact after the artifact has already been signed, or a developer may mistakenly sign an artifact. If this happens, the developer may rescind that signature by signing new targets metadata that does not include the rescinded artifact. The version number of the targets metadata file, as well as the snapshot and timestamp roles, ensure that future downloads will not accept the old signature.
+
+If the artifact was re-signed when it moved to another registry (see Using Multiple Registries), the new signer is responsible for ensuring that the signature in that registry is also rescinded, if applicable.
+
 ### Using Multiple Signatures
 
 Users may want to verify that multiple parties have signed an image (per scenario #6 in the [requirements](https://github.com/notaryproject/requirements/blob/main/scenarios.md)). This may be to ensure that multiple teams have verified it (for example security and development teams), or that it has been approved by both the originator and an external company. Our design supports this use case through the use of [multi-role delegations](https://github.com/theupdateframework/taps/blob/master/tap3.md).
