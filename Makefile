@@ -15,6 +15,10 @@ FORCE:
 bin/%: cmd/% FORCE
 	$(BUILD_BINARY)
 
+.PHONY: download
+download:
+	go mod download
+
 .PHONY: build
 build: $(addprefix bin/,$(COMMANDS))
 
