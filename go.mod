@@ -18,6 +18,6 @@ require (
 )
 
 replace (
-	github.com/notaryproject/notary/v2 => github.com/shizhMSFT/notary/v2 v2.0.0-20210331100429-b6fe3e90e3d0
+	github.com/notaryproject/notary/v2 => github.com/shizhMSFT/notary/v2 v2.0.0-20210408090825-ba2c890acb93
 	github.com/opencontainers/artifacts => github.com/aviral26/artifacts v0.0.0-20210331072334-fac4f3a4da4e
 )
