@@ -37,29 +37,42 @@ func pushImage(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Pushing signature")
-	sigPath := config.SignaturePath(desc.Digest)
-	sig, err := ioutil.ReadFile(sigPath)
+	sigDigests, err := config.SignatureDigests(desc.Digest)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return errors.New("signature not found")
-		}
 		return err
+	}
+	if len(sigDigests) == 0 {
+		return errors.New("no signatures found")
 	}
 
 	client, err := docker.GetSignatureRepository(ctx.Context, ctx.Args().First())
 	if err != nil {
 		return err
 	}
-	sigDesc, err := client.Put(ctx.Context, sig)
-	if err != nil {
-		return err
-	}
+	pushSignature := func(sigDigest digest.Digest) error {
+		sigPath := config.SignaturePath(desc.Digest, sigDigest)
+		sig, err := ioutil.ReadFile(sigPath)
+		if err != nil {
+			return err
+		}
 
-	artifactDesc, err := client.Link(ctx.Context, desc, sigDesc)
-	if err != nil {
-		return err
+		sigDesc, err := client.Put(ctx.Context, sig)
+		if err != nil {
+			return err
+		}
+
+		artifactDesc, err := client.Link(ctx.Context, desc, sigDesc)
+		if err != nil {
+			return err
+		}
+		fmt.Println("signature manifest digest:", artifactDesc.Digest, "size:", artifactDesc.Size)
+		return nil
 	}
-	fmt.Println("signature manifest digest:", artifactDesc.Digest, "size:", artifactDesc.Size)
+	for _, sigDigest := range sigDigests {
+		if err := pushSignature(sigDigest); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
