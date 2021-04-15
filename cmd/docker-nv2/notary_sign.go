@@ -7,6 +7,7 @@ import (
 	"github.com/notaryproject/nv2/cmd/docker-nv2/crypto"
 	"github.com/notaryproject/nv2/cmd/docker-nv2/docker"
 	ios "github.com/notaryproject/nv2/internal/os"
+	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
 
@@ -57,7 +58,7 @@ func notarySign(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sigPath := config.SignaturePath(desc.Digest)
+	sigPath := config.SignaturePath(desc.Digest, digest.FromBytes(sig))
 	if err := ios.WriteFile(sigPath, sig); err != nil {
 		return err
 	}
