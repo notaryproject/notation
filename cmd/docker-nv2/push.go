@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strconv"
@@ -51,7 +50,7 @@ func pushImage(ctx *cli.Context) error {
 	}
 	pushSignature := func(sigDigest digest.Digest) error {
 		sigPath := config.SignaturePath(desc.Digest, sigDigest)
-		sig, err := ioutil.ReadFile(sigPath)
+		sig, err := os.ReadFile(sigPath)
 		if err != nil {
 			return err
 		}
