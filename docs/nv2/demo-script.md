@@ -10,6 +10,18 @@ Perform the following steps prior to the demo:
 
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
 - [Install and Build the nv2 Prerequisites](./README.md#prerequisites)
+- [Install and Build the ORAS Prototype-2 branch](https://github.com/deislabs/oras/blob/prototype-2/docs/artifact-manifest.md)
+- Edit the `~/.docker/nv2.json` file to support local, insecured registries
+  ```json
+  {
+    "enabled": true,
+    "verificationCerts": [
+    ],
+    "insecureRegistries": [
+      "registry.wabbit-networks.io"
+    ]
+  }
+  ```
 - Create an empty working directory:
   ```bash
   mkdir nv2-demo
@@ -23,6 +35,7 @@ Perform the following steps prior to the demo:
     -nodes \
     -newkey rsa:2048 \
     -days 365 \
+    -subj "/CN=registry.wabbit-networks.io/O=wabbit-networks inc/C=US/ST=Washington/L=Seattle" \
     -addext "subjectAltName=DNS:registry.wabbit-networks.io" \
     -keyout ./wabbit-networks.key \
     -out ./wabbit-networks.crt
@@ -70,7 +83,9 @@ To demonstrate a clean end to end experience, using the docker cli, we're using 
   ```
 - To avoid having to type the fully qualified registry name, we'll create an environment variable:
   ```bash
-  export image=registry.wabbit-networks.io/net-monitor:v1
+  export REPO=registry.wabbit-networks.io/net-monitor
+  export IMAGE=${REPO}:v1
+  ```
   ```
 
 ### Intro `nv2` Commands
@@ -113,11 +128,6 @@ Within the automation of Wabbit Networks, the following steps are completed:
 
 ### Build the `net-monitor` image
 
-- Create a variable, simplifying the image reference
-  ```bash
-  REPO=registry.wabbit-networks.io/net-monitor
-  IMAGE=${REPO}:v1
-  ```
 - Build the image, directly from GitHub to simplify the sequence.
   ```bash
   docker build \
@@ -164,7 +174,7 @@ Using the private key, we'll sign the net-monitor image. Note, we're signing the
   signature manifest: digest: sha256:8eb7394c8f287ebd0e84a4659f37a2688c6e07e39906933ccb83d9011fb29034 size: 2534
   refers to manifests: digest: sha256:31c6d76b9a0af8d2c0a7fc16b43b7d8d9b324aa5ac3ef8c84dc48ab5ba5c0f49 size: 527
   ```
-- Discover the references
+- Discover the references using the [oras prototype-2 branch](https://github.com/deislabs/oras/tree/prototype-2).
   ```bash
   oras discover \
     --plain-http \
