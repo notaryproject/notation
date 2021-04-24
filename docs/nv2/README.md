@@ -12,24 +12,7 @@
 
 ### Build and Install
 
-This plugin requires [golang](https://golang.org/dl/) with version `>= 1.16`.
-
-To build and install, run
-
-```shell
-go install github.com/notaryproject/nv2/cmd/nv2
-```
-
-To build and install to an optional path, run
-
-```shell
-go build -o nv2 ./cmd/nv2
-```
-
-Next, install optional components:
-
-- Install [docker-generate](https://github.com/shizhMSFT/docker-generate) for local Docker manifest generation and local signing.
-- Install [OpenSSL](https://www.openssl.org/) for key generation.
+`nv2`: see [building.md](/building.md)
 
 ### Self-signed certificate key generation
 

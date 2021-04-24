@@ -11,7 +11,7 @@ Perform the following steps prior to the demo:
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
 - [Install and Build the nv2 Prerequisites](./README.md#prerequisites)
 - [Install and Build the ORAS Prototype-2 branch](https://github.com/deislabs/oras/blob/prototype-2/docs/artifact-manifest.md)
-- Edit the `~/.docker/nv2.json` file to support local, insecured registries
+- Edit the `~/.docker/nv2.json` file to support local, insecure registries
   ```json
   {
     "enabled": true,
@@ -22,10 +22,19 @@ Perform the following steps prior to the demo:
     ]
   }
   ```
-- Create an empty working directory:
+- Add a `etc/hosts` entry to simulate pushing to registry.wabbit-networks.io
+  - If running on windows, _even if using wsl_, add the following entry to: `C:\Windows\System32\drivers\etc\hosts`
+    ```hosts
+    127.0.0.1 registry.wabbit-networks.io
+    ```
+### Simulating a Registry DNS Name
+
+- To avoid having to type the fully qualified registry name, we'll create environment variables:
   ```bash
-  mkdir nv2-demo
-  cd nv2-demo/
+  export PORT=80
+  export REGISTRY=registry.wabbit-networks.io
+  export REPO=${REGISTRY}/net-monitor
+  export IMAGE=${REPO}:v1
   ```
 - Generate the Wabbit Networks Public and Private Keys:
   ```bash
@@ -35,24 +44,17 @@ Perform the following steps prior to the demo:
     -nodes \
     -newkey rsa:2048 \
     -days 365 \
-    -subj "/CN=registry.wabbit-networks.io/O=wabbit-networks inc/C=US/ST=Washington/L=Seattle" \
-    -addext "subjectAltName=DNS:registry.wabbit-networks.io" \
+    -subj "/CN=${REGISTRY}/O=wabbit-networks inc/C=US/ST=Washington/L=Seattle" \
+    -addext "subjectAltName=DNS:${REGISTRY}" \
     -keyout ./wabbit-networks.key \
     -out ./wabbit-networks.crt
   ```
 - Start a local registry instance:
   ```bash
-  docker run -d -p 80:5000 --name oci-artifact-registry notaryv2/registry:nv2-prototype-2
+  docker run -d -p ${PORT}:5000 notaryv2/registry:nv2-prototype-2
   ```
-- Add a `etc/hosts` entry to simulate pushing to registry.wabbit-networks.io
-  - If running on windows, _even if using wsl_, add the following entry to: `C:\Windows\System32\drivers\etc\hosts`
-    ```hosts
-    127.0.0.1 registry.wabbit-networks.io
-    ```
 
 ## Demo The End to End Experience
-
-![](../../media/notary-e2e-scenarios.svg)
 
 - Wabbit Networks is a small software company that produces network monitoring software.
 - ACME Rockets wishes to acquire network monitoring software.
@@ -62,17 +64,18 @@ Perform the following steps prior to the demo:
 - Wabbit Networks works with Docker Hub to get certified, to help with their customer confidence.
 - ACME Rockets will only deploy software that's been scanned and approved by the ACME Rockets security team. They know it's been approved because all approved software has been signed by the ACME Rockets security team.
 
-### Show Notary Extension
+![](../../media/notary-e2e-scenarios.svg)
 
-To demonstrate a clean end to end experience, using the docker cli, we're using the [docker-generate][docker-generate] extension.
+### Intro `nv2` Commands
 
-- To see the extension capabilities, review the `Management Commands:`. They include some familiar ones, like buildx, and some new ones for the Notary v2 prototype:
+To demonstrate a target notary experience with the docker cli, `nv2` docker plug-ins are added:
+
+- To see nv2 the plug-ins, review the `Management Commands:`.
   ```bash
   docker --help
 
   Management Commands:
     ...
-    buildx*     Build with BuildKit (Docker Inc., v0.5.1-docker)
     generate*   Generate artifacts (github.com/shizhMSFT, 0.1.0)
     nv2*        Notary V2 Signature extension (Sajay Antony, Shiwei Zhang, 0.1.0)
   ```
@@ -81,36 +84,8 @@ To demonstrate a clean end to end experience, using the docker cli, we're using 
   docker nv2 --help
   docker nv2 notary --help
   ```
-- To avoid having to type the fully qualified registry name, we'll create an environment variable:
-  ```bash
-  export REPO=registry.wabbit-networks.io/net-monitor
-  export IMAGE=${REPO}:v1
-  ```
-  ```
 
-### Intro `nv2` Commands
-
-To achieve an proposed experience, an extension is added to implement Notary v2 signing and OCI Registry persistence and discovery of artifacts.
-
-- View Docker Extensions
-  ```bash
-  docker --help
-  ```
-- Note the Management Commands with *. Also note the `nv2` extension
-  ```bash
-  Management Commands:
-    app*        Docker App (Docker Inc., v0.9.1-beta3)
-    buildx*     Build with BuildKit (Docker Inc., v0.5.1-docker)
-    generate*   Generate artifacts (github.com/shizhMSFT, 0.1.0)
-    nv2*        Notary V2 Signature extension (Sajay Antony, Shiwei Zhang, 0.2.3)
-    scan*       Docker Scan (Docker Inc., v0.5.0)
-  ```
-  This command wraps `docker push`, _pushing both the image and its signature_, and `docker pull` to _verify signatures_ before pulling the image.
-- View nv2 commands
-  ```bash
-  docker nv2 --help
-  ```
-- To avoid having to type `docker nv2` each time, we'll create an alias to mask over this:
+- To avoid having to type `docker nv2` each time, create an alias:
   ```bash
   alias docker="docker nv2"
   ```
@@ -121,10 +96,10 @@ Let's walk through the sequence of operations Wabbit Networks takes to build, si
 
 Within the automation of Wabbit Networks, the following steps are completed:
 
-- Building the `net-monitor` image
-- Sign the `net-monitor` image
-- Sign and Push the Image and Signature
-- Create and Push an SBoM
+1. Building the `net-monitor` image
+1. Sign the `net-monitor` image
+1. Push the image and signature
+1. Create and push a signed SBoM
 
 ### Build the `net-monitor` image
 
@@ -145,9 +120,9 @@ These specific steps are product/cloud specific, so we'll assume these steps hav
 
 ### Sign and Push the Image and Signature
 
-Using the private key, we'll sign the net-monitor image. Note, we're signing the image with a registry name that we haven't yet pushed to. This enables offline signing scenarios. This is important as the image will eventually be published on `registry.wabbit-networks.io/`, however their internal staging and promotion process may publish to internal registries before promotion to the public registry.
+Using the private key, we'll sign the `net-monitor:v1` image. Note, we're signing the image with a registry name that we haven't yet pushed to. This enables offline signing scenarios. This is important as the image will eventually be published on `registry.wabbit-networks.io/`, however their internal staging and promotion process may publish to internal registries before promotion to the public registry.
 
-- Generate an [nv2 signature][nv2-signature], persisted locally as `net-monitor_v1.signature.config.jwt`
+- Generate an [nv2 signature][nv2-signature], persisted locally as `net-monitor_v1.signature.jwt`
 
 - Enable notary, for the nv2 extension to account for signing and verification steps
   ```shell
@@ -160,11 +135,11 @@ Using the private key, we'll sign the net-monitor image. Note, we're signing the
     --cert ./wabbit-networks.crt \
     $IMAGE
   ```
-- Push the container image
+- Push the image, with the signature
   ```bash
   docker push $IMAGE
   ```
-- View the output, that includes pushing the signature as a reference:
+- View the output, which includes pushing the signature as a reference:
   ```bash
   The push refers to repository [registry.wabbit-networks.io/net-monitor]
   8ea3b23f387b: Preparing
@@ -207,7 +182,7 @@ To validate an image, `docker pull` with `docker notary --enabled` will attempt 
   {
     "enabled": true,
     "verificationCerts": [
-      "/home/[USER]/nv2-demo/wabbit-networks.crt"
+      "/home/<user>/nv2-demo/wabbit-networks.crt"
     ]
   }
   ```
@@ -230,13 +205,11 @@ To validate an image, `docker pull` with `docker notary --enabled` will attempt 
   registry.wabbit-networks.io/net-monitor@sha256:48575dfb9ef2ebb9d67c6ed3cfbd784d635fcfae8ec820235ffa24968b3474dc  
   ```
 
-### Create and Push an SBoM
-
-Push the image, and its signature in one user gesture. Note the push links the signature to the image for later retrieval by a `:tag` or `digest`.
+### Create a Software Bill of Materials
 
 - Create an overly simplistic SBoM
   ```bash
-  echo '{"version": "0.0.0.0", "artifact": "registry.wabbit-networks.io/net-monitor:v1", "contents": "good"}' > sbom.json
+  echo '{"version": "0.0.0.0", "artifact": "net-monitor:v1", "contents": "good"}' > sbom.json
   ```
 - Push the SBoM with ORAS, saving the manifest for signing
   ```bash
@@ -256,7 +229,7 @@ Push the image, and its signature in one user gesture. Note the push links the s
 
 ### Sign the SBoM
 
-In the above case, the SBoM has already been pushed to the registry. To sign it before pushing, we could have used `oras push` with the `--dry-run` and `--export-manifest` options. 
+In the above case, the SBoM has already been pushed to the registry. To sign it before pushing, we could have used `oras push` with the `--dry-run` and `--export-manifest` options.
 
 - For non-container images, we'll use the `nv2` cli to sign and  the `oras` cli to push to a registry. We'll use the `oras discover` cli to find the sbom digest the signature will reference.
   ```bash
@@ -351,7 +324,7 @@ If iterating through the demo, these are the steps required to reset to a clean 
 - Reset the local registry:
   ```bash
   docker rm -f $(docker ps -a -q)
-  docker run -d -p 80:5000 --name oci-artifact-registry notaryv2/registry:nv2-prototype-2
+  docker run -d -p ${PORT}:5000 notaryv2/registry:nv2-prototype-2
   ```
 - Remove the `net-monitor:v1` image:
   ```bash
