@@ -2,40 +2,26 @@
 
 The following demonstrates the capabilities of [Notary v2 - Prototype-2][nv2-prototype-2].
 
-> At this point, this is a target experience, that is still being developed.
-
 ## Demo Setup
 
 Perform the following steps prior to the demo:
 
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
-- [Install and Build the nv2 Prerequisites](./README.md#prerequisites)
+- [Install and Build nv2](../../building.md)
 - [Install and Build the ORAS Prototype-2 branch](https://github.com/deislabs/oras/blob/prototype-2/docs/artifact-manifest.md)
-- Edit the `~/.docker/nv2.json` file to support local, insecure registries
-  ```json
-  {
-    "enabled": true,
-    "verificationCerts": [
-    ],
-    "insecureRegistries": [
-      "registry.wabbit-networks.io"
-    ]
-  }
-  ```
-- Add a `etc/hosts` entry to simulate pushing to registry.wabbit-networks.io
-  - If running on windows, _even if using wsl_, add the following entry to: `C:\Windows\System32\drivers\etc\hosts`
-    ```hosts
-    127.0.0.1 registry.wabbit-networks.io
-    ```
-### Simulating a Registry DNS Name
-
-- To avoid having to type the fully qualified registry name, we'll create environment variables:
+- Generate the `~/.docker/nv2.json` config file
   ```bash
-  export PORT=80
-  export REGISTRY=registry.wabbit-networks.io
+  docker nv2 notary --enabled
+  ```
+- Setup names and variables with `localhost:5000`
+  >**NOTE:** See [Simulating a Registry DNS Name](#simulating-a-registry-dns-name) for using `registry.wabbit-networks.io`
+  ```bash
+  export PORT=5000
+  export REGISTRY=localhost:${PORT}
   export REPO=${REGISTRY}/net-monitor
   export IMAGE=${REPO}:v1
   ```
+
 - Generate the Wabbit Networks Public and Private Keys:
   ```bash
   openssl req \
@@ -49,7 +35,7 @@ Perform the following steps prior to the demo:
     -keyout ./wabbit-networks.key \
     -out ./wabbit-networks.crt
   ```
-- Start a local registry instance:
+### Start a Local Registry Instance
   ```bash
   docker run -d -p ${PORT}:5000 notaryv2/registry:nv2-prototype-2
   ```
@@ -66,24 +52,7 @@ Perform the following steps prior to the demo:
 
 ![](../../media/notary-e2e-scenarios.svg)
 
-### Intro `nv2` Commands
-
-To demonstrate a target notary experience with the docker cli, `nv2` docker plug-ins are added:
-
-- To see nv2 the plug-ins, review the `Management Commands:`.
-  ```bash
-  docker --help
-
-  Management Commands:
-    ...
-    generate*   Generate artifacts (github.com/shizhMSFT, 0.1.0)
-    nv2*        Notary V2 Signature extension (Sajay Antony, Shiwei Zhang, 0.1.0)
-  ```
-- To see the sub commands of `nv2` and `nv2 notary`:
-  ```bash
-  docker nv2 --help
-  docker nv2 notary --help
-  ```
+### Alias `nv2` Commands
 
 - To avoid having to type `docker nv2` each time, create an alias:
   ```bash
@@ -246,72 +215,33 @@ In the above case, the SBoM has already been pushed to the registry. To sign it 
       $IMAGE | jq -r .references[0].digest) \
     file:sbom-manifest.json
   ```
-- View the referenced artifacts, starting with the `net-monitor:v1` image
-  ```bash
-  oras discover \
-    --plain-http \
-    $IMAGE
-
-  Discovered 2 artifacts referencing registry.wabbit-networks.io/net-monitor:v1
-  Digest: sha256:0da7b8db631b5faeff09f6217de7ac47bdcd53e0e7a15cec559a8140ac164f5c
-
-  Artifact Type                    Digest
-  application/x.example.sbom.v0    sha256:13d93a1ba883976b5b59491fe76c2dc94863db3820dc09b63b033ba8194cd96d
-  application/vnd.cncf.notary.v2   sha256:75a4b865eda581ec35ac51d3ac8283a37bf7507550d60ce94ee208a9d3edd167
-  ```
-  The above shows the Notary v2 signature of the `net-monitor:v1` image, and the SBoM.
-- View the SBoM signature, using `oras discover` and the digest from above
-  ```bash
-  # set the digest from the output above, referencing application/x.example.sbom.v0
-  SBOM_DIGEST=sha256:13d93a1ba883976b5b59491fe76c2dc94863db3820dc09b63b033ba8194cd96d
-  oras discover \
-    --plain-http \
-    ${REPO}@${SBOM_DIGEST}
-  ```
 - Dynamically get the SBoM digest
   ```bash
-  oras discover \
-    --plain-http \
-    ${REPO}@$(oras discover \
+  DIGEST=$(oras discover \
       --artifact-type application/x.example.sbom.v0 \
       --output-json \
       --plain-http \
-      $IMAGE | jq -r .references[0].digest) \
-    --output-json | jq
+      $IMAGE | jq -r .references[0].digest)
+- Discover referenced artifacts of the SBoM
+  ```bash
+  oras discover \
+    --plain-http \
+    ${REPO}@${DIGEST}
+  ```
+- Generates:
+  ```bash
+  Discovered 1 artifacts referencing localhost:5000/net-monitor@sha256:adfe3a3c50838fc2a19d5d7e73119dcadad7ad8e4e98f1e0fd100dd9d2278b71
+  Digest: sha256:adfe3a3c50838fc2a19d5d7e73119dcadad7ad8e4e98f1e0fd100dd9d2278b71
+
+  Artifact Type                    Digest
+  application/vnd.cncf.notary.v2   sha256:b7fc5fdb81f2ada359d0a709004360d1f08c9d2ac8a80630b152d1c6fb35460e
   ```
 
-  ```json
-  {
-    "digest": "sha256:13d93a1ba883976b5b59491fe76c2dc94863db3820dc09b63b033ba8194cd96d",
-    "references": [
-      {
-        "digest": "sha256:c3b2c533e1ae852a99c1f52f749d26e4d4f3f1979e1955bf77726ef4e81d886c",
-        "manifest": {
-          "schemaVersion": 2,
-          "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
-          "artifactType": "application/vnd.cncf.notary.v2",
-          "blobs": [
-            {
-              "mediaType": "application/vnd.cncf.notary.signature.v2+jwt",
-              "digest": "sha256:bf13c043317b22b99b317cfd7f6a70bc546477b93480d25c6b97ac0017849f19",
-              "size": 2454
-            }
-          ],
-          "manifests": [
-            {
-              "mediaType": "application/vnd.oci.artifact.manifest.v1+json",
-              "digest": "sha256:13d93a1ba883976b5b59491fe76c2dc94863db3820dc09b63b033ba8194cd96d",
-              "size": 500
-            }
-          ]
-        }
-      }
-    ]
-  }
-  ```
+The above workflow demonstrates the **Notary v2, prototype-2** target experience.
 
+## Optional Steps
 
-This shows the target experience we're shooting for, within various build and container runtime tooling.
+Some optional steps:
 
 ## Demo Reset
 
@@ -328,12 +258,45 @@ If iterating through the demo, these are the steps required to reset to a clean 
   ```
 - Remove the `net-monitor:v1` image:
   ```bash
-  docker rmi -f registry.wabbit-networks.io/net-monitor:v1
+  docker rmi -f ${REGISTRY}/net-monitor:v1
   ```
 - Remove `wabbit-networks.crt` from `"verificationCerts"` in the `nv2.json` configuration file:
   ```bash
   code ~/.docker/nv2.json
   ```
+- Remove previous signatures:
+  ```bash
+  rm -r ~/.docker/nv2/sha256/
+  ```
+
+### Simulating a Registry DNS Name
+
+Configure the additional steps to simulate a fully qualified dns name for wabbit-networks.
+
+- Setup names and variables with `registry.wabbit-networks.io`
+  ```bash
+  export PORT=80
+  export REGISTRY=registry.wabbit-networks.io
+  export REPO=${REGISTRY}/net-monitor
+  export IMAGE=${REPO}:v1
+  ```
+- Edit the `~/.docker/nv2.json` file to support local, insecure registries
+  ```json
+  {
+    "enabled": true,
+    "verificationCerts": [
+    ],
+    "insecureRegistries": [
+      "registry.wabbit-networks.io"
+    ]
+  }
+  ```
+- Add a `etc/hosts` entry to simulate pushing to registry.wabbit-networks.io
+  - If running on windows, _even if using wsl_, add the following entry to: `C:\Windows\System32\drivers\etc\hosts`
+    ```hosts
+    127.0.0.1 registry.wabbit-networks.io
+    ```
+- Continue with [Start a Local Registry Instance](#start-a-local-registry-instance)
 
 [docker-generate]:        https://github.com/shizhMSFT/docker-generate
 [nv2-signature]:          ../signature/README.md
