@@ -29,6 +29,15 @@ var notarySignCommand = &cli.Command{
 			Usage:     "signing cert",
 			TakesFile: true,
 		},
+		&cli.StringSliceFlag{
+			Name:    "reference",
+			Aliases: []string{"r"},
+			Usage:   "original references",
+		},
+		&cli.BoolFlag{
+			Name:  "origin",
+			Usage: "mark the current reference as a original reference",
+		},
 	},
 	Action: notarySign,
 }
@@ -54,7 +63,12 @@ func notarySign(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Signing", desc.Digest)
-	sig, err := service.Sign(ctx.Context, desc, reference)
+	var references []string
+	if ctx.Bool("origin") {
+		references = append(references, reference)
+	}
+	references = append(references, ctx.StringSlice("reference")...)
+	sig, err := service.Sign(ctx.Context, desc, references...)
 	if err != nil {
 		return err
 	}
