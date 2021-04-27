@@ -15,6 +15,9 @@ This plugin requires [golang](https://golang.org/dl/) with version `>= 1.16`.
   - `~/.docker/cli-plugins/docker-generate`
   - `~/.docker/cli-plugins/docker-nv2`
   ```shell
+  git clone https://github.com/notaryproject/nv2.git
+  cd nv2
+  git checkout prototype-2
   make install
   ```
 - Verify binaries are installed
