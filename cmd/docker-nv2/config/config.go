@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 // File reflects the config file
@@ -21,6 +22,10 @@ func New() *File {
 
 // Save stores the config to file
 func (f *File) Save() error {
+	dir := filepath.Dir(FilePath)
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return err
+	}
 	file, err := os.Create(FilePath)
 	if err != nil {
 		return err
