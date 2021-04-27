@@ -298,10 +298,10 @@ Configure the additional steps to simulate a fully qualified dns name for wabbit
     ```
 - Continue with [Start a Local Registry Instance](#start-a-local-registry-instance)
 
-[docker-generate]:        https://github.com/shizhMSFT/docker-generate
+[docker-generate]:        https://github.com/notaryproject/nv2/tree/prototype-2
 [nv2-signature]:          ../signature/README.md
 [oci-image-manifest]:     https://github.com/opencontainers/image-spec/blob/master/manifest.md
 [oci-image-index]:        https://github.com/opencontainers/image-spec/blob/master/image-index.md
 [oci-artifact-manifest]:  https://github.com/SteveLasker/artifacts/blob/oci-artifact-manifest/artifact-manifest.md
-[oras]:                   https://github.com/deislabs/oras
+[oras]:                   https://github.com/deislabs/oras/tree/prototype-2
 [nv2-prototype-2]:        https://github.com/notaryproject/notaryproject/issues/53
