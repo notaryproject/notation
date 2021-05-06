@@ -5,6 +5,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
 ## Table of Contents
 
 - [Notation Quick Start](#notation-quick-start)
+- [Contributing](#contributing)
 - [Core Documents](#core-documents)
 - [Community](#community)
 - [Release Management](#release-management)
@@ -14,7 +15,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 ## Notation Quick Start
 
-- Install the Notation CLI from [Notation Releases][notation-releases]  
+- Install the Notation CLI from [Notation Releases][notation-releases]
     ```bash
     curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.0-alpha.1/notation_0.7.0-alpha.1_linux_amd64.tar.gz
     tar xvzf notation.tar.gz -C ~/bin notation
