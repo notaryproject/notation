@@ -17,11 +17,16 @@ To enable the above workflow:
 
 ## Table of Contents
 
+1. [Contributing][#contributing]
 1. [Scenarios](#scenarios)
 1. [nv2 signature spec](./docs/signature/README.md)
 1. [nv2 signing and verification docs](docs/nv2/README.md)
 1. [OCI Artifact schema for storing signatures](docs/artifact/README.md)
 1. [nv2 prototype scope](#prototype-scope)
+
+## Contributing
+
+Do you consider contributing to our project? Please have a look at our [contributing guidelines](./CONTRIBUTING.md#contributing).
 
 ## Scenarios
 
