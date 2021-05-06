@@ -44,6 +44,10 @@ This project is composed of:
 - [nv2](https://github.com/notaryproject/nv2): The Notary v2 CLI and Docker plugins
 - [notaryproject](https://github.com/notaryproject/notaryproject): The Notary v2 requirements and scenarios to frame the scope of the Notary project
 
+### Understanding the code
+
+We are using the following [project-layout](https://github.com/golang-standards/project-layout).
+
 ### How to run the test suite
 
 Prerequisites:
