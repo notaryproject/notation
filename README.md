@@ -1,5 +1,7 @@
 # Notary V2 (nv2) - Prototype
 
+[![Go CI](https://github.com/notaryproject/nv2/actions/workflows/golang.yml/badge.svg)](https://github.com/notaryproject/nv2/actions/workflows/golang.yml)
+
 nv2 is an incubation and prototype for the [Notary v2][notary-v2] efforts, securing artifacts stored in [distribution-spec][distribution-spec] based registries.
 The `nv2` prototype covers the scenarios outlined in [notaryproject/requirements](https://github.com/notaryproject/requirements/blob/master/scenarios.md#scenarios). It also follows the [prototyping approach described here](https://github.com/stevelasker/nv2#prototyping-approach).
 
@@ -34,7 +36,7 @@ Public registries generally have two cateogires of content:
 
 #### End to End Experience
 
-The user works for ACME Rockets. They build `FROM` and use certified content from docker hub.  
+The user works for ACME Rockets. They build `FROM` and use certified content from docker hub.
 Their environemt is configured to only trust content from `docker.io` and `acme-rockets.io`
 
 #### Public Certified Content
@@ -53,8 +55,8 @@ Their environemt is configured to only trust content from `docker.io` and `acme-
 1. The image fails to run as the user has `trust-required` enabled, and doesn't have the wabbit-networks key.The docker cli produces an error with a url for acquiring the wabbit-networks key.
    - The user can disable `trust-requried`, or acquire the required key.
 1. The user acquires the wabbit-networks key, saves it in their local store
-1. The user again runs:  
-   - `docker run docker.io/wabbit-networks/net-monitor:latest`  
+1. The user again runs:
+   - `docker run docker.io/wabbit-networks/net-monitor:latest`
    and the image is sucessfully run
 
 ### Key acquisition
