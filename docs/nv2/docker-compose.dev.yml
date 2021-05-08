@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  sandbox:
+    volumes:
+      - type: bind
+        source: ../../
+        target: /nv2
+      - type: bind
+        source: ./oras
+        target: /oras
+        
