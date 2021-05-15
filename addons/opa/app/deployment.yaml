@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: net-monitor-deployment
+  namespace: default
+  labels:
+    app: net-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: net-monitor
+  template:
+    metadata:
+      labels:
+        app: net-monitor
+    spec:
+      containers:
+      - name: net-monitor
+        image: <registry>/net-monitor:v1
+        command: [ "tail", "-f", "/dev/null" ]

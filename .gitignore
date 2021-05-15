@@ -4,3 +4,11 @@
 # Custom
 bin/
 vendor/
+
+
+# adons/opa
+addons/opa/*/*.key
+addons/opa/*/*.crt
+addons/opa/*/*.srl
+addons/opa/*/*.csr
+addons/opa/*/webhook-configuration.yaml

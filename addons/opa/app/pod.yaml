@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: net-monitor-pod
+  namespace: default
+spec:
+  containers:
+  - name: net-monitor
+    image: <registry>/net-monitor:v1
+    command: [ "tail", "-f", "/dev/null" ]
