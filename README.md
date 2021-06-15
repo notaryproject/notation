@@ -29,35 +29,35 @@ The current implementation focuses on x509 cert based signatures. Using this app
 
 ### Public Registry
 
-Public registries generally have two cateogires of content:
+Public registries generally have two categories of content:
 
-1. Public, certified content. This content is scanned, certified and signed by the registry that wishes to claim the content is "certified". It may be additionaly signed by the originating vendor.
+1. Public, certified content. This content is scanned, certified and signed by the registry that wishes to claim the content is "certified". It may be additionally signed by the originating vendor.
 2. Public, community driven content. Community content is a choice for the consumer to trust (downloading their key), or accept as un-trusted.
 
 #### End to End Experience
 
-The user works for ACME Rockets. They build `FROM` and use certified content from docker hub.
-Their environemt is configured to only trust content from `docker.io` and `acme-rockets.io`
+The user works for ACME Rockets. They build `FROM` and use certified content from Docker Hub.
+Their environment is configured to only trust content from `docker.io` and `acme-rockets.io`
 
 #### Public Certified Content
 
 1. The user discovers some certified content they wish to acquire
-1. The user copies the URI for the content, passing it to the docker cli
+1. The user copies the URI for the content, passing it to the Docker CLI
    - `docker run docker.io/hello-world:latest`
-1. The user already has the `docker.io` certificate, enabling all certified content from docker hub
+1. The user already has the `docker.io` certificate, enabling all certified content from Docker Hub
 1. The image runs, as verification passes
 
 #### Public non-certified content
 
 1. The user discovers some community content they wish to acquire, such as a new network-monitor project
-1. The user copies the URI for the content, passing it to the docker cli
+1. The user copies the URI for the content, passing it to the Docker CLI
    - `docker run docker.io/wabbit-networks/net-monitor:latest`
-1. The image fails to run as the user has `trust-required` enabled, and doesn't have the wabbit-networks key.The docker cli produces an error with a url for acquiring the wabbit-networks key.
-   - The user can disable `trust-requried`, or acquire the required key.
+1. The image fails to run as the user has `trust-required` enabled, and doesn't have the wabbit-networks key. The Docker CLI produces an error with a URL for acquiring the wabbit-networks key.
+   - The user can disable `trust-required`, or acquire the required key.
 1. The user acquires the wabbit-networks key, saves it in their local store
 1. The user again runs:
    - `docker run docker.io/wabbit-networks/net-monitor:latest`
-   and the image is sucessfully run
+   and the image is successfully run
 
 ### Key acquisition
 
@@ -65,10 +65,10 @@ Their environemt is configured to only trust content from `docker.io` and `acme-
 
 ### Private Registry
 
-Private registries serve the follwing scenarios:
+Private registries serve the following scenarios:
 
-- Host public content, ceritifed for use within an orgnization
-- Host privately built content, containing the intellectual property of the orgnization.
+- Host public content, certified for use within an organization
+- Host privately built content, containing the intellectual property of the organization.
 
 
 ![acme-rockets cert](./media/acme-rockets-cert.png)
