@@ -17,4 +17,7 @@ require (
 	gotest.tools/v3 v3.0.3 // indirect
 )
 
-replace github.com/opencontainers/artifacts => github.com/notaryproject/artifacts v0.0.0-20210414030140-c7c701eff45d
+replace (
+	github.com/notaryproject/notary/v2 => github.com/shizhMSFT/notary/v2 v2.0.0-20210628085455-9ffe654b1d61
+	github.com/opencontainers/artifacts => github.com/aviral26/artifacts v0.0.3
+)
