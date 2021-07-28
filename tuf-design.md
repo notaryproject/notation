@@ -85,8 +85,8 @@ The snapshot metadata file contains the name and version number of every metadat
 ## Further Reading
 
 For more information about the design described in this document, please refer to the corresponding TUF documentation. Note that in TUF a ‘repository’ refers to the server on which images are hosted, this maps to a ‘registry’ in Notary.
-* [The TUF specification](https://github.com/theupdateframework/specification/blob/master/tuf-spec.md)
+* [The TUF specification](https://theupdateframework.github.io/specification/latest/)
 * [TAP 13](https://github.com/theupdateframework/taps/pull/118)
 * [TAP 15 (Succinct hashed bin delegations)](https://github.com/theupdateframework/taps/blob/master/tap15.md)
-* [Snapshot Merkle Trees](https://github.com/theupdateframework/taps/pull/125)
+* [TAP 16 (Snapshot Merkle Trees)](https://github.com/theupdateframework/taps/blob/master/tap16.md)
 * [Multiple repositories/registries](https://github.com/theupdateframework/taps/blob/master/tap4.md)
