@@ -13,6 +13,7 @@ var nv2Command = &cli.Command{
 		notaryCommand,
 		pullCommand,
 		pushCommand,
+		certsCommand,
 	},
 	Action: delegateToDocker,
 }
