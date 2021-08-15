@@ -21,6 +21,9 @@ import (
 )
 
 const (
+	// This needs to be configurable. Once the location of the
+	// configuration is finalized this parameter and file locations
+	// should be exposed as options on the cli with mock tests.
 	KEYS_BASE_DIR = ".notary"
 )
 
@@ -31,11 +34,17 @@ var generateCertCommand = &cli.Command{
 	Flags: []cli.Flag{
 		&cli.IntFlag{
 			Name:     "rsaBits",
-			Usage:    "rsaBits 2048",
+			Usage:    "--rsaBits 3072",
 			Required: false,
-			Value:    2048,
+			Value:    3072,
+		},
+		&cli.StringFlag{
+			Name:     "not-after",
+			Usage:    "--not-after 2006-01-02T15:04:05-07:00 (default is 1 year)",
+			Required: false,
 		},
 	},
+
 	Action: runGenerateCert,
 }
 
@@ -74,9 +83,26 @@ func runGenerateCert(ctx *cli.Context) error {
 		return errors.New("Missing required [host] parameter")
 	}
 
+	// Set certificate validity
+	notBefore := time.Now()
+	notAfter := time.Now().Add(time.Duration(365 * 24 * time.Hour))
+
+	expiry := ctx.String("not-after")
+	var err error
+	if len(expiry) != 0 {
+		notAfter, err = time.Parse(time.RFC3339, expiry)
+		if err != nil {
+			return fmt.Errorf("Invalid --not-after %s value specified %v", expiry, err)
+		}
+	}
+
+	if notAfter.Before(notBefore) {
+		return fmt.Errorf("Invalid --not-after that is earlier than not-before [%s] specified", notBefore.Format(time.RFC3339))
+	}
+
+	// Generate RSA Bits
 	rsaBits := ctx.Int("rsaBits")
 	var priv interface{}
-	var err error
 
 	fmt.Printf("Generating RSA Key with %d bits\n", rsaBits)
 	priv, err = rsa.GenerateKey(rand.Reader, rsaBits)
@@ -88,16 +114,6 @@ func runGenerateCert(ctx *cli.Context) error {
 	// ECDSA, ED25519 and RSA subject keys should have the DigitalSignature
 	// KeyUsage bits set in the x509.Certificate template
 	keyUsage := x509.KeyUsageDigitalSignature
-	// Only RSA subject keys should have the KeyEncipherment KeyUsage bits set. In
-	// the context of TLS this KeyUsage is particular to RSA key exchange andgit st
-	// authentication.
-	if _, isRSA := priv.(*rsa.PrivateKey); isRSA {
-		keyUsage |= x509.KeyUsageKeyEncipherment
-	}
-
-	// Set certificate validity to one year from now.
-	notBefore := time.Now()
-	notAfter := notBefore.Add(time.Duration(365 * 24 * time.Hour))
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -106,15 +122,10 @@ func runGenerateCert(ctx *cli.Context) error {
 	}
 
 	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			Organization: []string{"Acme Co"},
-		},
-		NotBefore: notBefore,
-		NotAfter:  notAfter,
-
+		SerialNumber:          serialNumber,
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
 		KeyUsage:              keyUsage,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 	}
 
@@ -125,6 +136,10 @@ func runGenerateCert(ctx *cli.Context) error {
 		} else {
 			template.DNSNames = append(template.DNSNames, h)
 		}
+	}
+
+	template.Subject = pkix.Name{
+		Organization: []string{hosts[0]},
 	}
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
@@ -155,6 +170,8 @@ func runGenerateCert(ctx *cli.Context) error {
 	if err := certOut.Close(); err != nil {
 		return fmt.Errorf("Error closing cert.pem: %v", err)
 	}
+
+	fmt.Printf("Generating certificates expiring on %s\n", notAfter.Format(time.RFC3339))
 	fmt.Printf("Writing public key file: %s\n", crtFilePath)
 
 	// Write the private key file
