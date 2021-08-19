@@ -1,0 +1,73 @@
+version: "3.7"
+
+services:
+  docker:
+    image: "docker:dind"
+    privileged: true
+    volumes:
+      - type: volume
+        source: docker-lib
+        target: /var/lib/docker
+      - type: volume
+        source: docker-client-certs
+        target: /certs/client
+      - type: volume
+        source: reg-ca
+        target: "/etc/docker/certs.d/registry.wabbit-networks.io"
+        read_only: true
+      - type: volume
+        source: reg-ca
+        target: "/etc/docker/certs.d/registry"
+        read_only: true
+    
+  registry:
+    image: "registry:nv2-sandbox"
+    build:
+      context: registry
+    networks:
+      default:
+        aliases:
+          - "registry.wabbit-networks.io"
+    environment:
+      REG_SAN: "DNS:registry,DNS:registry.wabbit-networks.io"
+      REG_CA_KEY: "/certs/private/ca.key"
+      REG_CA_CERT: "/certs/shared/ca.crt"
+      REGISTRY_HTTP_TLS_CERTIFICATE: "/certs/private/reg.crt"
+      REGISTRY_HTTP_TLS_KEY: "/certs/private/reg.key"
+      REGISTRY_HTTP_ADDR: ":443"
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: "/var/lib/registry"
+    volumes:
+      - type: volume
+        source: reg-ca
+        target: "/certs/shared"
+      - type: volume
+        source: reg-data
+        target: "/var/lib/registry"
+
+  sandbox:
+    image: "nv2-sandbox"
+    build:
+      context: sandbox
+    command: [ "tail", "-f", "/dev/null" ]
+    stop_grace_period: 0s
+    environment:
+      DOCKER_HOST: "tcp://docker:2376"
+      DOCKER_TLS_VERIFY: "1"
+      DOCKER_CERT_PATH: "/certs/client"
+    volumes:
+      - type: volume
+        source: sandbox-home
+        target: "/root"
+      - type: volume
+        source: docker-client-certs
+        target: /certs/client
+      - type: volume
+        source: reg-ca
+        target: "/certs/reg-ca"
+
+volumes:
+  sandbox-home:
+  docker-lib:
+  docker-client-certs:
+  reg-ca:
+  reg-data:
