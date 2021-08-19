@@ -130,7 +130,7 @@ To build with changes to nv2 and oras, checkout oras within the current director
 
 ```shell
 git clone https://github.com/deislabs/oras.git
-cd oras; git checkout prototype-2; cd ..
+cd oras; git checkout reference-types; cd ..
 ```
 
 Perform any changes to this nv2 repo or the oras repo.

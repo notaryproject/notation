@@ -17,7 +17,7 @@ FROM go as oras
 
 RUN git clone https://github.com/deislabs/oras.git /oras \
  && cd /oras \
- && git checkout prototype-2 \
+ && git checkout reference-types \
  && make build \
  && cp ./bin/linux/amd64/oras /usr/local/bin/oras
 
