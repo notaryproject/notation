@@ -23,7 +23,7 @@ func main() {
 			verifyCommand,
 			pushCommand,
 			pullCommand,
-			generateCertCommand,
+			certificatesCommand,
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

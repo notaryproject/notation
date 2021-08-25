@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -24,11 +25,19 @@ const (
 	// This needs to be configurable. Once the location of the
 	// configuration is finalized this parameter and file locations
 	// should be exposed as options on the cli with mock tests.
-	KEYS_BASE_DIR = ".notary"
+	KEYS_BASE_DIR = ".notation"
 )
 
+var certificatesCommand = &cli.Command{
+	Name:  "certificates",
+	Usage: "Commands to manage certificates",
+	Subcommands: []*cli.Command{
+		generateCertCommand,
+	},
+}
+
 var generateCertCommand = &cli.Command{
-	Name:      "generate-certificates",
+	Name:      "generate",
 	Usage:     "Generates a test crt and key file.",
 	ArgsUsage: "[host]",
 	Flags: []cli.Flag{
@@ -48,33 +57,29 @@ var generateCertCommand = &cli.Command{
 	Action: runGenerateCert,
 }
 
-//ref: https://golang.org/src/crypto/tls/generate_cert.go
-func publicKey(priv interface{}) interface{} {
-	switch k := priv.(type) {
-	case *rsa.PrivateKey:
-		return &k.PublicKey
-	default:
-		return nil
-	}
-}
-
 func ensureKeysDir() (string, error) {
+
+	// Expected to ensure ~/.notation/keys
 	dirname, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	keysDir := filepath.Join(dirname, KEYS_BASE_DIR, "keys")
-	_, err = os.Stat(keysDir)
+	fsStat, err := os.Stat(keysDir)
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(keysDir, 0700) // Only user has permissions on this directory
 		if err != nil {
 			return "", err
 		}
+	} else if fsStat.IsDir() == false {
+		return "", fmt.Errorf("%s should be a directory", keysDir)
 	}
 
 	return keysDir, nil
 }
+
+//ref: https://golang.org/src/crypto/tls/generate_cert.go
 
 func runGenerateCert(ctx *cli.Context) error {
 
@@ -85,7 +90,7 @@ func runGenerateCert(ctx *cli.Context) error {
 
 	// Set certificate validity
 	notBefore := time.Now()
-	notAfter := time.Now().Add(time.Duration(365 * 24 * time.Hour))
+	notAfter := notBefore.Add(time.Duration(365 * 24 * time.Hour))
 
 	expiry := ctx.String("not-after")
 	var err error
@@ -102,7 +107,7 @@ func runGenerateCert(ctx *cli.Context) error {
 
 	// Generate RSA Bits
 	rsaBits := ctx.Int("rsaBits")
-	var priv interface{}
+	var priv crypto.Signer
 
 	fmt.Printf("Generating RSA Key with %d bits\n", rsaBits)
 	priv, err = rsa.GenerateKey(rand.Reader, rsaBits)
@@ -114,6 +119,7 @@ func runGenerateCert(ctx *cli.Context) error {
 	// ECDSA, ED25519 and RSA subject keys should have the DigitalSignature
 	// KeyUsage bits set in the x509.Certificate template
 	keyUsage := x509.KeyUsageDigitalSignature
+	extKeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning}
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -126,6 +132,7 @@ func runGenerateCert(ctx *cli.Context) error {
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
 		KeyUsage:              keyUsage,
+		ExtKeyUsage:           extKeyUsage,
 		BasicConstraintsValid: true,
 	}
 
@@ -140,9 +147,10 @@ func runGenerateCert(ctx *cli.Context) error {
 
 	template.Subject = pkix.Name{
 		Organization: []string{hosts[0]},
+		CommonName:   hosts[0],
 	}
 
-	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey(priv), priv)
+	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, priv.Public(), priv)
 	if err != nil {
 		return fmt.Errorf("Failed to create certificate: %v", err)
 	}
@@ -168,11 +176,11 @@ func runGenerateCert(ctx *cli.Context) error {
 		return fmt.Errorf("Failed to write data to %s: %v", crtFilePath, err)
 	}
 	if err := certOut.Close(); err != nil {
-		return fmt.Errorf("Error closing cert.pem: %v", err)
+		return fmt.Errorf("Error closing %s: %v", crtFilePath, err)
 	}
 
-	fmt.Printf("Generating certificates expiring on %s\n", notAfter.Format(time.RFC3339))
-	fmt.Printf("Writing public key file: %s\n", crtFilePath)
+	fmt.Printf("Generated certificates expiring on %s\n", notAfter.Format(time.RFC3339))
+	fmt.Printf("Wrote self-signed certificate file: %s\n", crtFilePath)
 
 	// Write the private key file
 	keyFileName := path.Join(keysDir, hosts[0]+".key")
@@ -196,6 +204,6 @@ func runGenerateCert(ctx *cli.Context) error {
 	if err := keyOut.Close(); err != nil {
 		return fmt.Errorf("Error closing %s: %v", keyFilePath, err)
 	}
-	fmt.Printf("Writing private key file: %s\n", keyFilePath)
+	fmt.Printf("Wrote private key file: %s\n", keyFilePath)
 	return nil
 }
