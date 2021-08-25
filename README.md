@@ -1,16 +1,10 @@
-# Notary V2 (nv2)
+# Notation
 
-nv2 will eventually become a set of reference implementations for signing and verifying [OCI Artifacts][artifacts-repo].
-
-Currently, it hosts prototypes to validate the scenarios outlined in [notaryproject/requirements](https://github.com/notaryproject/requirements/blob/main/scenarios.md#scenarios).
+Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar in security to checking git commit signatures, although the signatures are generic and can be used for additional purposes.
 
 ## Table of Contents
 
-1. [Notary v2 Home][notaryv2-home]
-1. [Prototype 1][prototype-1] - signing and verifying OCI artifacts, using signatures persisted as OCI Indexes.
-1. [TUF Prototype][prototype-tuf] - prototype that uses theupdateframework (TUF) for verification of OCI artifacts.
+1. [Prototype 2][prototype-2] - signing and verifying OCI artifacts, using signatures persisted [ORAS Artifacts manifests][artifact-manifest]
 
-[artifacts-repo]:   https://github.com/opencontainers/artifacts
-[prototype-1]:      https://github.com/notaryproject/nv2/tree/prototype-1
-[notaryv2-home]:    https://github.com/notaryproject/requirements
-[prototype-tuf]:    https://github.com/notaryproject/nv2/tree/prototype-tuf
+[artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
+[prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
