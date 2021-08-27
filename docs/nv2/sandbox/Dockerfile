@@ -9,8 +9,9 @@ RUN apk add \
 
 FROM go as nv2
 
-RUN git clone https://github.com/notaryproject/nv2.git /nv2 \
- && cd /nv2 \
+RUN git clone https://github.com/notaryproject/notation.git /notation \
+ && cd /notation \
+ && git checkout prototype-2 \
  && make build
 
 FROM go as oras
@@ -33,7 +34,7 @@ RUN apk add \
       make \
       openssl
 
-COPY --from=nv2 /nv2/bin/ /usr/local/bin/
+COPY --from=nv2 /notation/bin/ /usr/local/bin/
 COPY --from=oras /usr/local/bin/oras /usr/local/bin/oras
 COPY --from=docker /usr/local/bin/docker /usr/local/bin/docker
 COPY rebuild.sh /usr/local/bin/

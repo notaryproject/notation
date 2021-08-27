@@ -86,7 +86,7 @@ oras push $REPO \
   --artifact-reference $IMAGE \
   --export-manifest sbom-manifest.json \
   ./sbom.json:application/tar
-oras discover $IMAGE
+oras discover $IMAGE --output tree
 ```
 
 Sign the SBoM:
@@ -94,7 +94,7 @@ Sign the SBoM:
 ```shell
 DIGEST=$(oras discover \
     --artifact-type application/x.example.sbom.v0 \
-    --output-json \
+    --output json \
     $IMAGE | jq -r .references[0].digest)
 nv2 sign \
   -m x509 \
@@ -103,7 +103,7 @@ nv2 sign \
   --push \
   --push-reference oci://${REPO}@${DIGEST} \
   file:sbom-manifest.json
-oras discover ${REPO}@${DIGEST}
+oras discover ${REPO}@${DIGEST} --output tree
 ```
 
 Exit the sandbox:
