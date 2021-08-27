@@ -52,7 +52,7 @@ docker push $IMAGE
 Inspect image on registry:
 
 ```shell
-oras discover $IMAGE
+oras discover $IMAGE --output tree
 ```
 
 Pull signed image (fails without signature):
