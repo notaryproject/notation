@@ -1,0 +1,31 @@
+{
+  "enabled": true,
+  "verificationCerts": {
+    "certs": [
+      {
+        "name": "wabbit-networks.io",
+        "path": "~/./notary/keys/wabbit-networks.crt"
+      },
+      {
+        "name": "import.acme-rockets.io",
+        "path": "~/./notary/keys/import-acme-rockets.crt"
+      }
+    ]
+  },
+  "signing-keys": {
+    "default": "wabbit-networks.io",
+    "keys": [
+      {
+        "name": "wabbit-networks.io",
+        "path": "~/./notary/keys/wabbit-networks.key"
+      },
+      {
+        "name": "import.acme-rockets.io",
+        "path": "~/./notary/keys/import-acme-rockets.key"
+      }
+    ]
+  },
+  "insecureRegistries": [
+    "registry.wabbit-networks.io"
+  ]
+}
