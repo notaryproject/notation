@@ -8,3 +8,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 [artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
+
+## Code of Conduct
+
+This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md). See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for further details.
