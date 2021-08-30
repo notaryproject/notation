@@ -14,9 +14,6 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 [Prototype 2][prototype-2] - signing and verifying OCI artifacts, using signatures persisted [ORAS Artifacts manifests][artifact-manifest]
 
-[artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
-[prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
-
 ## Core Documents
 
 * [Governance for Notation](https://github.com/notaryproject/notary/blob/master/GOVERNANCE.md)
@@ -37,3 +34,7 @@ This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foun
 ## License
 
 This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE).
+
+## Code of Conduct
+
+This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md). See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for further details.
