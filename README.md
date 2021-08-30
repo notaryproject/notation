@@ -15,4 +15,4 @@ This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foun
 
 ## License
 
-This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE).
+This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE). 
