@@ -5,6 +5,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
 ## Table of Contents
 
 - [Branch](#branch)
+- [Core Documents](#core-documents)
 - [Community](#community)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
@@ -15,6 +16,11 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 [artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
+
+## Core Documents
+
+* [Governance for Notation](https://github.com/notaryproject/notary/blob/master/GOVERNANCE.md)
+* [Maintainers and reviewers list](https://github.com/notaryproject/notary/blob/master/MAINTAINERS)
 
 ## Community
 
