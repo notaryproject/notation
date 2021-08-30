@@ -26,7 +26,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 * Regular conversations for Notation occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
 
-* Please see the [CNCF Calendar](https://www.cncf.io/community/calendar/) for details.
+* Please see the [CNCF Calendar](https://www.cncf.io/calendar/) for details.
 
 * Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
