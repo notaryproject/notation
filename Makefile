@@ -1,13 +1,17 @@
-GO_BUILD_FLAGS =
-DOCKER_PLUGINS = docker-generate docker-nv2
-COMMANDS       = nv2 $(DOCKER_PLUGINS)
-
-define BUILD_BINARY =
-	go build $(GO_BUILD_FLAGS) -o $@ ./$<
-endef
+MODULE         = github.com/notaryproject/notation
+DOCKER_PLUGINS = docker-generate docker-notation
+COMMANDS       = notation $(DOCKER_PLUGINS)
+GIT_TAG        = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
+BUILD_METADATA =
+ifeq ($(GIT_TAG),) # unreleased build
+    GIT_COMMIT     = $(shell git rev-parse HEAD)
+    GIT_STATUS     = $(shell test -n "`git status --porcelain`" && echo "dirty" || echo "unreleased")
+	BUILD_METADATA = $(GIT_COMMIT).$(GIT_STATUS)
+endif
+LDFLAGS        = -X $(MODULE)/internal/version.BuildMetadata=$(BUILD_METADATA)
+GO_BUILD_FLAGS = --ldflags="$(LDFLAGS)"
 
 .PHONY: help
-
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
@@ -18,7 +22,7 @@ all: build
 FORCE:
 
 bin/%: cmd/% FORCE
-	$(BUILD_BINARY)
+	go build $(GO_BUILD_FLAGS) -o $@ ./$<
 
 .PHONY: download
 download: ## download dependencies via go mod
@@ -44,10 +48,10 @@ vendor: ## vendores the go modules
 	GO111MODULE=on go mod vendor
 
 .PHONY: install
-install: install-nv2 install-docker-plugins
+install: install-notation install-docker-plugins ## install the notation cli and docker plugins
 
-.PHONY: install-nv2
-install-nv2: bin/nv2
+.PHONY: install-notation
+install-notation: bin/notation ## installs the notation cli
 	cp $< ~/bin/
 
 .PHONY: install-docker-%

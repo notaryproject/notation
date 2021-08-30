@@ -1,0 +1,59 @@
+builds:
+  - main: ./cmd/notation
+    id: notation
+    binary: notation
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X {{.ModulePath}}/internal/version.Version={{.Version}} -X {{.ModulePath}}/internal/version.BuildMetadata=
+  - main: ./cmd/docker-notation
+    id: docker-notation
+    binary: docker-notation
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X {{.ModulePath}}/internal/version.Version={{.Version}} -X {{.ModulePath}}/internal/version.BuildMetadata=
+  - main: ./cmd/docker-generate
+    id: docker-generate
+    binary: docker-generate
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE

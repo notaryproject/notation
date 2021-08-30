@@ -3,49 +3,24 @@ package registry
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
 
-	"github.com/notaryproject/notary/v2/signature"
-	artifactspec "github.com/opencontainers/artifacts/specs-go/v2"
-	oci "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/notaryproject/notation-go-lib/signature"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
 )
 
-// GetManifestMetadata returns signature manifest information by URI scheme
-func (c *Client) GetManifestMetadata(uri *url.URL) (signature.Manifest, error) {
-	switch scheme := strings.ToLower(uri.Scheme); scheme {
-	case "docker":
-		return c.GetDockerManifestMetadata(uri)
-	case "oci":
-		return c.GetOCIManifestMetadata(uri)
-	default:
-		return signature.Manifest{}, fmt.Errorf("unsupported scheme: %s", scheme)
-	}
-}
-
-// GetDockerManifestMetadata returns signature manifest information
-// from a remote Docker manifest
-func (c *Client) GetDockerManifestMetadata(uri *url.URL) (signature.Manifest, error) {
-	return c.getManifestMetadata(uri,
-		MediaTypeManifestList,
-		MediaTypeManifest,
-	)
-}
-
-// GetOCIManifestMetadata returns signature manifest information
-// from a remote OCI manifest
-func (c *Client) GetOCIManifestMetadata(uri *url.URL) (signature.Manifest, error) {
-	return c.getManifestMetadata(uri,
-		oci.MediaTypeImageIndex,
-		oci.MediaTypeImageManifest,
-		artifactspec.MediaTypeArtifactManifest,
-	)
+var supportedMediaTypes = []string{
+	MediaTypeManifestList,
+	MediaTypeManifest,
+	ocispec.MediaTypeImageIndex,
+	ocispec.MediaTypeImageManifest,
+	artifactspec.MediaTypeArtifactManifest,
 }
 
 // GetManifestMetadata returns signature manifest information
-func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signature.Manifest, error) {
-	ref := ParseReferenceFromURL(uri)
+func (c *Client) GetManifestMetadata(reference string) (signature.Manifest, error) {
+	ref := ParseReference(reference)
 	scheme := "https"
 	if c.plainHTTP {
 		scheme = "http"
@@ -58,10 +33,10 @@ func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signat
 	)
 	req, err := http.NewRequest(http.MethodHead, url, nil)
 	if err != nil {
-		return signature.Manifest{}, fmt.Errorf("invalid uri: %v", uri)
+		return signature.Manifest{}, fmt.Errorf("invalid reference: %v", reference)
 	}
 	req.Header.Set("Connection", "close")
-	for _, mediaType := range mediaTypes {
+	for _, mediaType := range supportedMediaTypes {
 		req.Header.Add("Accept", mediaType)
 	}
 
@@ -74,7 +49,7 @@ func (c *Client) getManifestMetadata(uri *url.URL, mediaTypes ...string) (signat
 	case http.StatusOK:
 		// no op
 	case http.StatusUnauthorized, http.StatusNotFound:
-		return signature.Manifest{}, fmt.Errorf("%v: %s", uri, resp.Status)
+		return signature.Manifest{}, fmt.Errorf("%v: %s", reference, resp.Status)
 	default:
 		return signature.Manifest{}, fmt.Errorf("%v: %s", url, resp.Status)
 	}

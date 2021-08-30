@@ -5,15 +5,16 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation/internal/docker"
+	"github.com/notaryproject/notation/internal/version"
 	"github.com/urfave/cli/v2"
 )
 
 var pluginMetadata = docker.PluginMetadata{
 	SchemaVersion:    "0.1.0",
-	Vendor:           "github.com/shizhMSFT",
-	Version:          "0.1.0",
-	ShortDescription: "Generate artifacts",
-	Experimental:     true,
+	Vendor:           "Sajay Antony, Shiwei Zhang",
+	Version:          version.GetVersion(),
+	ShortDescription: "Manage signatures on Docker images",
+	URL:              "https://github.com/notaryproject/notation",
 }
 
 var metadataCommand = &cli.Command{

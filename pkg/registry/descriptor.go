@@ -1,13 +1,13 @@
 package registry
 
 import (
-	"github.com/notaryproject/notary/v2/signature"
+	"github.com/notaryproject/notation-go-lib/signature"
 	digest "github.com/opencontainers/go-digest"
-	oci "github.com/opencontainers/image-spec/specs-go/v1"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-func OCIDescriptorFromNotary(desc signature.Descriptor) oci.Descriptor {
-	return oci.Descriptor{
+func OCIDescriptorFromNotation(desc signature.Descriptor) ocispec.Descriptor {
+	return ocispec.Descriptor{
 		MediaType: desc.MediaType,
 		Digest:    digest.Digest(desc.Digest),
 		Size:      desc.Size,

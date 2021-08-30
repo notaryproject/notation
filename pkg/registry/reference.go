@@ -1,7 +1,6 @@
 package registry
 
 import (
-	"net/url"
 	"strings"
 
 	"github.com/opencontainers/go-digest"
@@ -21,10 +20,16 @@ type Reference struct {
 	Reference string
 }
 
-func ParseReferenceFromURL(uri *url.URL) Reference {
+func ParseReference(raw string) Reference {
+	parts := strings.SplitN(raw, "/", 2)
+	if len(parts) == 1 {
+		return Reference{
+			Registry: raw,
+		}
+	}
+	registry, path := parts[0], parts[1]
 	var repository string
 	var reference string
-	path := strings.TrimPrefix(uri.Path, "/")
 	if index := strings.Index(path, "@"); index != -1 {
 		repository = path[:index]
 		reference = path[index+1:]
@@ -35,7 +40,7 @@ func ParseReferenceFromURL(uri *url.URL) Reference {
 		repository = path
 	}
 	return Reference{
-		Registry:   uri.Host,
+		Registry:   registry,
 		Repository: repository,
 		Reference:  reference,
 	}
