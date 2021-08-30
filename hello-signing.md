@@ -19,6 +19,8 @@ To demonstrate how to store and sign a set of supply chain artifacts, we will wa
 
 ![](../media/notary-e2e-scenarios.svg)
 
+To illustrate these scenarios we will introduce two example companies:
+
 - Wabbit Networks is a small software company that produces network monitoring software.
 - ACME Rockets wishes to acquire network monitoring software.
 - ACME Rockets doesn't know about Wabbit Networks, but finds their [net-monitor software in Docker Hub](https://hub.docker.com/r/wabbitnetworks/net-monitor)
