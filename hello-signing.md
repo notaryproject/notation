@@ -2,20 +2,20 @@
 
 To get started with Notation, the most basic steps involve:
 
-1. Acquiring the Notation CLI
-2. Generating a Private Key
-3. Signing an Artifact
-4. Verifying an Artifact with a Notary Signature
+1. Acquire the Notation CLI
+2. Generate a Private Key
+3. Sign an Artifact
+4. Verify an Artifact with a Notary Signature
 
-This doc outlines progressive scenarios enabling a range of scenarios from the first use to a production deployment.
+This document outlines progressive scenarios enabling a range of scenarios from the first use to a production deployment.
 
 ## Scenarios
 
-To demonstrate how to store and sign a set of supply chain artifacts, we'll walk through a set of scenarios:
-- Singing a single container image
-- Publishing the container image across public registries, 
-- Importing public content to a private registry
-- Promoting from dev through production
+To demonstrate how to store and sign a set of supply chain artifacts, we will walk through a set of scenarios:
+- Sign a single container image
+- Publish the container image across public registries, 
+- Import public content to a private registry
+- Promote from dev through production
 
 ![](../media/notary-e2e-scenarios.svg)
 
@@ -63,9 +63,10 @@ Notation releases can be found at: [Notation Releases][notation-releases]
 
 ## Signing a Container Image
 
-As you automate the signing of content, you'll most likely want to create and store the private keys in a key vault. Detailed production steps will be covered later. To get things started quickly, the notation cli supports generating self signed key-pairs.
+To get things started quickly, the notation cli supports generating self signed key-pairs. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
+
 - Generating a Private Key  
-  The following will generate an X-509 private key under the ./notary/ directory
+  The following will generate an X-509 private key under the `./notary/` directory
   ```bash
   notation cert generate "wabbit-networks.io"
   ```
@@ -79,8 +80,8 @@ As you automate the signing of content, you'll most likely want to create and st
   ```
 ## Verify a Container Image Using Notation Signatures
 
-To avoid Trojan Horse attacks, it's important to verify the integrity of the artifact, based on an identify of an entity you trust, before pulling the artifact into an environment. Notation uses a set of configured public keys to verify the the content. The `notation cert generate` command automatically added the public key.
-- Attempt to verify the `net-monitor:v1` notation signature
+To avoid a Trojan Horse attack, before pulling an artifact into an environment, it is important to verify the integrity of the artifact based on the identity of an entity you trust. Notation uses a set of configured public keys to verify the content. The `notation cert generate` command automatically added the public key.
+- Attempt to verify the $IMAGE notation signature
   ```bash
   notation verify $IMAGE
   ```
@@ -97,16 +98,16 @@ To avoid Trojan Horse attacks, it's important to verify the integrity of the art
 
 ## Simulating a Registry DNS Name
 
-Configure the additional steps to simulate a fully qualified dns name for wabbit-networks.
+Here are the additional steps to simulate a fully qualified dns name for wabbit-networks.
 
-- Setup names and variables with `registry.wabbit-networks.io`
+- Setup names and variables for `registry.wabbit-networks.io`
   ```bash
   export PORT=80
   export REGISTRY=registry.wabbit-networks.io
   export REPO=${REGISTRY}/net-monitor
   export IMAGE=${REPO}:v1
   ```
-- Edit the `~/.notary/notation.json` file to support local, insecure registries
+- Edit `~/.notary/notation.json` to support local, insecure registries
   ```json
   {
     "enabled": true,
