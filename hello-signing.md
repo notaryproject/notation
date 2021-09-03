@@ -2,12 +2,12 @@
 
 To get started with Notation, the most basic steps involve:
 
-1. Acquire the Notation CLI
-2. Generate a Private Key
-3. Sign an Artifact
-4. Verify an Artifact with a Notary Signature
+- Acquire the Notation CLI
+- Generate a Private Key
+- Sign an Artifact
+- Verify an Artifact with a Notary Signature
 
-This document outlines progressive scenarios enabling a range of scenarios from the first use to a production deployment.
+This document outlines a range of scenarios progressing from the first use of Notation to a production deployment.
 
 ## Scenarios
 
@@ -71,12 +71,12 @@ Notation releases can be found at: [Notation Releases][notation-releases]
 
 ## Signing a Container Image
 
-To get things started quickly, the notation cli supports generating self signed key-pairs. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
+To get things started quickly, the Notation cli supports generating self signed certificates. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
 
-- Generating a Private Key  
-  The following will generate an X-509 private key under the `./notary/` directory
+- Generate a self-signed test certificate for signing artifacts
+  The following will generate a self-signed X.509 certificate under the `~/config/notation/` directory
   ```bash
-  notation cert generate-test "wabbit-networks.io"
+  notation cert generate-test --default "wabbit-networks.io"
   ```
 - Sign the container image
   ```bash
@@ -89,29 +89,37 @@ To get things started quickly, the notation cli supports generating self signed 
   # notation list $IMAGE 
   # See https://github.com/notaryproject/notation/issues/84
   notation pull --plain-http --peek $IMAGE
-  echo $1
-  ```
+    ```
 
 ## Verify a Container Image Using Notation Signatures
 
-To avoid a Trojan Horse attack, before pulling an artifact into an environment, it is important to verify the integrity of the artifact based on the identity of an entity you trust. Notation uses a set of configured public keys to verify the content. The `notation cert generate` command automatically added the public key.
+To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify the integrity of the artifact based on the identity of an entity you trust. Notation uses a set of configured public keys to verify the content. The `notation cert generate-test` command created the public key, however it must be implicitly added for verification to succeed.
 - Attempt to verify the $IMAGE notation signature
   ```bash
   #notation verify $IMAGE
+  notation cert remove wabbit-networks.io # see https://github.com/notaryproject/notation/issues/86
   notation verify --plain-http $IMAGE
   ```
   *The above verification should fail, as you haven't yet configured the keys to trust.*
 - To assure users opt-into the public keys they trust, add the key to the trusted store
   ```bash
-  notation cert add "wabbit-networks.io" ~/.notary/wabbit-networks.io.cert
+  notation cert add --name "wabbit-networks.io" ~/.config/notation/certificate/wabbit-networks.io.crt
   ```
 - Verify the `net-monitor:v1` notation signature
   ```bash
-  notation verify $IMAGE
+  # notation verify $IMAGE
+  notation verify --plain-http $IMAGE
   ```
-  The above now succeeds as the image is signed with a trusted public key
+  This should now succeed because the image is signed with a trusted public key
 
-## Simulating a Registry DNS Name
+## Reset
+To resetting the environment
+
+- Remove keys, certificates and notation `config.json`  
+  `rm -r ~/.config/notation/`
+- Restart the local registry  
+  `docker rm -f $(docker ps -q)`
+## Simulating a Registry dns Name
 
 Here are the additional steps to simulate a fully qualified dns name for wabbit-networks.
 
@@ -123,18 +131,18 @@ Here are the additional steps to simulate a fully qualified dns name for wabbit-
   export IMAGE=${REPO}:v1
   ```
 - Edit `~/.config/notation/config.json` to support local, insecure registries
-  ```json
-  {
-    "insecureRegistries": [
-      "registry.wabbit-networks.io"
-    ]
-  }
-  ```
-- Add a `etc/hosts` entry to simulate pushing to registry.wabbit-networks.io
-  - If running on windows, _even if using wsl_, add the following entry to: `C:\Windows\System32\drivers\etc\hosts`
-    ```hosts
-    127.0.0.1 registry.wabbit-networks.io
+    ```json
+    {
+      "insecureRegistries": [
+        "registry.wabbit-networks.io"
+      ]
+    }
     ```
+- Add a `etc/hosts` entry to simulate pushing to registry.wabbit-networks.io
+    - If running on windows, _even if using wsl_, add the following entry to: `C:\Windows\System32\drivers\etc\hosts`
+      ```hosts
+      127.0.0.1 registry.wabbit-networks.io
+      ```
 - Continue with [Getting Started](#getting-started), but skip the environment variable configurations
 
 [notation-releases]:      https://github.com/shizhMSFT/notation/releases/tag/v0.5.0
