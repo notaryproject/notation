@@ -6,7 +6,7 @@ To enable persisted configuration, simplifying the execution of the `notation` c
 
 ## Location
 
-The default location and file will be stored at: `~/.notary/notation-config.json`. The `notation` cli and libraries will support alternate locations through a `config-location` parameters.
+The default location and file will be stored at: `~/.notation/config.json`. The `notation` cli and libraries will support alternate locations through a `config-location` parameters.
 
 > TODO: Add Windows and Mac locations
 
@@ -14,7 +14,6 @@ The default location and file will be stored at: `~/.notary/notation-config.json
 
 Property | Type |  Value
 ------ | ------ | ---
-`enabled`|_bool_|on/off switch for default notation behavior. --enabled false would disable all automatic validations
 `verificationCerts.certs`|_array_|collection of name/value pairs for a collection of public certs that are used for verification. These may be replaced with a future policy configuration.
 `cert.name`|_string_|a named reference to the certificate
 `cert.path`|_string_|a location by which the certificate can be found by the notation cli or notation libraries
@@ -30,7 +29,6 @@ Property | Type |  Value
 
 ```json
 {
-  "enabled": true,
   "verificationCerts": {
     "certs": [
       {
