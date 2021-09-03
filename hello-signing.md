@@ -119,9 +119,10 @@ To resetting the environment
   `rm -r ~/.config/notation/`
 - Restart the local registry  
   `docker rm -f $(docker ps -q)`
-## Simulating a Registry dns Name
 
-Here are the additional steps to simulate a fully qualified dns name for wabbit-networks.
+## Simulating a Registry DNS Name
+
+Here are the additional steps to simulate a fully qualified DNS name for wabbit-networks.
 
 - Setup names and variables for `registry.wabbit-networks.io`
   ```bash
