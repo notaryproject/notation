@@ -1,0 +1,6 @@
+# VS Code
+.vscode
+
+# Custom
+bin/
+vendor/
