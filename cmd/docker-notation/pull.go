@@ -124,12 +124,12 @@ func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.D
 func verifySignatures(
 	ctx context.Context,
 	service notation.SigningService,
-	digests []digest.Digest,
+	sigDigests []digest.Digest,
 	desc ocispec.Descriptor,
 ) (digest.Digest, []string, error) {
 	var lastError error
-	for _, digest := range digests {
-		path := config.SignaturePath(desc.Digest, digest)
+	for _, sigDigest := range sigDigests {
+		path := config.SignaturePath(desc.Digest, sigDigest)
 		sig, err := os.ReadFile(path)
 		if err != nil {
 			return "", nil, err
@@ -140,7 +140,7 @@ func verifySignatures(
 			lastError = err
 			continue
 		}
-		return digest, references, nil
+		return sigDigest, references, nil
 	}
 	return "", nil, lastError
 }
