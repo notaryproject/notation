@@ -24,6 +24,7 @@ func main() {
 			verifyCommand,
 			pushCommand,
 			pullCommand,
+			listCommand,
 			certCommand,
 			keyCommand,
 			cacheCommand,

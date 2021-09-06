@@ -19,10 +19,6 @@ var pullCommand = &cli.Command{
 	ArgsUsage: "<reference>",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
-			Name:  "peek",
-			Usage: "view signatures without pulling",
-		},
-		&cli.BoolFlag{
 			Name:  "strict",
 			Usage: "strict pull without lookup",
 		},
@@ -64,20 +60,18 @@ func runPull(ctx *cli.Context) error {
 
 	path := ctx.String(outputFlag.Name)
 	for _, sigDigest := range sigDigests {
-		if !ctx.Bool("peek") {
-			sig, err := sigRepo.Get(ctx.Context, sigDigest)
-			if err != nil {
-				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
-			}
-			var outputPath string
-			if path == "" {
-				outputPath = config.SignaturePath(manifestDesc.Digest, sigDigest)
-			} else {
-				outputPath = filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
-			}
-			if err := os.WriteFile(outputPath, sig); err != nil {
-				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
-			}
+		sig, err := sigRepo.Get(ctx.Context, sigDigest)
+		if err != nil {
+			return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
+		}
+		var outputPath string
+		if path == "" {
+			outputPath = config.SignaturePath(manifestDesc.Digest, sigDigest)
+		} else {
+			outputPath = filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
+		}
+		if err := os.WriteFile(outputPath, sig); err != nil {
+			return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 		}
 
 		// write out
@@ -93,18 +87,16 @@ func pullSignatureStrict(ctx *cli.Context, sigRepo notation.SignatureRepository,
 		return fmt.Errorf("invalid signature digest: %v", err)
 	}
 
-	if !ctx.Bool("peek") {
-		sig, err := sigRepo.Get(ctx.Context, sigDigest)
-		if err != nil {
-			return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
-		}
-		outputPath := ctx.String(outputFlag.Name)
-		if outputPath == "" {
-			outputPath = sigDigest.Encoded() + config.SignatureExtension
-		}
-		if err := os.WriteFile(outputPath, sig); err != nil {
-			return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
-		}
+	sig, err := sigRepo.Get(ctx.Context, sigDigest)
+	if err != nil {
+		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
+	}
+	outputPath := ctx.String(outputFlag.Name)
+	if outputPath == "" {
+		outputPath = sigDigest.Encoded() + config.SignatureExtension
+	}
+	if err := os.WriteFile(outputPath, sig); err != nil {
+		return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 	}
 
 	// write out
