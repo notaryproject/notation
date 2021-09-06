@@ -1,34 +1,33 @@
-# Building NV2
+# Building Notation
 
-The nv2 repo contains the following:
+The notation repo contains the following:
 
-- `nv2` - A CLI for signing and verifying with Notary v2
+- `notation` - A CLI for signing and verifying with Notation
 - `docker-generate` - Extends docker with `docker generate` to create locally persisted manifest for signing, without having to push to a registry.
-- `docker-nv2` - Extends  docker with `docker nv2 notary` to enable, sign and verify Notary v2 signatures on `docker pull`
+- `docker-notation` - Extends docker with `docker notation` to enable, sign and verify Notation signatures.
 
-This plugin requires [golang](https://golang.org/dl/) with version `>= 1.16`.
+Building above binaries requires [golang](https://golang.org/dl/) with version `>= 1.17`.
 
 ## Windows with WSL
 
 - Build the binaries, installing them to:
-  - `~/bin/nv2`
+  - `~/bin/notation`
   - `~/.docker/cli-plugins/docker-generate`
-  - `~/.docker/cli-plugins/docker-nv2`
-  ```shell
-  git clone https://github.com/notaryproject/nv2.git
-  cd nv2
-  git checkout prototype-2
+  - `~/.docker/cli-plugins/docker-notation`
+  ```sh
+  git clone https://github.com/notaryproject/notation.git
+  cd notation
   make install
   ```
 - Verify binaries are installed
-  ```bash
+  ```sh
   docker --help
   # look for 
   Management Commands:
     generate*   Generate artifacts (github.com/shizhMSFT, 0.1.0)
-    nv2*        Notary V2 Signature extension (Sajay Antony, Shiwei Zhang, 0.2.3)
+    notation*   Manage signatures on Docker images (Sajay Antony, Shiwei Zhang, 0.5.1)
   
-  which nv2
+  which notation
   # output
-  /home/<user>]/bin/nv2
+  /home/<user>]/bin/notation
   ```
