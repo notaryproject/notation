@@ -2,11 +2,11 @@
 
 The notation repo contains the following:
 
-- `notation` - A CLI for signing and verifying with Notation
+- `notation` - A CLI for signing and verifying artifacts with Notation
 - `docker-generate` - Extends docker with `docker generate` to create locally persisted manifest for signing, without having to push to a registry.
 - `docker-notation` - Extends docker with `docker notation` to enable, sign and verify Notation signatures.
 
-Building above binaries requires [golang](https://golang.org/dl/) with version `>= 1.17`.
+Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.17`.
 
 ## Windows with WSL
 
@@ -29,5 +29,5 @@ Building above binaries requires [golang](https://golang.org/dl/) with version `
   
   which notation
   # output
-  /home/<user>]/bin/notation
+  /home/<user>/bin/notation
   ```
