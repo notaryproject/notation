@@ -47,7 +47,7 @@ var (
 
 	certRemoveCommand = &cli.Command{
 		Name:      "remove",
-		Usage:     "Remove certificate from verification list",
+		Usage:     "Remove certificate from the verification list",
 		Aliases:   []string{"rm"},
 		ArgsUsage: "<name> ...",
 		Action:    removeCerts,
@@ -74,6 +74,10 @@ var (
 				Aliases: []string{"e"},
 				Usage:   "certificate expiry",
 				Value:   365 * 24 * time.Hour,
+			},
+			&cli.BoolFlag{
+				Name:  "trust",
+				Usage: "add the generated certificate to the verification list",
 			},
 			keyDefaultFlag,
 		},

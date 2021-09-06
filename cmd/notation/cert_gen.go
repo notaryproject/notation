@@ -67,17 +67,23 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := addCertCore(cfg, name, certPath); err != nil {
-		return err
+	trust := ctx.Bool("trust")
+	if trust {
+		if err := addCertCore(cfg, name, certPath); err != nil {
+			return err
+		}
 	}
 	if err := cfg.Save(); err != nil {
 		return err
 	}
 
 	// write out
-	fmt.Printf("%s: added to key and certificate lists\n", name)
+	fmt.Printf("%s: added to the key list\n", name)
 	if isDefaultKey {
 		fmt.Printf("%s: marked as default\n", name)
+	}
+	if trust {
+		fmt.Printf("%s: added to the certificate list\n", name)
 	}
 	return nil
 }
