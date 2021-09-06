@@ -217,7 +217,10 @@ func getManifestDigestFromContext(ctx *cli.Context, ref string) (manifestDigest 
 		return
 	}
 
-	reference := registry.ParseReference(ref)
+	reference, err := registry.ParseReference(ref)
+	if err != nil {
+		return
+	}
 	manifestDigest, err = reference.Digest()
 	if err == nil {
 		return

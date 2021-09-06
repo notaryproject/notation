@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/opencontainers/go-digest"
@@ -20,12 +21,10 @@ type Reference struct {
 	Reference string
 }
 
-func ParseReference(raw string) Reference {
+func ParseReference(raw string) (Reference, error) {
 	parts := strings.SplitN(raw, "/", 2)
 	if len(parts) == 1 {
-		return Reference{
-			Registry: raw,
-		}
+		return Reference{}, errors.New("invalid reference")
 	}
 	registry, path := parts[0], parts[1]
 	var repository string
@@ -43,7 +42,7 @@ func ParseReference(raw string) Reference {
 		Registry:   registry,
 		Repository: repository,
 		Reference:  reference,
-	}
+	}, nil
 }
 
 // Host returns the host name of the registry
@@ -65,4 +64,15 @@ func (r Reference) ReferenceOrDefault() string {
 // Digest returns the reference as a digest
 func (r Reference) Digest() (digest.Digest, error) {
 	return digest.Parse(r.Reference)
+}
+
+func (r Reference) String() string {
+	ref := r.Registry + "/" + r.Repository
+	if r.Reference == "" {
+		return ref
+	}
+	if d, err := r.Digest(); err != nil {
+		return ref + "@" + d.String()
+	}
+	return ref + ":" + r.Reference
 }

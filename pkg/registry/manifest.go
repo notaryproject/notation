@@ -19,8 +19,7 @@ var supportedMediaTypes = []string{
 }
 
 // GetManifestMetadata returns signature manifest information
-func (c *Client) GetManifestMetadata(reference string) (signature.Manifest, error) {
-	ref := ParseReference(reference)
+func (c *Client) GetManifestMetadata(ref Reference) (signature.Manifest, error) {
 	scheme := "https"
 	if c.plainHTTP {
 		scheme = "http"
@@ -33,7 +32,7 @@ func (c *Client) GetManifestMetadata(reference string) (signature.Manifest, erro
 	)
 	req, err := http.NewRequest(http.MethodHead, url, nil)
 	if err != nil {
-		return signature.Manifest{}, fmt.Errorf("invalid reference: %v", reference)
+		return signature.Manifest{}, fmt.Errorf("invalid reference: %v", ref)
 	}
 	req.Header.Set("Connection", "close")
 	for _, mediaType := range supportedMediaTypes {
@@ -49,7 +48,7 @@ func (c *Client) GetManifestMetadata(reference string) (signature.Manifest, erro
 	case http.StatusOK:
 		// no op
 	case http.StatusUnauthorized, http.StatusNotFound:
-		return signature.Manifest{}, fmt.Errorf("%v: %s", reference, resp.Status)
+		return signature.Manifest{}, fmt.Errorf("%v: %s", ref, resp.Status)
 	default:
 		return signature.Manifest{}, fmt.Errorf("%v: %s", url, resp.Status)
 	}

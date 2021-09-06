@@ -3,12 +3,20 @@ package main
 import (
 	"github.com/notaryproject/notation-go-lib"
 	registryn "github.com/notaryproject/notation-go-lib/registry"
+	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/urfave/cli/v2"
 )
 
 func getSignatureRepository(ctx *cli.Context, reference string) (notation.SignatureRepository, error) {
-	ref := registry.ParseReference(reference)
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return nil, err
+	}
+	plainHTTP := ctx.Bool(plainHTTPFlag.Name)
+	if !plainHTTP {
+		plainHTTP = config.IsRegistryInsecure(ref.Registry)
+	}
 	remote := registryn.NewClient(
 		registry.NewAuthtransport(
 			nil,
@@ -16,7 +24,7 @@ func getSignatureRepository(ctx *cli.Context, reference string) (notation.Signat
 			ctx.String(passwordFlag.Name),
 		),
 		ref.Registry,
-		ctx.Bool(plainHTTPFlag.Name),
+		plainHTTP,
 	)
 	return remote.Repository(ctx.Context, ref.Repository), nil
 }

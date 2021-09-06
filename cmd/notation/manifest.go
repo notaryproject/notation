@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go-lib/signature"
+	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
@@ -32,14 +33,22 @@ func getManifestFromContextWithReference(ctx *cli.Context, ref string) (signatur
 	return getManifestsFromReference(ctx, ref)
 }
 
-func getManifestsFromReference(ctx *cli.Context, ref string) (signature.Manifest, error) {
+func getManifestsFromReference(ctx *cli.Context, reference string) (signature.Manifest, error) {
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return signature.Manifest{}, err
+	}
+	plainHTTP := ctx.Bool(plainHTTPFlag.Name)
+	if !plainHTTP {
+		plainHTTP = config.IsRegistryInsecure(ref.Registry)
+	}
 	remote := registry.NewClient(
 		registry.NewAuthtransport(
 			nil,
 			ctx.String(usernameFlag.Name),
 			ctx.String(passwordFlag.Name),
 		),
-		ctx.Bool(plainHTTPFlag.Name),
+		plainHTTP,
 	)
 	return remote.GetManifestMetadata(ref)
 }

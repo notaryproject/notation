@@ -82,7 +82,11 @@ func runPull(ctx *cli.Context) error {
 }
 
 func pullSignatureStrict(ctx *cli.Context, sigRepo notation.SignatureRepository, reference string) error {
-	sigDigest, err := registry.ParseReference(reference).Digest()
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return err
+	}
+	sigDigest, err := ref.Digest()
 	if err != nil {
 		return fmt.Errorf("invalid signature digest: %v", err)
 	}
