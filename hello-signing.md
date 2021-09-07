@@ -50,7 +50,7 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 Notation releases can be found at: [Notation Releases][notation-releases]  
   ```bash
   #LINUX, including WSL
-  curl -Lo notation.tar.gz https://github.com/shizhMSFT/notation/releases/download/v0.5.0/notation_0.5.0_linux_amd64.tar.gz
+  curl -Lo notation.tar.gz https://github.com/shizhMSFT/notation/releases/download/v0.5.2/notation_0.5.2_linux_amd64.tar.gz
   tar xvzf notation.tar.gz -C ~/bin notation
   ```
 
@@ -63,9 +63,7 @@ Notation releases can be found at: [Notation Releases][notation-releases]
   ```
 - List the image, and any associated signatures
   ```bash
-  #notation list is not yet implemented. See https://github.com/notaryproject/notation/issues/84
-  #notation list $IMAGE
-  notation pull --plain-http --peek $IMAGE
+  notation list $IMAGE
   ```
   At this point, the results are empty, as there are no existing signatures
 
@@ -80,35 +78,31 @@ To get things started quickly, the Notation cli supports generating self signed 
   ```
 - Sign the container image
   ```bash
-  # --plain-http to be moved to configuration: https://github.com/notaryproject/notation/issues/85
-  # notation sign $IMAGE
-  notation sign --plain-http $IMAGE
+  notation sign $IMAGE
   ```
 - List the image, and any associated signatures
   ```bash
-  # notation list $IMAGE 
-  # See https://github.com/notaryproject/notation/issues/84
-  notation pull --plain-http --peek $IMAGE
-    ```
+  notation list $IMAGE 
+  ```
 
 ## Verify a Container Image Using Notation Signatures
 
 To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify the integrity of the artifact based on the identity of an entity you trust. Notation uses a set of configured public keys to verify the content. The `notation cert generate-test` command created the public key, however it must be implicitly added for verification to succeed.
 - Attempt to verify the $IMAGE notation signature
   ```bash
-  #notation verify $IMAGE
-  notation cert remove wabbit-networks.io # see https://github.com/notaryproject/notation/issues/86
-  notation verify --plain-http $IMAGE
+  notation verify $IMAGE
   ```
   *The above verification should fail, as you haven't yet configured the keys to trust.*
+  ```bash
+  2021/09/07 11:40:51 trust certificate not specified
+  ```
 - To assure users opt-into the public keys they trust, add the key to the trusted store
   ```bash
   notation cert add --name "wabbit-networks.io" ~/.config/notation/certificate/wabbit-networks.io.crt
   ```
 - Verify the `net-monitor:v1` notation signature
   ```bash
-  # notation verify $IMAGE
-  notation verify --plain-http $IMAGE
+  notation verify $IMAGE
   ```
   This should now succeed because the image is signed with a trusted public key
 
