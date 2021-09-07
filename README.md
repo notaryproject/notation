@@ -18,16 +18,12 @@ Notation is a project to add signatures as standard items in the registry ecosys
   curl -Lo notation.tar.gz https://github.com/shizhMSFT/notation/releases/download/v0.5.2/notation_0.5.2_linux_amd64.tar.gz
   tar xvzf notation.tar.gz -C ~/bin notation
   ```
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution]
-  ```bash
-  docker run -d ghcr.io/oras-project/registry:latest
-  ```
 - Build, Push, Sign, Verify the `net-monitor` software
   ```bash
   export IMAGE=localhost:5000/net-monitor:v1
   docker build -t $IMAGE https://github.com/wabbit-networks/net-monitor.git#main
   docker push $IMAGE
-  notation cert generate-test --default --trust "wabbit-networks.io"
+  notation cert generate-test --default --trust "wabbit-networks-dev"
   notation sign $IMAGE
   notation list $IMAGE 
   notation verify $IMAGE
