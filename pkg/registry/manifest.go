@@ -5,14 +5,16 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/distribution/distribution/v3/manifest/manifestlist"
+	"github.com/distribution/distribution/v3/manifest/schema2"
 	"github.com/notaryproject/notation-go-lib/signature"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
 )
 
 var supportedMediaTypes = []string{
-	MediaTypeManifestList,
-	MediaTypeManifest,
+	manifestlist.MediaTypeManifestList,
+	schema2.MediaTypeManifest,
 	ocispec.MediaTypeImageIndex,
 	ocispec.MediaTypeImageManifest,
 	artifactspec.MediaTypeArtifactManifest,
