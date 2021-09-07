@@ -1,6 +1,9 @@
 package config
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 var (
 	// ErrKeyNotFound indicates that the signing key is not found.
@@ -17,7 +20,7 @@ func IsRegistryInsecure(target string) bool {
 		return false
 	}
 	for _, registry := range config.InsecureRegistries {
-		if registry == target {
+		if strings.EqualFold(registry, target) {
 			return true
 		}
 	}
