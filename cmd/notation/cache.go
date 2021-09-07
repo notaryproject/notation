@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -50,9 +51,13 @@ var (
 				Usage:   "prune all cached signatures",
 			},
 			&cli.BoolFlag{
+				Name:  "purge",
+				Usage: "remove the signature directory, combined with --all",
+			},
+			&cli.BoolFlag{
 				Name:    "force",
 				Aliases: []string{"f"},
-				Usage:   "prune entire directory, combined with --all",
+				Usage:   "do not prompt for confirmation",
 			},
 			localFlag,
 			usernameFlag,
@@ -113,6 +118,17 @@ func listManifestsWithCachedSignature() error {
 
 func pruneCachedSignatures(ctx *cli.Context) error {
 	if ctx.Bool("all") {
+		if !ctx.Bool("force") {
+			fmt.Println("WARNING! This will remove:")
+			fmt.Println("- all cached signatures")
+			if ctx.Bool("purge") {
+				fmt.Println("- all files in the cache signature directory")
+			}
+			fmt.Println()
+			if confirmed := promptConfirmation(); !confirmed {
+				return nil
+			}
+		}
 		if err := walkCachedSignatureTree(
 			config.SignatureStoreDirPath,
 			func(algorithm string, value fs.DirEntry) error {
@@ -131,7 +147,7 @@ func pruneCachedSignatures(ctx *cli.Context) error {
 		); err != nil {
 			return err
 		}
-		if ctx.Bool("force") {
+		if ctx.Bool("purge") {
 			return os.RemoveAll(config.SignatureStoreDirPath)
 		}
 		return nil
@@ -140,7 +156,18 @@ func pruneCachedSignatures(ctx *cli.Context) error {
 	if !ctx.Args().Present() {
 		return errors.New("nothing to prune")
 	}
-	for _, ref := range ctx.Args().Slice() {
+	refs := ctx.Args().Slice()
+	if !ctx.Bool("force") {
+		fmt.Println("WARNING! This will remove cached signatures for manifests below:")
+		for _, ref := range refs {
+			fmt.Println("-", ref)
+		}
+		fmt.Println()
+		if confirmed := promptConfirmation(); !confirmed {
+			return nil
+		}
+	}
+	for _, ref := range refs {
 		manifestDigest, err := getManifestDigestFromContext(ctx, ref)
 		if err != nil {
 			return err
@@ -232,4 +259,10 @@ func getManifestDigestFromContext(ctx *cli.Context, ref string) (manifestDigest 
 	}
 	manifestDigest = digest.Digest(manifest.Digest)
 	return
+}
+
+func promptConfirmation() bool {
+	fmt.Printf("Are you sure you want to continue? [y/N]: ")
+	scanner := bufio.NewScanner(os.Stdin)
+	return scanner.Scan() && strings.EqualFold(scanner.Text(), "y")
 }
