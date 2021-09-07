@@ -2,16 +2,13 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"net"
-	"net/http"
 	"os/exec"
-	"strconv"
-	"strings"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/docker"
+	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -49,76 +46,15 @@ func GenerateManifestOCIDescriptor(reference string) (ocispec.Descriptor, error)
 }
 
 // GetManifestOCIDescriptor get manifest descriptor from remote registry
-func GetManifestOCIDescriptor(ctx context.Context, hostname, repository, ref string) (ocispec.Descriptor, error) {
-	tr, err := Transport(hostname)
+func GetManifestOCIDescriptor(ctx context.Context, ref registry.Reference) (ocispec.Descriptor, error) {
+	tr, err := Transport(ref.Registry)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-
-	scheme := "https"
-	if config.IsRegistryInsecure(hostname) {
-		scheme = "http"
+	insecure := config.IsRegistryInsecure(ref.Registry)
+	if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
+		insecure = true
 	}
-	if host, _, _ := net.SplitHostPort(hostname); host == "localhost" {
-		scheme = "http"
-	}
-	url := fmt.Sprintf("%s://%s/v2/%s/manifests/%s",
-		scheme,
-		hostname,
-		repository,
-		ref,
-	)
-	req, err := http.NewRequest(http.MethodHead, url, nil)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-	req.Header.Set("Connection", "close")
-	req.Header.Set("Accept", schema2.MediaTypeManifest)
-
-	resp, err := tr.RoundTrip(req)
-	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: %v", url, err)
-	}
-	resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: %s", url, resp.Status)
-	}
-
-	header := resp.Header
-	mediaType := header.Get("Content-Type")
-	if mediaType != schema2.MediaTypeManifest {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: media type mismatch: %s", url, mediaType)
-	}
-	contentDigest := header.Get("Docker-Content-Digest")
-	if contentDigest == "" {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: missing Docker-Content-Digest", url)
-	}
-	parsedDigest, err := digest.Parse(contentDigest)
-	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: invalid Docker-Content-Digest: %s", url, contentDigest)
-	}
-	length := header.Get("Content-Length")
-	if length == "" {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: missing Content-Length", url)
-	}
-	size, err := strconv.ParseInt(length, 10, 64)
-	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("%v: invalid Content-Length", url)
-	}
-	return ocispec.Descriptor{
-		MediaType: schema2.MediaTypeManifest,
-		Digest:    parsedDigest,
-		Size:      size,
-	}, nil
-}
-
-// GetManifestReference returns the tag or the digest of the reference string
-func GetManifestReference(ref string) string {
-	if index := strings.Index(ref, "@"); index != -1 {
-		return ref[index+1:]
-	} else if index := strings.LastIndex(ref, ":"); index != -1 {
-		return ref[index+1:]
-	} else {
-		return "latest"
-	}
+	client := registry.NewClient(tr, insecure)
+	return client.GetManifestDescriptor(ref)
 }

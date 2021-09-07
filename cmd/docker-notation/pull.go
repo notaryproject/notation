@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/distribution/distribution/v3/reference"
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
@@ -37,28 +37,21 @@ func pullImage(ctx *cli.Context) error {
 }
 
 func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
-	named, err := reference.ParseNamed(ref)
+	manifestRef, err := registry.ParseReference(ref)
 	if err != nil {
 		return "", err
 	}
-	hostname, repository := reference.SplitHostname(named)
-	manifestRef := docker.GetManifestReference(ref)
 
 	service, err := getVerificationService()
 	if err != nil {
 		return "", err
 	}
 
-	manifestDesc, err := docker.GetManifestOCIDescriptor(
-		ctx,
-		hostname,
-		repository,
-		manifestRef,
-	)
+	manifestDesc, err := docker.GetManifestOCIDescriptor(ctx, manifestRef)
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(manifestRef, "digest:", manifestDesc.Digest, "size:", manifestDesc.Size)
+	fmt.Println(manifestRef.ReferenceOrDefault(), "digest:", manifestDesc.Digest, "size:", manifestDesc.Size)
 
 	fmt.Println("Looking up for signatures")
 	sigDigests, err := downloadSignatures(ctx, ref, manifestDesc.Digest)
@@ -84,7 +77,8 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		}
 	}
 
-	return fmt.Sprintf("%s@%s", named.Name(), manifestDesc.Digest), nil
+	manifestRef.Reference = manifestDesc.Digest.String()
+	return manifestRef.String(), nil
 }
 
 func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.Digest) ([]digest.Digest, error) {
