@@ -9,6 +9,7 @@ import (
 	"github.com/notaryproject/notation/internal/os"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -111,15 +112,17 @@ func runSign(ctx *cli.Context) error {
 }
 
 func prepareClaimsForSigning(ctx *cli.Context) (signature.Claims, error) {
-	manifest, err := getManifestFromContext(ctx)
+	manifestDesc, err := getManifestDescriptorFromContext(ctx)
 	if err != nil {
 		return signature.Claims{}, err
 	}
-	manifest.References = ctx.StringSlice("reference")
 	now := time.Now()
 	nowUnix := now.Unix()
 	claims := signature.Claims{
-		Manifest: manifest,
+		Manifest: signature.Manifest{
+			Descriptor: convertDescriptorToNotation(manifestDesc),
+			References: ctx.StringSlice("reference"),
+		},
 		IssuedAt: nowUnix,
 	}
 	if expiry := ctx.Duration("expiry"); expiry != 0 {
@@ -158,4 +161,12 @@ func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
 	}
 	scheme.RegisterSigner("", signer)
 	return scheme, nil
+}
+
+func convertDescriptorToNotation(desc ocispec.Descriptor) signature.Descriptor {
+	return signature.Descriptor{
+		MediaType: desc.MediaType,
+		Digest:    desc.Digest.String(),
+		Size:      desc.Size,
+	}
 }

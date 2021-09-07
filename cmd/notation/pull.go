@@ -48,11 +48,10 @@ func runPull(ctx *cli.Context) error {
 		return pullSignatureStrict(ctx, sigRepo, reference)
 	}
 
-	manifest, err := getManifestsFromReference(ctx, reference)
+	manifestDesc, err := getManifestDescriptorFromReference(ctx, reference)
 	if err != nil {
 		return err
 	}
-	manifestDesc := registry.OCIDescriptorFromNotation(manifest.Descriptor)
 
 	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDesc.Digest)
 	if err != nil {

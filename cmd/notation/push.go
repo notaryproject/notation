@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
@@ -30,11 +29,10 @@ func runPush(ctx *cli.Context) error {
 		return errors.New("no reference specified")
 	}
 	ref := ctx.Args().First()
-	manifest, err := getManifestsFromReference(ctx, ref)
+	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
 	if err != nil {
 		return err
 	}
-	manifestDesc := registry.OCIDescriptorFromNotation(manifest.Descriptor)
 	sigPaths := ctx.StringSlice(signatureFlag.Name)
 	if len(sigPaths) == 0 {
 		sigDigests, err := config.SignatureDigests(manifestDesc.Digest)
@@ -78,11 +76,10 @@ func pushSignature(ctx *cli.Context, ref string, sig []byte) (ocispec.Descriptor
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	manifest, err := getManifestsFromReference(ctx, ref)
+	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	manifestDesc := registry.OCIDescriptorFromNotation(manifest.Descriptor)
 
 	// core process
 	sigDesc, err := sigRepo.Put(ctx.Context, sig)

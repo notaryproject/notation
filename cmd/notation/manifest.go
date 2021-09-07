@@ -6,37 +6,37 @@ import (
 	"math"
 	"os"
 
-	"github.com/notaryproject/notation-go-lib/signature"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
-func getManifestFromContext(ctx *cli.Context) (signature.Manifest, error) {
+func getManifestDescriptorFromContext(ctx *cli.Context) (ocispec.Descriptor, error) {
 	ref := ctx.Args().First()
 	if ref == "" {
-		return signature.Manifest{}, errors.New("missing reference")
+		return ocispec.Descriptor{}, errors.New("missing reference")
 	}
-	return getManifestFromContextWithReference(ctx, ref)
+	return getManifestDescriptorFromContextWithReference(ctx, ref)
 }
 
-func getManifestFromContextWithReference(ctx *cli.Context, ref string) (signature.Manifest, error) {
+func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string) (ocispec.Descriptor, error) {
 	if ctx.Bool(localFlag.Name) {
 		mediaType := ctx.String(mediaTypeFlag.Name)
 		if ref == "-" {
-			return getManifestFromReader(os.Stdin, mediaType)
+			return getManifestDescriptorFromReader(os.Stdin, mediaType)
 		}
-		return getManifestsFromFile(ref, mediaType)
+		return getManifestDescriptorFromFile(ref, mediaType)
 	}
 
-	return getManifestsFromReference(ctx, ref)
+	return getManifestDescriptorFromReference(ctx, ref)
 }
 
-func getManifestsFromReference(ctx *cli.Context, reference string) (signature.Manifest, error) {
+func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (ocispec.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
-		return signature.Manifest{}, err
+		return ocispec.Descriptor{}, err
 	}
 	plainHTTP := ctx.Bool(plainHTTPFlag.Name)
 	if !plainHTTP {
@@ -50,32 +50,30 @@ func getManifestsFromReference(ctx *cli.Context, reference string) (signature.Ma
 		),
 		plainHTTP,
 	)
-	return remote.GetManifestMetadata(ref)
+	return remote.GetManifestDescriptor(ref)
 }
 
-func getManifestsFromFile(path, mediaType string) (signature.Manifest, error) {
+func getManifestDescriptorFromFile(path, mediaType string) (ocispec.Descriptor, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return signature.Manifest{}, err
+		return ocispec.Descriptor{}, err
 	}
 	defer file.Close()
-	return getManifestFromReader(file, mediaType)
+	return getManifestDescriptorFromReader(file, mediaType)
 }
 
-func getManifestFromReader(r io.Reader, mediaType string) (signature.Manifest, error) {
+func getManifestDescriptorFromReader(r io.Reader, mediaType string) (ocispec.Descriptor, error) {
 	lr := &io.LimitedReader{
 		R: r,
 		N: math.MaxInt64,
 	}
 	digest, err := digest.SHA256.FromReader(lr)
 	if err != nil {
-		return signature.Manifest{}, err
+		return ocispec.Descriptor{}, err
 	}
-	return signature.Manifest{
-		Descriptor: signature.Descriptor{
-			MediaType: mediaType,
-			Digest:    digest.String(),
-			Size:      math.MaxInt64 - lr.N,
-		},
+	return ocispec.Descriptor{
+		MediaType: mediaType,
+		Digest:    digest,
+		Size:      math.MaxInt64 - lr.N,
 	}, nil
 }

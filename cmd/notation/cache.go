@@ -226,7 +226,7 @@ func getManifestDigestFromContext(ctx *cli.Context, ref string) (manifestDigest 
 		return
 	}
 
-	manifest, err := getManifestFromContextWithReference(ctx, ref)
+	manifest, err := getManifestDescriptorFromContextWithReference(ctx, ref)
 	if err != nil {
 		return
 	}

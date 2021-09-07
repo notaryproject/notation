@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/urfave/cli/v2"
 )
 
@@ -34,11 +33,10 @@ func runList(ctx *cli.Context) error {
 	}
 
 	// core process
-	manifest, err := getManifestsFromReference(ctx, reference)
+	manifestDesc, err := getManifestDescriptorFromReference(ctx, reference)
 	if err != nil {
 		return err
 	}
-	manifestDesc := registry.OCIDescriptorFromNotation(manifest.Descriptor)
 
 	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDesc.Digest)
 	if err != nil {

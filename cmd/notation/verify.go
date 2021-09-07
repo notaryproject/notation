@@ -10,6 +10,7 @@ import (
 	x509n "github.com/notaryproject/notation-go-lib/signature/x509"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -58,7 +59,7 @@ func runVerify(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	manifest, err := getManifestFromContext(ctx)
+	manifestDesc, err := getManifestDescriptorFromContext(ctx)
 	if err != nil {
 		return err
 	}
@@ -66,11 +67,11 @@ func runVerify(ctx *cli.Context) error {
 	sigPaths := ctx.StringSlice(signatureFlag.Name)
 	if len(sigPaths) == 0 {
 		if !ctx.Bool(localFlag.Name) && ctx.Bool("pull") {
-			if err := pullSignatures(ctx, digest.Digest(manifest.Digest)); err != nil {
+			if err := pullSignatures(ctx, digest.Digest(manifestDesc.Digest)); err != nil {
 				return err
 			}
 		}
-		manifestDigest := digest.Digest(manifest.Digest)
+		manifestDigest := digest.Digest(manifestDesc.Digest)
 		sigDigests, err := config.SignatureDigests(manifestDigest)
 		if err != nil {
 			return err
@@ -81,16 +82,16 @@ func runVerify(ctx *cli.Context) error {
 	}
 
 	// core process
-	if err := verifySignatures(scheme, manifest, sigPaths); err != nil {
+	if err := verifySignatures(scheme, manifestDesc, sigPaths); err != nil {
 		return err
 	}
 
 	// write out
-	fmt.Println(manifest.Digest)
+	fmt.Println(manifestDesc.Digest)
 	return nil
 }
 
-func verifySignatures(scheme *signature.Scheme, manifest signature.Manifest, sigPaths []string) error {
+func verifySignatures(scheme *signature.Scheme, manifestDesc ocispec.Descriptor, sigPaths []string) error {
 	if len(sigPaths) == 0 {
 		return errors.New("verification failure: no signatures found")
 	}
@@ -106,8 +107,9 @@ func verifySignatures(scheme *signature.Scheme, manifest signature.Manifest, sig
 			lastErr = fmt.Errorf("verification failure: %v", err)
 			continue
 		}
-		if manifest.Descriptor != claims.Manifest.Descriptor {
-			lastErr = fmt.Errorf("verification failure: %s", manifest.Digest)
+
+		if convertDescriptorToNotation(manifestDesc) != claims.Manifest.Descriptor {
+			lastErr = fmt.Errorf("verification failure: %s", manifestDesc.Digest)
 			continue
 		}
 		return nil
