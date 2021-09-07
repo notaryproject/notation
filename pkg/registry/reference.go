@@ -71,7 +71,7 @@ func (r Reference) String() string {
 	if r.Reference == "" {
 		return ref
 	}
-	if d, err := r.Digest(); err != nil {
+	if d, err := r.Digest(); err == nil {
 		return ref + "@" + d.String()
 	}
 	return ref + ":" + r.Reference
