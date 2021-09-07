@@ -4,14 +4,14 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 ## Table of Contents
 
-- [Getting Started](#getting-started-option-a)
+- [Notation Quick Start](#notation-quick-start)
 - [Branch](#branch)
 - [Core Documents](#core-documents)
 - [Community](#community)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
-## Getting Started (Option A)
+## Notation Quick Start
 
 - Install the Notation CLI from [Notation Releases][notation-releases]  
   ```bash
@@ -30,45 +30,6 @@ Notation is a project to add signatures as standard items in the registry ecosys
   notation cert generate-test --default --trust "wabbit-networks.io"
   notation sign $IMAGE
   notation list $IMAGE 
-  notation verify $IMAGE
-  ```
-
-## Getting Started (Option B)
-
-- Set the image reference
-  ```bash
-  export IMAGE=localhost:5000/net-monitor:v1
-  ```
-- Install the Notation CLI from [Notation Releases][notation-releases]  
-  ```bash
-  #LINUX, including WSL
-  curl -Lo notation.tar.gz https://github.com/shizhMSFT/notation/releases/download/v0.5.2/notation_0.5.2_linux_amd64.tar.gz
-  tar xvzf notation.tar.gz -C ~/bin notation
-  ```
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution]
-  ```bash
-  docker run -d ghcr.io/oras-project/registry:latest
-  ```
-- Build and Push the `net-monitor` software
-  ```bash
-  docker build -t $IMAGE https://github.com/wabbit-networks/net-monitor.git#main
-
-  docker push $IMAGE
-  ```
-- Generate a self-signed test certificate for signing artifacts under the `~/config/notation/` directory
-  ```bash
-  notation cert generate-test --default --trust "wabbit-networks.io"
-  ```
-- Sign the container image
-  ```bash
-  notation sign $IMAGE
-  ```
-- List the image, and any associated signatures
-  ```bash
-  notation list $IMAGE 
-  ```
-- Attempt to verify the $IMAGE notation signature
-  ```bash
   notation verify $IMAGE
   ```
 
