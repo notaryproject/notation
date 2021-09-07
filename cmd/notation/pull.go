@@ -7,6 +7,7 @@ import (
 
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
@@ -20,7 +21,7 @@ var pullCommand = &cli.Command{
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  "strict",
-			Usage: "strict pull without lookup",
+			Usage: "pull the signature without lookup the manifest",
 		},
 		outputFlag,
 		usernameFlag,
@@ -60,18 +61,17 @@ func runPull(ctx *cli.Context) error {
 
 	path := ctx.String(outputFlag.Name)
 	for _, sigDigest := range sigDigests {
-		sig, err := sigRepo.Get(ctx.Context, sigDigest)
-		if err != nil {
-			return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
-		}
-		var outputPath string
-		if path == "" {
-			outputPath = config.SignaturePath(manifestDesc.Digest, sigDigest)
-		} else {
-			outputPath = filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
-		}
-		if err := os.WriteFile(outputPath, sig); err != nil {
-			return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
+		if path != "" {
+			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
+			sig, err := sigRepo.Get(ctx.Context, sigDigest)
+			if err != nil {
+				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
+			}
+			if err := os.WriteFile(outputPath, sig); err != nil {
+				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
+			}
+		} else if err := cache.PullSignature(ctx.Context, sigRepo, manifestDesc.Digest, sigDigest); err != nil {
+			return err
 		}
 
 		// write out
@@ -120,13 +120,8 @@ func pullSignatures(ctx *cli.Context, manifestDigest digest.Digest) error {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
 	for _, sigDigest := range sigDigests {
-		sig, err := sigRepo.Get(ctx.Context, sigDigest)
-		if err != nil {
-			return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
-		}
-		outputPath := config.SignaturePath(manifestDigest, sigDigest)
-		if err := os.WriteFile(outputPath, sig); err != nil {
-			return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
+		if err := cache.PullSignature(ctx.Context, sigRepo, manifestDigest, sigDigest); err != nil {
+			return err
 		}
 	}
 	return nil

@@ -9,7 +9,7 @@ import (
 	"github.com/distribution/distribution/v3/reference"
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
-	ios "github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -98,18 +98,7 @@ func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.D
 	}
 
 	for _, sigDigest := range sigDigests {
-		sigPath := config.SignaturePath(manifestDigest, sigDigest)
-		if _, err := os.Stat(sigPath); err == nil {
-			continue
-		} else if !os.IsNotExist(err) {
-			return nil, err
-		}
-
-		sig, err := client.Get(ctx, sigDigest)
-		if err != nil {
-			return nil, err
-		}
-		if err := ios.WriteFile(sigPath, sig); err != nil {
+		if err := cache.PullSignature(ctx, client, manifestDigest, sigDigest); err != nil {
 			return nil, err
 		}
 	}
