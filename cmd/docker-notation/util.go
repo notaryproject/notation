@@ -7,25 +7,7 @@ import (
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/cmd/docker-notation/crypto"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
 )
-
-func passThroughIfNotationDisabled(ctx *cli.Context) error {
-	err := config.CheckNotationEnabled()
-	if err == nil {
-		return nil
-	}
-	if err != config.ErrNotationDisabled {
-		return err
-	}
-
-	args := append([]string{ctx.Command.Name}, ctx.Args().Slice()...)
-	if err := runCommand("docker", args...); err != nil {
-		return err
-	}
-	os.Exit(0)
-	panic("process should be terminated")
-}
 
 func runCommand(command string, args ...string) error {
 	cmd := exec.Command(command, args...)
@@ -42,7 +24,7 @@ func runCommand(command string, args ...string) error {
 }
 
 func getVerificationService() (notation.SigningService, error) {
-	cfg, err := config.Load()
+	cfg, err := config.LoadOrDefaultOnce()
 	if err != nil {
 		return nil, err
 	}

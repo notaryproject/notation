@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -134,32 +133,19 @@ func prepareClaimsForSigning(ctx *cli.Context) (signature.Claims, error) {
 func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
 	keyPath := ctx.String("key-file")
 	if keyPath == "" {
-		cfg, err := config.LoadOrDefaultOnce()
+		path, err := config.ResolveKeyPath(ctx.String("key"))
 		if err != nil {
 			return nil, err
-		}
-		name := ctx.String("key")
-		if name == "" {
-			name = cfg.SigningKeys.Default
-		}
-		path, ok := cfg.SigningKeys.Keys.Get(name)
-		if !ok {
-			return nil, errors.New("signing key not found")
 		}
 		keyPath = path
 	}
 
 	certPath := ctx.String("cert-file")
 	if certPath == "" {
-		name := ctx.String("cert")
-		if name != "" {
-			cfg, err := config.LoadOrDefaultOnce()
+		if name := ctx.String("cert"); name != "" {
+			path, err := config.ResolveCertificatePath(name)
 			if err != nil {
 				return nil, err
-			}
-			path, ok := cfg.VerificationCertificates.Certificates.Get(name)
-			if !ok {
-				return nil, errors.New("certificate not found")
 			}
 			certPath = path
 		}

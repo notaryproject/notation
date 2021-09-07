@@ -9,7 +9,6 @@ import (
 // File reflects the config file.
 // Specification: https://github.com/notaryproject/notation/pull/76
 type File struct {
-	Enabled                  bool                     `json:"enabled"`
 	VerificationCertificates VerificationCertificates `json:"verificationCerts"`
 	SigningKeys              SigningKeys              `json:"signingKeys,omitempty"`
 	InsecureRegistries       []string                 `json:"insecureRegistries"`

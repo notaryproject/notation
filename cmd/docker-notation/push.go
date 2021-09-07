@@ -20,16 +20,12 @@ import (
 
 var pushCommand = &cli.Command{
 	Name:      "push",
-	Usage:     "Push an image or a repository to a registry",
-	ArgsUsage: "[<reference>]",
+	Usage:     "Push an image to a registry with its signatures",
+	ArgsUsage: "<reference>",
 	Action:    pushImage,
 }
 
 func pushImage(ctx *cli.Context) error {
-	if err := passThroughIfNotationDisabled(ctx); err != nil {
-		return err
-	}
-
 	desc, err := pushImageAndGetOCIDescriptor(ctx)
 	if err != nil {
 		return err

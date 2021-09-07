@@ -18,16 +18,12 @@ import (
 
 var pullCommand = &cli.Command{
 	Name:      "pull",
-	Usage:     "Pull an image or a repository from a registry",
-	ArgsUsage: "[<reference>]",
+	Usage:     "Verify and pull an image from a registry",
+	ArgsUsage: "<reference>",
 	Action:    pullImage,
 }
 
 func pullImage(ctx *cli.Context) error {
-	if err := passThroughIfNotationDisabled(ctx); err != nil {
-		return err
-	}
-
 	originalRef := ctx.Args().First()
 	ref, err := verifyRemoteImage(ctx.Context, originalRef)
 	if err != nil {

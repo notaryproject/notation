@@ -1,23 +1,14 @@
 package config
 
-import (
-	"errors"
+import "errors"
+
+var (
+	// ErrKeyNotFound indicates that the signing key is not found.
+	ErrKeyNotFound = errors.New("signing key not found")
+
+	// ErrCertificateNotFound indicates that the verification certificate is not found.
+	ErrCertificateNotFound = errors.New("verification certificate not found")
 )
-
-// ErrNotationDisabled indicates that notation is disabled
-var ErrNotationDisabled = errors.New("notation disabled")
-
-// CheckNotationEnabled checks the config file whether notation is enabled or not.
-func CheckNotationEnabled() error {
-	config, err := LoadOrDefaultOnce()
-	if err != nil {
-		return err
-	}
-	if config.Enabled {
-		return nil
-	}
-	return ErrNotationDisabled
-}
 
 // IsRegistryInsecure checks whether the registry is in the list of insecure registries.
 func IsRegistryInsecure(target string) bool {
@@ -31,4 +22,34 @@ func IsRegistryInsecure(target string) bool {
 		}
 	}
 	return false
+}
+
+// ResolveKeyPath resolves the key path by name.
+// The default key is attempted if name is empty.
+func ResolveKeyPath(name string) (string, error) {
+	config, err := LoadOrDefaultOnce()
+	if err != nil {
+		return "", err
+	}
+	if name == "" {
+		name = config.SigningKeys.Default
+	}
+	path, ok := config.SigningKeys.Keys.Get(name)
+	if !ok {
+		return "", ErrKeyNotFound
+	}
+	return path, nil
+}
+
+// ResolveCertificatePath resolves the certificate path by name.
+func ResolveCertificatePath(name string) (string, error) {
+	config, err := LoadOrDefaultOnce()
+	if err != nil {
+		return "", err
+	}
+	path, ok := config.VerificationCertificates.Certificates.Get(name)
+	if !ok {
+		return "", ErrCertificateNotFound
+	}
+	return path, nil
 }
