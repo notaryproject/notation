@@ -51,7 +51,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(manifestRef.ReferenceOrDefault(), "digest:", manifestDesc.Digest, "size:", manifestDesc.Size)
+	fmt.Printf("%s: digest: %v size: %v\n", manifestRef.ReferenceOrDefault(), manifestDesc.Digest, manifestDesc.Size)
 
 	fmt.Println("Looking up for signatures")
 	sigDigests, err := downloadSignatures(ctx, ref, manifestDesc.Digest)
