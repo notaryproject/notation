@@ -7,6 +7,8 @@ Notation is a project to add signatures as standard items in the registry ecosys
 - [Branch](#branch)
 - [Core Documents](#core-documents)
 - [Community](#community)
+- [Release Management](#release-management)
+- [Support](#support)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
@@ -29,6 +31,15 @@ Notation is a project to add signatures as standard items in the registry ecosys
 * Please see the [CNCF Calendar](https://www.cncf.io/calendar/) for community meeting details.
 
 * Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
+
+## Release Management
+
+The Notation release process is defined in [RELEASE_MANAGEMENT.md](RELEASE_MANAGEMENT.md#supported-releases).
+
+## Support
+
+Support for the Notation project is defined in [supported releases](RELEASE_MANAGEMENT.md#supported-releases).
+
 
 ## Code of Conduct
 
