@@ -23,23 +23,23 @@ The Notation project is under active development to reach a stable target versio
 
 **Minor Releases**
 
-- `ALPHA` - X.Y.0-alpha.W, W >= 0 (Branch : main)
+- **ALPHA:** X.Y.0-alpha.W, W >= 0 (Branch : main)
     - Alpha release, cut from main branch
     - Unstable release which should only be used for early development purposes
     - Released as needed before we cut a beta X.Y release
     - Not supported
-- `BETA` - X.Y.0-beta.W, W >= 0 (Branch : main)
+- **BETA:** X.Y.0-beta.W, W >= 0 (Branch : main)
     - More stable than the alpha release to be used for testing purposes only
     - Beta release, cut from main branch
     - Released as needed before we cut a stable X.Y release
     - Not supported
-- `RC` - X.Y.0-rc.W, W >= 0 (Branch : main)
+- **RC:** X.Y.0-rc.W, W >= 0 (Branch : main)
     - Released as needed before we cut a stable X.Y release
     - soak for ~ 2 weeks before cutting a stable release
     - Bugfixes on new features only as reported through usage
     - Release candidate release, cut from main branch
     - Not supported
-- `STABLE` - X.Y.0 (Branch: main)
+- **STABLE:** X.Y.0 (Branch: main)
     - Stable release, cut from master when X.Y milestone is complete
     - X.Y release branch cut for subsequent patch releases
     - Supported as per the supported releases process defined below 
