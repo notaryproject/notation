@@ -87,7 +87,7 @@ To get things started quickly, the Notation cli supports generating self signed 
 
 ## Verify a Container Image Using Notation Signatures
 
-To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify the integrity of the artifact based on the identity of an entity you trust. Notation uses a set of configured public keys to verify the content. The `notation cert generate-test` command created the public key, however it must be implicitly added for verification to succeed.
+To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify that the artifact was unmodified after it was created (integrity), and from an trusted entity (authenticity). Notation uses a set of configured public keys that represent trusted entities, to verify the content. The `notation cert generate-test` command created the public key, however it must be implicitly added for verification to succeed.
 - Attempt to verify the $IMAGE notation signature
   ```bash
   notation verify $IMAGE
