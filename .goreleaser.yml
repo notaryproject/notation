@@ -57,3 +57,5 @@ archives:
         format: zip
     files:
       - LICENSE
+release:
+  prerelease: auto
