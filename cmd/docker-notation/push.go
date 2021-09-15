@@ -12,6 +12,7 @@ import (
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
+	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -32,7 +33,7 @@ func pushImage(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Pushing signature")
-	sigDigests, err := config.SignatureDigests(desc.Digest)
+	sigDigests, err := cache.SignatureDigests(desc.Digest)
 	if err != nil {
 		return err
 	}

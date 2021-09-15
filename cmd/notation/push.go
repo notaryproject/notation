@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
@@ -35,7 +36,7 @@ func runPush(ctx *cli.Context) error {
 	}
 	sigPaths := ctx.StringSlice(signatureFlag.Name)
 	if len(sigPaths) == 0 {
-		sigDigests, err := config.SignatureDigests(manifestDesc.Digest)
+		sigDigests, err := cache.SignatureDigests(manifestDesc.Digest)
 		if err != nil {
 			return err
 		}

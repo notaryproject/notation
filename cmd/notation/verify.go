@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go-lib/signature"
 	x509n "github.com/notaryproject/notation-go-lib/signature/x509"
+	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -72,7 +73,7 @@ func runVerify(ctx *cli.Context) error {
 			}
 		}
 		manifestDigest := digest.Digest(manifestDesc.Digest)
-		sigDigests, err := config.SignatureDigests(manifestDigest)
+		sigDigests, err := cache.SignatureDigests(manifestDigest)
 		if err != nil {
 			return err
 		}
