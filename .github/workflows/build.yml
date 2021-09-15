@@ -1,4 +1,4 @@
-name: Go CI
+name: build
 
 on:
   push:
@@ -6,38 +6,29 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-
-    name: Continuous Integration
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
-
+    name: Continuous Integration
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         go-version: [1.17]
-
       fail-fast: true
-
     steps:
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v2.1.4
+        uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-
       - name: Check out code
-        uses: actions/checkout@v2.3.4
-
+        uses: actions/checkout@v2
       - name: Cache Go modules
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2
         id: go-mod-cache
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
       - name: Get dependencies
         run: make download
-
       - name: Build
-        run: |
-          make build
+        run: make build
