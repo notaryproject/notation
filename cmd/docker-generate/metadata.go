@@ -11,7 +11,7 @@ import (
 var pluginMetadata = docker.PluginMetadata{
 	SchemaVersion:    "0.1.0",
 	Vendor:           "CNCF Notary Project",
-	Version:          "0.1.0",
+	Version:          "0.1.1",
 	ShortDescription: "Generate artifacts",
 	URL:              "https://github.com/notaryproject/notation",
 	Experimental:     true,

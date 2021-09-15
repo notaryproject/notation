@@ -27,6 +27,7 @@ func generateManifest(ctx *cli.Context) error {
 	var reader io.Reader
 	if reference := ctx.Args().First(); reference != "" {
 		cmd := exec.Command("docker", "save", reference)
+		cmd.Stderr = os.Stderr
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			return err
