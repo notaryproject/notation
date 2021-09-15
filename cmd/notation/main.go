@@ -15,8 +15,7 @@ func main() {
 		Version: version.GetVersion(),
 		Authors: []*cli.Author{
 			{
-				Name:  "Shiwei Zhang",
-				Email: "shizh@microsoft.com",
+				Name: "CNCF Notary Project",
 			},
 		},
 		Commands: []*cli.Command{

@@ -24,8 +24,8 @@ Building above binaries require [golang](https://golang.org/dl/) with version `>
   docker --help
   # look for 
   Management Commands:
-    generate*   Generate artifacts (github.com/shizhMSFT, 0.1.0)
-    notation*   Manage signatures on Docker images (Sajay Antony, Shiwei Zhang, 0.5.1)
+    generate*   Generate artifacts (CNCF Notary Project, 0.1.0)
+    notation*   Manage signatures on Docker images (CNCF Notary Project, 0.5.3-alpha)
   
   which notation
   # output

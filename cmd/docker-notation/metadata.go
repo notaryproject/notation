@@ -11,7 +11,7 @@ import (
 
 var pluginMetadata = docker.PluginMetadata{
 	SchemaVersion:    "0.1.0",
-	Vendor:           "Sajay Antony, Shiwei Zhang",
+	Vendor:           "CNCF Notary Project",
 	Version:          version.GetVersion(),
 	ShortDescription: "Manage signatures on Docker images",
 	URL:              "https://github.com/notaryproject/notation",
