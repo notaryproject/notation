@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/internal/os"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
@@ -80,7 +79,7 @@ func runPull(ctx *cli.Context) error {
 	return nil
 }
 
-func pullSignatureStrict(ctx *cli.Context, sigRepo notation.SignatureRepository, reference string) error {
+func pullSignatureStrict(ctx *cli.Context, sigRepo registry.SignatureRepository, reference string) error {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return err

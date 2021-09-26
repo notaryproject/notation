@@ -55,6 +55,5 @@ func GetManifestOCIDescriptor(ctx context.Context, ref registry.Reference) (ocis
 	if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
 		insecure = true
 	}
-	client := registry.NewClient(tr, insecure)
-	return client.GetManifestDescriptor(ref)
+	return registry.GetManifestDescriptor(ctx, tr, ref, insecure)
 }

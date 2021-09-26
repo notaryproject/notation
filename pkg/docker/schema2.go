@@ -10,7 +10,7 @@ import (
 
 	"github.com/distribution/distribution/v3"
 	"github.com/distribution/distribution/v3/manifest/schema2"
-	iio "github.com/notaryproject/notation/internal/io"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/opencontainers/go-digest"
 )
 
@@ -84,7 +84,7 @@ func extractTar(r io.Reader) ([]manifestInTar, map[string]distribution.Descripto
 
 func generateLayerDescriptor(r io.Reader) (distribution.Descriptor, error) {
 	digester := digest.SHA256.Digester()
-	count := iio.NewCountWriter(digester.Hash())
+	count := ioutil.NewCountWriter(digester.Hash())
 	w := gzip.NewWriter(count)
 	_, err := io.Copy(w, r)
 	if err != nil {

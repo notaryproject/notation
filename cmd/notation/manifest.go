@@ -42,15 +42,12 @@ func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (oci
 	if !plainHTTP {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
 	}
-	remote := registry.NewClient(
-		registry.NewAuthtransport(
-			nil,
-			ctx.String(usernameFlag.Name),
-			ctx.String(passwordFlag.Name),
-		),
-		plainHTTP,
+	tr := registry.NewAuthtransport(
+		nil,
+		ctx.String(usernameFlag.Name),
+		ctx.String(passwordFlag.Name),
 	)
-	return remote.GetManifestDescriptor(ref)
+	return registry.GetManifestDescriptor(ctx.Context, tr, ref, plainHTTP)
 }
 
 func getManifestDescriptorFromFile(path, mediaType string) (ocispec.Descriptor, error) {

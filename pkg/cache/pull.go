@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go-lib"
 	ios "github.com/notaryproject/notation/internal/os"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 )
 
 // PullSignature pulls the signature if not exists in the cache.
-func PullSignature(ctx context.Context, sigRepo notation.SignatureRepository, manifestDigest, sigDigest digest.Digest) error {
+func PullSignature(ctx context.Context, sigRepo registry.SignatureRepository, manifestDigest, sigDigest digest.Digest) error {
 	sigPath := config.SignaturePath(manifestDigest, sigDigest)
 	if info, err := os.Stat(sigPath); err == nil {
 		if info.IsDir() {
