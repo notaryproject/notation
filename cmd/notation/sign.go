@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/notaryproject/notation-go-lib/signature"
-	"github.com/notaryproject/notation-go-lib/signature/x509"
-	"github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
+	"github.com/notaryproject/notation-go-lib/signature/jws"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/crypto"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
@@ -43,11 +45,12 @@ var signCommand = &cli.Command{
 			Name:    "expiry",
 			Aliases: []string{"e"},
 			Usage:   "expire duration",
+			Value:   7 * 24 * time.Hour, // default to a week
 		},
-		&cli.StringSliceFlag{
+		&cli.StringFlag{
 			Name:    "reference",
 			Aliases: []string{"r"},
-			Usage:   "original references",
+			Usage:   "original reference",
 		},
 		outputFlag,
 		&cli.BoolFlag{
@@ -69,17 +72,18 @@ var signCommand = &cli.Command{
 
 func runSign(ctx *cli.Context) error {
 	// initialize
-	scheme, err := getSchemeForSigning(ctx)
+	signer, err := getSigner(ctx)
 	if err != nil {
 		return err
 	}
+	_ = signer
 
 	// core process
-	claims, err := prepareClaimsForSigning(ctx)
+	desc, opts, err := prepareSigningContent(ctx)
 	if err != nil {
 		return err
 	}
-	sig, err := scheme.Sign("", claims)
+	sig, err := signer.Sign(ctx.Context, desc, opts)
 	if err != nil {
 		return err
 	}
@@ -87,9 +91,9 @@ func runSign(ctx *cli.Context) error {
 	// write out
 	path := ctx.String(outputFlag.Name)
 	if path == "" {
-		path = config.SignaturePath(digest.Digest(claims.Manifest.Digest), digest.FromString(sig))
+		path = config.SignaturePath(digest.Digest(desc.Digest), digest.FromBytes(sig))
 	}
-	if err := os.WriteFile(path, []byte(sig)); err != nil {
+	if err := osutil.WriteFile(path, sig); err != nil {
 		return err
 	}
 
@@ -98,42 +102,34 @@ func runSign(ctx *cli.Context) error {
 		if ref == "" {
 			ref = ctx.Args().First()
 		}
-		if _, err := pushSignature(ctx, ref, []byte(sig)); err != nil {
+		if _, err := pushSignature(ctx, ref, sig); err != nil {
 			return fmt.Errorf("fail to push signature to %q: %v: %v",
 				ref,
-				claims.Manifest.Digest,
+				desc.Digest,
 				err,
 			)
 		}
 	}
 
-	fmt.Println(claims.Manifest.Digest)
+	fmt.Println(desc.Digest)
 	return nil
 }
 
-func prepareClaimsForSigning(ctx *cli.Context) (signature.Claims, error) {
+func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.SignOptions, error) {
 	manifestDesc, err := getManifestDescriptorFromContext(ctx)
 	if err != nil {
-		return signature.Claims{}, err
+		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
-	now := time.Now()
-	nowUnix := now.Unix()
-	claims := signature.Claims{
-		Manifest: signature.Manifest{
-			Descriptor: convertDescriptorToNotation(manifestDesc),
-			References: ctx.StringSlice("reference"),
+	return convertDescriptorToNotation(manifestDesc), notation.SignOptions{
+		Expiry: time.Now().Add(ctx.Duration("expiry")),
+		Metadata: notation.Metadata{
+			Identity: ctx.String("reference"),
 		},
-		IssuedAt: nowUnix,
-	}
-	if expiry := ctx.Duration("expiry"); expiry != 0 {
-		claims.NotBefore = nowUnix
-		claims.Expiration = now.Add(expiry).Unix()
-	}
-
-	return claims, nil
+	}, nil
 }
 
-func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
+func getSigner(ctx *cli.Context) (notation.Signer, error) {
+	// read signing key
 	keyPath := ctx.String("key-file")
 	if keyPath == "" {
 		path, err := config.ResolveKeyPath(ctx.String("key"))
@@ -142,7 +138,16 @@ func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
 		}
 		keyPath = path
 	}
+	key, err := cryptoutil.ReadPrivateKeyFile(keyPath)
+	if err != nil {
+		return nil, err
+	}
+	method, err := jws.SigningMethodFromKey(key)
+	if err != nil {
+		return nil, err
+	}
 
+	// read certs associated with the signing
 	certPath := ctx.String("cert-file")
 	if certPath == "" {
 		if name := ctx.String("cert"); name != "" {
@@ -154,19 +159,25 @@ func getSchemeForSigning(ctx *cli.Context) (*signature.Scheme, error) {
 		}
 	}
 
-	signer, err := x509.NewSignerFromFiles(keyPath, certPath)
-	scheme := signature.NewScheme()
+	// construct signer
+	if certPath == "" {
+		keyID, err := crypto.KeyID(key)
+		if err != nil {
+			return nil, err
+		}
+		return jws.NewSignerWithKeyID(method, key, keyID)
+	}
+	certs, err := cryptoutil.ReadCertificateFile(certPath)
 	if err != nil {
 		return nil, err
 	}
-	scheme.RegisterSigner("", signer)
-	return scheme, nil
+	return jws.NewSignerWithCertificateChain(method, key, certs)
 }
 
-func convertDescriptorToNotation(desc ocispec.Descriptor) signature.Descriptor {
-	return signature.Descriptor{
+func convertDescriptorToNotation(desc ocispec.Descriptor) notation.Descriptor {
+	return notation.Descriptor{
 		MediaType: desc.MediaType,
-		Digest:    desc.Digest.String(),
+		Digest:    desc.Digest,
 		Size:      desc.Size,
 	}
 }

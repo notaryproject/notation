@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	ios "github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
@@ -29,7 +29,7 @@ func PullSignature(ctx context.Context, sigRepo registry.SignatureRepository, ma
 	if err != nil {
 		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 	}
-	if err := ios.WriteFile(sigPath, sig); err != nil {
+	if err := osutil.WriteFile(sigPath, sig); err != nil {
 		return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 	}
 	return nil

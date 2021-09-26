@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/notaryproject/notation-go-lib/signature/x509"
+	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"
 )
@@ -86,7 +86,7 @@ func addKey(ctx *cli.Context) error {
 	}
 
 	// check if the target path is a key
-	if _, err := x509.ReadPrivateKeyFile(path); err != nil {
+	if _, err := cryptoutil.ReadPrivateKeyFile(path); err != nil {
 		return err
 	}
 

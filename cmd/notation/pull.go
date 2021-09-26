@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
@@ -65,7 +65,7 @@ func runPull(ctx *cli.Context) error {
 			if err != nil {
 				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 			}
-			if err := os.WriteFile(outputPath, sig); err != nil {
+			if err := osutil.WriteFile(outputPath, sig); err != nil {
 				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 			}
 		} else if err := cache.PullSignature(ctx.Context, sigRepo, manifestDesc.Digest, sigDigest); err != nil {
@@ -97,7 +97,7 @@ func pullSignatureStrict(ctx *cli.Context, sigRepo registry.SignatureRepository,
 	if outputPath == "" {
 		outputPath = sigDigest.Encoded() + config.SignatureExtension
 	}
-	if err := os.WriteFile(outputPath, sig); err != nil {
+	if err := osutil.WriteFile(outputPath, sig); err != nil {
 		return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 	}
 

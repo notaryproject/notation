@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"crypto/x509"
 	"errors"
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go-lib/signature"
-	x509n "github.com/notaryproject/notation-go-lib/signature/x509"
+	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
+	"github.com/notaryproject/notation-go-lib/signature/jws"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/crypto"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
@@ -56,7 +59,7 @@ var verifyCommand = &cli.Command{
 
 func runVerify(ctx *cli.Context) error {
 	// initialize
-	scheme, err := getSchemeForVerification(ctx)
+	verifier, err := getVerifier(ctx)
 	if err != nil {
 		return err
 	}
@@ -83,7 +86,7 @@ func runVerify(ctx *cli.Context) error {
 	}
 
 	// core process
-	if err := verifySignatures(scheme, manifestDesc, sigPaths); err != nil {
+	if err := verifySignatures(ctx.Context, verifier, manifestDesc, sigPaths); err != nil {
 		return err
 	}
 
@@ -92,25 +95,27 @@ func runVerify(ctx *cli.Context) error {
 	return nil
 }
 
-func verifySignatures(scheme *signature.Scheme, manifestDesc ocispec.Descriptor, sigPaths []string) error {
+func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestDesc ocispec.Descriptor, sigPaths []string) error {
 	if len(sigPaths) == 0 {
 		return errors.New("verification failure: no signatures found")
 	}
 
+	desc := convertDescriptorToNotation(manifestDesc)
+	var opts notation.VerifyOptions
 	var lastErr error
 	for _, path := range sigPaths {
 		sig, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
-		claims, err := scheme.Verify(string(sig))
+		actualDesc, _, err := verifier.Verify(ctx, sig, opts)
 		if err != nil {
 			lastErr = fmt.Errorf("verification failure: %v", err)
 			continue
 		}
 
-		if convertDescriptorToNotation(manifestDesc) != claims.Manifest.Descriptor {
-			lastErr = fmt.Errorf("verification failure: %s", manifestDesc.Digest)
+		if actualDesc != desc {
+			lastErr = fmt.Errorf("verification failure: %s", desc.Digest)
 			continue
 		}
 		return nil
@@ -118,20 +123,7 @@ func verifySignatures(scheme *signature.Scheme, manifestDesc ocispec.Descriptor,
 	return lastErr
 }
 
-func getSchemeForVerification(ctx *cli.Context) (*signature.Scheme, error) {
-	scheme := signature.NewScheme()
-
-	// add x509 verifier
-	verifier, err := getX509Verifier(ctx)
-	if err != nil {
-		return nil, err
-	}
-	scheme.RegisterVerifier(verifier)
-
-	return scheme, nil
-}
-
-func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
+func getVerifier(ctx *cli.Context) (notation.Verifier, error) {
 	// resolve paths
 	certPaths := ctx.StringSlice("cert-file")
 	certPaths, err := appendCertPathFromName(certPaths, ctx.StringSlice("cert"))
@@ -157,20 +149,28 @@ func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 	}
 
 	// read cert files
-	var certs []*x509.Certificate
+	var keys []*jws.VerificationKey
 	roots := x509.NewCertPool()
 	for _, path := range certPaths {
-		bundledCerts, err := x509n.ReadCertificateFile(path)
+		bundledCerts, err := cryptoutil.ReadCertificateFile(path)
 		if err != nil {
 			return nil, err
 		}
-		certs = append(certs, bundledCerts...)
 		for _, cert := range bundledCerts {
+			keyID, err := crypto.KeyID(cert.PublicKey)
+			if err != nil {
+				return nil, err
+			}
+			key, err := jws.NewVerificationKey(cert.PublicKey, keyID)
+			if err != nil {
+				return nil, err
+			}
+			keys = append(keys, key)
 			roots.AddCert(cert)
 		}
 	}
 	for _, path := range caCertPath {
-		bundledCerts, err := x509n.ReadCertificateFile(path)
+		bundledCerts, err := cryptoutil.ReadCertificateFile(path)
 		if err != nil {
 			return nil, err
 		}
@@ -179,7 +179,10 @@ func getX509Verifier(ctx *cli.Context) (signature.Verifier, error) {
 		}
 	}
 
-	return x509n.NewVerifier(certs, roots)
+	// construct verifier
+	verifier := jws.NewVerifier(keys)
+	verifier.VerifyOptions.Roots = roots
+	return verifier, nil
 }
 
 func appendCertPathFromName(paths, names []string) ([]string, error) {
