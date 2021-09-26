@@ -5,13 +5,10 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
-	"github.com/notaryproject/notation-go-lib/signature/jws"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/crypto"
+	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/opencontainers/go-digest"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -120,7 +117,7 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
-	return convertDescriptorToNotation(manifestDesc), notation.SignOptions{
+	return manifestDesc, notation.SignOptions{
 		Expiry: time.Now().Add(ctx.Duration("expiry")),
 		Metadata: notation.Metadata{
 			Identity: ctx.String("reference"),
@@ -138,14 +135,6 @@ func getSigner(ctx *cli.Context) (notation.Signer, error) {
 		}
 		keyPath = path
 	}
-	key, err := cryptoutil.ReadPrivateKeyFile(keyPath)
-	if err != nil {
-		return nil, err
-	}
-	method, err := jws.SigningMethodFromKey(key)
-	if err != nil {
-		return nil, err
-	}
 
 	// read certs associated with the signing
 	certPath := ctx.String("cert-file")
@@ -160,24 +149,5 @@ func getSigner(ctx *cli.Context) (notation.Signer, error) {
 	}
 
 	// construct signer
-	if certPath == "" {
-		keyID, err := crypto.KeyID(key)
-		if err != nil {
-			return nil, err
-		}
-		return jws.NewSignerWithKeyID(method, key, keyID)
-	}
-	certs, err := cryptoutil.ReadCertificateFile(certPath)
-	if err != nil {
-		return nil, err
-	}
-	return jws.NewSignerWithCertificateChain(method, key, certs)
-}
-
-func convertDescriptorToNotation(desc ocispec.Descriptor) notation.Descriptor {
-	return notation.Descriptor{
-		MediaType: desc.MediaType,
-		Digest:    desc.Digest,
-		Size:      desc.Size,
-	}
+	return signature.NewSignerFromFiles(keyPath, certPath)
 }

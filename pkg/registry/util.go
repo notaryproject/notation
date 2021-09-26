@@ -4,13 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	"github.com/notaryproject/notation-go-lib"
 )
 
 // GetManifestDescriptor returns signature manifest information.
-func GetManifestDescriptor(ctx context.Context, tr http.RoundTripper, ref Reference, plainHTTP bool) (ocispec.Descriptor, error) {
+func GetManifestDescriptor(ctx context.Context, tr http.RoundTripper, ref Reference, plainHTTP bool) (notation.Descriptor, error) {
 	reg := NewClient(tr, ref.Host(), plainHTTP)
 	repo := reg.Repository(ctx, ref.Repository)
 	return repo.GetManifestDescriptor(ctx, ref.ReferenceOrDefault())
-
 }

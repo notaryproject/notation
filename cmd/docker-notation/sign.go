@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation/cmd/docker-notation/crypto"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
-	ios "github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
@@ -37,10 +38,16 @@ var signCommand = &cli.Command{
 			Usage:     "signing certificate file",
 			TakesFile: true,
 		},
-		&cli.StringSliceFlag{
+		&cli.DurationFlag{
+			Name:    "expiry",
+			Aliases: []string{"e"},
+			Usage:   "expire duration",
+			Value:   7 * 24 * time.Hour, // default to a week
+		},
+		&cli.StringFlag{
 			Name:    "reference",
 			Aliases: []string{"r"},
-			Usage:   "original references",
+			Usage:   "original reference",
 		},
 		&cli.BoolFlag{
 			Name:  "origin",
@@ -58,23 +65,27 @@ func signImage(ctx *cli.Context) error {
 
 	reference := ctx.Args().First()
 	fmt.Println("Generating Docker mainfest:", reference)
-	desc, err := docker.GenerateManifestOCIDescriptor(reference)
+	desc, err := docker.GenerateManifestDescriptor(reference)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("Signing", desc.Digest)
-	var references []string
+	identity := ctx.String("reference")
 	if ctx.Bool("origin") {
-		references = append(references, reference)
+		identity = reference
 	}
-	references = append(references, ctx.StringSlice("reference")...)
-	sig, err := service.Sign(ctx.Context, desc, references...)
+	sig, err := service.Sign(ctx.Context, desc, notation.SignOptions{
+		Expiry: time.Now().Add(ctx.Duration("expiry")),
+		Metadata: notation.Metadata{
+			Identity: identity,
+		},
+	})
 	if err != nil {
 		return err
 	}
 	sigPath := config.SignaturePath(desc.Digest, digest.FromBytes(sig))
-	if err := ios.WriteFile(sigPath, sig); err != nil {
+	if err := osutil.WriteFile(sigPath, sig); err != nil {
 		return err
 	}
 	fmt.Println("Signature saved to", sigPath)
@@ -82,7 +93,8 @@ func signImage(ctx *cli.Context) error {
 	return nil
 }
 
-func getSigningService(ctx *cli.Context) (notation.SigningService, error) {
+func getSigningService(ctx *cli.Context) (notation.Signer, error) {
+	// read signing key
 	keyPath := ctx.String("key-file")
 	if keyPath == "" {
 		path, err := config.ResolveKeyPath(ctx.String("key"))
@@ -92,16 +104,17 @@ func getSigningService(ctx *cli.Context) (notation.SigningService, error) {
 		keyPath = path
 	}
 
-	var certPaths []string
+	// read certs associated with the signing
+	var certPath string
 	if path := ctx.String("cert-file"); path != "" {
-		certPaths = []string{path}
+		certPath = path
 	} else if name := ctx.String("cert"); name != "" {
 		path, err := config.ResolveCertificatePath(name)
 		if err != nil {
 			return nil, err
 		}
-		certPaths = []string{path}
+		certPath = path
 	}
 
-	return crypto.GetSigningService(keyPath, certPaths...)
+	return signature.NewSignerFromFiles(keyPath, certPath)
 }

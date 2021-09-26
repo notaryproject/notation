@@ -12,7 +12,6 @@ import (
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -47,7 +46,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		return "", err
 	}
 
-	manifestDesc, err := docker.GetManifestOCIDescriptor(ctx, manifestRef)
+	manifestDesc, err := docker.GetManifestDescriptor(ctx, manifestRef)
 	if err != nil {
 		return "", err
 	}
@@ -65,16 +64,13 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		fmt.Println("Found", n, "signatures")
 	}
 
-	sigDigest, originRefs, err := verifySignatures(ctx, service, sigDigests, manifestDesc)
+	sigDigest, originRef, err := verifySignatures(ctx, service, sigDigests, manifestDesc)
 	if err != nil {
 		return "", fmt.Errorf("none of the signatures are valid: %v", err)
 	}
 	fmt.Println("Found valid signature:", sigDigest)
-	if len(originRefs) != 0 {
-		fmt.Println("The image is originated from:")
-		for _, origin := range originRefs {
-			fmt.Println("-", origin)
-		}
+	if originRef != "" {
+		fmt.Println("The image is originated from:", originRef)
 	}
 
 	manifestRef.Reference = manifestDesc.Digest.String()
@@ -102,24 +98,29 @@ func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.D
 
 func verifySignatures(
 	ctx context.Context,
-	service notation.SigningService,
+	service notation.Verifier,
 	sigDigests []digest.Digest,
-	desc ocispec.Descriptor,
-) (digest.Digest, []string, error) {
-	var lastError error
+	desc notation.Descriptor,
+) (digest.Digest, string, error) {
+	var opts notation.VerifyOptions
+	var lastErr error
 	for _, sigDigest := range sigDigests {
 		path := config.SignaturePath(desc.Digest, sigDigest)
 		sig, err := os.ReadFile(path)
 		if err != nil {
-			return "", nil, err
+			return "", "", err
 		}
 
-		references, err := service.Verify(ctx, desc, sig)
+		actualDesc, meta, err := service.Verify(ctx, sig, opts)
 		if err != nil {
-			lastError = err
+			lastErr = err
 			continue
 		}
-		return sigDigest, references, nil
+		if actualDesc != desc {
+			lastErr = fmt.Errorf("verification failure: digest mismatch: %v: %v", desc, actualDesc)
+			continue
+		}
+		return sigDigest, meta.Identity, nil
 	}
-	return "", nil, lastError
+	return "", "", lastErr
 }

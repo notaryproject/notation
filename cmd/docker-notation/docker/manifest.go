@@ -6,11 +6,11 @@ import (
 	"os/exec"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
+	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/docker"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // GenerateManifest generate manifest from docker save
@@ -32,24 +32,24 @@ func GenerateManifest(reference string) ([]byte, error) {
 	return payload, err
 }
 
-// GenerateManifestOCIDescriptor generate manifest descriptor from docker save
-func GenerateManifestOCIDescriptor(reference string) (ocispec.Descriptor, error) {
+// GenerateManifestDescriptor generate manifest descriptor from docker save
+func GenerateManifestDescriptor(reference string) (notation.Descriptor, error) {
 	manifest, err := GenerateManifest(reference)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
-	return ocispec.Descriptor{
+	return notation.Descriptor{
 		MediaType: schema2.MediaTypeManifest,
 		Digest:    digest.FromBytes(manifest),
 		Size:      int64(len(manifest)),
 	}, nil
 }
 
-// GetManifestOCIDescriptor get manifest descriptor from remote registry
-func GetManifestOCIDescriptor(ctx context.Context, ref registry.Reference) (ocispec.Descriptor, error) {
+// GetManifestDescriptor get manifest descriptor from remote registry
+func GetManifestDescriptor(ctx context.Context, ref registry.Reference) (notation.Descriptor, error) {
 	tr, err := Transport(ref.Registry)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	insecure := config.IsRegistryInsecure(ref.Registry)
 	if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {

@@ -3,8 +3,8 @@ package registry
 import (
 	"context"
 
+	"github.com/notaryproject/notation-go-lib"
 	"github.com/opencontainers/go-digest"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // SignatureRegistry provides signature repositories
@@ -21,8 +21,8 @@ type SignatureRepository interface {
 	Get(ctx context.Context, signatureDigest digest.Digest) ([]byte, error)
 
 	// Put uploads the signature to the registry
-	Put(ctx context.Context, signature []byte) (ocispec.Descriptor, error)
+	Put(ctx context.Context, signature []byte) (notation.Descriptor, error)
 
 	// Link creates an signature artifact linking the manifest and the signature
-	Link(ctx context.Context, manifest, signature ocispec.Descriptor) (ocispec.Descriptor, error)
+	Link(ctx context.Context, manifest, signature notation.Descriptor) (notation.Descriptor, error)
 }
