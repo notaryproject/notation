@@ -49,7 +49,6 @@ func runSign(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	_ = signer
 
 	// core process
 	desc, opts, err := prepareSigningContent(ctx)

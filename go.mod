@@ -2,7 +2,7 @@ module github.com/notaryproject/notation
 
 go 1.17
 
-replace github.com/notaryproject/notation-go-lib => github.com/shizhMSFT/notation-go-lib v0.0.0-20210927031516-13fa1f704d6d
+replace github.com/notaryproject/notation-go-lib => github.com/shizhMSFT/notation-go-lib v0.0.0-20210927092336-c9e09cb9bf7c
 
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
