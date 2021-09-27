@@ -19,7 +19,7 @@ var verifyCommand = &cli.Command{
 	Usage:     "Verifies OCI Artifacts",
 	ArgsUsage: "<reference>",
 	Flags: []cli.Flag{
-		signatureFlag,
+		flagSignature,
 		&cli.StringSliceFlag{
 			Name:    "cert",
 			Aliases: []string{"c"},
@@ -44,11 +44,11 @@ var verifyCommand = &cli.Command{
 			Usage: "pull remote signatures before verification",
 			Value: true,
 		},
-		localFlag,
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
-		mediaTypeFlag,
+		flagLocal,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
+		flagMediaType,
 	},
 	Action: runVerify,
 }
@@ -64,9 +64,9 @@ func runVerify(ctx *cli.Context) error {
 		return err
 	}
 
-	sigPaths := ctx.StringSlice(signatureFlag.Name)
+	sigPaths := ctx.StringSlice(flagSignature.Name)
 	if len(sigPaths) == 0 {
-		if !ctx.Bool(localFlag.Name) && ctx.Bool("pull") {
+		if !ctx.Bool(flagLocal.Name) && ctx.Bool("pull") {
 			if err := pullSignatures(ctx, digest.Digest(manifestDesc.Digest)); err != nil {
 				return err
 			}

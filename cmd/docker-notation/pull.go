@@ -41,7 +41,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		return "", err
 	}
 
-	service, err := getVerificationService()
+	verifier, err := getVerifier()
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +64,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		fmt.Println("Found", n, "signatures")
 	}
 
-	sigDigest, originRef, err := verifySignatures(ctx, service, sigDigests, manifestDesc)
+	sigDigest, originRef, err := verifySignatures(ctx, verifier, sigDigests, manifestDesc)
 	if err != nil {
 		return "", fmt.Errorf("none of the signatures are valid: %v", err)
 	}
@@ -98,7 +98,7 @@ func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.D
 
 func verifySignatures(
 	ctx context.Context,
-	service notation.Verifier,
+	verifier notation.Verifier,
 	sigDigests []digest.Digest,
 	desc notation.Descriptor,
 ) (digest.Digest, string, error) {
@@ -111,7 +111,7 @@ func verifySignatures(
 			return "", "", err
 		}
 
-		actualDesc, meta, err := service.Verify(ctx, sig, opts)
+		actualDesc, meta, err := verifier.Verify(ctx, sig, opts)
 		if err != nil {
 			lastErr = err
 			continue

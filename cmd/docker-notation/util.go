@@ -23,7 +23,7 @@ func runCommand(command string, args ...string) error {
 	return nil
 }
 
-func getVerificationService() (notation.Verifier, error) {
+func getVerifier() (notation.Verifier, error) {
 	cfg, err := config.LoadOrDefaultOnce()
 	if err != nil {
 		return nil, err

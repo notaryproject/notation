@@ -16,10 +16,10 @@ var pushCommand = &cli.Command{
 	Usage:     "Push signature to remote",
 	ArgsUsage: "<reference>",
 	Flags: []cli.Flag{
-		signatureFlag,
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
+		flagSignature,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
 	},
 	Action: runPush,
 }
@@ -34,7 +34,7 @@ func runPush(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sigPaths := ctx.StringSlice(signatureFlag.Name)
+	sigPaths := ctx.StringSlice(flagSignature.Name)
 	if len(sigPaths) == 0 {
 		sigDigests, err := cache.SignatureDigests(manifestDesc.Digest)
 		if err != nil {

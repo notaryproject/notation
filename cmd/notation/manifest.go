@@ -22,8 +22,8 @@ func getManifestDescriptorFromContext(ctx *cli.Context) (notation.Descriptor, er
 }
 
 func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string) (notation.Descriptor, error) {
-	if ctx.Bool(localFlag.Name) {
-		mediaType := ctx.String(mediaTypeFlag.Name)
+	if ctx.Bool(flagLocal.Name) {
+		mediaType := ctx.String(flagMediaType.Name)
 		if ref == "-" {
 			return getManifestDescriptorFromReader(os.Stdin, mediaType)
 		}
@@ -38,14 +38,14 @@ func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (not
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	plainHTTP := ctx.Bool(plainHTTPFlag.Name)
+	plainHTTP := ctx.Bool(flagPlainHTTP.Name)
 	if !plainHTTP {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
 	}
 	tr := registry.NewAuthtransport(
 		nil,
-		ctx.String(usernameFlag.Name),
-		ctx.String(passwordFlag.Name),
+		ctx.String(flagUsername.Name),
+		ctx.String(flagPassword.Name),
 	)
 	return registry.GetManifestDescriptor(ctx.Context, tr, ref, plainHTTP)
 }

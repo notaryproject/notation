@@ -4,7 +4,6 @@ import (
 	"crypto"
 	"crypto/x509"
 
-	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
 	"github.com/notaryproject/notation-go-lib/signature/jws"
 	"github.com/opencontainers/go-digest"
@@ -28,7 +27,7 @@ func KeyID(key interface{}) (string, error) {
 }
 
 // NewSignerFromFiles creates a signer from key, certificate files
-func NewSignerFromFiles(keyPath, certPath string) (notation.Signer, error) {
+func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 	key, err := cryptoutil.ReadPrivateKeyFile(keyPath)
 	if err != nil {
 		return nil, err
@@ -54,7 +53,7 @@ func NewSignerFromFiles(keyPath, certPath string) (notation.Signer, error) {
 }
 
 // NewSignerFromFiles creates a verifier from certificate files
-func NewVerifierFromFiles(certPaths, caCertPaths []string) (notation.Verifier, error) {
+func NewVerifierFromFiles(certPaths, caCertPaths []string) (*jws.Verifier, error) {
 	var keys []*jws.VerificationKey
 	roots := x509.NewCertPool()
 	for _, path := range certPaths {

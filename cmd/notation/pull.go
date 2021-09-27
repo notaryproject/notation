@@ -22,10 +22,10 @@ var pullCommand = &cli.Command{
 			Name:  "strict",
 			Usage: "pull the signature without lookup the manifest",
 		},
-		outputFlag,
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
+		flagOutput,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
 	},
 	Action: runPull,
 }
@@ -57,7 +57,7 @@ func runPull(ctx *cli.Context) error {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
 
-	path := ctx.String(outputFlag.Name)
+	path := ctx.String(flagOutput.Name)
 	for _, sigDigest := range sigDigests {
 		if path != "" {
 			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
@@ -93,7 +93,7 @@ func pullSignatureStrict(ctx *cli.Context, sigRepo registry.SignatureRepository,
 	if err != nil {
 		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 	}
-	outputPath := ctx.String(outputFlag.Name)
+	outputPath := ctx.String(flagOutput.Name)
 	if outputPath == "" {
 		outputPath = sigDigest.Encoded() + config.SignatureExtension
 	}

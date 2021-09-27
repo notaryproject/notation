@@ -11,15 +11,15 @@ func getSignatureRepository(ctx *cli.Context, reference string) (registry.Signat
 	if err != nil {
 		return nil, err
 	}
-	plainHTTP := ctx.Bool(plainHTTPFlag.Name)
+	plainHTTP := ctx.Bool(flagPlainHTTP.Name)
 	if !plainHTTP {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
 	}
 	remote := registry.NewClient(
 		registry.NewAuthtransport(
 			nil,
-			ctx.String(usernameFlag.Name),
-			ctx.String(passwordFlag.Name),
+			ctx.String(flagUsername.Name),
+			ctx.String(flagPassword.Name),
 		),
 		ref.Registry,
 		plainHTTP,

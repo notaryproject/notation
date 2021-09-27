@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
@@ -17,39 +17,15 @@ var signCommand = &cli.Command{
 	Usage:     "Signs artifacts",
 	ArgsUsage: "<reference>",
 	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "key",
-			Aliases: []string{"k"},
-			Usage:   "signing key name",
-		},
-		&cli.StringFlag{
-			Name:      "key-file",
-			Usage:     "signing key file",
-			TakesFile: true,
-		},
-		&cli.StringFlag{
-			Name:    "cert",
-			Aliases: []string{"c"},
-			Usage:   "signing certificate name",
-		},
-		&cli.StringFlag{
-			Name:      "cert-file",
-			Usage:     "signing certificate file",
-			TakesFile: true,
-		},
-		localFlag,
-		&cli.DurationFlag{
-			Name:    "expiry",
-			Aliases: []string{"e"},
-			Usage:   "expire duration",
-			Value:   7 * 24 * time.Hour, // default to a week
-		},
-		&cli.StringFlag{
-			Name:    "reference",
-			Aliases: []string{"r"},
-			Usage:   "original reference",
-		},
-		outputFlag,
+		cmd.FlagKey,
+		cmd.FlagKeyFile,
+		cmd.FlagCert,
+		cmd.FlagCertFile,
+		cmd.FlagTimestamp,
+		cmd.FlagExpiry,
+		cmd.FlagReference,
+		flagLocal,
+		flagOutput,
 		&cli.BoolFlag{
 			Name:  "push",
 			Usage: "push after successful signing",
@@ -59,17 +35,17 @@ var signCommand = &cli.Command{
 			Name:  "push-reference",
 			Usage: "different remote to store signature",
 		},
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
-		mediaTypeFlag,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
+		flagMediaType,
 	},
 	Action: runSign,
 }
 
 func runSign(ctx *cli.Context) error {
 	// initialize
-	signer, err := getSigner(ctx)
+	signer, err := cmd.GetSigner(ctx)
 	if err != nil {
 		return err
 	}
@@ -86,7 +62,7 @@ func runSign(ctx *cli.Context) error {
 	}
 
 	// write out
-	path := ctx.String(outputFlag.Name)
+	path := ctx.String(flagOutput.Name)
 	if path == "" {
 		path = config.SignaturePath(digest.Digest(desc.Digest), digest.FromBytes(sig))
 	}
@@ -118,36 +94,9 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
 	return manifestDesc, notation.SignOptions{
-		Expiry: time.Now().Add(ctx.Duration("expiry")),
+		Expiry: time.Now().Add(ctx.Duration(cmd.FlagExpiry.Name)),
 		Metadata: notation.Metadata{
-			Identity: ctx.String("reference"),
+			Identity: ctx.String(cmd.FlagReference.Name),
 		},
 	}, nil
-}
-
-func getSigner(ctx *cli.Context) (notation.Signer, error) {
-	// read signing key
-	keyPath := ctx.String("key-file")
-	if keyPath == "" {
-		path, err := config.ResolveKeyPath(ctx.String("key"))
-		if err != nil {
-			return nil, err
-		}
-		keyPath = path
-	}
-
-	// read certs associated with the signing
-	certPath := ctx.String("cert-file")
-	if certPath == "" {
-		if name := ctx.String("cert"); name != "" {
-			path, err := config.ResolveCertificatePath(name)
-			if err != nil {
-				return nil, err
-			}
-			certPath = path
-		}
-	}
-
-	// construct signer
-	return signature.NewSignerFromFiles(keyPath, certPath)
 }

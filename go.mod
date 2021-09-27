@@ -2,7 +2,7 @@ module github.com/notaryproject/notation
 
 go 1.17
 
-replace github.com/notaryproject/notation-go-lib => github.com/shizhMSFT/notation-go-lib v0.0.0-20210924155606-cf3667e5e1e2
+replace github.com/notaryproject/notation-go-lib => github.com/shizhMSFT/notation-go-lib v0.0.0-20210927031516-13fa1f704d6d
 
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
@@ -18,7 +18,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/docker/docker v20.10.8+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.4 // indirect
-	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
