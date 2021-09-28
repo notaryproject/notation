@@ -12,25 +12,16 @@ import (
 
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(ctx *cli.Context) (notation.Signer, error) {
-	// read signing key
-	keyPath := ctx.String(FlagKeyFile.Name)
-	if keyPath == "" {
-		path, err := config.ResolveKeyPath(ctx.String(FlagKey.Name))
+	// read paths of the signing key and its corresponding cert.
+	var keyPath, certPath string
+	if path := ctx.String(FlagKeyFile.Name); path != "" {
+		keyPath = path
+		certPath = ctx.String(FlagCertFile.Name)
+	} else {
+		var err error
+		keyPath, certPath, err = config.ResolveKeyPath(ctx.String(FlagKey.Name))
 		if err != nil {
 			return nil, err
-		}
-		keyPath = path
-	}
-
-	// read certs associated with the signing
-	certPath := ctx.String(FlagCertFile.Name)
-	if certPath == "" {
-		if name := ctx.String(FlagCert.Name); name != "" {
-			path, err := config.ResolveCertificatePath(name)
-			if err != nil {
-				return nil, err
-			}
-			certPath = path
 		}
 	}
 

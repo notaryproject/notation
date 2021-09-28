@@ -19,7 +19,6 @@ var signCommand = &cli.Command{
 	Flags: []cli.Flag{
 		cmd.FlagKey,
 		cmd.FlagKeyFile,
-		cmd.FlagCert,
 		cmd.FlagCertFile,
 		cmd.FlagTimestamp,
 		cmd.FlagExpiry,

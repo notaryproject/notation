@@ -172,7 +172,7 @@ func removeCerts(ctx *cli.Context) error {
 	return nil
 }
 
-func printCertificateSet(s config.FileSet) {
+func printCertificateSet(s config.CertificateMap) {
 	maxNameSize := 0
 	for _, ref := range s {
 		if len(ref.Name) > maxNameSize {

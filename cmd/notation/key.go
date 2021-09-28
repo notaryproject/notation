@@ -1,11 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"path/filepath"
 
-	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"
 )
@@ -31,7 +31,7 @@ var (
 	keyAddCommand = &cli.Command{
 		Name:      "add",
 		Usage:     "Add key to signing key list",
-		ArgsUsage: "<path>",
+		ArgsUsage: "<key_path> <cert_path>",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "name",
@@ -72,21 +72,29 @@ var (
 
 func addKey(ctx *cli.Context) error {
 	// initialize
-	path := ctx.Args().First()
-	if path == "" {
-		return errors.New("missing key path")
+	args := ctx.Args()
+	switch args.Len() {
+	case 0:
+		return errors.New("missing key and certificate paths")
+	case 1:
+		return errors.New("missing certificate path for the correspoding key")
 	}
-	path, err := filepath.Abs(path)
+
+	keyPath, err := filepath.Abs(args.Get(0))
+	if err != nil {
+		return err
+	}
+	certPath, err := filepath.Abs(args.Get(1))
 	if err != nil {
 		return err
 	}
 	name := ctx.String("name")
 	if name == "" {
-		name = nameFromPath(path)
+		name = nameFromPath(keyPath)
 	}
 
-	// check if the target path is a key
-	if _, err := cryptoutil.ReadPrivateKeyFile(path); err != nil {
+	// check key / cert pair
+	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
 		return err
 	}
 
@@ -95,7 +103,7 @@ func addKey(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefault, err := addKeyCore(cfg, name, path, ctx.Bool(keyDefaultFlag.Name))
+	isDefault, err := addKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
 	if err != nil {
 		return err
 	}
@@ -112,8 +120,8 @@ func addKey(ctx *cli.Context) error {
 	return nil
 }
 
-func addKeyCore(cfg *config.File, name, path string, markDefault bool) (bool, error) {
-	if ok := cfg.SigningKeys.Keys.Append(name, path); !ok {
+func addKeyCore(cfg *config.File, name, keyPath, certPath string, markDefault bool) (bool, error) {
+	if ok := cfg.SigningKeys.Keys.Append(name, keyPath, certPath); !ok {
 		return false, errors.New(name + ": already exists")
 	}
 	if markDefault {
@@ -134,7 +142,7 @@ func updateKey(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if _, ok := cfg.SigningKeys.Keys.Get(name); !ok {
+	if _, _, ok := cfg.SigningKeys.Keys.Get(name); !ok {
 		return errors.New(name + ": not found")
 	}
 	if !ctx.Bool(keyDefaultFlag.Name) {
@@ -203,25 +211,28 @@ func removeKeys(ctx *cli.Context) error {
 	return nil
 }
 
-func printKeySet(target string, s config.FileSet) {
+func printKeySet(target string, s config.KeyMap) {
 	if len(s) == 0 {
 		fmt.Println("NAME\tPATH")
 		return
 	}
 
-	maxNameSize := 0
+	var maxNameSize, maxKeyPathSize int
 	for _, ref := range s {
 		if len(ref.Name) > maxNameSize {
 			maxNameSize = len(ref.Name)
 		}
+		if len(ref.KeyPath) > maxKeyPathSize {
+			maxKeyPathSize = len(ref.KeyPath)
+		}
 	}
-	format := fmt.Sprintf("%%c %%-%ds\t%%s\n", maxNameSize)
-	fmt.Printf(format, ' ', "NAME", "PATH")
+	format := fmt.Sprintf("%%c %%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyPathSize)
+	fmt.Printf(format, ' ', "NAME", "KEY PATH", "CERTIFICATE PATH")
 	for _, ref := range s {
 		mark := ' '
 		if ref.Name == target {
 			mark = '*'
 		}
-		fmt.Printf(format, mark, ref.Name, ref.Path)
+		fmt.Printf(format, mark, ref.Name, ref.KeyPath, ref.CertificatePath)
 	}
 }

@@ -16,13 +16,13 @@ type File struct {
 
 // VerificationCertificates is a collection of public certs used for verification.
 type VerificationCertificates struct {
-	Certificates FileSet `json:"certs"`
+	Certificates CertificateMap `json:"certs"`
 }
 
 // SigningKeys is a collection of signing keys.
 type SigningKeys struct {
-	Default string  `json:"default"`
-	Keys    FileSet `json:"keys"`
+	Default string `json:"default"`
+	Keys    KeyMap `json:"keys"`
 }
 
 // New creates a new config file
@@ -44,7 +44,7 @@ func (f *File) Save() error {
 	}
 	defer file.Close()
 	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "\t")
+	encoder.SetIndent("", "    ")
 	return encoder.Encode(f)
 }
 

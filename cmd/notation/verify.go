@@ -22,8 +22,8 @@ var verifyCommand = &cli.Command{
 	Flags: []cli.Flag{
 		flagSignature,
 		&cli.StringSliceFlag{
-			Name:    cmd.FlagCert.Name,
-			Aliases: cmd.FlagCert.Aliases,
+			Name:    "cert",
+			Aliases: []string{"c"},
 			Usage:   "certificate names for verification",
 		},
 		&cli.StringSliceFlag{
@@ -112,7 +112,7 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 
 func getVerifier(ctx *cli.Context) (notation.Verifier, error) {
 	certPaths := ctx.StringSlice(cmd.FlagCertFile.Name)
-	certPaths, err := appendCertPathFromName(certPaths, ctx.StringSlice(cmd.FlagCert.Name))
+	certPaths, err := appendCertPathFromName(certPaths, ctx.StringSlice("cert"))
 	if err != nil {
 		return nil, err
 	}

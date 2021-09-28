@@ -34,7 +34,7 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 	}
 
 	// ensure key / cert pair
-	if !hasPairedCert(key, certs) {
+	if !HasPairedCert(key, certs) {
 		return nil, errors.New("mismatch key and cert pair")
 	}
 

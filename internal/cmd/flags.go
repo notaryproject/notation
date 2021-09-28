@@ -16,12 +16,6 @@ var (
 		TakesFile: true,
 	}
 
-	FlagCert = &cli.StringFlag{
-		Name:    "cert",
-		Aliases: []string{"c"},
-		Usage:   "signing certificate name",
-	}
-
 	FlagCertFile = &cli.StringFlag{
 		Name:      "cert-file",
 		Usage:     "signing certificate file",

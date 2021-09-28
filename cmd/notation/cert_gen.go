@@ -63,7 +63,7 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefaultKey, err := addKeyCore(cfg, name, keyPath, ctx.Bool(keyDefaultFlag.Name))
+	isDefaultKey, err := addKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
 	if err != nil {
 		return err
 	}

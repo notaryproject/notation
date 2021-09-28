@@ -6,8 +6,8 @@ import (
 	"crypto/x509"
 )
 
-// hasPairedCert returns true if there is a certificate matching the given key.
-func hasPairedCert(key crypto.PrivateKey, certs []*x509.Certificate) bool {
+// HasPairedCert returns true if there is a certificate matching the given key.
+func HasPairedCert(key crypto.PrivateKey, certs []*x509.Certificate) bool {
 	var pk crypto.PublicKey
 	if key, ok := key.(interface {
 		Public() crypto.PublicKey
