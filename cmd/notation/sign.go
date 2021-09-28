@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -93,7 +92,7 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
 	return manifestDesc, notation.SignOptions{
-		Expiry: time.Now().Add(ctx.Duration(cmd.FlagExpiry.Name)),
+		Expiry: cmd.GetExpiry(ctx),
 		Metadata: notation.Metadata{
 			Identity: ctx.String(cmd.FlagReference.Name),
 		},

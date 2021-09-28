@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
@@ -52,7 +51,7 @@ func signImage(ctx *cli.Context) error {
 		identity = reference
 	}
 	sig, err := signer.Sign(ctx.Context, desc, notation.SignOptions{
-		Expiry: time.Now().Add(ctx.Duration(cmd.FlagExpiry.Name)),
+		Expiry: cmd.GetExpiry(ctx),
 		Metadata: notation.Metadata{
 			Identity: identity,
 		},

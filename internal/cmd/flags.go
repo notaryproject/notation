@@ -1,11 +1,7 @@
 // Package cmd contains common flags and routines for all CLIs.
 package cmd
 
-import (
-	"time"
-
-	"github.com/urfave/cli/v2"
-)
+import "github.com/urfave/cli/v2"
 
 var (
 	FlagKey = &cli.StringFlag{
@@ -42,7 +38,6 @@ var (
 		Name:    "expiry",
 		Aliases: []string{"e"},
 		Usage:   "expire duration",
-		Value:   7 * 24 * time.Hour, // default to a week
 	}
 
 	FlagReference = &cli.StringFlag{

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"time"
+
 	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation-go-lib/crypto/timestamp"
 	"github.com/notaryproject/notation/pkg/config"
@@ -41,4 +43,13 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		signer.TSA = timestamp.NewHTTPTimestamper(nil, endpoint)
 	}
 	return signer, nil
+}
+
+// GetExpiry returns the signature expiry according to the CLI context.
+func GetExpiry(ctx *cli.Context) time.Time {
+	expiry := ctx.Duration(FlagExpiry.Name)
+	if expiry == 0 {
+		return time.Time{}
+	}
+	return time.Now().Add(expiry)
 }
