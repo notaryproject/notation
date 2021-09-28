@@ -33,6 +33,11 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 		return nil, err
 	}
 
+	// ensure key / cert pair
+	if !hasPairedCert(key, certs) {
+		return nil, errors.New("mismatch key and cert pair")
+	}
+
 	// create signer
 	return jws.NewSignerWithCertificateChain(method, key, certs)
 }
