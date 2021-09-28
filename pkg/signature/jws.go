@@ -1,8 +1,10 @@
 package signature
 
 import (
+	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"os"
 
 	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
 	"github.com/notaryproject/notation-go-lib/signature/jws"
@@ -17,25 +19,29 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 		return nil, errors.New("certificate path not specified")
 	}
 
-	// read key
-	key, err := cryptoutil.ReadPrivateKeyFile(keyPath)
+	// read key / cert pair
+	keyPEM, err := os.ReadFile(keyPath)
 	if err != nil {
 		return nil, err
 	}
+	certPEM, err := os.ReadFile(certPath)
+	if err != nil {
+		return nil, err
+	}
+	keyPair, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		return nil, err
+	}
+	key := keyPair.PrivateKey
 	method, err := jws.SigningMethodFromKey(key)
 	if err != nil {
 		return nil, err
 	}
 
-	// read cert
-	certs, err := cryptoutil.ReadCertificateFile(certPath)
+	// parse cert
+	certs, err := cryptoutil.ParseCertificatePEM(certPEM)
 	if err != nil {
 		return nil, err
-	}
-
-	// ensure key / cert pair
-	if !HasPairedCert(key, certs) {
-		return nil, errors.New("mismatch key and cert pair")
 	}
 
 	// create signer
