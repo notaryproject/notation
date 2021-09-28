@@ -38,14 +38,14 @@ To demonstrate how to store and sign a graph of supply chain artifacts, the foll
   export PRIVATE_PORT=5050
   export PRIVATE_REGISTRY=localhost:${PRIVATE_PORT}
   export PRIVATE_REPO=${PRIVATE_REGISTRY}/net-monitor
-  export PRIVATE_IMAGE=${PRIVATE_PORT}:v1
+  export PRIVATE_IMAGE=${PRIVATE_REPO}:v1
   ```
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
-- Run a local registry representing the Wabbit Networks public registry
+- Run a local registry representing the Wabbit Networks **public** registry
   ```bash
   docker run -d -p ${PUBLIC_PORT}:5000 ghcr.io/oras-project/registry:latest
   ```
-- Run a local registry representing the ACME Rockets private registry
+- Run a local registry representing the ACME Rockets **private** registry
   ```bash
   docker run -d -p ${PRIVATE_PORT}:5000 ghcr.io/oras-project/registry:latest
   ```
@@ -80,19 +80,21 @@ To demonstrate how to store and sign a graph of supply chain artifacts, the foll
 - The above command should fail, as the Wabbit Networks public key has not yet been configured
 - Configure the Wabbit Networks key for validation, and re-validate
   ```bash
-  notation cert add -n "wabbit-networks.io" /home/stevelas/.config/notation/certificate/wabbit-networks.io.crt
+  notation cert add -n "wabbit-networks.io" ~/.config/notation/certificate/wabbit-networks.io.crt
   notation verify $PUBLIC_IMAGE
   ``` 
-> TODO: Promote with ORAS Copy
-
-## Reset
-To resetting the environment
-
-- Remove keys, certificates and notation `config.json`  
-  `rm -r ~/.config/notation/`
-- Restart the local registry  
-  `docker rm -f $(docker ps -q)`
-
+- Promote the image with oras cp ([See Copy Artifact Reference Graph #307](https://github.com/oras-project/oras/issues/307))
+  ```bash
+  oras cp $PUBLIC_IMAGE $PRIVATE_IMAGE -r
+  ```
+- Create a test cert for the ACME Rockets Library key
+  ```bash
+  notation cert generate-test "acme-rockets.io-library"
+  ```
+- Sign the container image
+  ```bash
+  notation sign --plain-http -k "acme-rockets.io-library"
+  ```
 
 [notation-releases]:      https://github.com/shizhMSFT/notation/releases/tag/v0.5.0
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
