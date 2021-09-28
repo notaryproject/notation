@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/signature"
@@ -21,22 +22,13 @@ var verifyCommand = &cli.Command{
 	Flags: []cli.Flag{
 		flagSignature,
 		&cli.StringSliceFlag{
-			Name:    "cert",
-			Aliases: []string{"c"},
+			Name:    cmd.FlagCert.Name,
+			Aliases: cmd.FlagCert.Aliases,
 			Usage:   "certificate names for verification",
 		},
 		&cli.StringSliceFlag{
-			Name:      "cert-file",
+			Name:      cmd.FlagCertFile.Name,
 			Usage:     "certificate files for verification",
-			TakesFile: true,
-		},
-		&cli.StringSliceFlag{
-			Name:  "ca-cert",
-			Usage: "CA certificate names for verification",
-		},
-		&cli.StringSliceFlag{
-			Name:      "ca-cert-file",
-			Usage:     "CA certificate files for verification",
 			TakesFile: true,
 		},
 		&cli.BoolFlag{
@@ -119,18 +111,12 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 }
 
 func getVerifier(ctx *cli.Context) (notation.Verifier, error) {
-	// resolve paths
-	certPaths := ctx.StringSlice("cert-file")
-	certPaths, err := appendCertPathFromName(certPaths, ctx.StringSlice("cert"))
+	certPaths := ctx.StringSlice(cmd.FlagCertFile.Name)
+	certPaths, err := appendCertPathFromName(certPaths, ctx.StringSlice(cmd.FlagCert.Name))
 	if err != nil {
 		return nil, err
 	}
-	caCertPaths := ctx.StringSlice("ca-cert-file")
-	caCertPaths, err = appendCertPathFromName(caCertPaths, ctx.StringSlice("ca-cert"))
-	if err != nil {
-		return nil, err
-	}
-	if len(certPaths) == 0 && len(caCertPaths) == 0 {
+	if len(certPaths) == 0 {
 		cfg, err := config.LoadOrDefaultOnce()
 		if err != nil {
 			return nil, err
@@ -142,9 +128,7 @@ func getVerifier(ctx *cli.Context) (notation.Verifier, error) {
 			certPaths = append(certPaths, ref.Path)
 		}
 	}
-
-	// read cert files
-	return signature.NewVerifierFromFiles(certPaths, caCertPaths)
+	return signature.NewVerifierFromFiles(certPaths)
 }
 
 func appendCertPathFromName(paths, names []string) ([]string, error) {

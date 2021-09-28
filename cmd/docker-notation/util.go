@@ -32,5 +32,5 @@ func getVerifier() (notation.Verifier, error) {
 	for _, cert := range cfg.VerificationCertificates.Certificates {
 		certPaths = append(certPaths, cert.Path)
 	}
-	return signature.NewVerifierFromFiles(certPaths, nil)
+	return signature.NewVerifierFromFiles(certPaths)
 }
