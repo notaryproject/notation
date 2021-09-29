@@ -64,11 +64,11 @@ To demonstrate how to store and sign a graph of supply chain artifacts, the foll
   ```
 - Sign the container image
   ```bash
-  notation sign --plain-http $PUBLIC_IMAGE
+  notation sign $PUBLIC_IMAGE
   ```
 - List the image, and any associated signatures
   ```bash
-  notation list --plain-http $PUBLIC_IMAGE
+  notation list $PUBLIC_IMAGE
   ```
 
 ## Import the Public Image
@@ -92,7 +92,7 @@ To demonstrate how to store and sign a graph of supply chain artifacts, the foll
   ```bash
   docker pull $PUBLIC_IMAGE
   docker tag $PUBLIC_IMAGE $PRIVATE_IMAGE
-  notation sign --plain-http --push false \
+  notation sign --push false \
     -k "acme-rockets.io-library" $PRIVATE_IMAGE
   ```
 - Push the image, but defer the tag update. This assures the new image (as a new digest) is pushed to the target registry, with all the references, before the tag is updated
