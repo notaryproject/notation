@@ -31,7 +31,9 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		return nil, err
 	}
 	if endpoint := ctx.String(FlagTimestamp.Name); endpoint != "" {
-		signer.TSA = timestamp.NewHTTPTimestamper(nil, endpoint)
+		if signer.TSA, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
+			return nil, err
+		}
 	}
 	return signer, nil
 }
