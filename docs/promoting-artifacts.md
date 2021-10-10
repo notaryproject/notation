@@ -74,9 +74,9 @@ To demonstrate how to store and sign a graph of supply chain artifacts, the foll
 ## Import the Public Image
 
 - Validate the image is signed with a key that fits within the ACME Rockets policy
- ```bash
- notation validate $PUBLIC_IMAGE
- ```
+  ```bash
+  notation verify $PUBLIC_IMAGE
+  ```
 - The above command should fail, as the Wabbit Networks public key has not yet been configured
 - Configure the Wabbit Networks key for validation, and re-validate
   ```bash
@@ -92,17 +92,24 @@ To demonstrate how to store and sign a graph of supply chain artifacts, the foll
   ```bash
   docker pull $PUBLIC_IMAGE
   docker tag $PUBLIC_IMAGE $PRIVATE_IMAGE
-  notation sign --push false \
-    -k "acme-rockets.io-library" $PRIVATE_IMAGE
+  docker notation sign $PRIVATE_IMAGE
+  # Need more discussion on how to reference a local image to enable this command:
+  #notation sign --push false \
+  #  -k "acme-rockets.io-library" $PRIVATE_IMAGE
   ```
 - Push the image, but defer the tag update. This assures the new image (as a new digest) is pushed to the target registry, with all the references, before the tag is updated
   ```bash
-  oras push $PRIVATE_IMAGE --digest-only
+  docker notation push $PRIVATE_IMAGE
+  #oras push $PRIVATE_IMAGE --digest-only
   ```
 - Copy the graph of content from a source to destination registry/repo. ([See Copy Artifact Reference Graph #307](https://github.com/oras-project/oras/issues/307))  
 The `net-monitor:v1` image will be ignored as the digest of the image manifest will already exist, however all the references that don't yet exist will be copied. Lastly a tag update will be applied as `oras cp` always copies the content before applying a tag update.
   ```bash
   oras cp $PUBLIC_IMAGE $PRIVATE_IMAGE -r
+  ```
+- List the graph of artifacts for the `net-monitor:v1` image in the ACME Rockets registry
+  ```bash
+  oras discover $PRIVATE_IMAGE -o tree
   ```
 
 [notation-releases]:      https://github.com/shizhMSFT/notation/releases/tag/v0.5.0
