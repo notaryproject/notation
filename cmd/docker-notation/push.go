@@ -11,11 +11,11 @@ import (
 	"strings"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
+	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -27,7 +27,7 @@ var pushCommand = &cli.Command{
 }
 
 func pushImage(ctx *cli.Context) error {
-	desc, err := pushImageAndGetOCIDescriptor(ctx)
+	desc, err := pushImageAndGetDescriptor(ctx)
 	if err != nil {
 		return err
 	}
@@ -73,44 +73,44 @@ func pushImage(ctx *cli.Context) error {
 	return nil
 }
 
-func pushImageAndGetOCIDescriptor(ctx *cli.Context) (ocispec.Descriptor, error) {
+func pushImageAndGetDescriptor(ctx *cli.Context) (notation.Descriptor, error) {
 	args := append([]string{"push"}, ctx.Args().Slice()...)
 	cmd := exec.Command("docker", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	scanner := bufio.NewScanner(io.TeeReader(stdout, os.Stdout))
 	if err := cmd.Start(); err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	var lastLine string
 	for scanner.Scan() {
 		lastLine = scanner.Text()
 	}
 	if err := scanner.Err(); err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	if err := cmd.Wait(); err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 
 	parts := strings.Split(lastLine, " ")
 	if len(parts) != 5 {
-		return ocispec.Descriptor{}, fmt.Errorf("invalid docker pull result: %s", lastLine)
+		return notation.Descriptor{}, fmt.Errorf("invalid docker pull result: %s", lastLine)
 	}
 	digest, err := digest.Parse(parts[2])
 	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("invalid digest: %s", lastLine)
+		return notation.Descriptor{}, fmt.Errorf("invalid digest: %s", lastLine)
 	}
 	size, err := strconv.ParseInt(parts[4], 10, 64)
 	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("invalid size: %s", lastLine)
+		return notation.Descriptor{}, fmt.Errorf("invalid size: %s", lastLine)
 	}
 
-	return ocispec.Descriptor{
+	return notation.Descriptor{
 		MediaType: schema2.MediaTypeManifest,
 		Digest:    digest,
 		Size:      size,

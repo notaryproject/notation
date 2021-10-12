@@ -27,21 +27,22 @@ func IsRegistryInsecure(target string) bool {
 	return false
 }
 
-// ResolveKeyPath resolves the key path by name.
+// ResolveKeyPath resolves the key path by name along with
+// its corresponding certificate path.
 // The default key is attempted if name is empty.
-func ResolveKeyPath(name string) (string, error) {
+func ResolveKeyPath(name string) (string, string, error) {
 	config, err := LoadOrDefaultOnce()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	if name == "" {
 		name = config.SigningKeys.Default
 	}
-	path, ok := config.SigningKeys.Keys.Get(name)
+	keyPath, certPath, ok := config.SigningKeys.Keys.Get(name)
 	if !ok {
-		return "", ErrKeyNotFound
+		return "", "", ErrKeyNotFound
 	}
-	return path, nil
+	return keyPath, certPath, nil
 }
 
 // ResolveCertificatePath resolves the certificate path by name.

@@ -13,9 +13,9 @@ var listCommand = &cli.Command{
 	Aliases:   []string{"ls"},
 	ArgsUsage: "<reference>",
 	Flags: []cli.Flag{
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
 	},
 	Action: runList,
 }
