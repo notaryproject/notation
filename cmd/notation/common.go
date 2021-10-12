@@ -3,38 +3,38 @@ package main
 import "github.com/urfave/cli/v2"
 
 var (
-	usernameFlag = &cli.StringFlag{
+	flagUsername = &cli.StringFlag{
 		Name:    "username",
 		Aliases: []string{"u"},
 		Usage:   "username for generic remote access",
 		EnvVars: []string{"NOTATION_USERNAME"},
 	}
-	passwordFlag = &cli.StringFlag{
+	flagPassword = &cli.StringFlag{
 		Name:    "password",
 		Aliases: []string{"p"},
 		Usage:   "password for generic remote access",
 		EnvVars: []string{"NOTATION_PASSWORD"},
 	}
-	plainHTTPFlag = &cli.BoolFlag{
+	flagPlainHTTP = &cli.BoolFlag{
 		Name:  "plain-http",
 		Usage: "remote access via plain HTTP",
 	}
-	mediaTypeFlag = &cli.StringFlag{
+	flagMediaType = &cli.StringFlag{
 		Name:  "media-type",
 		Usage: "specify the media type of the manifest read from file or stdin",
 		Value: "application/vnd.docker.distribution.manifest.v2+json",
 	}
-	outputFlag = &cli.StringFlag{
+	flagOutput = &cli.StringFlag{
 		Name:    "output",
 		Aliases: []string{"o"},
 		Usage:   "write signature to a specific path",
 	}
-	localFlag = &cli.BoolFlag{
+	flagLocal = &cli.BoolFlag{
 		Name:    "local",
 		Aliases: []string{"l"},
 		Usage:   "reference is a local file",
 	}
-	signatureFlag = &cli.StringSliceFlag{
+	flagSignature = &cli.StringSliceFlag{
 		Name:      "signature",
 		Aliases:   []string{"s", "f"},
 		Usage:     "signature files",

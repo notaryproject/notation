@@ -6,24 +6,24 @@ import (
 	"math"
 	"os"
 
+	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
-func getManifestDescriptorFromContext(ctx *cli.Context) (ocispec.Descriptor, error) {
+func getManifestDescriptorFromContext(ctx *cli.Context) (notation.Descriptor, error) {
 	ref := ctx.Args().First()
 	if ref == "" {
-		return ocispec.Descriptor{}, errors.New("missing reference")
+		return notation.Descriptor{}, errors.New("missing reference")
 	}
 	return getManifestDescriptorFromContextWithReference(ctx, ref)
 }
 
-func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string) (ocispec.Descriptor, error) {
-	if ctx.Bool(localFlag.Name) {
-		mediaType := ctx.String(mediaTypeFlag.Name)
+func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string) (notation.Descriptor, error) {
+	if ctx.Bool(flagLocal.Name) {
+		mediaType := ctx.String(flagMediaType.Name)
 		if ref == "-" {
 			return getManifestDescriptorFromReader(os.Stdin, mediaType)
 		}
@@ -33,45 +33,42 @@ func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string)
 	return getManifestDescriptorFromReference(ctx, ref)
 }
 
-func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (ocispec.Descriptor, error) {
+func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (notation.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
-	plainHTTP := ctx.Bool(plainHTTPFlag.Name)
+	plainHTTP := ctx.Bool(flagPlainHTTP.Name)
 	if !plainHTTP {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
 	}
-	remote := registry.NewClient(
-		registry.NewAuthtransport(
-			nil,
-			ctx.String(usernameFlag.Name),
-			ctx.String(passwordFlag.Name),
-		),
-		plainHTTP,
+	tr := registry.NewAuthtransport(
+		nil,
+		ctx.String(flagUsername.Name),
+		ctx.String(flagPassword.Name),
 	)
-	return remote.GetManifestDescriptor(ref)
+	return registry.GetManifestDescriptor(ctx.Context, tr, ref, plainHTTP)
 }
 
-func getManifestDescriptorFromFile(path, mediaType string) (ocispec.Descriptor, error) {
+func getManifestDescriptorFromFile(path, mediaType string) (notation.Descriptor, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	defer file.Close()
 	return getManifestDescriptorFromReader(file, mediaType)
 }
 
-func getManifestDescriptorFromReader(r io.Reader, mediaType string) (ocispec.Descriptor, error) {
+func getManifestDescriptorFromReader(r io.Reader, mediaType string) (notation.Descriptor, error) {
 	lr := &io.LimitedReader{
 		R: r,
 		N: math.MaxInt64,
 	}
 	digest, err := digest.SHA256.FromReader(lr)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
-	return ocispec.Descriptor{
+	return notation.Descriptor{
 		MediaType: mediaType,
 		Digest:    digest,
 		Size:      math.MaxInt64 - lr.N,

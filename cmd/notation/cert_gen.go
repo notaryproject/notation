@@ -13,7 +13,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"
 )
@@ -46,14 +46,14 @@ func generateTestCert(ctx *cli.Context) error {
 
 	// write private key
 	keyPath := config.KeyPath(name)
-	if err := os.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
+	if err := osutil.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
 	fmt.Println("wrote key:", keyPath)
 
 	// write self-signed certificate
 	certPath := config.CertificatePath(name)
-	if err := os.WriteFileWithPermission(certPath, certBytes, 0644, false); err != nil {
+	if err := osutil.WriteFileWithPermission(certPath, certBytes, 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
 	fmt.Println("wrote certificate:", certPath)
@@ -63,7 +63,7 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefaultKey, err := addKeyCore(cfg, name, keyPath, ctx.Bool(keyDefaultFlag.Name))
+	isDefaultKey, err := addKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
 	if err != nil {
 		return err
 	}

@@ -1,8 +1,6 @@
-package count
+package ioutil
 
-import (
-	"io"
-)
+import "io"
 
 // CountWriter counts the written bytes
 type CountWriter struct {

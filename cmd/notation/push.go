@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/notaryproject/notation-go-lib"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,10 +16,10 @@ var pushCommand = &cli.Command{
 	Usage:     "Push signature to remote",
 	ArgsUsage: "<reference>",
 	Flags: []cli.Flag{
-		signatureFlag,
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
+		flagSignature,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
 	},
 	Action: runPush,
 }
@@ -34,7 +34,7 @@ func runPush(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sigPaths := ctx.StringSlice(signatureFlag.Name)
+	sigPaths := ctx.StringSlice(flagSignature.Name)
 	if len(sigPaths) == 0 {
 		sigDigests, err := cache.SignatureDigests(manifestDesc.Digest)
 		if err != nil {
@@ -71,25 +71,25 @@ func runPush(ctx *cli.Context) error {
 	return nil
 }
 
-func pushSignature(ctx *cli.Context, ref string, sig []byte) (ocispec.Descriptor, error) {
+func pushSignature(ctx *cli.Context, ref string, sig []byte) (notation.Descriptor, error) {
 	// initialize
 	sigRepo, err := getSignatureRepository(ctx, ref)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 
 	// core process
 	sigDesc, err := sigRepo.Put(ctx.Context, sig)
 	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
+		return notation.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
 	}
 	desc, err := sigRepo.Link(ctx.Context, manifestDesc, sigDesc)
 	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
+		return notation.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
 	}
 
 	return desc, nil

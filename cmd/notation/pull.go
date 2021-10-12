@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation/internal/os"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/registry"
@@ -23,10 +22,10 @@ var pullCommand = &cli.Command{
 			Name:  "strict",
 			Usage: "pull the signature without lookup the manifest",
 		},
-		outputFlag,
-		usernameFlag,
-		passwordFlag,
-		plainHTTPFlag,
+		flagOutput,
+		flagUsername,
+		flagPassword,
+		flagPlainHTTP,
 	},
 	Action: runPull,
 }
@@ -58,7 +57,7 @@ func runPull(ctx *cli.Context) error {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
 
-	path := ctx.String(outputFlag.Name)
+	path := ctx.String(flagOutput.Name)
 	for _, sigDigest := range sigDigests {
 		if path != "" {
 			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
@@ -66,7 +65,7 @@ func runPull(ctx *cli.Context) error {
 			if err != nil {
 				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 			}
-			if err := os.WriteFile(outputPath, sig); err != nil {
+			if err := osutil.WriteFile(outputPath, sig); err != nil {
 				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 			}
 		} else if err := cache.PullSignature(ctx.Context, sigRepo, manifestDesc.Digest, sigDigest); err != nil {
@@ -80,7 +79,7 @@ func runPull(ctx *cli.Context) error {
 	return nil
 }
 
-func pullSignatureStrict(ctx *cli.Context, sigRepo notation.SignatureRepository, reference string) error {
+func pullSignatureStrict(ctx *cli.Context, sigRepo registry.SignatureRepository, reference string) error {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return err
@@ -94,11 +93,11 @@ func pullSignatureStrict(ctx *cli.Context, sigRepo notation.SignatureRepository,
 	if err != nil {
 		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 	}
-	outputPath := ctx.String(outputFlag.Name)
+	outputPath := ctx.String(flagOutput.Name)
 	if outputPath == "" {
 		outputPath = sigDigest.Encoded() + config.SignatureExtension
 	}
-	if err := os.WriteFile(outputPath, sig); err != nil {
+	if err := osutil.WriteFile(outputPath, sig); err != nil {
 		return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 	}
 
