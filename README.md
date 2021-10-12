@@ -1,6 +1,6 @@
 # Notation
 
-Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar in security to checking git commit signatures, although the signatures are generic and can be used for additional purposes.
+Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar in security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Based on Notary V2 standard.
 
 ## Table of Contents
 
