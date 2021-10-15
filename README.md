@@ -30,14 +30,6 @@ Notation is a project to add signatures as standard items in the registry ecosys
   notation list $IMAGE 
   notation verify $IMAGE
   ```
-
-## Branch
-
-[Prototype 2][prototype-2] - signing and verifying OCI artifacts, using signatures persisted [ORAS Artifacts manifests][artifact-manifest]
-
-[artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
-[prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
-
 ## Core Documents
 
 * [Governance for Notation](https://github.com/notaryproject/notary/blob/master/GOVERNANCE.md)
