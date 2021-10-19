@@ -24,3 +24,5 @@ require (
 	golang.org/x/sys v0.0.0-20210925032602-92d5a993a665 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 )
+
+replace github.com/notaryproject/notation-go-lib => github.com/shizhMSFT/notation-go-lib v0.0.0-20211019094746-261df69c9ed4

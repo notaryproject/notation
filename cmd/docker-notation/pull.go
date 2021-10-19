@@ -111,16 +111,16 @@ func verifySignatures(
 			return "", "", err
 		}
 
-		actualDesc, meta, err := verifier.Verify(ctx, sig, opts)
+		actualDesc, err := verifier.Verify(ctx, sig, opts)
 		if err != nil {
 			lastErr = err
 			continue
 		}
-		if actualDesc != desc {
-			lastErr = fmt.Errorf("verification failure: digest mismatch: %v: %v", desc, actualDesc)
+		if !actualDesc.Equal(desc) {
+			lastErr = fmt.Errorf("verification failure: digest mismatch: %v: %v", desc.Digest, actualDesc.Digest)
 			continue
 		}
-		return sigDigest, meta.Identity, nil
+		return sigDigest, actualDesc.Annotations["identity"], nil
 	}
 	return "", "", lastErr
 }
