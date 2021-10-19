@@ -10,19 +10,18 @@ code.
 
 ## Certificate of Origin
 
-By contributing to this project you agree to the Developer Certificate of
+By contributing to this project, you agree to the Developer Certificate of
 Origin (DCO). This document was created by the Linux Kernel community and is a
 simple statement that you, as a contributor, have the legal right to make the
 contribution.
 
 We require all commits to be signed. By signing off with your signature, you
 certify that you wrote the patch or otherwise have the right to contribute the
-material by the rules of the [DCO](DCO):
+material by the rules of the [DCO](https://github.com/apps/dco):
 
 `Signed-off-by: Jane Doe <jane.doe@example.com>`
 
-The signature must contain your real name
-(sorry, no pseudonyms or anonymous contributions)
+The signature must contain your real name *(sorry, no pseudonyms or anonymous contributions)*.
 If your `user.name` and `user.email` are configured in your Git config,
 you can sign your commit automatically with `git commit -s`.
 
@@ -41,8 +40,12 @@ Discussions](https://github.com/notaryproject/notaryproject/discussions).
 
 This project is composed of:
 
-- [nv2](https://github.com/notaryproject/nv2): The Notary v2 CLI and Docker plugins
+- [notation](https://github.com/notaryproject/notation): The Notary v2 CLI and Docker plugins
+- [notation-go-lib](https://github.com/notaryproject/notation-go-lib): A collection of libraries for supporting Notation sign, verify of oci artifacts. Based on Notary V2 standard.
 - [notaryproject](https://github.com/notaryproject/notaryproject): The Notary v2 requirements and scenarios to frame the scope of the Notary project
+- [tuf-notary](https://github.com/notaryproject/tuf): Integration of Notary v2 and TUF
+
+Also consider checking out our [roadmap](https://github.com/notaryproject/roadmap).
 
 ### Understanding the code
 
@@ -52,7 +55,7 @@ We are using the following [project-layout](https://github.com/golang-standards/
 
 Prerequisites:
 
-- go >= 1.16
+- go >= 1.17
 
 You can run the unit tests by simply doing
 
