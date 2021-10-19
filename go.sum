@@ -99,8 +99,8 @@ github.com/prometheus/procfs v0.0.3/go.mod h1:4A/X28fw3Fc593LaREMrKMqOKvUAntwMDa
 github.com/russross/blackfriday/v2 v2.0.1 h1:lPqVAte+HuHNfhJ/0LC98ESWRz8afy9tM/0RK8m9o+Q=
 github.com/russross/blackfriday/v2 v2.0.1/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
-github.com/shizhMSFT/notation-go-lib v0.0.0-20211019094746-261df69c9ed4 h1:e+YvvQCbVyfZYYCTJkNTgaKRdi4SkiSbD5oCXSL5rP8=
-github.com/shizhMSFT/notation-go-lib v0.0.0-20211019094746-261df69c9ed4/go.mod h1:3G7xPzga5+8e0mRMhMKpx1gIikr5c7tnZaKT6JQnlmM=
+github.com/shizhMSFT/notation-go-lib v0.0.0-20211019114419-56c573dfd247 h1:ZJfDDaFYSSOkiyNfXSA7fD3rRuVjbDm3VkHXHV23vdE=
+github.com/shizhMSFT/notation-go-lib v0.0.0-20211019114419-56c573dfd247/go.mod h1:3G7xPzga5+8e0mRMhMKpx1gIikr5c7tnZaKT6JQnlmM=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
