@@ -49,8 +49,10 @@ func signImage(ctx *cli.Context) error {
 	if ctx.Bool("origin") {
 		identity = reference
 	}
-	desc.Annotations = map[string]string{
-		"identity": identity,
+	if identity != "" {
+		desc.Annotations = map[string]string{
+			"identity": identity,
+		}
 	}
 	sig, err := signer.Sign(ctx.Context, desc, notation.SignOptions{
 		Expiry: cmd.GetExpiry(ctx),
