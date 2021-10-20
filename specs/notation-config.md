@@ -24,7 +24,7 @@ The default location and file will be stored at: `~/.config/notation/config.json
 | `key.certPath`            | _string_ | a location by which the paired certificate can be found by the notation cli or notation libraries                                                         |
 | `insecureRegistries`      | _array_  | a list of registries that may be used without https                                                                                                       |
 
-## Samples 
+## Samples
 
 `~/.config/notation/config.json`
 
