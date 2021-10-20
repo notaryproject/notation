@@ -5,8 +5,8 @@ import (
 	"os/exec"
 
 	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation/cmd/docker-notation/crypto"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/signature"
 )
 
 func runCommand(command string, args ...string) error {
@@ -23,7 +23,7 @@ func runCommand(command string, args ...string) error {
 	return nil
 }
 
-func getVerificationService() (notation.SigningService, error) {
+func getVerifier() (notation.Verifier, error) {
 	cfg, err := config.LoadOrDefaultOnce()
 	if err != nil {
 		return nil, err
@@ -32,5 +32,5 @@ func getVerificationService() (notation.SigningService, error) {
 	for _, cert := range cfg.VerificationCertificates.Certificates {
 		certPaths = append(certPaths, cert.Path)
 	}
-	return crypto.GetSigningService("", certPaths...)
+	return signature.NewVerifierFromFiles(certPaths)
 }

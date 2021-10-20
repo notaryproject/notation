@@ -5,13 +5,12 @@ import (
 	"net"
 
 	"github.com/distribution/distribution/v3/reference"
-	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation-go-lib/registry"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/registry"
 )
 
 // GetSignatureRepository returns a signature repository
-func GetSignatureRepository(ctx context.Context, ref string) (notation.SignatureRepository, error) {
+func GetSignatureRepository(ctx context.Context, ref string) (registry.SignatureRepository, error) {
 	named, err := reference.ParseNamed(ref)
 	if err != nil {
 		return nil, err

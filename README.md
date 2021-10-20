@@ -1,13 +1,14 @@
 # Notation
 
-Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar in security to checking git commit signatures, although the signatures are generic and can be used for additional purposes.
+Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar in security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Based on Notary V2 standard.
 
 ## Table of Contents
 
 - [Notation Quick Start](#notation-quick-start)
-- [Branch](#branch)
 - [Core Documents](#core-documents)
 - [Community](#community)
+- [Release Management](#release-management)
+- [Support](#support)
 - [Code of Conduct](#code-of-conduct)
 - [License](#license)
 
@@ -29,12 +30,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
   notation verify $IMAGE
   ```
 
-## Branch
-
-[Prototype 2][prototype-2] - signing and verifying OCI artifacts, using signatures persisted [ORAS Artifacts manifests][artifact-manifest]
-
-[artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
-[prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
+Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
 
 ## Core Documents
 
@@ -49,6 +45,15 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 * Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
+## Release Management
+
+The Notation release process is defined in [RELEASE_MANAGEMENT.md](RELEASE_MANAGEMENT.md#supported-releases).
+
+## Support
+
+Support for the Notation project is defined in [supported releases](RELEASE_MANAGEMENT.md#supported-releases).
+
+
 ## Code of Conduct
 
 This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foundation/blob/master/code-of-conduct.md). See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for further details.
@@ -57,6 +62,9 @@ This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foun
 
 This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE).
 
+=======
+
 [notation-releases]:      https://github.com/shizhMSFT/notation/releases/tag/v0.5.0
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
+
