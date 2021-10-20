@@ -90,10 +90,12 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
+	if identity := ctx.String(cmd.FlagReference.Name); identity != "" {
+		manifestDesc.Annotations = map[string]string{
+			"identity": identity,
+		}
+	}
 	return manifestDesc, notation.SignOptions{
 		Expiry: cmd.GetExpiry(ctx),
-		Metadata: notation.Metadata{
-			Identity: ctx.String(cmd.FlagReference.Name),
-		},
 	}, nil
 }
