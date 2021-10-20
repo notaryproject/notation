@@ -19,7 +19,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
     curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.0-alpha.1/notation_0.7.0-alpha.1_linux_amd64.tar.gz
     tar xvzf notation.tar.gz -C ~/bin notation
     ```
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution]
+- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
   ```bash
   docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v0.0.3-alpha
   ```
@@ -29,9 +29,9 @@ Notation is a project to add signatures as standard items in the registry ecosys
   docker build -t $IMAGE https://github.com/wabbit-networks/net-monitor.git#main
   docker push $IMAGE
   notation cert generate-test --default --trust "wabbit-networks-dev"
-  notation sign $IMAGE
-  notation list $IMAGE 
-  notation verify $IMAGE
+  notation sign --plain-http $IMAGE
+  notation list --plain-http $IMAGE 
+  notation verify --plain-http $IMAGE
   ```
 
 Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
@@ -74,4 +74,3 @@ This project is covered under the Apache 2.0 license. You can read the license [
 [notaryv2-specs]:         https://github.com/notaryproject/notaryproject
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
-
