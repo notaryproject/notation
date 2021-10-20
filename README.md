@@ -5,7 +5,6 @@ Notation is a project to add signatures as standard items in the registry ecosys
 ## Table of Contents
 
 - [Notation Quick Start](#notation-quick-start)
-- [Branch](#branch)
 - [Core Documents](#core-documents)
 - [Community](#community)
 - [Release Management](#release-management)
@@ -31,12 +30,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
   notation verify $IMAGE
   ```
 
-## Branch
-
-[Prototype 2][prototype-2] - signing and verifying OCI artifacts, using signatures persisted [ORAS Artifacts manifests][artifact-manifest]
-
-[artifact-manifest]:  https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
-[prototype-2]:      https://github.com/notaryproject/notation/tree/prototype-2
+Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
 
 ## Core Documents
 
