@@ -95,13 +95,13 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 		if err != nil {
 			return err
 		}
-		desc, _, err := verifier.Verify(ctx, sig, opts)
+		desc, err := verifier.Verify(ctx, sig, opts)
 		if err != nil {
 			lastErr = fmt.Errorf("verification failure: %v", err)
 			continue
 		}
 
-		if desc != manifestDesc {
+		if !desc.Equal(manifestDesc) {
 			lastErr = fmt.Errorf("verification failure: %s", manifestDesc.Digest)
 			continue
 		}
