@@ -17,7 +17,7 @@ To demonstrate how to store and sign a set of supply chain artifacts, we will wa
 - Import public content to a private registry
 - Promote from dev through production
 
-![](./media/notary-e2e-scenarios.svg)
+![](../media/notary-e2e-scenarios.svg)
 
 To illustrate these scenarios we will introduce two example companies:
 
@@ -42,15 +42,15 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
   export IMAGE=${REPO}:v1
   ```
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution]
+- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
   ```bash
-  docker run -d -p ${PORT}:5000 ghcr.io/oras-project/registry:latest
+  docker run -d -p ${PORT}:5000 ghcr.io/oras-project/registry:v0.0.3-alpha
   ```
 - Acquire the Notation CLI  
 Notation releases can be found at: [Notation Releases][notation-releases]  
   ```bash
   #LINUX, including WSL
-  curl -Lo notation.tar.gz https://github.com/shizhMSFT/notation/releases/download/v0.5.2/notation_0.5.2_linux_amd64.tar.gz
+  curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.0-alpha.1/notation_0.7.0-alpha.1_linux_amd64.tar.gz
   tar xvzf notation.tar.gz -C ~/bin notation
   ```
 
@@ -63,7 +63,7 @@ Notation releases can be found at: [Notation Releases][notation-releases]
   ```
 - List the image, and any associated signatures
   ```bash
-  notation list $IMAGE
+  notation list --plain-http $IMAGE
   ```
   At this point, the results are empty, as there are no existing signatures
 
@@ -78,11 +78,11 @@ To get things started quickly, the Notation cli supports generating self signed 
   ```
 - Sign the container image
   ```bash
-  notation sign $IMAGE
+  notation sign --plain-http $IMAGE
   ```
 - List the image, and any associated signatures
   ```bash
-  notation list $IMAGE 
+  notation list --plain-http $IMAGE 
   ```
 
 ## Verify a Container Image Using Notation Signatures
@@ -90,7 +90,7 @@ To get things started quickly, the Notation cli supports generating self signed 
 To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify that the artifact was unmodified after it was created (integrity), and from an trusted entity (authenticity). Notation uses a set of configured public keys that represent trusted entities, to verify the content. The `notation cert generate-test` command created the public key, however it must be implicitly added for verification to succeed.
 - Attempt to verify the $IMAGE notation signature
   ```bash
-  notation verify $IMAGE
+  notation verify --plain-http $IMAGE
   ```
   *The above verification should fail, as you haven't yet configured the keys to trust.*
   ```bash
@@ -102,7 +102,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
   ```
 - Verify the `net-monitor:v1` notation signature
   ```bash
-  notation verify $IMAGE
+  notation verify --plain-http $IMAGE
   ```
   This should now succeed because the image is signed with a trusted public key
 
@@ -140,6 +140,6 @@ Here are the additional steps to simulate a fully qualified DNS name for wabbit-
       ```
 - Continue with [Getting Started](#getting-started), but skip the environment variable configurations
 
-[notation-releases]:      https://github.com/shizhMSFT/notation/releases/tag/v0.5.0
+[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.7.0-alpha.1
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
