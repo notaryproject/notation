@@ -1,6 +1,6 @@
 # Notation
 
-Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar in security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Based on Notary V2 standard.
+Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary V2 specifications][notaryv2-specs].
 
 ## Table of Contents
 
@@ -14,11 +14,14 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 ## Notation Quick Start
 
-- Install the Notation CLI from [Notation Releases][notation-releases]
-
+- Install the Notation CLI from [Notation Releases][notation-releases]  
+    ```bash
+    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.0-alpha.1/notation_0.7.0-alpha.1_linux_amd64.tar.gz
+    tar xvzf notation.tar.gz -C ~/bin notation
+    ```
+- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
   ```bash
-  curl -Lo notation.tar.gz https://github.com/shizhMSFT/notation/releases/download/v0.5.2/notation_0.5.2_linux_amd64.tar.gz
-  tar xvzf notation.tar.gz -C ~/bin notation
+  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v0.0.3-alpha
   ```
 
 - Build, Push, Sign, Verify the `net-monitor` software
@@ -28,12 +31,14 @@ Notation is a project to add signatures as standard items in the registry ecosys
   docker build -t $IMAGE https://github.com/wabbit-networks/net-monitor.git#main
   docker push $IMAGE
   notation cert generate-test --default --trust "wabbit-networks-dev"
-  notation sign $IMAGE
-  notation list $IMAGE
-  notation verify $IMAGE
+  notation sign --plain-http $IMAGE
+  notation list --plain-http $IMAGE
+  notation verify --plain-http $IMAGE
   ```
 
 Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
+
+For more detailed samples, see [hello-signing](docs/hello-signing.md)
 
 ## Core Documents
 
@@ -62,6 +67,7 @@ This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foun
 
 This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE).
 
-[notation-releases]:      https://github.com/shizhMSFT/notation/releases/tag/v0.5.0
+[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.7.0-alpha.1
+[notaryv2-specs]:         https://github.com/notaryproject/notaryproject
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
