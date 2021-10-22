@@ -18,7 +18,7 @@ To demonstrate how to store and sign a set of supply chain artifacts, we will wa
 - Import public content to a private registry
 - Promote from dev through production
 
-![Notary end-to-end scenarios](./media/notary-e2e-scenarios.svg)
+![Notary end-to-end scenarios](../media/notary-e2e-scenarios.svg)
 
 To illustrate these scenarios we will introduce two example companies:
 
