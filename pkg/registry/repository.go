@@ -212,12 +212,11 @@ func (r *RepositoryClient) putBlob(ctx context.Context, blob []byte, digest dige
 		return fmt.Errorf("failed to init upload: %s", resp.Status)
 	}
 
-	url = resp.Header.Get("Location")
-	if url == "" {
-		return http.ErrNoLocation
+	location, err := resp.Location()
+	if err != nil {
+		return err
 	}
-
-	req, err = http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewReader(blob))
+	req, err = http.NewRequestWithContext(ctx, http.MethodPut, location.String(), bytes.NewReader(blob))
 	if err != nil {
 		return err
 	}
