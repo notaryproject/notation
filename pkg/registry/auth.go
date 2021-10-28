@@ -50,10 +50,10 @@ func (t *authTransport) RoundTrip(originalReq *http.Request) (*http.Response, er
 
 		token, resp, err := t.fetchToken(params)
 		if err != nil {
-			if resp != nil {
-				return resp, nil
-			}
 			return nil, err
+		}
+		if resp != nil {
+			return resp, nil
 		}
 
 		req = originalReq.Clone(originalReq.Context())
