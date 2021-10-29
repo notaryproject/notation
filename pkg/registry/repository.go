@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/distribution/distribution/v3/manifest/manifestlist"
 	"github.com/distribution/distribution/v3/manifest/schema2"
@@ -215,6 +216,10 @@ func (r *RepositoryClient) putBlob(ctx context.Context, blob []byte, digest dige
 	url = resp.Header.Get("Location")
 	if url == "" {
 		return http.ErrNoLocation
+	}
+
+	if !strings.HasPrefix(url, r.base) {
+		url = fmt.Sprintf("%s%s", r.base, url)
 	}
 
 	req, err = http.NewRequestWithContext(ctx, http.MethodPut, url, bytes.NewReader(blob))
