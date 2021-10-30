@@ -31,34 +31,37 @@ func NewAuthtransport(base http.RoundTripper, username, password string) http.Ro
 
 func (t *authTransport) RoundTrip(originalReq *http.Request) (*http.Response, error) {
 	req := originalReq.Clone(originalReq.Context())
-	if t.username != "" {
-		req.SetBasicAuth(t.username, t.password)
-	}
-
 	resp, err := t.base.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusUnauthorized {
+	if resp.StatusCode != http.StatusUnauthorized || t.username == "" {
 		return resp, nil
 	}
 
 	scheme, params := parseAuthHeader(resp.Header.Get("Www-Authenticate"))
-	if scheme != "bearer" {
-		return resp, nil
-	}
-	resp.Body.Close()
+	switch scheme {
+	case "basic":
+		resp.Body.Close()
+		req = originalReq.Clone(originalReq.Context())
+		req.SetBasicAuth(t.username, t.password)
+	case "bearer":
+		resp.Body.Close()
 
-	token, resp, err := t.fetchToken(params)
-	if err != nil {
+		token, resp, err := t.fetchToken(params)
+		if err != nil {
+			return nil, err
+		}
 		if resp != nil {
 			return resp, nil
 		}
-		return nil, err
+
+		req = originalReq.Clone(originalReq.Context())
+		req.Header.Set("Authorization", "Bearer "+token)
+	default:
+		return resp, nil
 	}
 
-	req = originalReq.Clone(originalReq.Context())
-	req.Header.Set("Authorization", "Bearer "+token)
 	return t.base.RoundTrip(req)
 }
 
