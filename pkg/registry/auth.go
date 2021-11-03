@@ -35,13 +35,16 @@ func (t *authTransport) RoundTrip(originalReq *http.Request) (*http.Response, er
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusUnauthorized || t.username == "" {
+	if resp.StatusCode != http.StatusUnauthorized {
 		return resp, nil
 	}
 
 	scheme, params := parseAuthHeader(resp.Header.Get("Www-Authenticate"))
 	switch scheme {
 	case "basic":
+		if t.username == "" {
+			return resp, nil
+		}
 		resp.Body.Close()
 		req = originalReq.Clone(originalReq.Context())
 		req.SetBasicAuth(t.username, t.password)
