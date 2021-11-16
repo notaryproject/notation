@@ -12,6 +12,7 @@ type File struct {
 	VerificationCertificates VerificationCertificates `json:"verificationCerts"`
 	SigningKeys              SigningKeys              `json:"signingKeys,omitempty"`
 	InsecureRegistries       []string                 `json:"insecureRegistries"`
+	KMSPlugins               KMSPlugins               `json:"kmsPlugins"`
 }
 
 // VerificationCertificates is a collection of public certs used for verification.
@@ -23,6 +24,11 @@ type VerificationCertificates struct {
 type SigningKeys struct {
 	Default string `json:"default"`
 	Keys    KeyMap `json:"keys"`
+}
+
+// KMSPlugins is a collection of plugins.
+type KMSPlugins struct {
+	Plugins PluginMap `json:"plugins"`
 }
 
 // New creates a new config file

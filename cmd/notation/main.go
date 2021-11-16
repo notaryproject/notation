@@ -27,6 +27,7 @@ func main() {
 			certCommand,
 			keyCommand,
 			cacheCommand,
+			pluginCommand,
 		},
 	}
 	if err := app.Run(os.Args); err != nil {
