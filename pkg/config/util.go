@@ -11,6 +11,9 @@ var (
 
 	// ErrCertificateNotFound indicates that the verification certificate is not found.
 	ErrCertificateNotFound = errors.New("verification certificate not found")
+
+	// ErrKMSPluginNotFound indicates that the KMS plugin is not found.
+	ErrPluginNotFound = errors.New("plugin not found")
 )
 
 // IsRegistryInsecure checks whether the registry is in the list of insecure registries.
@@ -54,6 +57,37 @@ func ResolveCertificatePath(name string) (string, error) {
 	path, ok := config.VerificationCertificates.Certificates.Get(name)
 	if !ok {
 		return "", ErrCertificateNotFound
+	}
+	return path, nil
+}
+
+// ResolveKMSKeyID resolves the KMS key ID by name along
+// with its corresponding plugin name.
+// The default key is attempted if name is empty.
+func ResolveKMSKey(name string) (KMSKeySuite, error) {
+	key := KMSKeySuite{}
+	config, err := LoadOrDefaultOnce()
+	if err != nil {
+		return key, err
+	}
+	if name == "" {
+		name = config.SigningKeys.Default
+	}
+	kmsKey, ok := config.SigningKeys.KMSKeys.Get(name)
+	if !ok {
+		return key, ErrKeyNotFound
+	}
+	return kmsKey, nil
+}
+
+func ResolveKMSPluginPath(name string) (string, error) {
+	config, err := LoadOrDefaultOnce()
+	if err != nil {
+		return "", err
+	}
+	path, ok := config.KMSPlugins.Plugins.Get(name)
+	if !ok {
+		return "", ErrPluginNotFound
 	}
 	return path, nil
 }

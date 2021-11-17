@@ -63,6 +63,7 @@ func runSign(ctx *cli.Context) error {
 	if path == "" {
 		path = config.SignaturePath(digest.Digest(desc.Digest), digest.FromBytes(sig))
 	}
+	fmt.Println("writing signature to", path)
 	if err := osutil.WriteFile(path, sig); err != nil {
 		return err
 	}

@@ -168,7 +168,7 @@ func listKeys(ctx *cli.Context) error {
 	}
 
 	// write out
-	printKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
+	printKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys, cfg.SigningKeys.KMSKeys)
 	return nil
 }
 
@@ -211,8 +211,8 @@ func removeKeys(ctx *cli.Context) error {
 	return nil
 }
 
-func printKeySet(target string, s config.KeyMap) {
-	if len(s) == 0 {
+func printKeySet(target string, s config.KeyMap, k config.KMSKeyMap) {
+	if len(s) == 0 && len(k) == 0 {
 		fmt.Println("NAME\tPATH")
 		return
 	}
@@ -234,5 +234,27 @@ func printKeySet(target string, s config.KeyMap) {
 			mark = '*'
 		}
 		fmt.Printf(format, mark, ref.Name, ref.KeyPath, ref.CertificatePath)
+	}
+
+	var maxKeyIDSize int
+	for _, ref := range k {
+		if len(ref.Name) > maxNameSize {
+			maxNameSize = len(ref.Name)
+		}
+		if len(ref.ID) > maxKeyIDSize {
+			maxKeyIDSize = len(ref.ID)
+		}
+	}
+
+	fmt.Println()
+	// iterate over KMS keys
+	format = fmt.Sprintf("%%c %%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyIDSize)
+	fmt.Printf(format, ' ', "NAME", "KEY ID", "PLUGIN NAME")
+	for _, ref := range k {
+		mark := ' '
+		if ref.Name == target {
+			mark = '*'
+		}
+		fmt.Printf(format, mark, ref.Name, ref.ID, ref.PluginName)
 	}
 }

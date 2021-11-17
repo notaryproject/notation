@@ -22,8 +22,9 @@ type VerificationCertificates struct {
 
 // SigningKeys is a collection of signing keys.
 type SigningKeys struct {
-	Default string `json:"default"`
-	Keys    KeyMap `json:"keys"`
+	Default string    `json:"default"`
+	Keys    KeyMap    `json:"keys"`
+	KMSKeys KMSKeyMap `json:"kmsKeys"`
 }
 
 // KMSPlugins is a collection of plugins.
