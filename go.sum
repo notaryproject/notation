@@ -78,8 +78,9 @@ github.com/notaryproject/notation-go-lib v0.7.0-alpha.1 h1:DSyCcjb2w00qw69wnlQwR
 github.com/notaryproject/notation-go-lib v0.7.0-alpha.1/go.mod h1:3G7xPzga5+8e0mRMhMKpx1gIikr5c7tnZaKT6JQnlmM=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
-github.com/opencontainers/image-spec v1.0.1 h1:JMemWkRwHx4Zj+fVxWoMCFm/8sYGGrUVojFA6h/TRcI=
 github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
+github.com/opencontainers/image-spec v1.0.2 h1:9yCKha/T5XdGtO0q9Q9a6T5NUCsTn/DrBg0D7ufOcFM=
+github.com/opencontainers/image-spec v1.0.2/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=
 github.com/oras-project/artifacts-spec v0.0.0-20210914235636-eecc5d95bcee h1:MmVRBfgsilc34aqyVOHRJkxAC/JcLyTS5yl+/iFWL8M=
 github.com/oras-project/artifacts-spec v0.0.0-20210914235636-eecc5d95bcee/go.mod h1:Xch2aLzSwtkhbFFN6LUzTfLtukYvMMdXJ4oZ8O7BOdc=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
