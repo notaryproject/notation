@@ -55,7 +55,7 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 
   ```bash
   #LINUX, including WSL
-  curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.0-alpha.1/notation_0.7.0-alpha.1_linux_amd64.tar.gz
+  curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.1-alpha.1/notation_0.7.1-alpha.1_linux_amd64.tar.gz
   tar xvzf notation.tar.gz -C ~/bin notation
   ```
 
@@ -171,6 +171,6 @@ Here are the additional steps to simulate a fully qualified DNS name for wabbit-
 
 - Continue with [Getting Started](#getting-started), but skip the environment variable configurations
 
-[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.7.0-alpha.1
+[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
