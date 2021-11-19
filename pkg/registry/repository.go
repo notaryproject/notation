@@ -145,6 +145,7 @@ func (r *RepositoryClient) Put(ctx context.Context, signature []byte) (notation.
 
 func (r *RepositoryClient) Link(ctx context.Context, manifest, signature notation.Descriptor) (notation.Descriptor, error) {
 	artifact := artifactspec.Manifest{
+		MediaType:    artifactspec.MediaTypeArtifactManifest,
 		ArtifactType: ArtifactTypeNotation,
 		Blobs: []artifactspec.Descriptor{
 			artifactDescriptorFromNotation(signature),
