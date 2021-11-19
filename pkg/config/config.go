@@ -18,13 +18,14 @@ type File struct {
 // VerificationCertificates is a collection of public certs used for verification.
 type VerificationCertificates struct {
 	Certificates CertificateMap `json:"certs"`
+	KMSCerts     KMSProfileMap  `json:"kmsCerts"`
 }
 
 // SigningKeys is a collection of signing keys.
 type SigningKeys struct {
-	Default string    `json:"default"`
-	Keys    KeyMap    `json:"keys"`
-	KMSKeys KMSKeyMap `json:"kmsKeys"`
+	Default string        `json:"default"`
+	Keys    KeyMap        `json:"keys"`
+	KMSKeys KMSProfileMap `json:"kmsKeys"`
 }
 
 // KMSPlugins is a collection of plugins.

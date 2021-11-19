@@ -137,7 +137,7 @@ func listCerts(ctx *cli.Context) error {
 	}
 
 	// write out
-	printCertificateSet(cfg.VerificationCertificates.Certificates)
+	printCertificateSet(cfg.VerificationCertificates.Certificates, cfg.VerificationCertificates.KMSCerts)
 	return nil
 }
 
@@ -172,7 +172,7 @@ func removeCerts(ctx *cli.Context) error {
 	return nil
 }
 
-func printCertificateSet(s config.CertificateMap) {
+func printCertificateSet(s config.CertificateMap, k config.KMSProfileMap) {
 	maxNameSize := 0
 	for _, ref := range s {
 		if len(ref.Name) > maxNameSize {
@@ -183,6 +183,23 @@ func printCertificateSet(s config.CertificateMap) {
 	fmt.Printf(format, "NAME", "PATH")
 	for _, ref := range s {
 		fmt.Printf(format, ref.Name, ref.Path)
+	}
+
+	var maxKeyIDSize int
+	for _, ref := range k {
+		if len(ref.Name) > maxNameSize {
+			maxNameSize = len(ref.Name)
+		}
+		if len(ref.ID) > maxKeyIDSize {
+			maxKeyIDSize = len(ref.ID)
+		}
+	}
+	fmt.Println()
+	// iterate over KMS profiles
+	format = fmt.Sprintf("%%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyIDSize)
+	fmt.Printf(format, "NAME", "ID", "PLUGIN NAME")
+	for _, ref := range k {
+		fmt.Printf(format, ref.Name, ref.ID, ref.PluginName)
 	}
 }
 

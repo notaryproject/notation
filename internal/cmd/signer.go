@@ -15,7 +15,7 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 	// read paths of the signing key and its corresponding cert.
 	var keyPath, certPath string
 	var pluginPath string
-	var kmsKey config.KMSKeySuite
+	var kmsProfile config.KMSProfileSuite
 	var err error
 	if path := ctx.String(FlagKeyFile.Name); path != "" {
 		keyPath = path
@@ -28,11 +28,11 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 			}
 
 			// check if the key is an external kms key
-			if kmsKey, err = config.ResolveKMSKey(ctx.String(FlagKey.Name)); err != nil {
+			if kmsProfile, err = config.ResolveKMSKey(ctx.String(FlagKey.Name)); err != nil {
 				return nil, err
 			}
 			// get the plugin path for the external kms key
-			if pluginPath, err = config.ResolveKMSPluginPath(kmsKey.PluginName); err != nil {
+			if pluginPath, err = config.ResolveKMSPluginPath(kmsProfile.PluginName); err != nil {
 				return nil, err
 			}
 		}
@@ -46,7 +46,7 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		}
 	} else {
 		// construct signer with external kms plugin
-		if signer, err = signature.NewSignerWithPlugin(kmsKey, pluginPath); err != nil {
+		if signer, err = signature.NewSignerWithPlugin(kmsProfile, pluginPath); err != nil {
 			return nil, err
 		}
 	}

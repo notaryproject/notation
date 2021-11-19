@@ -211,7 +211,7 @@ func removeKeys(ctx *cli.Context) error {
 	return nil
 }
 
-func printKeySet(target string, s config.KeyMap, k config.KMSKeyMap) {
+func printKeySet(target string, s config.KeyMap, k config.KMSProfileMap) {
 	if len(s) == 0 && len(k) == 0 {
 		fmt.Println("NAME\tPATH")
 		return
@@ -247,9 +247,9 @@ func printKeySet(target string, s config.KeyMap, k config.KMSKeyMap) {
 	}
 
 	fmt.Println()
-	// iterate over KMS keys
+	// iterate over KMS profiles
 	format = fmt.Sprintf("%%c %%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyIDSize)
-	fmt.Printf(format, ' ', "NAME", "KEY ID", "PLUGIN NAME")
+	fmt.Printf(format, ' ', "NAME", "ID", "PLUGIN NAME")
 	for _, ref := range k {
 		mark := ' '
 		if ref.Name == target {

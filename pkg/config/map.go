@@ -146,26 +146,26 @@ func (m PluginMap) Get(name string) (string, bool) {
 	return "", false
 }
 
-// KMSKeySuite is a named kms key suite with key id and type.
-type KMSKeySuite struct {
+// KMSProfileSuite is a named kms profile suite with key id and type.
+type KMSProfileSuite struct {
 	Name       string `json:"name"`
 	PluginName string `json:"pluginName"`
 	ID         string `json:"id"`
 }
 
-// KMSKeyMap is a set of KMSKeySuite indexed by name.
+// KMSProfileMap is a set of KMSProfileMap indexed by name.
 // The overall performance is O(n) while the order of entries is persevered.
-type KMSKeyMap []KMSKeySuite
+type KMSProfileMap []KMSProfileSuite
 
 // Append appends a uniquely named KeySuite to the map.
 // Return true if new values are appended.
-func (m *KMSKeyMap) Append(name, id, pluginName string) bool {
+func (m *KMSProfileMap) Append(name, id, pluginName string) bool {
 	for _, ref := range *m {
 		if ref.Name == name {
 			return false
 		}
 	}
-	*m = append(*m, KMSKeySuite{
+	*m = append(*m, KMSProfileSuite{
 		Name:       name,
 		ID:         id,
 		PluginName: pluginName,
@@ -175,7 +175,7 @@ func (m *KMSKeyMap) Append(name, id, pluginName string) bool {
 
 // Remove removes a named path from the map.
 // Return true if an entry is found and removed.
-func (m *KMSKeyMap) Remove(name string) bool {
+func (m *KMSProfileMap) Remove(name string) bool {
 	for i, ref := range *m {
 		if ref.Name == name {
 			*m = append((*m)[:i], (*m)[i+1:]...)
@@ -187,11 +187,11 @@ func (m *KMSKeyMap) Remove(name string) bool {
 
 // Get return the paths of the given name.
 // Return true if found.
-func (m KMSKeyMap) Get(name string) (KMSKeySuite, bool) {
+func (m KMSProfileMap) Get(name string) (KMSProfileSuite, bool) {
 	for _, ref := range m {
 		if ref.Name == name {
 			return ref, true
 		}
 	}
-	return KMSKeySuite{}, false
+	return KMSProfileSuite{}, false
 }

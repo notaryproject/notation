@@ -12,10 +12,10 @@ import (
 
 // SignRequest is the request to sign artifacts
 type SignRequest struct {
-	Version     string               `json:"version"`
-	Descriptor  notation.Descriptor  `json:"descriptor"`
-	SignOptions notation.SignOptions `json:"signOptions"`
-	Key         config.KMSKeySuite   `json:"key"`
+	Version     string                 `json:"version"`
+	Descriptor  notation.Descriptor    `json:"descriptor"`
+	SignOptions notation.SignOptions   `json:"signOptions"`
+	KMSProfile  config.KMSProfileSuite `json:"kmsProfile"`
 }
 
 // VerifyRequest is the request to verify a signature.
@@ -23,38 +23,36 @@ type VerifyRequest struct {
 	Version       string                 `json:"version"`
 	Signature     []byte                 `json:"signature"`
 	VerifyOptions notation.VerifyOptions `json:"verifyOptions"`
-	Key           config.KMSKeySuite     `json:"key"`
+	KMSProfile    config.KMSProfileSuite `json:"kmsProfile"`
 }
 
 type externalPlugin struct {
-	key        config.KMSKeySuite
-	pluginPath string
+	kmsProfile config.KMSProfileSuite
 
 	executor executor.Interface
 }
 
 // NewSignerWithPlugin returns a signer that uses the given plugin
-func NewSignerWithPlugin(key config.KMSKeySuite, pluginPath string) (notation.Signer, error) {
+func NewSignerWithPlugin(kmsProfile config.KMSProfileSuite, pluginPath string) (notation.Signer, error) {
 	if pluginPath == "" {
 		return nil, errors.New("plugin path not specified")
 	}
 
 	// create signer
 	return &externalPlugin{
-		key:        key,
-		pluginPath: pluginPath,
+		kmsProfile: kmsProfile,
 		executor:   executor.NewExecutor(pluginPath, "sign"),
 	}, nil
 }
 
-func NewVerifierWithPlugin(pluginName, pluginPath string) (notation.Verifier, error) {
+func NewVerifierWithPlugin(kmsProfile config.KMSProfileSuite, pluginPath string) (notation.Verifier, error) {
 	if pluginPath == "" {
 		return nil, errors.New("plugin path not specified")
 	}
 
 	// create verifier
 	return &externalPlugin{
-		pluginPath: pluginPath,
+		kmsProfile: kmsProfile,
 		executor:   executor.NewExecutor(pluginPath, "verify"),
 	}, nil
 }
@@ -65,7 +63,7 @@ func (p *externalPlugin) Sign(ctx context.Context, desc notation.Descriptor, opt
 		Version:     "v0.1.0-alpha.0",
 		Descriptor:  desc,
 		SignOptions: opts,
-		Key:         p.key,
+		KMSProfile:  p.kmsProfile,
 	}
 
 	// marshal request
@@ -86,6 +84,7 @@ func (p *externalPlugin) Verify(ctx context.Context, signature []byte, opts nota
 		Version:       "v0.1.0-alpha.0",
 		Signature:     signature,
 		VerifyOptions: opts,
+		KMSProfile:    p.kmsProfile,
 	}
 
 	// marshal request

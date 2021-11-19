@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -61,11 +62,10 @@ func ResolveCertificatePath(name string) (string, error) {
 	return path, nil
 }
 
-// ResolveKMSKeyID resolves the KMS key ID by name along
-// with its corresponding plugin name.
+// ResolveKMSKey resolves the KMS profile by name.
 // The default key is attempted if name is empty.
-func ResolveKMSKey(name string) (KMSKeySuite, error) {
-	key := KMSKeySuite{}
+func ResolveKMSKey(name string) (KMSProfileSuite, error) {
+	key := KMSProfileSuite{}
 	config, err := LoadOrDefaultOnce()
 	if err != nil {
 		return key, err
@@ -78,6 +78,21 @@ func ResolveKMSKey(name string) (KMSKeySuite, error) {
 		return key, ErrKeyNotFound
 	}
 	return kmsKey, nil
+}
+
+// ResolveKMSCert resolves the KMS profile by name.
+func ResolveKMSCert(name string) (KMSProfileSuite, error) {
+	cert := KMSProfileSuite{}
+	config, err := LoadOrDefaultOnce()
+	if err != nil {
+		return cert, err
+	}
+	fmt.Printf("ResolveKMSCert: name: %s\n", name)
+	kmsCert, ok := config.VerificationCertificates.KMSCerts.Get(name)
+	if !ok {
+		return cert, ErrCertificateNotFound
+	}
+	return kmsCert, nil
 }
 
 func ResolveKMSPluginPath(name string) (string, error) {

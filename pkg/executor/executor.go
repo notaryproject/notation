@@ -34,6 +34,7 @@ func (e *executor) Execute(ctx context.Context, argsf string, a ...interface{}) 
 	log.Infof("Executing: %s %s", e.cmd, strings.Join(args, " "))
 	cmd := exec.CommandContext(ctx, e.cmd, args...)
 	out, err := cmd.CombinedOutput()
+	log.Infof("Output: %s", out)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to execute %s %s", e.cmd, strings.Join(args, " "))
 	}
