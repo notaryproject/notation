@@ -58,4 +58,5 @@ archives:
     files:
       - LICENSE
 release:
+  draft: true
   prerelease: auto
