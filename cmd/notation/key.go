@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/urfave/cli/v2"
 )
 
@@ -90,7 +91,7 @@ func addKey(ctx *cli.Context) error {
 	}
 	name := ctx.String("name")
 	if name == "" {
-		name = nameFromPath(keyPath)
+		name = signature.NameFromPath(keyPath)
 	}
 
 	// check key / cert pair
@@ -103,7 +104,7 @@ func addKey(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefault, err := addKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
+	isDefault, err := signature.AddKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
 	if err != nil {
 		return err
 	}
@@ -118,16 +119,6 @@ func addKey(ctx *cli.Context) error {
 		fmt.Println(name)
 	}
 	return nil
-}
-
-func addKeyCore(cfg *config.File, name, keyPath, certPath string, markDefault bool) (bool, error) {
-	if ok := cfg.SigningKeys.Keys.Append(name, keyPath, certPath); !ok {
-		return false, errors.New(name + ": already exists")
-	}
-	if markDefault {
-		cfg.SigningKeys.Default = name
-	}
-	return cfg.SigningKeys.Default == name, nil
 }
 
 func updateKey(ctx *cli.Context) error {
@@ -168,7 +159,7 @@ func listKeys(ctx *cli.Context) error {
 	}
 
 	// write out
-	printKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
+	signature.PrintKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
 	return nil
 }
 
@@ -209,30 +200,4 @@ func removeKeys(ctx *cli.Context) error {
 		}
 	}
 	return nil
-}
-
-func printKeySet(target string, s config.KeyMap) {
-	if len(s) == 0 {
-		fmt.Println("NAME\tPATH")
-		return
-	}
-
-	var maxNameSize, maxKeyPathSize int
-	for _, ref := range s {
-		if len(ref.Name) > maxNameSize {
-			maxNameSize = len(ref.Name)
-		}
-		if len(ref.KeyPath) > maxKeyPathSize {
-			maxKeyPathSize = len(ref.KeyPath)
-		}
-	}
-	format := fmt.Sprintf("%%c %%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyPathSize)
-	fmt.Printf(format, ' ', "NAME", "KEY PATH", "CERTIFICATE PATH")
-	for _, ref := range s {
-		mark := ' '
-		if ref.Name == target {
-			mark = '*'
-		}
-		fmt.Printf(format, mark, ref.Name, ref.KeyPath, ref.CertificatePath)
-	}
 }

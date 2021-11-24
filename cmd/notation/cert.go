@@ -7,7 +7,10 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/signature"
+	"github.com/notaryproject/notation/pkg/test"
 	"github.com/urfave/cli/v2"
 )
 
@@ -85,6 +88,76 @@ var (
 	}
 )
 
+func generateTestCert(ctx *cli.Context) error {
+	// initialize
+	hosts := ctx.Args().Slice()
+	if len(hosts) == 0 {
+		return errors.New("missing certificate hosts")
+	}
+	name := ctx.String("name")
+	if name == "" {
+		name = hosts[0]
+	}
+
+	// generate RSA private key
+	bits := ctx.Int("bits")
+	fmt.Println("generating RSA Key with", bits, "bits")
+	key, keyBytes, err := test.GenerateTestKey(bits)
+	if err != nil {
+		return err
+	}
+
+	// generate self-signed certificate
+	cert, certBytes, err := test.GenerateTestSelfSignedCert(key, hosts, ctx.Duration("expiry"))
+	if err != nil {
+		return err
+	}
+	fmt.Println("generated certificates expiring on", cert.NotAfter.Format(time.RFC3339))
+
+	// write private key
+	keyPath := config.KeyPath(name)
+	if err := osutil.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
+		return fmt.Errorf("failed to write key file: %v", err)
+	}
+	fmt.Println("wrote key:", keyPath)
+
+	// write self-signed certificate
+	certPath := config.CertificatePath(name)
+	if err := osutil.WriteFileWithPermission(certPath, certBytes, 0644, false); err != nil {
+		return fmt.Errorf("failed to write certificate file: %v", err)
+	}
+	fmt.Println("wrote certificate:", certPath)
+
+	// update config
+	cfg, err := config.LoadOrDefault()
+	if err != nil {
+		return err
+	}
+	isDefaultKey, err := signature.AddKeyCore(cfg, name, keyPath, certPath, true)
+	if err != nil {
+		return err
+	}
+	trust := ctx.Bool("trust")
+	if trust {
+		if err := signature.AddCertCore(cfg, name, certPath); err != nil {
+			return err
+		}
+	}
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	// write out
+	fmt.Printf("%s: added to the key list\n", name)
+	if isDefaultKey {
+		fmt.Printf("%s: marked as default\n", name)
+	}
+	if trust {
+		fmt.Printf("%s: added to the certificate list\n", name)
+	}
+	return nil
+}
+
 func addCert(ctx *cli.Context) error {
 	// initialize
 	path := ctx.Args().First()
@@ -97,7 +170,7 @@ func addCert(ctx *cli.Context) error {
 	}
 	name := ctx.String("name")
 	if name == "" {
-		name = nameFromPath(path)
+		name = signature.NameFromPath(path)
 	}
 
 	// check if the target path is a cert
@@ -110,7 +183,7 @@ func addCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := addCertCore(cfg, name, path); err != nil {
+	if err := signature.AddCertCore(cfg, name, path); err != nil {
 		return err
 	}
 	if err := cfg.Save(); err != nil {
@@ -122,13 +195,6 @@ func addCert(ctx *cli.Context) error {
 	return nil
 }
 
-func addCertCore(cfg *config.File, name, path string) error {
-	if ok := cfg.VerificationCertificates.Certificates.Append(name, path); !ok {
-		return errors.New(name + ": already exists")
-	}
-	return nil
-}
-
 func listCerts(ctx *cli.Context) error {
 	// core process
 	cfg, err := config.LoadOrDefault()
@@ -137,7 +203,7 @@ func listCerts(ctx *cli.Context) error {
 	}
 
 	// write out
-	printCertificateSet(cfg.VerificationCertificates.Certificates)
+	signature.PrintCertificateSet(cfg.VerificationCertificates.Certificates)
 	return nil
 }
 
@@ -170,27 +236,4 @@ func removeCerts(ctx *cli.Context) error {
 		fmt.Println(name)
 	}
 	return nil
-}
-
-func printCertificateSet(s config.CertificateMap) {
-	maxNameSize := 0
-	for _, ref := range s {
-		if len(ref.Name) > maxNameSize {
-			maxNameSize = len(ref.Name)
-		}
-	}
-	format := fmt.Sprintf("%%-%ds\t%%s\n", maxNameSize)
-	fmt.Printf(format, "NAME", "PATH")
-	for _, ref := range s {
-		fmt.Printf(format, ref.Name, ref.Path)
-	}
-}
-
-func nameFromPath(path string) string {
-	base := filepath.Base(path)
-	name := base[:len(base)-len(filepath.Ext(base))]
-	if name == "" {
-		return base
-	}
-	return name
 }

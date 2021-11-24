@@ -38,10 +38,10 @@ var signCommand = &cli.Command{
 		flagPlainHTTP,
 		flagMediaType,
 	},
-	Action: runSign,
+	Action: RunSign,
 }
 
-func runSign(ctx *cli.Context) error {
+func RunSign(ctx *cli.Context) error {
 	// initialize
 	signer, err := cmd.GetSigner(ctx)
 	if err != nil {

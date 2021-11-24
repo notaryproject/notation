@@ -42,10 +42,10 @@ var verifyCommand = &cli.Command{
 		flagPlainHTTP,
 		flagMediaType,
 	},
-	Action: runVerify,
+	Action: RunVerify,
 }
 
-func runVerify(ctx *cli.Context) error {
+func RunVerify(ctx *cli.Context) error {
 	// initialize
 	verifier, err := getVerifier(ctx)
 	if err != nil {
