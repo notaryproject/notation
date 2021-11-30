@@ -34,6 +34,20 @@ var (
 				Aliases: []string{"n"},
 				Usage:   "certificate name",
 			},
+			&cli.StringFlag{
+				Name:    "id",
+				Aliases: []string{"i"},
+				Usage:   "key id",
+			},
+			&cli.StringFlag{
+				Name:    "plugin",
+				Aliases: []string{"p"},
+				Usage:   "key plugin",
+			},
+			&cli.BoolFlag{
+				Name:  "kms",
+				Usage: "add key to KMS cert list",
+			},
 		},
 		Action: addCert,
 	}
@@ -86,6 +100,13 @@ var (
 )
 
 func addCert(ctx *cli.Context) error {
+	if ctx.Bool("kms") {
+		return addKMSCertToList(ctx)
+	}
+	return addCertToList(ctx)
+}
+
+func addCertToList(ctx *cli.Context) error {
 	// initialize
 	path := ctx.Args().First()
 	if path == "" {
@@ -122,8 +143,48 @@ func addCert(ctx *cli.Context) error {
 	return nil
 }
 
+func addKMSCertToList(ctx *cli.Context) error {
+	keyID := ctx.String("id")
+	plugin := ctx.String("plugin")
+	name := ctx.String("name")
+
+	// initialize
+	if keyID == "" {
+		return errors.New("missing key id")
+	}
+	if plugin == "" {
+		return errors.New("missing key plugin")
+	}
+	if name == "" {
+		name = keyID
+	}
+
+	// core process
+	cfg, err := config.LoadOrDefault()
+	if err != nil {
+		return err
+	}
+	if err = addKMSCertCore(cfg, name, keyID, plugin); err != nil {
+		return err
+	}
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	// write out
+	fmt.Println(name)
+	return nil
+}
+
 func addCertCore(cfg *config.File, name, path string) error {
 	if ok := cfg.VerificationCertificates.Certificates.Append(name, path); !ok {
+		return errors.New(name + ": already exists")
+	}
+	return nil
+}
+
+func addKMSCertCore(cfg *config.File, name, keyID, plugin string) error {
+	if ok := cfg.VerificationCertificates.KMSCerts.Append(name, keyID, plugin); !ok {
 		return errors.New(name + ": already exists")
 	}
 	return nil
@@ -157,7 +218,9 @@ func removeCerts(ctx *cli.Context) error {
 	var removedNames []string
 	for _, name := range names {
 		if ok := cfg.VerificationCertificates.Certificates.Remove(name); !ok {
-			return errors.New(name + ": not found")
+			if ok := cfg.VerificationCertificates.KMSCerts.Remove(name); !ok {
+				return errors.New(name + ": not found")
+			}
 		}
 		removedNames = append(removedNames, name)
 	}

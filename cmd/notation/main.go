@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	"github.com/notaryproject/notation/internal/version"
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 

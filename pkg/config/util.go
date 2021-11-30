@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -87,7 +86,6 @@ func ResolveKMSCert(name string) (KMSProfileSuite, error) {
 	if err != nil {
 		return cert, err
 	}
-	fmt.Printf("ResolveKMSCert: name: %s\n", name)
 	kmsCert, ok := config.VerificationCertificates.KMSCerts.Get(name)
 	if !ok {
 		return cert, ErrCertificateNotFound

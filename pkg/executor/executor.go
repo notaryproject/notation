@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os/exec"
@@ -28,15 +29,21 @@ func NewExecutor(cmd string, prepend ...string) Interface {
 	}
 }
 
+// Execute executes the command with the given arguments.
 func (e *executor) Execute(ctx context.Context, argsf string, a ...interface{}) ([]byte, error) {
 	substituted := fmt.Sprintf(argsf, a...)
 	args := append(e.prepend, strings.Split(substituted, " ")...)
-	log.Infof("Executing: %s %s", e.cmd, strings.Join(args, " "))
+	log.Debugf("Executing: %s %s", e.cmd, strings.Join(args, " "))
+	log.Infof("Executing: %s <args>", e.cmd)
 	cmd := exec.CommandContext(ctx, e.cmd, args...)
-	out, err := cmd.CombinedOutput()
-	log.Infof("Output: %s", out)
-	if err != nil {
+	var outb, errb bytes.Buffer
+	cmd.Stdout = &outb
+	cmd.Stderr = &errb
+	if err := cmd.Run(); err != nil {
 		return nil, errors.Wrapf(err, "failed to execute %s %s", e.cmd, strings.Join(args, " "))
 	}
-	return out, nil
+	if errb.Len() > 0 {
+		return nil, errors.New(errb.String())
+	}
+	return outb.Bytes(), nil
 }
