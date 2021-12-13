@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go-lib/crypto/timestamp"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/urfave/cli/v2"
@@ -38,25 +39,21 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		}
 	}
 
-	var signer notation.Signer
 	if keyPath != "" && certPath != "" {
 		// construct signer
-		if signer, err = signature.NewSignerFromFiles(keyPath, certPath); err != nil {
+		signer, err := signature.NewSignerFromFiles(keyPath, certPath)
+		if err != nil {
 			return nil, err
 		}
-	} else {
-		// construct signer with external kms plugin
-		if signer, err = signature.NewSignerWithPlugin(kmsProfile, pluginPath); err != nil {
-			return nil, err
+		if endpoint := ctx.String(FlagTimestamp.Name); endpoint != "" {
+			if signer.TSA, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
+				return nil, err
+			}
 		}
+		return signer, nil
 	}
-
-	// if endpoint := ctx.String(FlagTimestamp.Name); endpoint != "" {
-	// 	if signer.TSA, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-	return signer, nil
+	// construct signer with external kms plugin
+	return signature.NewSignerWithPlugin(kmsProfile, pluginPath)
 }
 
 // GetExpiry returns the signature expiry according to the CLI context.

@@ -46,7 +46,7 @@ var (
 			&cli.StringFlag{
 				Name:    "plugin",
 				Aliases: []string{"p"},
-				Usage:   "key plugin",
+				Usage:   "signing plugin",
 			},
 			&cli.BoolFlag{
 				Name:  "kms",
@@ -152,7 +152,7 @@ func addKMSKeyToList(ctx *cli.Context) error {
 		return errors.New("missing key id")
 	}
 	if plugin == "" {
-		return errors.New("missing key plugin")
+		return errors.New("missing signing plugin")
 	}
 	if name == "" {
 		name = keyID
