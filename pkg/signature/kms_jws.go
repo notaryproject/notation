@@ -29,7 +29,7 @@ type VerifyRequest struct {
 type externalPlugin struct {
 	kmsProfile config.KMSProfileSuite
 
-	executor executor.Interface
+	executor executor.Executor
 }
 
 // NewSignerWithPlugin returns a signer that uses the given plugin
@@ -73,7 +73,7 @@ func (p *externalPlugin) Sign(ctx context.Context, desc notation.Descriptor, opt
 	}
 
 	// execute plugin
-	return p.executor.Execute(ctx, string(reqBytes))
+	return p.executor.Execute(ctx, "%s", string(reqBytes))
 }
 
 func (p *externalPlugin) Verify(ctx context.Context, signature []byte, opts notation.VerifyOptions) (notation.Descriptor, error) {

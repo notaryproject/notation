@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Interface interface {
+type Executor interface {
 	Execute(ctx context.Context, argsf string, a ...interface{}) ([]byte, error)
 }
 
@@ -20,9 +20,7 @@ type executor struct {
 	prepend []string
 }
 
-var _ Interface = &executor{}
-
-func NewExecutor(cmd string, prepend ...string) Interface {
+func NewExecutor(cmd string, prepend ...string) Executor {
 	return &executor{
 		cmd:     cmd,
 		prepend: prepend,
@@ -32,6 +30,8 @@ func NewExecutor(cmd string, prepend ...string) Interface {
 // Execute executes the command with the given arguments.
 func (e *executor) Execute(ctx context.Context, argsf string, a ...interface{}) ([]byte, error) {
 	substituted := fmt.Sprintf(argsf, a...)
+	// "%s %s", "foo", "foo bar" will become ["foo", "foo", "bar"], not [ "foo", "foo bar"]
+	// TODO: handle scenarios with space in the arguments
 	args := append(e.prepend, strings.Split(substituted, " ")...)
 	log.Debugf("Executing: %s %s", e.cmd, strings.Join(args, " "))
 	log.Infof("Executing: %s <args>", e.cmd)
