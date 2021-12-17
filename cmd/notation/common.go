@@ -40,4 +40,9 @@ var (
 		Usage:     "signature files",
 		TakesFile: true,
 	}
+	flagCert = &cli.StringSliceFlag{
+		Name:    "cert",
+		Aliases: []string{"c"},
+		Usage:   "certificate names for verification",
+	}
 )

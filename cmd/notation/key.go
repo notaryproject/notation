@@ -38,6 +38,20 @@ var (
 				Aliases: []string{"n"},
 				Usage:   "key name",
 			},
+			&cli.StringFlag{
+				Name:    "id",
+				Aliases: []string{"i"},
+				Usage:   "key id",
+			},
+			&cli.StringFlag{
+				Name:    "plugin",
+				Aliases: []string{"p"},
+				Usage:   "signing plugin",
+			},
+			&cli.BoolFlag{
+				Name:  "kms",
+				Usage: "add key to KMS key list",
+			},
 			keyDefaultFlag,
 		},
 		Action: addKey,
@@ -71,6 +85,14 @@ var (
 )
 
 func addKey(ctx *cli.Context) error {
+	if ctx.Bool("kms") {
+		return addKMSKeyToList(ctx)
+	}
+
+	return addKeyToList(ctx)
+}
+
+func addKeyToList(ctx *cli.Context) error {
 	// initialize
 	args := ctx.Args()
 	switch args.Len() {
@@ -120,8 +142,56 @@ func addKey(ctx *cli.Context) error {
 	return nil
 }
 
+func addKMSKeyToList(ctx *cli.Context) error {
+	keyID := ctx.String("id")
+	plugin := ctx.String("plugin")
+	name := ctx.String("name")
+
+	// initialize
+	if keyID == "" {
+		return errors.New("missing key id")
+	}
+	if plugin == "" {
+		return errors.New("missing signing plugin")
+	}
+	if name == "" {
+		name = keyID
+	}
+
+	// core process
+	cfg, err := config.LoadOrDefault()
+	if err != nil {
+		return err
+	}
+	isDefault, err := addKMSKeyCore(cfg, name, keyID, plugin, ctx.Bool(keyDefaultFlag.Name))
+	if err != nil {
+		return err
+	}
+	if err := cfg.Save(); err != nil {
+		return err
+	}
+
+	// write out
+	if isDefault {
+		fmt.Printf("%s: marked as default\n", name)
+	} else {
+		fmt.Println(name)
+	}
+	return nil
+}
+
 func addKeyCore(cfg *config.File, name, keyPath, certPath string, markDefault bool) (bool, error) {
 	if ok := cfg.SigningKeys.Keys.Append(name, keyPath, certPath); !ok {
+		return false, errors.New(name + ": already exists")
+	}
+	if markDefault {
+		cfg.SigningKeys.Default = name
+	}
+	return cfg.SigningKeys.Default == name, nil
+}
+
+func addKMSKeyCore(cfg *config.File, name, keyID, plugin string, markDefault bool) (bool, error) {
+	if ok := cfg.SigningKeys.KMSKeys.Append(name, keyID, plugin); !ok {
 		return false, errors.New(name + ": already exists")
 	}
 	if markDefault {
@@ -168,7 +238,7 @@ func listKeys(ctx *cli.Context) error {
 	}
 
 	// write out
-	printKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
+	printKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys, cfg.SigningKeys.KMSKeys)
 	return nil
 }
 
@@ -189,7 +259,9 @@ func removeKeys(ctx *cli.Context) error {
 	var removedNames []string
 	for _, name := range names {
 		if ok := cfg.SigningKeys.Keys.Remove(name); !ok {
-			return errors.New(name + ": not found")
+			if ok := cfg.SigningKeys.KMSKeys.Remove(name); !ok {
+				return errors.New(name + ": not found")
+			}
 		}
 		removedNames = append(removedNames, name)
 		if prevDefault == name {
@@ -211,8 +283,8 @@ func removeKeys(ctx *cli.Context) error {
 	return nil
 }
 
-func printKeySet(target string, s config.KeyMap) {
-	if len(s) == 0 {
+func printKeySet(target string, s config.KeyMap, k config.KMSProfileMap) {
+	if len(s) == 0 && len(k) == 0 {
 		fmt.Println("NAME\tPATH")
 		return
 	}
@@ -234,5 +306,27 @@ func printKeySet(target string, s config.KeyMap) {
 			mark = '*'
 		}
 		fmt.Printf(format, mark, ref.Name, ref.KeyPath, ref.CertificatePath)
+	}
+
+	var maxKeyIDSize int
+	for _, ref := range k {
+		if len(ref.Name) > maxNameSize {
+			maxNameSize = len(ref.Name)
+		}
+		if len(ref.ID) > maxKeyIDSize {
+			maxKeyIDSize = len(ref.ID)
+		}
+	}
+
+	fmt.Println()
+	// iterate over KMS profiles
+	format = fmt.Sprintf("%%c %%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyIDSize)
+	fmt.Printf(format, ' ', "NAME", "ID", "PLUGIN NAME")
+	for _, ref := range k {
+		mark := ' '
+		if ref.Name == target {
+			mark = '*'
+		}
+		fmt.Printf(format, mark, ref.Name, ref.ID, ref.PluginName)
 	}
 }
