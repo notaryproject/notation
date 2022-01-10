@@ -1,0 +1,38 @@
+name: feature-branch-upload
+
+on:
+  push:
+    branches: [ feat-kv-extensibility ]
+
+jobs:
+  build:
+    name: Upload Notation Binaries For Feature Branches
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.17]
+      fail-fast: true
+    steps:
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v2
+      with:
+        distribution: goreleaser
+        version: latest
+        args: release --rm-dist --snapshot
+
+    - name: Upload assets
+      uses: actions/upload-artifact@v2.3.1
+      with:
+        name: notation_binaries
+        path: dist/notation*.*
+
+
+
