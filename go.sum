@@ -74,8 +74,8 @@ github.com/modern-go/reflect2 v0.0.0-20180701023420-4b7aa43c6742/go.mod h1:bx2lN
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/ncw/swift v1.0.47/go.mod h1:23YIA4yWVnGwv2dQlN4bB7egfYX6YLn0Yo/S6zZO/ZM=
-github.com/notaryproject/notation-go-lib v0.7.0-alpha.1 h1:DSyCcjb2w00qw69wnlQwR6ss6b9kW0pllNoFoCDCAY0=
-github.com/notaryproject/notation-go-lib v0.7.0-alpha.1/go.mod h1:3G7xPzga5+8e0mRMhMKpx1gIikr5c7tnZaKT6JQnlmM=
+github.com/notaryproject/notation-go-lib v1.0.0-alpha-1 h1:FgTD70ayHsKnRbWKjqHK+EOWiLxwHpHSMewHcdnXHYE=
+github.com/notaryproject/notation-go-lib v1.0.0-alpha-1/go.mod h1:3G7xPzga5+8e0mRMhMKpx1gIikr5c7tnZaKT6JQnlmM=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.0.1/go.mod h1:BtxoFyWECRxE4U/7sNtV5W15zMzWCbyJoFRP3s7yZA0=

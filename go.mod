@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
 	github.com/docker/cli v20.10.8+incompatible
-	github.com/notaryproject/notation-go-lib v0.7.0-alpha.1
+	github.com/notaryproject/notation-go-lib v1.0.0-alpha-1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/oras-project/artifacts-spec v1.0.0-draft.1.1
