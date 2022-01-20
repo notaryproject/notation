@@ -1,0 +1,57 @@
+name: upload-release-asset
+
+on:
+  push:
+    branches: 
+      - 'feat-kv-extensibility'
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.17]
+      fail-fast: true
+    steps:
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set env variables
+      run: |
+        echo "BRANCH_NAME=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        echo "SHORT_HASH=$(git rev-parse --short=7 ${{ github.sha }})" >> $GITHUB_ENV
+        echo "DATETIME=$(date "+%Y%m%d%H%M%S")" >> $GITHUB_ENV
+
+    - name: Get upload_url
+      run: |
+        upload_url=$(curl -sL https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.BRANCH_NAME }} | jq -r '.upload_url')
+        echo "UPLOAD_URL=$upload_url" >> $GITHUB_ENV
+
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v2
+      with:
+        distribution: goreleaser
+        version: latest
+        args: release --rm-dist --snapshot
+
+    - name: Archive binaries
+      run: cd dist && tar -cvzf notation.tar.gz notation*.*
+
+    - name: Upload release asset
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ env.UPLOAD_URL }}
+        asset_name: notation-${{ env.BRANCH_NAME }}-${{ env.DATETIME }}-${{ env.SHORT_HASH }}.tar.gz
+        asset_path: dist/notation.tar.gz
+        asset_content_type: application/gzip
+
+
+
