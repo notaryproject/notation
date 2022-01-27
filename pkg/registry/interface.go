@@ -7,11 +7,6 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
-// SignatureRegistry provides signature repositories
-type SignatureRegistry interface {
-	Repository(ctx context.Context, name string) SignatureRepository
-}
-
 // SignatureRepository provides a storage for signatures
 type SignatureRepository interface {
 	// Lookup finds all signatures for the specified manifest

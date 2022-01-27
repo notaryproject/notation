@@ -2,35 +2,35 @@ package registry
 
 import (
 	"context"
-	"fmt"
-	"net/http"
+
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 // RegistryClient is a customized registry client.
 type RegistryClient struct {
-	tr   http.RoundTripper
-	base string
+	base *remote.Registry
 }
 
 // NewClient creates a new registry client.
-func NewClient(tr http.RoundTripper, name string, plainHTTP bool) *RegistryClient {
-	if tr == nil {
-		tr = http.DefaultTransport
+func NewClient(client remote.Client, name string, plainHTTP bool) (*RegistryClient, error) {
+	reg, err := remote.NewRegistry(name)
+	if err != nil {
+		return nil, err
 	}
-	scheme := "https"
-	if plainHTTP {
-		scheme = "http"
-	}
+	reg.Client = client
+	reg.PlainHTTP = plainHTTP
+
 	return &RegistryClient{
-		tr:   tr,
-		base: fmt.Sprintf("%s://%s", scheme, name),
-	}
+		base: reg,
+	}, nil
 }
 
-func (r *RegistryClient) Repository(ctx context.Context, name string) *RepositoryClient {
-	return &RepositoryClient{
-		tr:   r.tr,
-		base: r.base,
-		name: name,
+func (r *RegistryClient) Repository(ctx context.Context, name string) (*RepositoryClient, error) {
+	repo, err := r.base.Repository(ctx, name)
+	if err != nil {
+		return nil, err
 	}
+	return &RepositoryClient{
+		base: repo.(*remote.Repository),
+	}, nil
 }
