@@ -11,6 +11,7 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
 	"oras.land/oras-go/v2/content"
+	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 )
 
@@ -20,12 +21,23 @@ const (
 )
 
 type RepositoryClient struct {
-	base *remote.Repository
+	remote.Repository
+}
+
+// NewRepositoryClient creates a new registry client.
+func NewRepositoryClient(client remote.Client, ref registry.Reference, plainHTTP bool) *RepositoryClient {
+	return &RepositoryClient{
+		Repository: remote.Repository{
+			Client:    client,
+			Reference: ref,
+			PlainHTTP: plainHTTP,
+		},
+	}
 }
 
 // GetManifestDescriptor returns signature manifest information by tag or digest.
-func (r *RepositoryClient) GetManifestDescriptor(ctx context.Context, ref string) (notation.Descriptor, error) {
-	desc, err := r.base.Resolve(ctx, ref)
+func (c *RepositoryClient) GetManifestDescriptor(ctx context.Context, ref string) (notation.Descriptor, error) {
+	desc, err := c.Repository.Resolve(ctx, ref)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
@@ -33,17 +45,17 @@ func (r *RepositoryClient) GetManifestDescriptor(ctx context.Context, ref string
 }
 
 // Lookup finds all signatures for the specified manifest
-func (r *RepositoryClient) Lookup(ctx context.Context, manifestDigest digest.Digest) ([]digest.Digest, error) {
+func (c *RepositoryClient) Lookup(ctx context.Context, manifestDigest digest.Digest) ([]digest.Digest, error) {
 	var digests []digest.Digest
 	// TODO(shizhMSFT): filter artifact type at the server side
-	if err := r.base.Referrers(ctx, ocispec.Descriptor{
+	if err := c.Repository.Referrers(ctx, ocispec.Descriptor{
 		Digest: manifestDigest,
 	}, func(referrers []artifactspec.Descriptor) error {
 		for _, desc := range referrers {
 			if desc.ArtifactType != ArtifactTypeNotation || desc.MediaType != artifactspec.MediaTypeArtifactManifest {
 				continue
 			}
-			artifact, err := r.getArtifactManifest(ctx, desc.Digest)
+			artifact, err := c.getArtifactManifest(ctx, desc.Digest)
 			if err != nil {
 				return fmt.Errorf("failed to fetch manifest: %v: %v", desc.Digest, err)
 			}
@@ -59,32 +71,32 @@ func (r *RepositoryClient) Lookup(ctx context.Context, manifestDigest digest.Dig
 }
 
 // Get downloads the signature by the specified digest
-func (r *RepositoryClient) Get(ctx context.Context, signatureDigest digest.Digest) ([]byte, error) {
-	desc, err := r.base.Resolve(ctx, signatureDigest.String())
+func (c *RepositoryClient) Get(ctx context.Context, signatureDigest digest.Digest) ([]byte, error) {
+	desc, err := c.Repository.Resolve(ctx, signatureDigest.String())
 	if err != nil {
 		return nil, err
 	}
 	if desc.Size > maxBlobSizeLimit {
 		return nil, fmt.Errorf("signature blob too large: %d", desc.Size)
 	}
-	return content.FetchAll(ctx, r.base.Blobs(), desc)
+	return content.FetchAll(ctx, c.Repository.Blobs(), desc)
 }
 
 // Put uploads the signature to the registry
-func (r *RepositoryClient) Put(ctx context.Context, signature []byte) (notation.Descriptor, error) {
+func (c *RepositoryClient) Put(ctx context.Context, signature []byte) (notation.Descriptor, error) {
 	desc := ocispec.Descriptor{
 		MediaType: MediaTypeNotationSignature,
 		Digest:    digest.FromBytes(signature),
 		Size:      int64(len(signature)),
 	}
-	if err := r.base.Blobs().Push(ctx, desc, bytes.NewReader(signature)); err != nil {
+	if err := c.Repository.Blobs().Push(ctx, desc, bytes.NewReader(signature)); err != nil {
 		return notation.Descriptor{}, err
 	}
 	return notationDescriptorFromOCI(desc), nil
 }
 
 // Link creates an signature artifact linking the manifest and the signature
-func (r *RepositoryClient) Link(ctx context.Context, manifest, signature notation.Descriptor) (notation.Descriptor, error) {
+func (c *RepositoryClient) Link(ctx context.Context, manifest, signature notation.Descriptor) (notation.Descriptor, error) {
 	// generate artifact manifest
 	artifact := artifactspec.Manifest{
 		MediaType:    artifactspec.MediaTypeArtifactManifest,
@@ -105,14 +117,14 @@ func (r *RepositoryClient) Link(ctx context.Context, manifest, signature notatio
 		Digest:    digest.FromBytes(artifactJSON),
 		Size:      int64(len(artifactJSON)),
 	}
-	if err := r.base.Manifests().Push(ctx, desc, bytes.NewReader(artifactJSON)); err != nil {
+	if err := c.Repository.Manifests().Push(ctx, desc, bytes.NewReader(artifactJSON)); err != nil {
 		return notation.Descriptor{}, err
 	}
 	return notationDescriptorFromOCI(desc), nil
 }
 
-func (r *RepositoryClient) getArtifactManifest(ctx context.Context, manifestDigest digest.Digest) (artifactspec.Manifest, error) {
-	repo := *r.base
+func (c *RepositoryClient) getArtifactManifest(ctx context.Context, manifestDigest digest.Digest) (artifactspec.Manifest, error) {
+	repo := c.Repository
 	repo.ManifestMediaTypes = []string{
 		artifactspec.MediaTypeArtifactManifest,
 	}

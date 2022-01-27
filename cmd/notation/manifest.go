@@ -7,10 +7,9 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
+	"oras.land/oras-go/v2/registry"
 )
 
 func getManifestDescriptorFromContext(ctx *cli.Context) (notation.Descriptor, error) {
@@ -38,16 +37,8 @@ func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (not
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	plainHTTP := ctx.Bool(flagPlainHTTP.Name)
-	if !plainHTTP {
-		plainHTTP = config.IsRegistryInsecure(ref.Registry)
-	}
-	tr := registry.NewAuthtransport(
-		nil,
-		ctx.String(flagUsername.Name),
-		ctx.String(flagPassword.Name),
-	)
-	return registry.GetManifestDescriptor(ctx.Context, tr, ref, plainHTTP)
+	repo := getRepositoryClient(ctx, ref)
+	return repo.GetManifestDescriptor(ctx.Context, ref.ReferenceOrDefault())
 }
 
 func getManifestDescriptorFromFile(path, mediaType string) (notation.Descriptor, error) {
