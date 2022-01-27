@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net"
 
 	"github.com/notaryproject/notation/internal/version"
 	"github.com/notaryproject/notation/pkg/config"
@@ -20,9 +21,16 @@ func getSignatureRepository(ctx *cli.Context, reference string) (notationregistr
 }
 
 func getRepositoryClient(ctx *cli.Context, ref registry.Reference) *notationregistry.RepositoryClient {
-	plainHTTP := ctx.Bool(flagPlainHTTP.Name)
-	if !plainHTTP {
+	var plainHTTP bool
+	if ctx.IsSet(flagPlainHTTP.Name) {
+		plainHTTP = ctx.Bool(flagPlainHTTP.Name)
+	} else {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
+		if !plainHTTP {
+			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
+				plainHTTP = true
+			}
+		}
 	}
 
 	cred := auth.Credential{
