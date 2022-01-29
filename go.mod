@@ -10,7 +10,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/oras-project/artifacts-spec v1.0.0-draft.1.1
 	github.com/urfave/cli/v2 v2.3.0
-	oras.land/oras-go/v2 v2.0.0
+	oras.land/oras-go/v2 v2.0.0-20220124135338-24c5637bde7b
 )
 
 require (
@@ -26,5 +26,3 @@ require (
 	golang.org/x/sys v0.0.0-20210925032602-92d5a993a665 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 )
-
-replace oras.land/oras-go/v2 => github.com/oras-project/oras-go/v2 v2.0.0-20220124135338-24c5637bde7b
