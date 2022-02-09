@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
+	"oras.land/oras-go/v2/registry"
 )
 
 var (

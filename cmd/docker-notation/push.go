@@ -41,7 +41,7 @@ func pushImage(ctx *cli.Context) error {
 		return errors.New("no signatures found")
 	}
 
-	client, err := docker.GetSignatureRepository(ctx.Context, ctx.Args().First())
+	client, err := docker.GetSignatureRepository(ctx.Args().First())
 	if err != nil {
 		return err
 	}

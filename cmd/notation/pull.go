@@ -8,9 +8,10 @@ import (
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/registry"
+	notationregistry "github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
+	"oras.land/oras-go/v2/registry"
 )
 
 var pullCommand = &cli.Command{
@@ -79,7 +80,7 @@ func runPull(ctx *cli.Context) error {
 	return nil
 }
 
-func pullSignatureStrict(ctx *cli.Context, sigRepo registry.SignatureRepository, reference string) error {
+func pullSignatureStrict(ctx *cli.Context, sigRepo notationregistry.SignatureRepository, reference string) error {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return err
