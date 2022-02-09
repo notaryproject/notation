@@ -2,15 +2,13 @@ package docker
 
 import (
 	"context"
-	"net"
 	"os/exec"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
 	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/docker"
-	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
+	"oras.land/oras-go/v2/registry"
 )
 
 // GenerateManifest generate manifest from docker save
@@ -47,13 +45,9 @@ func GenerateManifestDescriptor(reference string) (notation.Descriptor, error) {
 
 // GetManifestDescriptor get manifest descriptor from remote registry
 func GetManifestDescriptor(ctx context.Context, ref registry.Reference) (notation.Descriptor, error) {
-	tr, err := Transport(ref.Registry)
+	client, err := getRepositoryClient(ref)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	insecure := config.IsRegistryInsecure(ref.Registry)
-	if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
-		insecure = true
-	}
-	return registry.GetManifestDescriptor(ctx, tr, ref, insecure)
+	return client.GetManifestDescriptor(ctx, ref.ReferenceOrDefault())
 }

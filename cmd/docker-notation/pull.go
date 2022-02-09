@@ -10,9 +10,9 @@ import (
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
+	"oras.land/oras-go/v2/registry"
 )
 
 var pullCommand = &cli.Command{
@@ -78,7 +78,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 }
 
 func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.Digest) ([]digest.Digest, error) {
-	client, err := docker.GetSignatureRepository(ctx, ref)
+	client, err := docker.GetSignatureRepository(ref)
 	if err != nil {
 		return nil, err
 	}
