@@ -6,7 +6,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 	"oras.land/oras-go/v2/registry"

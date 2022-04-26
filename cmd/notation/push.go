@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"

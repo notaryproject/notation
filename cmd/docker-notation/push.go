@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
-	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
