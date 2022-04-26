@@ -4,7 +4,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/notaryproject/notation-go-lib"
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/signature"
 )

@@ -6,8 +6,8 @@ import (
 	"errors"
 	"os"
 
-	"github.com/notaryproject/notation-go-lib/crypto/cryptoutil"
-	"github.com/notaryproject/notation-go-lib/signature/jws"
+	"github.com/notaryproject/notation-go/crypto/cryptoutil"
+	"github.com/notaryproject/notation-go/signature/jws"
 )
 
 // NewSignerFromFiles creates a signer from key, certificate files

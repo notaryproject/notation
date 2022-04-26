@@ -41,7 +41,7 @@ Discussions](https://github.com/notaryproject/notaryproject/discussions).
 This project is composed of:
 
 - [notation](https://github.com/notaryproject/notation): The Notary v2 CLI and Docker plugins
-- [notation-go-lib](https://github.com/notaryproject/notation-go-lib): A collection of libraries for supporting Notation sign, verify of oci artifacts. Based on Notary V2 standard.
+- [notation-go-lib](https://github.com/notaryproject/notation-go): A collection of libraries for supporting Notation sign, verify of oci artifacts. Based on Notary V2 standard.
 - [notaryproject](https://github.com/notaryproject/notaryproject): The Notary v2 requirements and scenarios to frame the scope of the Notary project
 - [tuf-notary](https://github.com/notaryproject/tuf): Integration of Notary v2 and TUF
 

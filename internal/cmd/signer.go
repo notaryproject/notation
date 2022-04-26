@@ -3,8 +3,8 @@ package cmd
 import (
 	"time"
 
-	"github.com/notaryproject/notation-go-lib"
-	"github.com/notaryproject/notation-go-lib/crypto/timestamp"
+	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/crypto/timestamp"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/urfave/cli/v2"
