@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"time"
 
 	"github.com/notaryproject/notation-go"
@@ -18,10 +19,12 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		keyPath = path
 		certPath = ctx.String(FlagCertFile.Name)
 	} else {
-		var err error
-		keyPath, certPath, err = config.ResolveKeyPath(ctx.String(FlagKey.Name))
+		key, err := config.ResolveKey(ctx.String(FlagKey.Name))
 		if err != nil {
 			return nil, err
+		}
+		if key.X509KeyPair == nil {
+			return nil, errors.New("invalid key type")
 		}
 	}
 

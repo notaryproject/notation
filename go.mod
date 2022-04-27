@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation
 
-go 1.17
+go 1.18
 
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
@@ -22,6 +22,8 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210925032602-92d5a993a665 // indirect
+	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 )
+
+replace github.com/notaryproject/notation-go => github.com/qmuntal/notation-go v0.7.0-alpha.1.0.20220427071552-5bfff3353b2c

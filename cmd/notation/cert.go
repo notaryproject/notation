@@ -3,10 +3,13 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/notaryproject/notation-go/crypto/cryptoutil"
+	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"
 )
@@ -123,9 +126,13 @@ func addCert(ctx *cli.Context) error {
 }
 
 func addCertCore(cfg *config.File, name, path string) error {
-	if ok := cfg.VerificationCertificates.Certificates.Append(name, path); !ok {
+	if slices.Contains(cfg.VerificationCertificates.Certificates, name) {
 		return errors.New(name + ": already exists")
 	}
+	cfg.VerificationCertificates.Certificates = append(cfg.VerificationCertificates.Certificates, config.CertificateReference{
+		Name: name,
+		Path: path,
+	})
 	return nil
 }
 
@@ -137,7 +144,7 @@ func listCerts(ctx *cli.Context) error {
 	}
 
 	// write out
-	printCertificateSet(cfg.VerificationCertificates.Certificates)
+	ioutil.PrintCertificateMap(os.Stdout, cfg.VerificationCertificates.Certificates)
 	return nil
 }
 
@@ -156,9 +163,11 @@ func removeCerts(ctx *cli.Context) error {
 
 	var removedNames []string
 	for _, name := range names {
-		if ok := cfg.VerificationCertificates.Certificates.Remove(name); !ok {
+		idx := slices.Index(cfg.VerificationCertificates.Certificates, name)
+		if idx < 0 {
 			return errors.New(name + ": not found")
 		}
+		cfg.VerificationCertificates.Certificates = slices.Delete(cfg.VerificationCertificates.Certificates, idx)
 		removedNames = append(removedNames, name)
 	}
 	if err := cfg.Save(); err != nil {
@@ -170,20 +179,6 @@ func removeCerts(ctx *cli.Context) error {
 		fmt.Println(name)
 	}
 	return nil
-}
-
-func printCertificateSet(s config.CertificateMap) {
-	maxNameSize := 0
-	for _, ref := range s {
-		if len(ref.Name) > maxNameSize {
-			maxNameSize = len(ref.Name)
-		}
-	}
-	format := fmt.Sprintf("%%-%ds\t%%s\n", maxNameSize)
-	fmt.Printf(format, "NAME", "PATH")
-	for _, ref := range s {
-		fmt.Printf(format, ref.Name, ref.Path)
-	}
 }
 
 func nameFromPath(path string) string {
