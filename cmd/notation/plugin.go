@@ -26,7 +26,7 @@ var (
 )
 
 func listPlugins(ctx *cli.Context) error {
-	mgr := manager.NewManager()
+	mgr := manager.New(config.PluginsPath)
 	plugins, err := mgr.List(ctx.Context)
 	if err != nil {
 		return err

@@ -44,13 +44,13 @@ var (
 				Required: true,
 			},
 			&cli.StringFlag{
+				Name:  "id",
+				Usage: "key id (required if --plugin is set)",
+			},
+			&cli.StringFlag{
 				Name:    "plugin",
 				Aliases: []string{"p"},
 				Usage:   "signing plugin name",
-			},
-			&cli.StringFlag{
-				Name:  "id",
-				Usage: "key id (required if --plugin is set)",
 			},
 			keyDefaultFlag,
 		},
@@ -125,7 +125,7 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
-	mgr := manager.NewManager()
+	mgr := manager.New(config.PluginsPath)
 	p, err := mgr.Get(ctx.Context, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
