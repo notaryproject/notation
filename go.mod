@@ -26,4 +26,4 @@ require (
 	gotest.tools/v3 v3.0.3 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/qmuntal/notation-go v0.7.0-alpha.1.0.20220427071552-5bfff3353b2c
+replace github.com/notaryproject/notation-go => github.com/qmuntal/notation-go v0.7.0-alpha.1.0.20220428073707-e1f2d4924cc0
