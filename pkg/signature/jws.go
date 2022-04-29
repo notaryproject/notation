@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go/crypto/cryptoutil"
 	"github.com/notaryproject/notation-go/signature/jws"
 )
 
@@ -20,26 +20,26 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 	}
 
 	// read key / cert pair
-	keyPEM, err := os.ReadFile(keyPath)
+	cert, err := tls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		return nil, err
 	}
-	certPEM, err := os.ReadFile(certPath)
-	if err != nil {
-		return nil, err
-	}
-	keyPair, err := tls.X509KeyPair(certPEM, keyPEM)
-	if err != nil {
-		return nil, err
-	}
-	key := keyPair.PrivateKey
-	method, err := jws.SigningMethodFromKey(key)
-	if err != nil {
-		return nil, err
+	if len(cert.Certificate) == 0 {
+		return nil, errors.New("missing signer certificate chain")
 	}
 
 	// parse cert
-	certs, err := cryptoutil.ParseCertificatePEM(certPEM)
+	certs := make([]*x509.Certificate, len(cert.Certificate))
+	for i, c := range cert.Certificate {
+		cert, err := x509.ParseCertificate(c)
+		if err != nil {
+			return nil, err
+		}
+		certs[i] = cert
+	}
+
+	key := cert.PrivateKey
+	method, err := jws.SigningMethodFromKey(key)
 	if err != nil {
 		return nil, err
 	}
@@ -50,17 +50,16 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 
 // NewSignerFromFiles creates a verifier from certificate files
 func NewVerifierFromFiles(certPaths []string) (*jws.Verifier, error) {
-	roots := x509.NewCertPool()
+	verifier := jws.NewVerifier()
+	verifier.VerifyOptions.Roots = x509.NewCertPool()
 	for _, path := range certPaths {
-		bundledCerts, err := cryptoutil.ReadCertificateFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}
-		for _, cert := range bundledCerts {
-			roots.AddCert(cert)
+		if !verifier.VerifyOptions.Roots.AppendCertsFromPEM(data) {
+			return nil, fmt.Errorf("failed to parse PEM certificate: %q", path)
 		}
 	}
-	verifier := jws.NewVerifier()
-	verifier.VerifyOptions.Roots = roots
 	return verifier, nil
 }

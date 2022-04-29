@@ -1,9 +1,10 @@
 package main
 
 import (
+	"context"
 	"os"
 
-	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/urfave/cli/v2"
 )
@@ -26,11 +27,8 @@ var (
 )
 
 func listPlugins(ctx *cli.Context) error {
-	mgr, err := plugin.NewManager()
-	if err != nil {
-		return err
-	}
-	plugins, err := mgr.List()
+	mgr := manager.NewManager()
+	plugins, err := mgr.List(context.Background())
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/pkg/config"
 )
 
@@ -13,7 +13,7 @@ func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
 
-func PrintPlugins(w io.Writer, v []*plugin.Plugin) error {
+func PrintPlugins(w io.Writer, v []*manager.Plugin) error {
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tURL\tSUPPORTED CONTRACTS\tCAPABILITIES\tERROR\tPATH\t")
 	for _, p := range v {

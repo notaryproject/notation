@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/config"
@@ -127,11 +128,8 @@ func addExternalKey(ctx *cli.Context, pluginName string) (*config.KeySuite, erro
 	if id == "" {
 		return nil, errors.New("missing key id")
 	}
-	mgr, err := plugin.NewManager()
-	if err != nil {
-		return nil, err
-	}
-	p, err := mgr.Get(pluginName)
+	mgr := manager.NewManager()
+	p, err := mgr.Get(context.Background(), pluginName)
 	if err != nil {
 		return nil, err
 	}
