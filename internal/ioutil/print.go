@@ -15,10 +15,10 @@ func newTabWriter(w io.Writer) *tabwriter.Writer {
 
 func PrintPlugins(w io.Writer, v []*manager.Plugin) error {
 	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tURL\tSUPPORTED CONTRACTS\tCAPABILITIES\tERROR\tPATH\t")
+	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
 	for _, p := range v {
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%v\t%v\t%v\t%s\t\n",
-			p.Name, p.Description, p.Version, p.URL, p.SupportedContractVersions, p.Capabilities, p.Err, p.Path)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
+			p.Name, p.Description, p.Version, p.Capabilities, p.Err)
 	}
 	return tw.Flush()
 }
