@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/crypto/timestamp"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
@@ -94,7 +95,14 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 			"identity": identity,
 		}
 	}
+	var tsa timestamp.Timestamper
+	if endpoint := ctx.String(cmd.FlagTimestamp.Name); endpoint != "" {
+		if tsa, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
+			return notation.Descriptor{}, notation.SignOptions{}, err
+		}
+	}
 	return manifestDesc, notation.SignOptions{
 		Expiry: cmd.GetExpiry(ctx),
+		TSA:    tsa,
 	}, nil
 }
