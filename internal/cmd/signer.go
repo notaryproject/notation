@@ -28,10 +28,11 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 	}
 	if key.ExternalKey != nil {
 		return &jws.PluginSigner{
-			Runner:     manager.NewManager(),
-			PluginName: key.PluginName,
-			KeyID:      key.ExternalKey.ID,
-			KeyName:    key.Name,
+			Runner:       manager.NewManager(),
+			PluginName:   key.PluginName,
+			KeyID:        key.ExternalKey.ID,
+			KeyName:      key.Name,
+			PluginConfig: key.PluginConfig,
 		}, nil
 	}
 	return nil, errors.New("unsupported key")
