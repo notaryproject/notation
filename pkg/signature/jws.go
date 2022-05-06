@@ -24,28 +24,18 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(cert.Certificate) == 0 {
-		return nil, errors.New("missing signer certificate chain")
-	}
 
 	// parse cert
 	certs := make([]*x509.Certificate, len(cert.Certificate))
 	for i, c := range cert.Certificate {
-		cert, err := x509.ParseCertificate(c)
+		certs[i], err = x509.ParseCertificate(c)
 		if err != nil {
 			return nil, err
 		}
-		certs[i] = cert
-	}
-
-	key := cert.PrivateKey
-	method, err := jws.SigningMethodFromKey(key)
-	if err != nil {
-		return nil, err
 	}
 
 	// create signer
-	return jws.NewSignerWithCertificateChain(method, key, certs)
+	return jws.NewSigner(cert.PrivateKey, certs)
 }
 
 // NewSignerFromFiles creates a verifier from certificate files
