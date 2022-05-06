@@ -39,18 +39,19 @@ var (
 		ArgsUsage: "[<key_path> <cert_path>]",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "key name (required if --plugin is set)",
-			},
-			&cli.StringFlag{
-				Name:  "id",
-				Usage: "key id (required if --plugin is set)",
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Usage:    "key name (required)",
+				Required: true,
 			},
 			&cli.StringFlag{
 				Name:    "plugin",
 				Aliases: []string{"p"},
 				Usage:   "signing plugin name",
+			},
+			&cli.StringFlag{
+				Name:  "id",
+				Usage: "key id (required if --plugin is set)",
 			},
 			keyDefaultFlag,
 		},
@@ -91,10 +92,11 @@ func addKey(ctx *cli.Context) error {
 	}
 	var key *config.KeySuite
 	pluginName := ctx.String("plugin")
+	name := ctx.String("name")
 	if pluginName != "" {
-		key, err = addExternalKey(ctx, pluginName)
+		key, err = addExternalKey(ctx, pluginName, name)
 	} else {
-		key, err = newX509KeyPair(ctx)
+		key, err = newX509KeyPair(ctx, name)
 	}
 	if err != nil {
 		return err
@@ -119,11 +121,7 @@ func addKey(ctx *cli.Context) error {
 	return nil
 }
 
-func addExternalKey(ctx *cli.Context, pluginName string) (*config.KeySuite, error) {
-	name := ctx.String("name")
-	if name == "" {
-		return nil, errors.New("missing key name")
-	}
+func addExternalKey(ctx *cli.Context, pluginName, keyName string) (*config.KeySuite, error) {
 	id := ctx.String("id")
 	if id == "" {
 		return nil, errors.New("missing key id")
@@ -137,12 +135,12 @@ func addExternalKey(ctx *cli.Context, pluginName string) (*config.KeySuite, erro
 		return nil, fmt.Errorf("invalid plugin: %w", p.Err)
 	}
 	return &config.KeySuite{
-		Name:        name,
+		Name:        keyName,
 		ExternalKey: &config.ExternalKey{ID: id, PluginName: pluginName},
 	}, nil
 }
 
-func newX509KeyPair(ctx *cli.Context) (*config.KeySuite, error) {
+func newX509KeyPair(ctx *cli.Context, keyName string) (*config.KeySuite, error) {
 	args := ctx.Args()
 	switch args.Len() {
 	case 0:
@@ -159,17 +157,13 @@ func newX509KeyPair(ctx *cli.Context) (*config.KeySuite, error) {
 	if err != nil {
 		return nil, err
 	}
-	name := ctx.String("name")
-	if name == "" {
-		name = nameFromPath(keyPath)
-	}
 
 	// check key / cert pair
 	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
 		return nil, err
 	}
 	return &config.KeySuite{
-		Name:        name,
+		Name:        keyName,
 		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
 	}, nil
 }

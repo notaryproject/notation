@@ -62,9 +62,10 @@ var (
 		ArgsUsage: "<host> ...",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "key and certificate name",
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Usage:    "key and certificate name",
+				Required: true,
 			},
 			&cli.IntFlag{
 				Name:    "bits",
@@ -99,9 +100,6 @@ func addCert(ctx *cli.Context) error {
 		return err
 	}
 	name := ctx.String("name")
-	if name == "" {
-		name = nameFromPath(path)
-	}
 
 	// check if the target path is a cert
 	if _, err := cryptoutil.ReadCertificateFile(path); err != nil {
@@ -179,13 +177,4 @@ func removeCerts(ctx *cli.Context) error {
 		fmt.Println(name)
 	}
 	return nil
-}
-
-func nameFromPath(path string) string {
-	base := filepath.Base(path)
-	name := base[:len(base)-len(filepath.Ext(base))]
-	if name == "" {
-		return base
-	}
-	return name
 }
