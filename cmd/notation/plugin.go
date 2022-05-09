@@ -28,7 +28,7 @@ var (
 
 func listPlugins(ctx *cli.Context) error {
 	mgr := manager.NewManager()
-	plugins, err := mgr.List(context.Background())
+	plugins, err := mgr.List(ctx.Context)
 	if err != nil {
 		return err
 	}
