@@ -53,7 +53,7 @@ func runPull(ctx *cli.Context) error {
 		return err
 	}
 
-	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDesc.Digest)
+	sigDigests, err := sigRepo.Lookup(ctx.Context, digest.Digest(manifestDesc.Digest))
 	if err != nil {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
@@ -69,7 +69,7 @@ func runPull(ctx *cli.Context) error {
 			if err := osutil.WriteFile(outputPath, sig); err != nil {
 				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 			}
-		} else if err := cache.PullSignature(ctx.Context, sigRepo, manifestDesc.Digest, sigDigest); err != nil {
+		} else if err := cache.PullSignature(ctx.Context, sigRepo, digest.Digest(manifestDesc.Digest), sigDigest); err != nil {
 			return err
 		}
 

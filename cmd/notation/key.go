@@ -125,7 +125,7 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
-	mgr := manager.New(config.PluginsPath)
+	mgr := manager.New(config.PluginDirPath)
 	p, err := mgr.Get(ctx.Context, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err

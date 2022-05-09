@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/spec/v1/signature"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
@@ -53,7 +54,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 	fmt.Printf("%s: digest: %v size: %v\n", manifestRef.ReferenceOrDefault(), manifestDesc.Digest, manifestDesc.Size)
 
 	fmt.Println("Looking up for signatures")
-	sigDigests, err := downloadSignatures(ctx, ref, manifestDesc.Digest)
+	sigDigests, err := downloadSignatures(ctx, ref, digest.Digest(manifestDesc.Digest))
 	if err != nil {
 		return "", err
 	}
@@ -73,7 +74,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		fmt.Println("The image is originated from:", originRef)
 	}
 
-	manifestRef.Reference = manifestDesc.Digest.String()
+	manifestRef.Reference = manifestDesc.Digest
 	return manifestRef.String(), nil
 }
 
@@ -100,12 +101,12 @@ func verifySignatures(
 	ctx context.Context,
 	verifier notation.Verifier,
 	sigDigests []digest.Digest,
-	desc notation.Descriptor,
+	desc signature.Descriptor,
 ) (digest.Digest, string, error) {
 	var opts notation.VerifyOptions
 	var lastErr error
 	for _, sigDigest := range sigDigests {
-		path := config.SignaturePath(desc.Digest, sigDigest)
+		path := config.SignaturePath(digest.Digest(desc.Digest), sigDigest)
 		sig, err := os.ReadFile(path)
 		if err != nil {
 			return "", "", err

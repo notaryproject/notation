@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/spec/v1/signature"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
+	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,12 +37,12 @@ func runPush(ctx *cli.Context) error {
 	}
 	sigPaths := ctx.StringSlice(flagSignature.Name)
 	if len(sigPaths) == 0 {
-		sigDigests, err := cache.SignatureDigests(manifestDesc.Digest)
+		sigDigests, err := cache.SignatureDigests(digest.Digest(manifestDesc.Digest))
 		if err != nil {
 			return err
 		}
 		for _, sigDigest := range sigDigests {
-			sigPaths = append(sigPaths, config.SignaturePath(manifestDesc.Digest, sigDigest))
+			sigPaths = append(sigPaths, config.SignaturePath(digest.Digest(manifestDesc.Digest), sigDigest))
 		}
 	}
 
@@ -71,25 +72,25 @@ func runPush(ctx *cli.Context) error {
 	return nil
 }
 
-func pushSignature(ctx *cli.Context, ref string, sig []byte) (notation.Descriptor, error) {
+func pushSignature(ctx *cli.Context, ref string, sig []byte) (signature.Descriptor, error) {
 	// initialize
 	sigRepo, err := getSignatureRepository(ctx, ref)
 	if err != nil {
-		return notation.Descriptor{}, err
+		return signature.Descriptor{}, err
 	}
 	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
 	if err != nil {
-		return notation.Descriptor{}, err
+		return signature.Descriptor{}, err
 	}
 
 	// core process
 	sigDesc, err := sigRepo.Put(ctx.Context, sig)
 	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
+		return signature.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
 	}
 	desc, err := sigRepo.Link(ctx.Context, manifestDesc, sigDesc)
 	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
+		return signature.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
 	}
 
 	return desc, nil

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
 
@@ -38,7 +39,7 @@ func runList(ctx *cli.Context) error {
 		return err
 	}
 
-	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDesc.Digest)
+	sigDigests, err := sigRepo.Lookup(ctx.Context, digest.Digest(manifestDesc.Digest))
 	if err != nil {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}

@@ -60,7 +60,7 @@ func signImage(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sigPath := config.SignaturePath(desc.Digest, digest.FromBytes(sig))
+	sigPath := config.SignaturePath(digest.Digest(desc.Digest), digest.FromBytes(sig))
 	if err := osutil.WriteFile(sigPath, sig); err != nil {
 		return err
 	}

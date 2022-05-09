@@ -27,9 +27,13 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		return signature.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
 	}
 	if key.ExternalKey != nil {
+		mgr := manager.New(config.PluginDirPath)
+		runner, err := mgr.Runner(key.PluginName)
+		if err != nil {
+			return nil, err
+		}
 		return &jws.PluginSigner{
-			Runner:       manager.NewManager(),
-			PluginName:   key.PluginName,
+			Runner:       runner,
 			KeyID:        key.ExternalKey.ID,
 			KeyName:      key.Name,
 			PluginConfig: key.PluginConfig,

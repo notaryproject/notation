@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
+	sigspec "github.com/notaryproject/notation-go/spec/v1/signature"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
@@ -84,7 +85,7 @@ func runVerify(ctx *cli.Context) error {
 	return nil
 }
 
-func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestDesc notation.Descriptor, sigPaths []string) error {
+func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestDesc sigspec.Descriptor, sigPaths []string) error {
 	if len(sigPaths) == 0 {
 		return errors.New("verification failure: no signatures found")
 	}
