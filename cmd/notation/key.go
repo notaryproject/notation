@@ -90,7 +90,7 @@ func addKey(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	var key *config.KeySuite
+	var key config.KeySuite
 	pluginName := ctx.String("plugin")
 	name := ctx.String("name")
 	if pluginName != "" {
@@ -103,7 +103,7 @@ func addKey(ctx *cli.Context) error {
 	}
 
 	isDefault := ctx.Bool(keyDefaultFlag.Name)
-	err = addKeyCore(cfg, *key, isDefault)
+	err = addKeyCore(cfg, key, isDefault)
 	if err != nil {
 		return err
 	}
@@ -121,48 +121,48 @@ func addKey(ctx *cli.Context) error {
 	return nil
 }
 
-func addExternalKey(ctx *cli.Context, pluginName, keyName string) (*config.KeySuite, error) {
+func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySuite, error) {
 	id := ctx.String("id")
 	if id == "" {
-		return nil, errors.New("missing key id")
+		return config.KeySuite{}, errors.New("missing key id")
 	}
 	mgr := manager.NewManager()
 	p, err := mgr.Get(context.Background(), pluginName)
 	if err != nil {
-		return nil, err
+		return config.KeySuite{}, err
 	}
 	if p.Err != nil {
-		return nil, fmt.Errorf("invalid plugin: %w", p.Err)
+		return config.KeySuite{}, fmt.Errorf("invalid plugin: %w", p.Err)
 	}
-	return &config.KeySuite{
+	return config.KeySuite{
 		Name:        keyName,
 		ExternalKey: &config.ExternalKey{ID: id, PluginName: pluginName},
 	}, nil
 }
 
-func newX509KeyPair(ctx *cli.Context, keyName string) (*config.KeySuite, error) {
+func newX509KeyPair(ctx *cli.Context, keyName string) (config.KeySuite, error) {
 	args := ctx.Args()
 	switch args.Len() {
 	case 0:
-		return nil, errors.New("missing key and certificate paths")
+		return config.KeySuite{}, errors.New("missing key and certificate paths")
 	case 1:
-		return nil, errors.New("missing certificate path for the corresponding key")
+		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
 	}
 
 	keyPath, err := filepath.Abs(args.Get(0))
 	if err != nil {
-		return nil, err
+		return config.KeySuite{}, err
 	}
 	certPath, err := filepath.Abs(args.Get(1))
 	if err != nil {
-		return nil, err
+		return config.KeySuite{}, err
 	}
 
 	// check key / cert pair
 	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
-		return nil, err
+		return config.KeySuite{}, err
 	}
-	return &config.KeySuite{
+	return config.KeySuite{
 		Name:        keyName,
 		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
 	}, nil

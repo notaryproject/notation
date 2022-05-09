@@ -62,10 +62,9 @@ var (
 		ArgsUsage: "<host> ...",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Usage:    "key and certificate name",
-				Required: true,
+				Name:    "name",
+				Aliases: []string{"n"},
+				Usage:   "key and certificate name",
 			},
 			&cli.IntFlag{
 				Name:    "bits",

@@ -6,14 +6,17 @@ import (
 	"path/filepath"
 )
 
+// X509KeyPair contains the paths of a public/private key pair files.
 type X509KeyPair struct {
-	KeyPath         string `json:"keyPath"`
-	CertificatePath string `json:"certPath"`
+	KeyPath         string `json:"keyPath,omitempty"`
+	CertificatePath string `json:"certPath,omitempty"`
 }
 
+// ExternalKey contains the necessary information to delegate
+// the signing operation to the named plugin.
 type ExternalKey struct {
-	ID         string `json:"id"`
-	PluginName string `json:"pluginName"`
+	ID         string `json:"id,omitempty"`
+	PluginName string `json:"pluginName,omitempty"`
 }
 
 // KeySuite is a named key suite.

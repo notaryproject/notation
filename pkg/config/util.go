@@ -3,6 +3,8 @@ package config
 import (
 	"errors"
 	"strings"
+
+	"github.com/notaryproject/notation/internal/slices"
 )
 
 var (
@@ -34,10 +36,9 @@ func ResolveKey(name string) (KeySuite, error) {
 	if name == "" {
 		name = config.SigningKeys.Default
 	}
-	for _, key := range config.SigningKeys.Keys {
-		if key.Name == name {
-			return key, nil
-		}
+	idx := slices.Index(config.SigningKeys.Keys, name)
+	if idx < 0 {
+		return KeySuite{}, ErrKeyNotFound
 	}
-	return KeySuite{}, ErrKeyNotFound
+	return config.SigningKeys.Keys[idx], ErrKeyNotFound
 }
