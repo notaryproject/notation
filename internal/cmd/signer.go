@@ -35,7 +35,6 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		return &jws.PluginSigner{
 			Runner:       runner,
 			KeyID:        key.ExternalKey.ID,
-			KeyName:      key.Name,
 			PluginConfig: key.PluginConfig,
 		}, nil
 	}
