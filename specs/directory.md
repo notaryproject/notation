@@ -155,7 +155,7 @@ Developers sign artifacts using local private keys with associated certificate c
 {CONFIG}/notation/signing/keys.json
 ```
 
-Developers SHOULD consider safe places to store the passphrase-protected key and certificate pairs, or opt to remote signing.
+Since the signing key store is user-specific, the system level `{CONFIG}` is not recommended. Developers SHOULD consider safe places to store the passphrase-protected key and certificate pairs, or opt to remote signing.
 
 For testing purpose, the following directory structure is suggested.
 
@@ -165,6 +165,202 @@ For testing purpose, the following directory structure is suggested.
 ```
 
 Since `keys.json` takes references in absolute paths, it is not required to copy the private keys and certificates used for signing to the above directory structure.
+
+## Examples
+
+Examples are shown on various platforms where the user `exampleuser` overrides the `notation` config and the trust policy.
+
+### Unix
+
+```
+/
+├── etc
+│   └── notation
+│       ├── config.json
+│       └── trust
+│           ├── policy.json
+│           └── store
+│               ├── ca
+│               │   ├── acme-rockets
+│               │   │   ├── cert1.pem
+│               │   │   └── cert2.pem
+│               │   └── wabbit-networks
+│               │       └── cert3.pem
+│               └── tsa
+│                   └── publicly-trusted-tsa
+│                       └── tsa-cert1.pem
+├── home
+│   └── exampleuser
+│       ├── .cache
+│       │   └── notation
+│       │       └── signature
+│       │           └── sha256
+│       │               └── 05b3abf2579a5eb66403cd78be557fd860633a1fe2103c7642030defe32c657f
+│       │                   └── sha256
+│       │                       ├── 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae.sig
+│       │                       ├── b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.sig
+│       │                       └── fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9.sig
+│       └── .config
+│           └── notation
+│               ├── config.json
+│               ├── plugins
+│               │   └── com.example.bar
+│               │       └── notation-com.example.bar
+│               ├── signing
+│               │   ├── certificates
+│               │   │   ├── dev.crt
+│               │   │   └── test.crt
+│               │   ├── keys
+│               │   │   ├── dev.pem
+│               │   │   └── test.pem
+│               │   └── keys.json
+│               └── trust
+│                   ├── policy.json
+│                   └── store
+│                       ├── ca
+│                       │   └── acme-rockets
+│                       │       └── cert4.pem
+│                       └── tsa
+│                           └── publicly-trusted-tsa
+│                               └── tsa-cert2.pem
+└── usr
+    ├── bin
+    │   └── notation
+    └── libexec
+        └── notation
+            └── plugins
+                └── com.example.foo
+                    └── notation-com.example.foo
+```
+
+### Windows
+
+```
+C:.
+├── Program Files
+│   └── notation
+│       ├── bin
+│       │   └── notation
+│       └── plugins
+│           └── com.example.foo
+│               └── notation-com.example.foo
+├── ProgramData
+│   └── notation
+│       ├── config.json
+│       └── trust
+│           ├── policy.json
+│           └── store
+│               ├── ca
+│               │   ├── acme-rockets
+│               │   │   ├── cert1.pem
+│               │   │   └── cert2.pem
+│               │   └── wabbit-networks
+│               │       └── cert3.pem
+│               └── tsa
+│                   └── publicly-trusted-tsa
+│                       └── tsa-cert1.pem
+└── Users
+    └── exampleuser
+        └── AppData
+            ├── Local
+            │   └── notation
+            │       └── signature
+            │           └── sha256
+            │               └── 05b3abf2579a5eb66403cd78be557fd860633a1fe2103c7642030defe32c657f
+            │                   └── sha256
+            │                       ├── 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae.sig
+            │                       ├── b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.sig
+            │                       └── fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9.sig
+            └── Roaming
+                └── notation
+                    ├── config.json
+                    ├── plugins
+                    │   └── com.example.bar
+                    │       └── notation-com.example.bar
+                    ├── signing
+                    │   ├── certificates
+                    │   │   ├── dev.crt
+                    │   │   └── test.crt
+                    │   ├── keys
+                    │   │   ├── dev.pem
+                    │   │   └── test.pem
+                    │   └── keys.json
+                    └── trust
+                        ├── policy.json
+                        └── store
+                            ├── ca
+                            │   └── acme-rockets
+                            │       └── cert4.pem
+                            └── tsa
+                                └── publicly-trusted-tsa
+                                    └── tsa-cert2.pem
+```
+
+### Darwin
+
+```
+/
+├── Library
+│   └── Application Support
+│       └── notation
+│           ├── config.json
+│           └── trust
+│               ├── policy.json
+│               └── store
+│                   ├── ca
+│                   │   ├── acme-rockets
+│                   │   │   ├── cert1.pem
+│                   │   │   └── cert2.pem
+│                   │   └── wabbit-networks
+│                   │       └── cert3.pem
+│                   └── tsa
+│                       └── publicly-trusted-tsa
+│                           └── tsa-cert1.pem
+├── Users
+│   └── exampleuser
+│       └── Library
+│           ├── Application Support
+│           │   └── notation
+│           │       ├── config.json
+│           │       ├── plugins
+│           │       │   └── com.example.bar
+│           │       │       └── notation-com.example.bar
+│           │       ├── signing
+│           │       │   ├── certificates
+│           │       │   │   ├── dev.crt
+│           │       │   │   └── test.crt
+│           │       │   ├── keys
+│           │       │   │   ├── dev.pem
+│           │       │   │   └── test.pem
+│           │       │   └── keys.json
+│           │       └── trust
+│           │           ├── policy.json
+│           │           └── store
+│           │               ├── ca
+│           │               │   └── acme-rockets
+│           │               │       └── cert4.pem
+│           │               └── tsa
+│           │                   └── publicly-trusted-tsa
+│           │                       └── tsa-cert2.pem
+│           └── Caches
+│               └── notation
+│                   └── signature
+│                       └── sha256
+│                           └── 05b3abf2579a5eb66403cd78be557fd860633a1fe2103c7642030defe32c657f
+│                               └── sha256
+│                                   ├── 2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae.sig
+│                                   ├── b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.sig
+│                                   └── fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9.sig
+└── usr
+    └── local
+        ├── bin
+        │   └── notation
+        └── lib
+            └── notation
+                └── plugins
+                    └── com.example.foo
+                        └── notation-com.example.foo
+```
 
 [References]::
 
