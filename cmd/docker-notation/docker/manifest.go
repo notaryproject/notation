@@ -5,7 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
-	"github.com/notaryproject/notation-go/spec/v1/signature"
+	"github.com/notaryproject/notation-go/spec/signature"
 	"github.com/notaryproject/notation/pkg/docker"
 	"github.com/opencontainers/go-digest"
 	"oras.land/oras-go/v2/registry"

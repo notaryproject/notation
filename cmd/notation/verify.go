@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
-	sigspec "github.com/notaryproject/notation-go/spec/v1/signature"
+	sigspec "github.com/notaryproject/notation-go/spec/signature"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
