@@ -147,7 +147,7 @@ or in a hierarchical view
                     └── {signature-digest}.sig
 ```
 
-### Signing key store
+### Signing Key Store
 
 Developers sign artifacts using local private keys with associated certificate chain. The signing key information is tracked in a JSON file at
 
