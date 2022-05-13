@@ -8,7 +8,7 @@ The `notation` CLI requires local file systems support for the following compone
 - Trust stores
 - Trust policies
 - Signature caches
-- Local key store
+- Signing key store
 
 This documentation specifies the recommended directory structure for those components.
 
@@ -58,18 +58,6 @@ The overall directory structure for `notation` is summarized as follows.
 ```
 {BIN}
 └── notation
-{CONFIG}
-└── notation
-    ├── config.json
-    ├── private
-    │   ├── {key-name}.crt
-    │   └── {key-name}.key
-    └── trust
-        ├── policy.json
-        └── store
-            └── {trust-store-type}
-                └── {named-store}
-                    └── {cert-file}
 {CACHE}
 └── notation
     └── signature
@@ -77,6 +65,21 @@ The overall directory structure for `notation` is summarized as follows.
             └── {manifest-digest}
                 └── {signature-digest-algorithm}
                     └── {signature-digest}.sig
+{CONFIG}
+└── notation
+    ├── config.json
+    ├── signing
+    │   ├── certificates
+    │   │   └── {key-name}.crt
+    │   ├── keys
+    │   │   └── {key-name}.pem
+    │   └── keys.json
+    └── trust
+        ├── policy.json
+        └── store
+            └── {trust-store-type}
+                └── {named-store}
+                    └── {cert-file}
 {LIBEXEC}
 └── notation
     └── plugins
@@ -144,16 +147,24 @@ or in a hierarchical view
                     └── {signature-digest}.sig
 ```
 
-### Local key store
+### Signing key store
 
-Developers sign artifacts using local private keys with associated certificate chain. The default directory structure for testing purpose is suggested as follows.
+Developers sign artifacts using local private keys with associated certificate chain. The signing key information is tracked in a JSON file at
 
 ```
-{CONFIG}/notation/private/{key-name}.crt
-{CONFIG}/notation/private/{key-name}.key
+{CONFIG}/notation/signing/keys.json
 ```
 
-Developers SHOULD consider safer places to store the passphrase-protected key and certificate pair, or opt to remote signing.
+Developers SHOULD consider safe places to store the passphrase-protected key and certificate pairs, or opt to remote signing.
+
+For testing purpose, the following directory structure is suggested.
+
+```
+{CONFIG}/notation/signing/certificates/{key-name}.crt
+{CONFIG}/notation/signing/keys/{key-name}.pem
+```
+
+Since `keys.json` takes references in absolute paths, it is not required to copy the private keys and certificates used for signing to the above directory structure.
 
 [References]::
 
