@@ -97,7 +97,7 @@ The path for the `notation` binary is
 
 ### Plugin
 
-Plugin are binaries not meant to be executed directly by users' shell or scripts. The path of a plugin follows the pattern below.
+[Plugins][Plugin] are binaries not meant to be executed directly by users' shell or scripts. The path of a plugin follows the pattern below.
 
 ```
 {LIBEXEC}/notation/plugins/{plugin-name}/notation-{plugin-name}
@@ -370,5 +370,6 @@ C:.
 [AS]: https://docs.microsoft.com/windows/apps/design/app-settings/store-and-retrieve-app-data "App Settings"
 [macOS_FS]: https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW14 "macOS File System"
 [SIP]: https://support.apple.com/HT204899 "System Integrity Protection"
+[Plugin]: https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md "Notation Extensibility for Signing and Verification"
 [TS]: https://github.com/notaryproject/notaryproject/blob/main/trust-store-trust-policy-specification.md#trust-store "Trust Store"
 [TP]: https://github.com/notaryproject/notaryproject/blob/main/trust-store-trust-policy-specification.md#trust-policy "Trust Policy"
