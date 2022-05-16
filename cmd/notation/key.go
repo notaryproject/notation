@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -41,7 +40,7 @@ var (
 			&cli.StringFlag{
 				Name:     "name",
 				Aliases:  []string{"n"},
-				Usage:    "key name (required)",
+				Usage:    "key name",
 				Required: true,
 			},
 			&cli.StringFlag{
@@ -127,7 +126,7 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 		return config.KeySuite{}, errors.New("missing key id")
 	}
 	mgr := manager.NewManager()
-	p, err := mgr.Get(context.Background(), pluginName)
+	p, err := mgr.Get(ctx.Context, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
 	}

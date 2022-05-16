@@ -26,6 +26,8 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		if key.X509KeyPair == nil {
 			return nil, errors.New("invalid key type")
 		}
+		keyPath = key.KeyPath
+		certPath = key.CertificatePath
 	}
 
 	// construct signer

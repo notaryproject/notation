@@ -40,5 +40,5 @@ func ResolveKey(name string) (KeySuite, error) {
 	if idx < 0 {
 		return KeySuite{}, ErrKeyNotFound
 	}
-	return config.SigningKeys.Keys[idx], ErrKeyNotFound
+	return config.SigningKeys.Keys[idx], nil
 }
