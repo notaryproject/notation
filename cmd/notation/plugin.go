@@ -10,18 +10,18 @@ import (
 
 var (
 	pluginCommand = &cli.Command{
-		Name:    "plugin",
-		Aliases: []string{"ls"},
-		Usage:   "Manage plugins",
+		Name:  "plugin",
+		Usage: "Manage plugins",
 		Subcommands: []*cli.Command{
 			pluginListCommand,
 		},
 	}
 
 	pluginListCommand = &cli.Command{
-		Name:   "list",
-		Usage:  "List registered plugins",
-		Action: listPlugins,
+		Name:    "list",
+		Usage:   "List registered plugins",
+		Aliases: []string{"ls"},
+		Action:  listPlugins,
 	}
 )
 
