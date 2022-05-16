@@ -95,12 +95,24 @@ The path for the `notation` binary is
 {BIN}/notation
 ```
 
+On Windows, the `.exe` extension is required for executables.
+
+```
+{BIN}/notation.exe
+```
+
 ### Plugin
 
 [Plugins][Plugin] are binaries not meant to be executed directly by users' shell or scripts. The path of a plugin follows the pattern below.
 
 ```
 {LIBEXEC}/notation/plugins/{plugin-name}/notation-{plugin-name}
+```
+
+On Windows, the `.exe` extension is required for executables.
+
+```
+{LIBEXEC}/notation/plugins/{plugin-name}/notation-{plugin-name}.exe
 ```
 
 ### General Configuration
@@ -240,10 +252,10 @@ C:.
 ├── Program Files
 │   └── notation
 │       ├── bin
-│       │   └── notation
+│       │   └── notation.exe
 │       └── plugins
 │           └── com.example.foo
-│               └── notation-com.example.foo
+│               └── notation-com.example.foo.exe
 ├── ProgramData
 │   └── notation
 │       ├── config.json
@@ -276,7 +288,7 @@ C:.
                     ├── config.json
                     ├── plugins
                     │   └── com.example.bar
-                    │       └── notation-com.example.bar
+                    │       └── notation-com.example.bar.exe
                     ├── signing
                     │   ├── certificates
                     │   │   ├── dev.crt
