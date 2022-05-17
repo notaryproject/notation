@@ -141,8 +141,7 @@ func listCerts(ctx *cli.Context) error {
 	}
 
 	// write out
-	ioutil.PrintCertificateMap(os.Stdout, cfg.VerificationCertificates.Certificates)
-	return nil
+	return ioutil.PrintCertificateMap(os.Stdout, cfg.VerificationCertificates.Certificates)
 }
 
 func removeCerts(ctx *cli.Context) error {

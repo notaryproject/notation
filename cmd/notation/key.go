@@ -216,8 +216,7 @@ func listKeys(ctx *cli.Context) error {
 	}
 
 	// write out
-	ioutil.PrintKeyMap(os.Stdout, cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
-	return nil
+	return ioutil.PrintKeyMap(os.Stdout, cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
 }
 
 func removeKeys(ctx *cli.Context) error {
