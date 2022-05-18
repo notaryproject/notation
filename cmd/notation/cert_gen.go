@@ -63,7 +63,7 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefaultKey := ctx.Bool(keyDefaultFlag.Name)
+	isDefault := ctx.Bool(keyDefaultFlag.Name)
 	keySuite := config.KeySuite{
 		Name: name,
 		X509KeyPair: &config.X509KeyPair{
@@ -87,7 +87,7 @@ func generateTestCert(ctx *cli.Context) error {
 
 	// write out
 	fmt.Printf("%s: added to the key list\n", name)
-	if isDefaultKey {
+	if isDefault {
 		fmt.Printf("%s: marked as default\n", name)
 	}
 	if trust {

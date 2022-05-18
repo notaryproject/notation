@@ -44,13 +44,13 @@ var (
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name:  "id",
-				Usage: "key id (required if --plugin is set)",
-			},
-			&cli.StringFlag{
 				Name:    "plugin",
 				Aliases: []string{"p"},
 				Usage:   "signing plugin name",
+			},
+			&cli.StringFlag{
+				Name:  "id",
+				Usage: "key id (required if --plugin is set)",
 			},
 			keyDefaultFlag,
 		},
