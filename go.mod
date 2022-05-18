@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
 	github.com/docker/cli v20.10.14+incompatible
-	github.com/notaryproject/notation-go v0.8.0-alpha.1.0.20220504164459-182873bded16
+	github.com/notaryproject/notation-go v0.8.0-alpha.1.0.20220518191708-407537596ed5
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.0.2
 	github.com/oras-project/artifacts-spec v1.0.0-draft.1.1
@@ -25,5 +25,3 @@ require (
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 )
-
-replace github.com/notaryproject/notation-go => github.com/qmuntal/notation-go v0.7.0-alpha.1.0.20220518080859-07fe9b874982
