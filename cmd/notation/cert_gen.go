@@ -63,7 +63,9 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefaultKey, err := addKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
+	isDefault := ctx.Bool(keyDefaultFlag.Name)
+	keySuite := config.KeySuite{Name: name, X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath}}
+	err = addKeyCore(cfg, keySuite, ctx.Bool(keyDefaultFlag.Name))
 	if err != nil {
 		return err
 	}
@@ -79,7 +81,7 @@ func generateTestCert(ctx *cli.Context) error {
 
 	// write out
 	fmt.Printf("%s: added to the key list\n", name)
-	if isDefaultKey {
+	if isDefault {
 		fmt.Printf("%s: marked as default\n", name)
 	}
 	if trust {

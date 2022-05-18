@@ -6,6 +6,41 @@ import (
 	"path/filepath"
 )
 
+// X509KeyPair contains the paths of a public/private key pair files.
+type X509KeyPair struct {
+	KeyPath         string `json:"keyPath,omitempty"`
+	CertificatePath string `json:"certPath,omitempty"`
+}
+
+// ExternalKey contains the necessary information to delegate
+// the signing operation to the named plugin.
+type ExternalKey struct {
+	ID         string `json:"id,omitempty"`
+	PluginName string `json:"pluginName,omitempty"`
+}
+
+// KeySuite is a named key suite.
+type KeySuite struct {
+	Name string `json:"name"`
+
+	*X509KeyPair
+	*ExternalKey
+}
+
+func (k KeySuite) Is(name string) bool {
+	return k.Name == name
+}
+
+// CertificateReference is a named file path.
+type CertificateReference struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
+func (c CertificateReference) Is(name string) bool {
+	return c.Name == name
+}
+
 // File reflects the config file.
 // Specification: https://github.com/notaryproject/notation/pull/76
 type File struct {
@@ -16,13 +51,13 @@ type File struct {
 
 // VerificationCertificates is a collection of public certs used for verification.
 type VerificationCertificates struct {
-	Certificates CertificateMap `json:"certs"`
+	Certificates []CertificateReference `json:"certs"`
 }
 
 // SigningKeys is a collection of signing keys.
 type SigningKeys struct {
-	Default string `json:"default"`
-	Keys    KeyMap `json:"keys"`
+	Default string     `json:"default"`
+	Keys    []KeySuite `json:"keys"`
 }
 
 // New creates a new config file

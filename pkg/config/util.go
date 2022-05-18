@@ -3,14 +3,13 @@ package config
 import (
 	"errors"
 	"strings"
+
+	"github.com/notaryproject/notation/internal/slices"
 )
 
 var (
 	// ErrKeyNotFound indicates that the signing key is not found.
 	ErrKeyNotFound = errors.New("signing key not found")
-
-	// ErrCertificateNotFound indicates that the verification certificate is not found.
-	ErrCertificateNotFound = errors.New("verification certificate not found")
 )
 
 // IsRegistryInsecure checks whether the registry is in the list of insecure registries.
@@ -27,33 +26,19 @@ func IsRegistryInsecure(target string) bool {
 	return false
 }
 
-// ResolveKeyPath resolves the key path by name along with
-// its corresponding certificate path.
+// ResolveKey resolves the key by name.
 // The default key is attempted if name is empty.
-func ResolveKeyPath(name string) (string, string, error) {
+func ResolveKey(name string) (KeySuite, error) {
 	config, err := LoadOrDefaultOnce()
 	if err != nil {
-		return "", "", err
+		return KeySuite{}, err
 	}
 	if name == "" {
 		name = config.SigningKeys.Default
 	}
-	keyPath, certPath, ok := config.SigningKeys.Keys.Get(name)
-	if !ok {
-		return "", "", ErrKeyNotFound
+	idx := slices.Index(config.SigningKeys.Keys, name)
+	if idx < 0 {
+		return KeySuite{}, ErrKeyNotFound
 	}
-	return keyPath, certPath, nil
-}
-
-// ResolveCertificatePath resolves the certificate path by name.
-func ResolveCertificatePath(name string) (string, error) {
-	config, err := LoadOrDefaultOnce()
-	if err != nil {
-		return "", err
-	}
-	path, ok := config.VerificationCertificates.Certificates.Get(name)
-	if !ok {
-		return "", ErrCertificateNotFound
-	}
-	return path, nil
+	return config.SigningKeys.Keys[idx], nil
 }

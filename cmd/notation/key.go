@@ -4,8 +4,12 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 
+	"github.com/notaryproject/notation-go/plugin/manager"
+	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"
 )
@@ -31,12 +35,22 @@ var (
 	keyAddCommand = &cli.Command{
 		Name:      "add",
 		Usage:     "Add key to signing key list",
-		ArgsUsage: "<key_path> <cert_path>",
+		ArgsUsage: "[<key_path> <cert_path>]",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "key name",
+				Name:     "name",
+				Aliases:  []string{"n"},
+				Usage:    "key name",
+				Required: true,
+			},
+			&cli.StringFlag{
+				Name:    "plugin",
+				Aliases: []string{"p"},
+				Usage:   "signing plugin name",
+			},
+			&cli.StringFlag{
+				Name:  "id",
+				Usage: "key id (required if --plugin is set)",
 			},
 			keyDefaultFlag,
 		},
@@ -71,63 +85,97 @@ var (
 )
 
 func addKey(ctx *cli.Context) error {
-	// initialize
-	args := ctx.Args()
-	switch args.Len() {
-	case 0:
-		return errors.New("missing key and certificate paths")
-	case 1:
-		return errors.New("missing certificate path for the correspoding key")
-	}
-
-	keyPath, err := filepath.Abs(args.Get(0))
-	if err != nil {
-		return err
-	}
-	certPath, err := filepath.Abs(args.Get(1))
-	if err != nil {
-		return err
-	}
-	name := ctx.String("name")
-	if name == "" {
-		name = nameFromPath(keyPath)
-	}
-
-	// check key / cert pair
-	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
-		return err
-	}
-
-	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
 		return err
 	}
-	isDefault, err := addKeyCore(cfg, name, keyPath, certPath, ctx.Bool(keyDefaultFlag.Name))
+	var key config.KeySuite
+	pluginName := ctx.String("plugin")
+	name := ctx.String("name")
+	if pluginName != "" {
+		key, err = addExternalKey(ctx, pluginName, name)
+	} else {
+		key, err = newX509KeyPair(ctx, name)
+	}
 	if err != nil {
 		return err
 	}
+
+	isDefault := ctx.Bool(keyDefaultFlag.Name)
+	err = addKeyCore(cfg, key, isDefault)
+	if err != nil {
+		return err
+	}
+
 	if err := cfg.Save(); err != nil {
 		return err
 	}
 
 	// write out
 	if isDefault {
-		fmt.Printf("%s: marked as default\n", name)
+		fmt.Printf("%s: marked as default\n", key.Name)
 	} else {
-		fmt.Println(name)
+		fmt.Println(key.Name)
 	}
 	return nil
 }
 
-func addKeyCore(cfg *config.File, name, keyPath, certPath string, markDefault bool) (bool, error) {
-	if ok := cfg.SigningKeys.Keys.Append(name, keyPath, certPath); !ok {
-		return false, errors.New(name + ": already exists")
+func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySuite, error) {
+	id := ctx.String("id")
+	if id == "" {
+		return config.KeySuite{}, errors.New("missing key id")
 	}
+	mgr := manager.NewManager()
+	p, err := mgr.Get(ctx.Context, pluginName)
+	if err != nil {
+		return config.KeySuite{}, err
+	}
+	if p.Err != nil {
+		return config.KeySuite{}, fmt.Errorf("invalid plugin: %w", p.Err)
+	}
+	return config.KeySuite{
+		Name:        keyName,
+		ExternalKey: &config.ExternalKey{ID: id, PluginName: pluginName},
+	}, nil
+}
+
+func newX509KeyPair(ctx *cli.Context, keyName string) (config.KeySuite, error) {
+	args := ctx.Args()
+	switch args.Len() {
+	case 0:
+		return config.KeySuite{}, errors.New("missing key and certificate paths")
+	case 1:
+		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
+	}
+
+	keyPath, err := filepath.Abs(args.Get(0))
+	if err != nil {
+		return config.KeySuite{}, err
+	}
+	certPath, err := filepath.Abs(args.Get(1))
+	if err != nil {
+		return config.KeySuite{}, err
+	}
+
+	// check key / cert pair
+	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
+		return config.KeySuite{}, err
+	}
+	return config.KeySuite{
+		Name:        keyName,
+		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
+	}, nil
+}
+
+func addKeyCore(cfg *config.File, key config.KeySuite, markDefault bool) error {
+	if slices.Contains(cfg.SigningKeys.Keys, key.Name) {
+		return errors.New(key.Name + ": already exists")
+	}
+	cfg.SigningKeys.Keys = append(cfg.SigningKeys.Keys, key)
 	if markDefault {
-		cfg.SigningKeys.Default = name
+		cfg.SigningKeys.Default = key.Name
 	}
-	return cfg.SigningKeys.Default == name, nil
+	return nil
 }
 
 func updateKey(ctx *cli.Context) error {
@@ -142,7 +190,7 @@ func updateKey(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	if _, _, ok := cfg.SigningKeys.Keys.Get(name); !ok {
+	if !slices.Contains(cfg.SigningKeys.Keys, name) {
 		return errors.New(name + ": not found")
 	}
 	if !ctx.Bool(keyDefaultFlag.Name) {
@@ -168,8 +216,7 @@ func listKeys(ctx *cli.Context) error {
 	}
 
 	// write out
-	printKeySet(cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
-	return nil
+	return ioutil.PrintKeyMap(os.Stdout, cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
 }
 
 func removeKeys(ctx *cli.Context) error {
@@ -188,9 +235,11 @@ func removeKeys(ctx *cli.Context) error {
 	prevDefault := cfg.SigningKeys.Default
 	var removedNames []string
 	for _, name := range names {
-		if ok := cfg.SigningKeys.Keys.Remove(name); !ok {
+		idx := slices.Index(cfg.SigningKeys.Keys, name)
+		if idx < 0 {
 			return errors.New(name + ": not found")
 		}
+		cfg.SigningKeys.Keys = slices.Delete(cfg.SigningKeys.Keys, idx)
 		removedNames = append(removedNames, name)
 		if prevDefault == name {
 			cfg.SigningKeys.Default = ""
@@ -209,30 +258,4 @@ func removeKeys(ctx *cli.Context) error {
 		}
 	}
 	return nil
-}
-
-func printKeySet(target string, s config.KeyMap) {
-	if len(s) == 0 {
-		fmt.Println("NAME\tPATH")
-		return
-	}
-
-	var maxNameSize, maxKeyPathSize int
-	for _, ref := range s {
-		if len(ref.Name) > maxNameSize {
-			maxNameSize = len(ref.Name)
-		}
-		if len(ref.KeyPath) > maxKeyPathSize {
-			maxKeyPathSize = len(ref.KeyPath)
-		}
-	}
-	format := fmt.Sprintf("%%c %%-%ds\t%%-%ds\t%%s\n", maxNameSize, maxKeyPathSize)
-	fmt.Printf(format, ' ', "NAME", "KEY PATH", "CERTIFICATE PATH")
-	for _, ref := range s {
-		mark := ' '
-		if ref.Name == target {
-			mark = '*'
-		}
-		fmt.Printf(format, mark, ref.Name, ref.KeyPath, ref.CertificatePath)
-	}
 }
