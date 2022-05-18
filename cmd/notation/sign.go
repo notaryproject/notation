@@ -38,6 +38,7 @@ var signCommand = &cli.Command{
 		flagPassword,
 		flagPlainHTTP,
 		flagMediaType,
+		cmd.FlagPluginConfig,
 	},
 	Action: runSign,
 }
@@ -101,8 +102,13 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 			return notation.Descriptor{}, notation.SignOptions{}, err
 		}
 	}
+	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx.StringSlice(cmd.FlagPluginConfig.Name))
+	if err != nil {
+		return notation.Descriptor{}, notation.SignOptions{}, err
+	}
 	return manifestDesc, notation.SignOptions{
-		Expiry: cmd.GetExpiry(ctx),
-		TSA:    tsa,
+		Expiry:       cmd.GetExpiry(ctx),
+		TSA:          tsa,
+		PluginConfig: pluginConfig,
 	}, nil
 }

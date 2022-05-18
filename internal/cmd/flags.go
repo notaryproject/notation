@@ -1,7 +1,12 @@
 // Package cmd contains common flags and routines for all CLIs.
 package cmd
 
-import "github.com/urfave/cli/v2"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/urfave/cli/v2"
+)
 
 var (
 	FlagKey = &cli.StringFlag{
@@ -39,4 +44,28 @@ var (
 		Aliases: []string{"r"},
 		Usage:   "original reference",
 	}
+
+	FlagPluginConfig = &cli.StringSliceFlag{
+		Name:    "pluginConfig",
+		Aliases: []string{"pc"},
+		Usage:   "list of command-separated {key}={value} pairs",
+	}
 )
+
+func ParseFlagPluginConfig(pluginConfigSlice []string) (map[string]string, error) {
+	if len(pluginConfigSlice) == 0 {
+		return nil, nil
+	}
+	m := make(map[string]string, len(pluginConfigSlice))
+	for _, c := range pluginConfigSlice {
+		if k, v, ok := strings.Cut(c, "="); ok {
+			if _, exist := m[k]; exist {
+				return nil, fmt.Errorf("duplicated --pluginConfig entry %s", k)
+			}
+			m[k] = v
+		} else {
+			return nil, fmt.Errorf("malformed --pluginConfig entry %q", c)
+		}
+	}
+	return m, nil
+}
