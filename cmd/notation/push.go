@@ -8,7 +8,6 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )
 
@@ -37,12 +36,12 @@ func runPush(ctx *cli.Context) error {
 	}
 	sigPaths := ctx.StringSlice(flagSignature.Name)
 	if len(sigPaths) == 0 {
-		sigDigests, err := cache.SignatureDigests(digest.Digest(manifestDesc.Digest))
+		sigDigests, err := cache.SignatureDigests(manifestDesc.Digest)
 		if err != nil {
 			return err
 		}
 		for _, sigDigest := range sigDigests {
-			sigPaths = append(sigPaths, config.SignaturePath(digest.Digest(manifestDesc.Digest), sigDigest))
+			sigPaths = append(sigPaths, config.SignaturePath(manifestDesc.Digest, sigDigest))
 		}
 	}
 

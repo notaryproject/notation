@@ -105,7 +105,7 @@ func verifySignatures(
 	var opts notation.VerifyOptions
 	var lastErr error
 	for _, sigDigest := range sigDigests {
-		path := config.SignaturePath(digest.Digest(desc.Digest), sigDigest)
+		path := config.SignaturePath(desc.Digest, sigDigest)
 		sig, err := os.ReadFile(path)
 		if err != nil {
 			return "", "", err

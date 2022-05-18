@@ -46,7 +46,7 @@ func pushImage(ctx *cli.Context) error {
 		return err
 	}
 	pushSignature := func(sigDigest digest.Digest) error {
-		sigPath := config.SignaturePath(digest.Digest(desc.Digest), sigDigest)
+		sigPath := config.SignaturePath(desc.Digest, sigDigest)
 		sig, err := os.ReadFile(sigPath)
 		if err != nil {
 			return err
