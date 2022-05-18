@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/signature"
@@ -137,11 +138,11 @@ func appendCertPathFromName(paths, names []string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		path, ok := cfg.VerificationCertificates.Certificates.Get(name)
-		if !ok {
+		idx := slices.Index(cfg.VerificationCertificates.Certificates, name)
+		if idx < 0 {
 			return nil, errors.New("verification certificate not found: " + name)
 		}
-		paths = append(paths, path)
+		paths = append(paths, cfg.VerificationCertificates.Certificates[idx].Path)
 	}
 	return paths, nil
 }
