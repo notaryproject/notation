@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go/spec/signature"
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
@@ -72,25 +72,25 @@ func runPush(ctx *cli.Context) error {
 	return nil
 }
 
-func pushSignature(ctx *cli.Context, ref string, sig []byte) (signature.Descriptor, error) {
+func pushSignature(ctx *cli.Context, ref string, sig []byte) (notation.Descriptor, error) {
 	// initialize
 	sigRepo, err := getSignatureRepository(ctx, ref)
 	if err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
 	if err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 
 	// core process
 	sigDesc, err := sigRepo.Put(ctx.Context, sig)
 	if err != nil {
-		return signature.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
+		return notation.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
 	}
 	desc, err := sigRepo.Link(ctx.Context, manifestDesc, sigDesc)
 	if err != nil {
-		return signature.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
+		return notation.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
 	}
 
 	return desc, nil

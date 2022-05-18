@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/spec/signature"
 	"github.com/notaryproject/notation/cmd/docker-notation/docker"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
@@ -74,7 +73,7 @@ func verifyRemoteImage(ctx context.Context, ref string) (string, error) {
 		fmt.Println("The image is originated from:", originRef)
 	}
 
-	manifestRef.Reference = manifestDesc.Digest
+	manifestRef.Reference = manifestDesc.Digest.String()
 	return manifestRef.String(), nil
 }
 
@@ -101,7 +100,7 @@ func verifySignatures(
 	ctx context.Context,
 	verifier notation.Verifier,
 	sigDigests []digest.Digest,
-	desc signature.Descriptor,
+	desc notation.Descriptor,
 ) (digest.Digest, string, error) {
 	var opts notation.VerifyOptions
 	var lastErr error

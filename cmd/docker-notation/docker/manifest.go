@@ -5,7 +5,7 @@ import (
 	"os/exec"
 
 	"github.com/distribution/distribution/v3/manifest/schema2"
-	"github.com/notaryproject/notation-go/spec/signature"
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/pkg/docker"
 	"github.com/opencontainers/go-digest"
 	"oras.land/oras-go/v2/registry"
@@ -31,23 +31,23 @@ func GenerateManifest(reference string) ([]byte, error) {
 }
 
 // GenerateManifestDescriptor generate manifest descriptor from docker save
-func GenerateManifestDescriptor(reference string) (signature.Descriptor, error) {
+func GenerateManifestDescriptor(reference string) (notation.Descriptor, error) {
 	manifest, err := GenerateManifest(reference)
 	if err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
-	return signature.Descriptor{
+	return notation.Descriptor{
 		MediaType: schema2.MediaTypeManifest,
-		Digest:    digest.FromBytes(manifest).String(),
+		Digest:    digest.FromBytes(manifest),
 		Size:      int64(len(manifest)),
 	}, nil
 }
 
 // GetManifestDescriptor get manifest descriptor from remote registry
-func GetManifestDescriptor(ctx context.Context, ref registry.Reference) (signature.Descriptor, error) {
+func GetManifestDescriptor(ctx context.Context, ref registry.Reference) (notation.Descriptor, error) {
 	client, err := getRepositoryClient(ref)
 	if err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	return client.GetManifestDescriptor(ctx, ref.ReferenceOrDefault())
 }

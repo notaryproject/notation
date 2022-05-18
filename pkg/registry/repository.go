@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/notaryproject/notation-go/spec/signature"
+	"github.com/notaryproject/notation-go"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	artifactspec "github.com/oras-project/artifacts-spec/specs-go/v1"
@@ -36,10 +36,10 @@ func NewRepositoryClient(client remote.Client, ref registry.Reference, plainHTTP
 }
 
 // GetManifestDescriptor returns signature manifest information by tag or digest.
-func (c *RepositoryClient) GetManifestDescriptor(ctx context.Context, ref string) (signature.Descriptor, error) {
+func (c *RepositoryClient) GetManifestDescriptor(ctx context.Context, ref string) (notation.Descriptor, error) {
 	desc, err := c.Repository.Resolve(ctx, ref)
 	if err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	return notationDescriptorFromOCI(desc), nil
 }
@@ -83,20 +83,20 @@ func (c *RepositoryClient) Get(ctx context.Context, signatureDigest digest.Diges
 }
 
 // Put uploads the signature to the registry
-func (c *RepositoryClient) Put(ctx context.Context, sig []byte) (signature.Descriptor, error) {
+func (c *RepositoryClient) Put(ctx context.Context, sig []byte) (notation.Descriptor, error) {
 	desc := ocispec.Descriptor{
 		MediaType: MediaTypeNotationSignature,
 		Digest:    digest.FromBytes(sig),
 		Size:      int64(len(sig)),
 	}
 	if err := c.Repository.Blobs().Push(ctx, desc, bytes.NewReader(sig)); err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	return notationDescriptorFromOCI(desc), nil
 }
 
 // Link creates an signature artifact linking the manifest and the signature
-func (c *RepositoryClient) Link(ctx context.Context, manifest, sig signature.Descriptor) (signature.Descriptor, error) {
+func (c *RepositoryClient) Link(ctx context.Context, manifest, sig notation.Descriptor) (notation.Descriptor, error) {
 	// generate artifact manifest
 	artifact := artifactspec.Manifest{
 		MediaType:    artifactspec.MediaTypeArtifactManifest,
@@ -108,7 +108,7 @@ func (c *RepositoryClient) Link(ctx context.Context, manifest, sig signature.Des
 	}
 	artifactJSON, err := json.Marshal(artifact)
 	if err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 
 	// upload manifest
@@ -118,7 +118,7 @@ func (c *RepositoryClient) Link(ctx context.Context, manifest, sig signature.Des
 		Size:      int64(len(artifactJSON)),
 	}
 	if err := c.Repository.Manifests().Push(ctx, desc, bytes.NewReader(artifactJSON)); err != nil {
-		return signature.Descriptor{}, err
+		return notation.Descriptor{}, err
 	}
 	return notationDescriptorFromOCI(desc), nil
 }
@@ -149,18 +149,18 @@ func (c *RepositoryClient) getArtifactManifest(ctx context.Context, manifestDige
 	return manifest, nil
 }
 
-func artifactDescriptorFromNotation(desc signature.Descriptor) artifactspec.Descriptor {
+func artifactDescriptorFromNotation(desc notation.Descriptor) artifactspec.Descriptor {
 	return artifactspec.Descriptor{
 		MediaType: desc.MediaType,
-		Digest:    digest.Digest(desc.Digest),
+		Digest:    desc.Digest,
 		Size:      desc.Size,
 	}
 }
 
-func notationDescriptorFromOCI(desc ocispec.Descriptor) signature.Descriptor {
-	return signature.Descriptor{
+func notationDescriptorFromOCI(desc ocispec.Descriptor) notation.Descriptor {
+	return notation.Descriptor{
 		MediaType: desc.MediaType,
-		Digest:    desc.Digest.String(),
+		Digest:    desc.Digest,
 		Size:      desc.Size,
 	}
 }

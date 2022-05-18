@@ -5,7 +5,6 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/crypto/timestamp"
-	"github.com/notaryproject/notation-go/spec/signature"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
@@ -86,10 +85,10 @@ func runSign(ctx *cli.Context) error {
 	return nil
 }
 
-func prepareSigningContent(ctx *cli.Context) (signature.Descriptor, notation.SignOptions, error) {
+func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.SignOptions, error) {
 	manifestDesc, err := getManifestDescriptorFromContext(ctx)
 	if err != nil {
-		return signature.Descriptor{}, notation.SignOptions{}, err
+		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
 	if identity := ctx.String(cmd.FlagReference.Name); identity != "" {
 		manifestDesc.Annotations = map[string]string{
@@ -99,7 +98,7 @@ func prepareSigningContent(ctx *cli.Context) (signature.Descriptor, notation.Sig
 	var tsa timestamp.Timestamper
 	if endpoint := ctx.String(cmd.FlagTimestamp.Name); endpoint != "" {
 		if tsa, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
-			return signature.Descriptor{}, notation.SignOptions{}, err
+			return notation.Descriptor{}, notation.SignOptions{}, err
 		}
 	}
 	return manifestDesc, notation.SignOptions{
