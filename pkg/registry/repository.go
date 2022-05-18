@@ -83,26 +83,26 @@ func (c *RepositoryClient) Get(ctx context.Context, signatureDigest digest.Diges
 }
 
 // Put uploads the signature to the registry
-func (c *RepositoryClient) Put(ctx context.Context, sig []byte) (notation.Descriptor, error) {
+func (c *RepositoryClient) Put(ctx context.Context, signature []byte) (notation.Descriptor, error) {
 	desc := ocispec.Descriptor{
 		MediaType: MediaTypeNotationSignature,
-		Digest:    digest.FromBytes(sig),
-		Size:      int64(len(sig)),
+		Digest:    digest.FromBytes(signature),
+		Size:      int64(len(signature)),
 	}
-	if err := c.Repository.Blobs().Push(ctx, desc, bytes.NewReader(sig)); err != nil {
+	if err := c.Repository.Blobs().Push(ctx, desc, bytes.NewReader(signature)); err != nil {
 		return notation.Descriptor{}, err
 	}
 	return notationDescriptorFromOCI(desc), nil
 }
 
 // Link creates an signature artifact linking the manifest and the signature
-func (c *RepositoryClient) Link(ctx context.Context, manifest, sig notation.Descriptor) (notation.Descriptor, error) {
+func (c *RepositoryClient) Link(ctx context.Context, manifest, signature notation.Descriptor) (notation.Descriptor, error) {
 	// generate artifact manifest
 	artifact := artifactspec.Manifest{
 		MediaType:    artifactspec.MediaTypeArtifactManifest,
 		ArtifactType: ArtifactTypeNotation,
 		Blobs: []artifactspec.Descriptor{
-			artifactDescriptorFromNotation(sig),
+			artifactDescriptorFromNotation(signature),
 		},
 		Subject: artifactDescriptorFromNotation(manifest),
 	}
