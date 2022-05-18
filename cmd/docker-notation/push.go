@@ -33,7 +33,7 @@ func pushImage(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Pushing signature")
-	sigDigests, err := cache.SignatureDigests(digest.Digest(desc.Digest))
+	sigDigests, err := cache.SignatureDigests(desc.Digest)
 	if err != nil {
 		return err
 	}
