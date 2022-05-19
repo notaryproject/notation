@@ -15,8 +15,9 @@ type X509KeyPair struct {
 // ExternalKey contains the necessary information to delegate
 // the signing operation to the named plugin.
 type ExternalKey struct {
-	ID         string `json:"id,omitempty"`
-	PluginName string `json:"pluginName,omitempty"`
+	ID           string            `json:"id,omitempty"`
+	PluginName   string            `json:"pluginName,omitempty"`
+	PluginConfig map[string]string `json:"pluginConfig,omitempty"`
 }
 
 // KeySuite is a named key suite.

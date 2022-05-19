@@ -64,7 +64,13 @@ func generateTestCert(ctx *cli.Context) error {
 		return err
 	}
 	isDefault := ctx.Bool(keyDefaultFlag.Name)
-	keySuite := config.KeySuite{Name: name, X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath}}
+	keySuite := config.KeySuite{
+		Name: name,
+		X509KeyPair: &config.X509KeyPair{
+			KeyPath:         keyPath,
+			CertificatePath: certPath,
+		},
+	}
 	err = addKeyCore(cfg, keySuite, ctx.Bool(keyDefaultFlag.Name))
 	if err != nil {
 		return err

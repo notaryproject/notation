@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/crypto/timestamp"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
@@ -37,6 +38,7 @@ var signCommand = &cli.Command{
 		flagPassword,
 		flagPlainHTTP,
 		flagMediaType,
+		cmd.FlagPluginConfig,
 	},
 	Action: runSign,
 }
@@ -94,7 +96,19 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 			"identity": identity,
 		}
 	}
+	var tsa timestamp.Timestamper
+	if endpoint := ctx.String(cmd.FlagTimestamp.Name); endpoint != "" {
+		if tsa, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
+			return notation.Descriptor{}, notation.SignOptions{}, err
+		}
+	}
+	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx.StringSlice(cmd.FlagPluginConfig.Name))
+	if err != nil {
+		return notation.Descriptor{}, notation.SignOptions{}, err
+	}
 	return manifestDesc, notation.SignOptions{
-		Expiry: cmd.GetExpiry(ctx),
+		Expiry:       cmd.GetExpiry(ctx),
+		TSA:          tsa,
+		PluginConfig: pluginConfig,
 	}, nil
 }

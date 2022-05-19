@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/crypto/timestamp"
+	"github.com/notaryproject/notation-go/plugin/manager"
+	"github.com/notaryproject/notation-go/signature/jws"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/urfave/cli/v2"
@@ -13,34 +14,35 @@ import (
 
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(ctx *cli.Context) (notation.Signer, error) {
-	// read paths of the signing key and its corresponding cert.
-	var keyPath, certPath string
-	if path := ctx.String(FlagKeyFile.Name); path != "" {
-		keyPath = path
-		certPath = ctx.String(FlagCertFile.Name)
-	} else {
-		key, err := config.ResolveKey(ctx.String(FlagKey.Name))
-		if err != nil {
-			return nil, err
-		}
-		if key.X509KeyPair == nil {
-			return nil, errors.New("invalid key type")
-		}
-		keyPath = key.KeyPath
-		certPath = key.CertificatePath
+	// Construct a signer from key and cert file if provided as CLI arguments
+	if keyPath := ctx.String(FlagKeyFile.Name); keyPath != "" {
+		certPath := ctx.String(FlagCertFile.Name)
+		return signature.NewSignerFromFiles(keyPath, certPath)
 	}
-
-	// construct signer
-	signer, err := signature.NewSignerFromFiles(keyPath, certPath)
+    // Construct a signer from preconfigured key pair in config.json
+    // if key name is provided as the CLI argument
+	key, err := config.ResolveKey(ctx.String(FlagKey.Name))
 	if err != nil {
 		return nil, err
 	}
-	if endpoint := ctx.String(FlagTimestamp.Name); endpoint != "" {
-		if signer.TSA, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
+	if key.X509KeyPair != nil {
+		return signature.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
+	}
+    // Construct a plugin signer if key name provided as the CLI argument
+    // corresponds to an external key
+	if key.ExternalKey != nil {
+		mgr := manager.New(config.PluginDirPath)
+		runner, err := mgr.Runner(key.PluginName)
+		if err != nil {
 			return nil, err
 		}
+		return &jws.PluginSigner{
+			Runner:       runner,
+			KeyID:        key.ExternalKey.ID,
+			PluginConfig: key.PluginConfig,
+		}, nil
 	}
-	return signer, nil
+	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
 }
 
 // GetExpiry returns the signature expiry according to the CLI context.

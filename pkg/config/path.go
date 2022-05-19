@@ -31,6 +31,9 @@ const (
 
 	// CertificateExtension defines the extension of the certificate files
 	CertificateExtension = ".crt"
+
+	// PluginStoreDirName is the name of the plugin store directory
+	PluginStoreDirName = "plugins"
 )
 
 var (
@@ -45,6 +48,9 @@ var (
 
 	// CertificateStoreDirPath is the path of the certificate store
 	CertificateStoreDirPath string
+
+	// PluginDirPath is the path of the plugin store
+	PluginDirPath string
 )
 
 // init initialize the essential file paths
@@ -66,6 +72,7 @@ func init() {
 	SignatureStoreDirPath = filepath.Join(cacheDir, SignatureStoreDirName)
 	KeyStoreDirPath = filepath.Join(configDir, KeyStoreDirName)
 	CertificateStoreDirPath = filepath.Join(configDir, CertificateStoreDirName)
+	PluginDirPath = filepath.Join(configDir, PluginStoreDirName)
 }
 
 // SignatureRootPath returns the root path of signatures for a manifest
