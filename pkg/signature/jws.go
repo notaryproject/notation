@@ -24,6 +24,9 @@ func NewSignerFromFiles(keyPath, certPath string) (*jws.Signer, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(cert.Certificate) == 0 {
+		return nil, fmt.Errorf("%q does not contain a signer certificate chain", certPath)
+	}
 
 	// parse cert
 	certs := make([]*x509.Certificate, len(cert.Certificate))

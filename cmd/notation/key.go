@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/notaryproject/notation-go/plugin/manager"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/config"
@@ -52,6 +53,7 @@ var (
 				Name:  "id",
 				Usage: "key id (required if --plugin is set)",
 			},
+			cmd.FlagPluginConfig,
 			keyDefaultFlag,
 		},
 		Action: addKey,
@@ -125,7 +127,7 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
-	mgr := manager.NewManager()
+	mgr := manager.New(config.PluginDirPath)
 	p, err := mgr.Get(ctx.Context, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
@@ -133,9 +135,17 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 	if p.Err != nil {
 		return config.KeySuite{}, fmt.Errorf("invalid plugin: %w", p.Err)
 	}
+	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx.StringSlice(cmd.FlagPluginConfig.Name))
+	if err != nil {
+		return config.KeySuite{}, err
+	}
 	return config.KeySuite{
-		Name:        keyName,
-		ExternalKey: &config.ExternalKey{ID: id, PluginName: pluginName},
+		Name: keyName,
+		ExternalKey: &config.ExternalKey{
+			ID:           id,
+			PluginName:   pluginName,
+			PluginConfig: pluginConfig,
+		},
 	}, nil
 }
 
