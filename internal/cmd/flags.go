@@ -48,7 +48,7 @@ var (
 	FlagPluginConfig = &cli.StringSliceFlag{
 		Name:    "pluginConfig",
 		Aliases: []string{"pc"},
-		Usage:   "list of command-separated {key}={value} pairs",
+		Usage:   "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
 	}
 )
 
