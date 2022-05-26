@@ -19,7 +19,8 @@ func TestParseFlagPluginConfig(t *testing.T) {
 		{"empty", args{""}, nil, false},
 		{"single", args{"a=b"}, map[string]string{"a": "b"}, false},
 		{"multiple", args{"a=b,c=d"}, map[string]string{"a": "b", "c": "d"}, false},
-		{"quoted", args{"a=b,\"c\"=d"}, map[string]string{"a": "b", "\"c\"": "d"}, false},
+		{"quoted", args{"a=b,\"c\"=d"}, map[string]string{"a": "b", "c": "d"}, false},
+		{"quoted comma", args{"a=b,\"c,h\"=d"}, map[string]string{"a": "b", "c,h": "d"}, false},
 		{"duplicated", args{"a=b,a=d"}, nil, true},
 		{"malformed", args{"a=b,c:d"}, nil, true},
 	}
