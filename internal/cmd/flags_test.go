@@ -8,7 +8,7 @@ import (
 
 func TestParseFlagPluginConfig(t *testing.T) {
 	type args struct {
-		s []string
+		s string
 	}
 	tests := []struct {
 		name    string
@@ -16,13 +16,12 @@ func TestParseFlagPluginConfig(t *testing.T) {
 		want    map[string]string
 		wantErr bool
 	}{
-		{"nil", args{nil}, nil, false},
-		{"empty", args{[]string{}}, nil, false},
-		{"single", args{[]string{"a=b"}}, map[string]string{"a": "b"}, false},
-		{"multiple", args{[]string{"a=b", "c=d"}}, map[string]string{"a": "b", "c": "d"}, false},
-		{"quoted", args{[]string{"a=b", "\"c\"=d"}}, map[string]string{"a": "b", "\"c\"": "d"}, false},
-		{"duplicated", args{[]string{"a=b", "a=d"}}, nil, true},
-		{"malformed", args{[]string{"a=b", "c:d"}}, nil, true},
+		{"empty", args{""}, nil, false},
+		{"single", args{"a=b"}, map[string]string{"a": "b"}, false},
+		{"multiple", args{"a=b,c=d"}, map[string]string{"a": "b", "c": "d"}, false},
+		{"quoted", args{"a=b,\"c\"=d"}, map[string]string{"a": "b", "\"c\"": "d"}, false},
+		{"duplicated", args{"a=b,a=d"}, nil, true},
+		{"malformed", args{"a=b,c:d"}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

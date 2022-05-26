@@ -45,17 +45,18 @@ var (
 		Usage:   "original reference",
 	}
 
-	FlagPluginConfig = &cli.StringSliceFlag{
+	FlagPluginConfig = &cli.StringFlag{
 		Name:    "pluginConfig",
 		Aliases: []string{"pc"},
 		Usage:   "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
 	}
 )
 
-func ParseFlagPluginConfig(pluginConfigSlice []string) (map[string]string, error) {
-	if len(pluginConfigSlice) == 0 {
+func ParseFlagPluginConfig(v string) (map[string]string, error) {
+	if v == "" {
 		return nil, nil
 	}
+	pluginConfigSlice := strings.Split(v, ",")
 	m := make(map[string]string, len(pluginConfigSlice))
 	for _, c := range pluginConfigSlice {
 		if k, v, ok := strings.Cut(c, "="); ok {
