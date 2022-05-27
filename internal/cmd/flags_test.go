@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParseFlagPluginConfig(t *testing.T) {
+func TestParseKeyValueListFlag(t *testing.T) {
 	type args struct {
 		s string
 	}
@@ -19,20 +19,22 @@ func TestParseFlagPluginConfig(t *testing.T) {
 		{"empty", args{""}, nil, false},
 		{"single", args{"a=b"}, map[string]string{"a": "b"}, false},
 		{"multiple", args{"a=b,c=d"}, map[string]string{"a": "b", "c": "d"}, false},
+		{"spaces", args{"a=b , c=d"}, map[string]string{"a": "b", "c": "d"}, false},
 		{"quoted", args{"a=b,\"c\"=d"}, map[string]string{"a": "b", "c": "d"}, false},
 		{"quoted comma", args{"a=b,\"c,h\"=d"}, map[string]string{"a": "b", "c,h": "d"}, false},
+		{"empty value", args{"a=b,,c=d"}, nil, true},
 		{"duplicated", args{"a=b,a=d"}, nil, true},
 		{"malformed", args{"a=b,c:d"}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseFlagPluginConfig(tt.args.s)
+			got, err := ParseKeyValueListFlag(tt.args.s)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseFlagPluginConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseKeyValueListFlag() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseFlagPluginConfig() = %v, want %v", got, tt.want)
+				t.Errorf("ParseKeyValueListFlag() = %v, want %v", got, tt.want)
 			}
 		})
 	}

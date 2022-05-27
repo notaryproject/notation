@@ -53,23 +53,41 @@ var (
 	}
 )
 
-func ParseFlagPluginConfig(v string) (map[string]string, error) {
-	if v == "" {
+// KeyValueSlice is a flag with type int
+type KeyValueSlice interface {
+	Set(value string) error
+	String() string
+}
+
+func ParseFlagPluginConfig(ctx *cli.Context) (map[string]string, error) {
+	val := ctx.String(FlagPluginConfig.Name)
+	pluginConfig, err := ParseKeyValueListFlag(val)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", val, FlagPluginConfig.Name, err)
+	}
+	return pluginConfig, nil
+}
+
+func ParseKeyValueListFlag(val string) (map[string]string, error) {
+	if val == "" {
 		return nil, nil
 	}
-	pluginConfigSlice, err := splitQuoted(v)
+	flags, err := splitQuoted(val)
 	if err != nil {
 		return nil, err
 	}
-	m := make(map[string]string, len(pluginConfigSlice))
-	for _, c := range pluginConfigSlice {
-		if k, v, ok := strings.Cut(c, "="); ok {
+	m := make(map[string]string, len(flags))
+	for _, c := range flags {
+		if c == "" {
+			return nil, fmt.Errorf("empty entry: %q", c)
+		}
+		if k, v, ok := strings.Cut(strings.TrimSpace(c), "="); ok {
 			if _, exist := m[k]; exist {
-				return nil, fmt.Errorf("duplicated --pluginConfig entry %s", k)
+				return nil, fmt.Errorf("duplicated key: %q", k)
 			}
 			m[k] = v
 		} else {
-			return nil, fmt.Errorf("malformed --pluginConfig entry %q", c)
+			return nil, fmt.Errorf("malformed entry: %q", c)
 		}
 	}
 	return m, nil
@@ -89,12 +107,11 @@ func ParseFlagPluginConfig(v string) (map[string]string, error) {
 //
 // Would be parsed as:
 //
-//	[]string{"a", "b:c,d", "ef", `g"`}
+//	[]string{"a", "b:c,d", "ef", "", `g"`}
 func splitQuoted(s string) (r []string, err error) {
 	var args []string
 	arg := make([]rune, len(s))
 	escaped := false
-	quoted := false
 	quote := '\x00'
 	i := 0
 	for _, r := range s {
@@ -110,23 +127,17 @@ func splitQuoted(s string) (r []string, err error) {
 				continue
 			}
 		case r == '"' || r == '\'':
-			quoted = true
 			quote = r
 			continue
 		case r == ',':
-			if quoted || i > 0 {
-				quoted = false
-				args = append(args, string(arg[:i]))
-				i = 0
-			}
+			args = append(args, string(arg[:i]))
+			i = 0
 			continue
 		}
 		arg[i] = r
 		i++
 	}
-	if quoted || i > 0 {
-		args = append(args, string(arg[:i]))
-	}
+	args = append(args, string(arg[:i]))
 	if quote != 0 {
 		err = errors.New("unclosed quote")
 	} else if escaped {

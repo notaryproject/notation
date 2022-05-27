@@ -102,7 +102,7 @@ func prepareSigningContent(ctx *cli.Context) (notation.Descriptor, notation.Sign
 			return notation.Descriptor{}, notation.SignOptions{}, err
 		}
 	}
-	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx.String(cmd.FlagPluginConfig.Name))
+	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx)
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
