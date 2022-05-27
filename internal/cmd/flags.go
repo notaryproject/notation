@@ -78,10 +78,14 @@ func ParseKeyValueListFlag(val string) (map[string]string, error) {
 	}
 	m := make(map[string]string, len(flags))
 	for _, c := range flags {
+		c := strings.TrimSpace(c)
 		if c == "" {
 			return nil, fmt.Errorf("empty entry: %q", c)
 		}
-		if k, v, ok := strings.Cut(strings.TrimSpace(c), "="); ok {
+		if k, v, ok := strings.Cut(c, "="); ok {
+			if k == "" || v == "" {
+				return nil, errors.New("empty key value")
+			}
 			if _, exist := m[k]; exist {
 				return nil, fmt.Errorf("duplicated key: %q", k)
 			}

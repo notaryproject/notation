@@ -25,6 +25,8 @@ func TestParseKeyValueListFlag(t *testing.T) {
 		{"empty value", args{"a=b,,c=d"}, nil, true},
 		{"duplicated", args{"a=b,a=d"}, nil, true},
 		{"malformed", args{"a=b,c:d"}, nil, true},
+		{"only equal", args{"="}, nil, true},
+		{"entry only equal", args{"a=b,="}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
