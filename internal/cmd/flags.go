@@ -83,6 +83,8 @@ func ParseKeyValueListFlag(val string) (map[string]string, error) {
 			return nil, fmt.Errorf("empty entry: %q", c)
 		}
 		if k, v, ok := strings.Cut(c, "="); ok {
+			k := strings.TrimSpace(k)
+			v := strings.TrimSpace(v)
 			if k == "" || v == "" {
 				return nil, errors.New("empty key value")
 			}
