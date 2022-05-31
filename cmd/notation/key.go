@@ -135,7 +135,7 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 	if p.Err != nil {
 		return config.KeySuite{}, fmt.Errorf("invalid plugin: %w", p.Err)
 	}
-	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx.StringSlice(cmd.FlagPluginConfig.Name))
+	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx)
 	if err != nil {
 		return config.KeySuite{}, err
 	}

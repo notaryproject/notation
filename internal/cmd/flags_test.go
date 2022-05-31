@@ -6,9 +6,9 @@ import (
 	"testing"
 )
 
-func TestParseFlagPluginConfig(t *testing.T) {
+func TestParseKeyValueListFlag(t *testing.T) {
 	type args struct {
-		s []string
+		s string
 	}
 	tests := []struct {
 		name    string
@@ -16,23 +16,28 @@ func TestParseFlagPluginConfig(t *testing.T) {
 		want    map[string]string
 		wantErr bool
 	}{
-		{"nil", args{nil}, nil, false},
-		{"empty", args{[]string{}}, nil, false},
-		{"single", args{[]string{"a=b"}}, map[string]string{"a": "b"}, false},
-		{"multiple", args{[]string{"a=b", "c=d"}}, map[string]string{"a": "b", "c": "d"}, false},
-		{"quoted", args{[]string{"a=b", "\"c\"=d"}}, map[string]string{"a": "b", "\"c\"": "d"}, false},
-		{"duplicated", args{[]string{"a=b", "a=d"}}, nil, true},
-		{"malformed", args{[]string{"a=b", "c:d"}}, nil, true},
+		{"empty", args{""}, nil, false},
+		{"single", args{"a=b"}, map[string]string{"a": "b"}, false},
+		{"multiple", args{"a=b,c=d"}, map[string]string{"a": "b", "c": "d"}, false},
+		{"spaces", args{"a=b , c=d"}, map[string]string{"a": "b", "c": "d"}, false},
+		{"quoted", args{"a=b,\"c\"=d"}, map[string]string{"a": "b", "c": "d"}, false},
+		{"quoted comma", args{"a=b,\"c,h\"=d"}, map[string]string{"a": "b", "c,h": "d"}, false},
+		{"empty value", args{"a=b,,c=d"}, nil, true},
+		{"duplicated", args{"a=b,a=d"}, nil, true},
+		{"malformed", args{"a=b,c:d"}, nil, true},
+		{"only equal", args{"="}, nil, true},
+		{"entry only equal", args{"a=b,="}, nil, true},
+		{"entry only equal and space", args{"a=b, = "}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseFlagPluginConfig(tt.args.s)
+			got, err := ParseKeyValueListFlag(tt.args.s)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseFlagPluginConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseKeyValueListFlag() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ParseFlagPluginConfig() = %v, want %v", got, tt.want)
+				t.Errorf("ParseKeyValueListFlag() = %v, want %v", got, tt.want)
 			}
 		})
 	}
