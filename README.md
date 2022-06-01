@@ -17,12 +17,12 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 - Install the Notation CLI from [Notation Releases][notation-releases]
     ```bash
-    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.1-alpha.1/notation_0.7.1-alpha.1_linux_amd64.tar.gz
+    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.9.0-alpha.1/notation_v0.9.0-alpha.1_linux_amd64.tar.gz
     tar xvzf notation.tar.gz -C ~/bin notation
     ```
 - Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
   ```bash
-  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v0.0.3-alpha
+  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc
   ```
 
 - Build, Push, Sign, Verify the `net-monitor` software
@@ -68,7 +68,7 @@ This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foun
 
 This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE).
 
-[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1
+[notation-releases]:      https://github.com/notaryproject/notation/releases
 [notaryv2-specs]:         https://github.com/notaryproject/notaryproject
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
