@@ -17,7 +17,7 @@ Notation is a project to add signatures as standard items in the registry ecosys
 
 - Install the Notation CLI from [Notation Releases][notation-releases]
     ```bash
-    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.9.0-alpha.1/notation_v0.9.0-alpha.1_linux_amd64.tar.gz
+    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.9.0-alpha.1/notation_0.9.0-alpha.1_linux_amd64.tar.gz
     tar xvzf notation.tar.gz -C ~/bin notation
     ```
 - Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
