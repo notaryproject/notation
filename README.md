@@ -48,7 +48,7 @@ For more detailed samples, see [hello-signing](docs/hello-signing.md)
 
 ## Community
 
-- Regular conversations for Notation occur on the [Cloud Native Computing Slack](https://app.slack.com/client/T08PSQ7BQ/CQUH8U287?) channel.
+- Regular conversations for Notation occur on the [Cloud Native Computing Slack](https://slack.cncf.io/) **notary-v2** channel.
 - Please see the [CNCF Calendar](https://www.cncf.io/calendar/) for community meeting details.
 - Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
