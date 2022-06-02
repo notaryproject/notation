@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
-	github.com/docker/cli v20.10.14+incompatible
+	github.com/docker/cli v20.10.16+incompatible
 	github.com/notaryproject/notation-core-go v0.0.0-20220602174534-b5b4119bc7a4
 	github.com/notaryproject/notation-go v0.8.0-alpha.1.0.20220518191708-407537596ed5
 	github.com/opencontainers/go-digest v1.0.0
