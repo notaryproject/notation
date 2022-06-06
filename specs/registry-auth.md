@@ -30,22 +30,22 @@ flowchart LR;
        reg -- 6. Response          --> client;
 ```
 
-In general, the `notation` accesses registry resources as the workflow below, which follows the workflow for [Docker Registry v2 authentication via central service](https://docs.docker.com/registry/spec/auth/token/).
+In general, notation clients accesses registry resources as the workflow below, which follows the workflow for [Docker Registry v2 authentication via central service](https://docs.docker.com/registry/spec/auth/token/).
 
-1. `notation` attempts to access the remote registry directly. If there is no authentication scheme associated with the registry, skip to *step 6*.
+1. Notation attempts to access the remote registry directly. If there is no authentication scheme associated with the registry, skip to *step 6*.
 2. The remote registry returns `401 Unauthorized` with a [WWW-Authenticate](https://datatracker.ietf.org/doc/html/rfc7235#section-4.1) challenge, indicating the required authentication scheme.
-3. `notation` requests the authorization service for a bearer token for accessing the target resource with local credentials. If the remote registry requires *basic* scheme, skip to *step 5*.
-4. The authorization grants and returns a bearer token for access back to the `notation` client.
-5. `notation` attempts to access the remote registry again with the obtained bearer token (or local credential for *basic* scheme) in the [Authorization](https://datatracker.ietf.org/doc/html/rfc7235#section-4.2) header.
+3. Notation requests the authorization service for a bearer token for accessing the target resource with local credentials. If the remote registry requires *basic* scheme, skip to *step 5*.
+4. The authorization grants and returns a bearer token for access back to the notation client.
+5. Notation attempts to access the remote registry again with the obtained bearer token (or local credential for *basic* scheme) in the [Authorization](https://datatracker.ietf.org/doc/html/rfc7235#section-4.2) header.
 6. The remote registry performs the requested operation and returns the response.
 
 Optimization might be performed to reduced the number of requests in order to reduce the overall latency for subsequent requests.
 
 ### Basic Scheme
 
-`notation` follows [RFC 7617][RFC7617] for the *Basic* HTTP authentication scheme.
+Notation follows [RFC 7617][RFC7617] for the *Basic* HTTP authentication scheme.
 
-If a remote registry is known to support `Basic` authentication scheme, the attempt-challenge phase (*steps 1-4*) can be skipped, and thus `notation` can access the remote registry without overhead in terms of the number of requests.
+If a remote registry is known to support `Basic` authentication scheme, the attempt-challenge phase (*steps 1-4*) can be skipped, and thus Notation can access the remote registry without overhead in terms of the number of requests.
 
 ```mermaid
 flowchart LR;
@@ -58,12 +58,42 @@ flowchart LR;
 
 ### Token Scheme
 
+Notation supports two types of token schemes, [Docker][token] and [OAuth 2.0][RFC6749] where OAuth 2.0 is preferred by default.
 
+Since token authentication schemes have two more requests per registry requests, notation client implementations SHOULD cache the token to reduce the number of requests. 
+
+```mermaid
+flowchart LR;
+    ts[Authorization Service];
+    client[Notation];
+    reg[Registry];
+
+    client -- 1. Access resource with cached token --> reg;
+       reg -- 2. Challenge if token invalidated    --> client;
+    client -- 3. Request for a new token           --> ts;
+        ts -- 4. Grant a new token                 --> client;
+    client -- 5. Access with a new token           --> reg;
+       reg -- 6. Response                          --> client;
+```
+
+The workflow is updated as follows with caching.
+
+1. Notation attempts to access the remote registry using a cached token. If the token is valid, skip to *step 6*.
+2. The remote registry returns `401 Unauthorized` with a challenge, requiring a valid token.
+3. Notation requests the authorization service for a new bearer token for accessing the target resource with local credentials.
+4. The authorization grants and returns a new bearer token for access back to the notation client. The client-side cache is refreshed by the newly returned token.
+5. Notation attempts to access the remote registry again.
+6. The remote registry performs the requested operation and returns the response.
 
 #### Docker
 
+In the [Docker Token Authentication][token] specification, the *step 3* is implemented using a `GET` request where users are authenticated by the authorization service via `Basic` authentication scheme. Therefore, user credentials are only accepted in the form of username and password pair.
+
 #### OAuth 2
 
+Notation follows the [Docker Registry v2 authentication][oauth2] specification for the [OAuth 2.0][RFC6749] framework where the *step 3* is implemented using a `POST` request. Precisely, notation supports `password` and `refresh_token` grant types.
+
+**Note** Refresh tokens are often known as identity tokens in the context of registry authentication.
 
 ## Credential Store
 
@@ -75,3 +105,4 @@ flowchart LR;
 [RFC6749]: https://www.rfc-editor.org/rfc/rfc6749 "OAuth 2.0"
 [RFC7617]: https://www.rfc-editor.org/rfc/rfc7617 "Basic Auth"
 [token]: https://docs.docker.com/registry/spec/auth/jwt/ "Docker Token Authentication"
+[oauth2]: https://docs.docker.com/registry/spec/auth/oauth/ "Docker Registry v2 authentication using OAuth2"
