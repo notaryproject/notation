@@ -62,7 +62,7 @@ The overall directory structure for `notation` is summarized as follows.
 └── notation
 {CACHE}
 └── notation
-    └── signature
+    └── signatures
         └── {manifest-digest-algorithm}
             └── {manifest-digest}
                 └── {signature-digest-algorithm}
@@ -146,7 +146,7 @@ The path of the [Trust Policy][TP] file is
 The signatures are cached to optimize the network traffic. The path of a cached signature for a certain manifest follows the pattern below.
 
 ```
-{CACHE}/notation/signature/{manifest-digest-algorithm}/{manifest-digest}/{signature-digest-algorithm}/{signature-digest}.sig
+{CACHE}/notation/signatures/{manifest-digest-algorithm}/{manifest-digest}/{signature-digest-algorithm}/{signature-digest}.sig
 ```
 
 or in a hierarchical view
@@ -154,7 +154,7 @@ or in a hierarchical view
 ```
 {CACHE}
 └── notation
-    └── signature
+    └── signatures
         └── {manifest-digest-algorithm}
             └── {manifest-digest}
                 └── {signature-digest-algorithm}
@@ -208,7 +208,7 @@ Examples are shown on various platforms where the user `exampleuser` overrides t
 │   └── exampleuser
 │       ├── .cache
 │       │   └── notation
-│       │       └── signature
+│       │       └── signatures
 │       │           └── sha256
 │       │               └── 05b3abf2579a5eb66403cd78be557fd860633a1fe2103c7642030defe32c657f
 │       │                   └── sha256
@@ -281,7 +281,7 @@ C:.
         └── AppData
             ├── Local
             │   └── notation
-            │       └── signature
+            │       └── signatures
             │           └── sha256
             │               └── 05b3abf2579a5eb66403cd78be557fd860633a1fe2103c7642030defe32c657f
             │                   └── sha256
@@ -364,7 +364,7 @@ C:.
 │           │                           └── tsa-cert2.pem
 │           └── Caches
 │               └── notation
-│                   └── signature
+│                   └── signatures
 │                       └── sha256
 │                           └── 05b3abf2579a5eb66403cd78be557fd860633a1fe2103c7642030defe32c657f
 │                               └── sha256
