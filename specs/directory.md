@@ -194,15 +194,16 @@ Examples are shown on various platforms where the user `exampleuser` overrides t
 │       └── trust
 │           ├── policy.json
 │           └── store
-│               ├── ca
-│               │   ├── acme-rockets
-│               │   │   ├── cert1.pem
-│               │   │   └── cert2.pem
-│               │   └── wabbit-networks
-│               │       └── cert3.pem
-│               └── tsa
-│                   └── publicly-trusted-tsa
-│                       └── tsa-cert1.pem
+│               └── x509
+│                   ├── ca
+│                   │   ├── acme-rockets
+│                   │   │   ├── cert1.pem
+│                   │   │   └── cert2.pem
+│                   │   └── wabbit-networks
+│                   │       └── cert3.pem
+│                   └── tsa
+│                       └── publicly-trusted-tsa
+│                           └── tsa-cert1.pem
 ├── home
 │   └── exampleuser
 │       ├── .cache
@@ -231,12 +232,13 @@ Examples are shown on various platforms where the user `exampleuser` overrides t
 │               └── trust
 │                   ├── policy.json
 │                   └── store
-│                       ├── ca
-│                       │   └── acme-rockets
-│                       │       └── cert4.pem
-│                       └── tsa
-│                           └── publicly-trusted-tsa
-│                               └── tsa-cert2.pem
+│                       └── x509
+│                           ├── ca
+│                           │   └── acme-rockets
+│                           │       └── cert4.pem
+│                           └── tsa
+│                               └── publicly-trusted-tsa
+│                                   └── tsa-cert2.pem
 └── usr
     ├── bin
     │   └── notation
@@ -264,15 +266,16 @@ C:.
 │       └── trust
 │           ├── policy.json
 │           └── store
-│               ├── ca
-│               │   ├── acme-rockets
-│               │   │   ├── cert1.pem
-│               │   │   └── cert2.pem
-│               │   └── wabbit-networks
-│               │       └── cert3.pem
-│               └── tsa
-│                   └── publicly-trusted-tsa
-│                       └── tsa-cert1.pem
+│               └── x509
+│                   ├── ca
+│                   │   ├── acme-rockets
+│                   │   │   ├── cert1.pem
+│                   │   │   └── cert2.pem
+│                   │   └── wabbit-networks
+│                   │       └── cert3.pem
+│                   └── tsa
+│                       └── publicly-trusted-tsa
+│                           └── tsa-cert1.pem
 └── Users
     └── exampleuser
         └── AppData
@@ -302,12 +305,13 @@ C:.
                     └── trust
                         ├── policy.json
                         └── store
-                            ├── ca
-                            │   └── acme-rockets
-                            │       └── cert4.pem
-                            └── tsa
-                                └── publicly-trusted-tsa
-                                    └── tsa-cert2.pem
+                            └── x509
+                                ├── ca
+                                │   └── acme-rockets
+                                │       └── cert4.pem
+                                └── tsa
+                                    └── publicly-trusted-tsa
+                                        └── tsa-cert2.pem
 ```
 
 ### Darwin
@@ -321,15 +325,16 @@ C:.
 │           └── trust
 │               ├── policy.json
 │               └── store
-│                   ├── ca
-│                   │   ├── acme-rockets
-│                   │   │   ├── cert1.pem
-│                   │   │   └── cert2.pem
-│                   │   └── wabbit-networks
-│                   │       └── cert3.pem
-│                   └── tsa
-│                       └── publicly-trusted-tsa
-│                           └── tsa-cert1.pem
+│                   └── x509
+│                       ├── ca
+│                       │   ├── acme-rockets
+│                       │   │   ├── cert1.pem
+│                       │   │   └── cert2.pem
+│                       │   └── wabbit-networks
+│                       │       └── cert3.pem
+│                       └── tsa
+│                           └── publicly-trusted-tsa
+│                               └── tsa-cert1.pem
 ├── Users
 │   └── exampleuser
 │       └── Library
@@ -350,12 +355,13 @@ C:.
 │           │       └── trust
 │           │           ├── policy.json
 │           │           └── store
-│           │               ├── ca
-│           │               │   └── acme-rockets
-│           │               │       └── cert4.pem
-│           │               └── tsa
-│           │                   └── publicly-trusted-tsa
-│           │                       └── tsa-cert2.pem
+│           │               └── x509
+│           │                   ├── ca
+│           │                   │   └── acme-rockets
+│           │                   │       └── cert4.pem
+│           │                   └── tsa
+│           │                       └── publicly-trusted-tsa
+│           │                           └── tsa-cert2.pem
 │           └── Caches
 │               └── notation
 │                   └── signature
