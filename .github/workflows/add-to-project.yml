@@ -12,5 +12,3 @@ jobs:
         with:
           project-url: https://github.com/orgs/notaryproject/projects/10
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
-          labeled: needs-triage
-          label-operator: OR
