@@ -4,3 +4,4 @@
 # Custom
 bin/
 vendor/
+.cover/
