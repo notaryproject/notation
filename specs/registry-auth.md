@@ -102,7 +102,7 @@ As local credentials may be required to access the remote registries, they need 
 
 ### Credential Helper
 
-To achieve maximum compatibility of existing systems, [docker credential helpers](https://github.com/docker/docker-credential-helpers) as long as its [protocol](https://docs.docker.com/engine/reference/commandline/login/#credential-helper-protocol) are adopted as the credential helpers for `notation`.
+To achieve maximum compatibility with existing systems, [docker credential helpers](https://github.com/docker/docker-credential-helpers) and its [protocol](https://docs.docker.com/engine/reference/commandline/login/#credential-helper-protocol) are adopted as the credential helpers for `notation`.
 
 The credential store can be specified globally or per registry by setting the notation config.
 
