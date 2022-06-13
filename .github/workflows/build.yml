@@ -39,4 +39,3 @@ jobs:
         with:
           name: notation-coverage-report-${{ github.sha }}
           path: .cover/
-        if: always()
