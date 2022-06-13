@@ -37,6 +37,6 @@ jobs:
       - name: Upload coverage report
         uses: actions/upload-artifact@master
         with:
-          name: oras-coverage-report-${{ github.sha }}
+          name: notation-coverage-report-${{ github.sha }}
           path: .cover/
         if: always()
