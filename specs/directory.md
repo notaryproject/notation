@@ -143,7 +143,7 @@ The path of the [Trust Policy][TP] file is
 
 ### Signature Caches
 
-The signatures are cached to optimize the network traffic. The path of a cached signature for a certain manifest follows the pattern below.
+The signatures are cached to optimize the network traffic. The path of cached signatures for a certain target manifest (e.g. an image manifest) follows the pattern below.
 
 ```
 {CACHE}/notation/signatures/{manifest-digest-algorithm}/{manifest-digest}/{signature-blob-digest-algorithm}/{signature-digest}.sig
