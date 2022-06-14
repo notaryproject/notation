@@ -3,6 +3,19 @@
 The following spec outlines the notation CLI.
 The CLI commands are what's currently available in [notation v0.7.1-alpha.1](https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1)
 
+## Table of Contents
+- [notation](#notation)
+- [sign](#sign): Signs artifacts
+- [verify](#verify): Verifies OCI Artifacts
+- [push](#push): Push signature to remote
+- [pull](#pull): Pull signatures from remote
+- [list](#list): List signatures from remote
+- [certificate](#certificate): Manage certificates used for verification
+- [key](#key): Manage keys used for signing
+- [cache](#cache): Manage signature cache
+- [plugin](#plugin): Manage KMS plugins
+
+## notation
 
 ```bash
 notation help
@@ -121,4 +134,100 @@ OPTIONS:
    --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
    --plain-http                remote access via plain HTTP (default: false)
    --help, -h                  show help (default: false)
+```
+
+## list
+
+```console
+notation list --help
+NAME:
+   notation list - List signatures from remote
+
+USAGE:
+   notation list [command options] <reference>
+
+OPTIONS:
+   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
+   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
+   --plain-http                remote access via plain HTTP (default: false)
+   --help, -h                  show help (default: false)
+```
+
+## certificate
+
+```console
+notation certificate --help
+NAME:
+   notation certificate - Manage certificates used for verification
+
+USAGE:
+   notation certificate command [command options] [arguments...]
+
+COMMANDS:
+   add            Add certificate to verification list
+   list, ls       List certificates used for verification
+   remove, rm     Remove certificate from the verification list
+   generate-test  Generates a test RSA key and a corresponding self-signed certificate
+   help, h        Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+## key
+
+```console
+notation key --help
+NAME:
+   notation key - Manage keys used for signing
+
+USAGE:
+   notation key command [command options] [arguments...]
+
+COMMANDS:
+   add          Add key to signing key list
+   update, set  Update key in signing key list
+   list, ls     List keys used for signing
+   remove, rm   Remove key from signing key list
+   help, h      Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+## cache
+
+```console
+ notation cache --help
+NAME:
+   notation cache - Manage signature cache
+
+USAGE:
+   notation cache command [command options] [arguments...]
+
+COMMANDS:
+   list, ls    List signatures in cache
+   prune       Prune signature from cache
+   remove, rm  Remove signature from cache
+   help, h     Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+## plugin
+
+```console
+notation plugin --help
+NAME:
+   notation plugin - Manage plugins
+
+USAGE:
+   notation plugin command [command options] [arguments...]
+
+COMMANDS:
+   list     List registered plugins
+   help, h  Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
 ```
