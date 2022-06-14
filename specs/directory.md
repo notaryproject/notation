@@ -70,18 +70,15 @@ The overall directory structure for `notation` is summarized as follows.
 {CONFIG}
 └── notation
     ├── config.json
-    ├── signing
-    │   ├── certificates
-    │   │   └── {key-name}.crt
-    │   ├── keys
-    │   │   └── {key-name}.pem
-    │   └── keys.json
-    └── trust
-        ├── policy.json
-        └── store
-            └── {trust-store-type}
-                └── {named-store}
-                    └── {cert-file}
+    ├── localkeys
+    │   ├── {key-name}.crt
+    │   └── {key-name}.pem
+    ├── signingkeys.json
+    ├── trustpolicy.json
+    └── truststore
+        └── {trust-store-type}
+            └── {named-store}
+                └── {cert-file}
 {LIBEXEC}
 └── notation
     └── plugins
@@ -130,7 +127,7 @@ The path of the general configuration file of the `notation` CLI is
 The path of a certificate file in a [Trust Store][TS] follows the pattern of
 
 ```
-{CONFIG}/notation/trust/store/{trust-store-type}/{named-store}/{cert-file}
+{CONFIG}/notation/truststore/{trust-store-type}/{named-store}/{cert-file}
 ```
 
 ### Trust Policy
@@ -138,7 +135,7 @@ The path of a certificate file in a [Trust Store][TS] follows the pattern of
 The path of the [Trust Policy][TP] file is
 
 ```
-{CONFIG}/notation/trust/policy.json
+{CONFIG}/notation/trustpolicy.json
 ```
 
 ### Signature Caches
@@ -166,7 +163,7 @@ or in a hierarchical view
 Developers sign artifacts using local private keys with associated certificate chain. The signing key information is tracked in a JSON file at
 
 ```
-{CONFIG}/notation/signing/keys.json
+{CONFIG}/notation/signingkeys.json
 ```
 
 Since the signing key store is user-specific, the system level `{CONFIG}` is not recommended. Developers SHOULD consider safe places to store the passphrase-protected key and certificate pairs, or opt to remote signing.
@@ -174,11 +171,11 @@ Since the signing key store is user-specific, the system level `{CONFIG}` is not
 For testing purpose, the following directory structure is suggested.
 
 ```
-{CONFIG}/notation/signing/certificates/{key-name}.crt
-{CONFIG}/notation/signing/keys/{key-name}.pem
+{CONFIG}/notation/localkeys/{key-name}.crt
+{CONFIG}/notation/localkeys/{key-name}.pem
 ```
 
-Since `keys.json` takes references in absolute paths, it is not required to copy the private keys and certificates used for signing to the above directory structure.
+Since `signingkeys.json` takes references in absolute paths, it is not required to copy the private keys and certificates used for signing to the above directory structure.
 
 ## Examples
 
@@ -191,19 +188,18 @@ Examples are shown on various platforms where the user `exampleuser` overrides t
 ├── etc
 │   └── notation
 │       ├── config.json
-│       └── trust
-│           ├── policy.json
-│           └── store
-│               └── x509
-│                   ├── ca
-│                   │   ├── acme-rockets
-│                   │   │   ├── cert1.pem
-│                   │   │   └── cert2.pem
-│                   │   └── wabbit-networks
-│                   │       └── cert3.pem
-│                   └── tsa
-│                       └── publicly-trusted-tsa
-│                           └── tsa-cert1.pem
+│       ├── trustpolicy.json
+│       └── truststore
+│           └── x509
+│               ├── ca
+│               │   ├── acme-rockets
+│               │   │   ├── cert1.pem
+│               │   │   └── cert2.pem
+│               │   └── wabbit-networks
+│               │       └── cert3.pem
+│               └── tsa
+│                   └── publicly-trusted-tsa
+│                       └── tsa-cert1.pem
 ├── home
 │   └── exampleuser
 │       ├── .cache
@@ -218,27 +214,24 @@ Examples are shown on various platforms where the user `exampleuser` overrides t
 │       └── .config
 │           └── notation
 │               ├── config.json
+│               ├── localkeys
+│               │   ├── dev.crt
+│               │   ├── dev.pem
+│               │   ├── test.crt
+│               │   └── test.pem
 │               ├── plugins
 │               │   └── com.example.bar
 │               │       └── notation-com.example.bar
-│               ├── signing
-│               │   ├── certificates
-│               │   │   ├── dev.crt
-│               │   │   └── test.crt
-│               │   ├── keys
-│               │   │   ├── dev.pem
-│               │   │   └── test.pem
-│               │   └── keys.json
-│               └── trust
-│                   ├── policy.json
-│                   └── store
-│                       └── x509
-│                           ├── ca
-│                           │   └── acme-rockets
-│                           │       └── cert4.pem
-│                           └── tsa
-│                               └── publicly-trusted-tsa
-│                                   └── tsa-cert2.pem
+│               ├── signingkeys.json
+│               ├── trustpolicy.json
+│               └── truststore
+│                   └── x509
+│                       ├── ca
+│                       │   └── acme-rockets
+│                       │       └── cert4.pem
+│                       └── tsa
+│                           └── publicly-trusted-tsa
+│                               └── tsa-cert2.pem
 └── usr
     ├── bin
     │   └── notation
@@ -263,19 +256,18 @@ C:.
 ├── ProgramData
 │   └── notation
 │       ├── config.json
-│       └── trust
-│           ├── policy.json
-│           └── store
-│               └── x509
-│                   ├── ca
-│                   │   ├── acme-rockets
-│                   │   │   ├── cert1.pem
-│                   │   │   └── cert2.pem
-│                   │   └── wabbit-networks
-│                   │       └── cert3.pem
-│                   └── tsa
-│                       └── publicly-trusted-tsa
-│                           └── tsa-cert1.pem
+│       ├── trustpolicy.json
+│       └── truststore
+│           └── x509
+│               ├── ca
+│               │   ├── acme-rockets
+│               │   │   ├── cert1.pem
+│               │   │   └── cert2.pem
+│               │   └── wabbit-networks
+│               │       └── cert3.pem
+│               └── tsa
+│                   └── publicly-trusted-tsa
+│                       └── tsa-cert1.pem
 └── Users
     └── exampleuser
         └── AppData
@@ -291,27 +283,24 @@ C:.
             └── Roaming
                 └── notation
                     ├── config.json
+                    ├── localkeys
+                    │   ├── dev.crt
+                    │   ├── dev.pem
+                    │   ├── test.crt
+                    │   └── test.pem
                     ├── plugins
                     │   └── com.example.bar
                     │       └── notation-com.example.bar.exe
-                    ├── signing
-                    │   ├── certificates
-                    │   │   ├── dev.crt
-                    │   │   └── test.crt
-                    │   ├── keys
-                    │   │   ├── dev.pem
-                    │   │   └── test.pem
-                    │   └── keys.json
-                    └── trust
-                        ├── policy.json
-                        └── store
-                            └── x509
-                                ├── ca
-                                │   └── acme-rockets
-                                │       └── cert4.pem
-                                └── tsa
-                                    └── publicly-trusted-tsa
-                                        └── tsa-cert2.pem
+                    ├── signingkeys.json
+                    ├── trustpolicy.json
+                    └── truststore
+                        └── x509
+                            ├── ca
+                            │   └── acme-rockets
+                            │       └── cert4.pem
+                            └── tsa
+                                └── publicly-trusted-tsa
+                                    └── tsa-cert2.pem
 ```
 
 ### Darwin
@@ -322,46 +311,42 @@ C:.
 │   └── Application Support
 │       └── notation
 │           ├── config.json
-│           └── trust
-│               ├── policy.json
-│               └── store
-│                   └── x509
-│                       ├── ca
-│                       │   ├── acme-rockets
-│                       │   │   ├── cert1.pem
-│                       │   │   └── cert2.pem
-│                       │   └── wabbit-networks
-│                       │       └── cert3.pem
-│                       └── tsa
-│                           └── publicly-trusted-tsa
-│                               └── tsa-cert1.pem
+│           ├── trustpolicy.json
+│           └── truststore
+│               └── x509
+│                   ├── ca
+│                   │   ├── acme-rockets
+│                   │   │   ├── cert1.pem
+│                   │   │   └── cert2.pem
+│                   │   └── wabbit-networks
+│                   │       └── cert3.pem
+│                   └── tsa
+│                       └── publicly-trusted-tsa
+│                           └── tsa-cert1.pem
 ├── Users
 │   └── exampleuser
 │       └── Library
 │           ├── Application Support
 │           │   └── notation
 │           │       ├── config.json
+│           │       ├── localkeys
+│           │       │   ├── dev.crt
+│           │       │   ├── dev.pem
+│           │       │   ├── test.crt
+│           │       │   └── test.pem
 │           │       ├── plugins
 │           │       │   └── com.example.bar
 │           │       │       └── notation-com.example.bar
-│           │       ├── signing
-│           │       │   ├── certificates
-│           │       │   │   ├── dev.crt
-│           │       │   │   └── test.crt
-│           │       │   ├── keys
-│           │       │   │   ├── dev.pem
-│           │       │   │   └── test.pem
-│           │       │   └── keys.json
-│           │       └── trust
-│           │           ├── policy.json
-│           │           └── store
-│           │               └── x509
-│           │                   ├── ca
-│           │                   │   └── acme-rockets
-│           │                   │       └── cert4.pem
-│           │                   └── tsa
-│           │                       └── publicly-trusted-tsa
-│           │                           └── tsa-cert2.pem
+│           │       ├── signingkeys.json
+│           │       ├── trustpolicy.json
+│           │       └── truststore
+│           │           └── x509
+│           │               ├── ca
+│           │               │   └── acme-rockets
+│           │               │       └── cert4.pem
+│           │               └── tsa
+│           │                   └── publicly-trusted-tsa
+│           │                       └── tsa-cert2.pem
 │           └── Caches
 │               └── notation
 │                   └── signatures
