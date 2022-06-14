@@ -65,7 +65,7 @@ The overall directory structure for `notation` is summarized as follows.
     └── signatures
         └── {manifest-digest-algorithm}
             └── {manifest-digest}
-                └── {signature-digest-algorithm}
+                └── {signature-blob-digest-algorithm}
                     └── {signature-digest}.sig
 {CONFIG}
 └── notation
@@ -146,7 +146,7 @@ The path of the [Trust Policy][TP] file is
 The signatures are cached to optimize the network traffic. The path of a cached signature for a certain manifest follows the pattern below.
 
 ```
-{CACHE}/notation/signatures/{manifest-digest-algorithm}/{manifest-digest}/{signature-digest-algorithm}/{signature-digest}.sig
+{CACHE}/notation/signatures/{manifest-digest-algorithm}/{manifest-digest}/{signature-blob-digest-algorithm}/{signature-digest}.sig
 ```
 
 or in a hierarchical view
@@ -157,7 +157,7 @@ or in a hierarchical view
     └── signatures
         └── {manifest-digest-algorithm}
             └── {manifest-digest}
-                └── {signature-digest-algorithm}
+                └── {signature-blob-digest-algorithm}
                     └── {signature-digest}.sig
 ```
 
