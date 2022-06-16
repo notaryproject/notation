@@ -31,6 +31,10 @@ download: ## download dependencies via go mod
 .PHONY: build
 build: $(addprefix bin/,$(COMMANDS)) ## builds binaries
 
+.PHONY: test
+test: vendor check-line-endings ## run unit tests
+	./scripts/test.sh
+
 .PHONY: clean
 clean:
 	git status --ignored --short | grep '^!! ' | sed 's/!! //' | xargs rm -rf

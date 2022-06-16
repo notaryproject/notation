@@ -4,3 +4,6 @@
 # Custom
 bin/
 vendor/
+.cover/
+.test/
+dist/
