@@ -12,7 +12,7 @@ Alternatively, clients can be authenticated via mutual TLS authentication (mTLS)
 
 ## Authentication Schemes
 
-Notation supports [basic HTTP authentication][RFC7617] scheme and token schemes including [OAuth 2.0][RFC6749] and [Docker Registry V2 Token][token]. Clients MUST connect to the remote servers via HTTPS if any authentication scheme is applied.
+Notation supports [basic HTTP authentication][RFC7617] scheme and token schemes including [OAuth 2.0][RFC6749] and [Docker Registry V2 Token][token]. Clients SHOULD connect to the remote servers via HTTPS if any authentication scheme is applied.
 
 ### General Flow
 
