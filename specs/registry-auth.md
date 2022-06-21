@@ -4,7 +4,7 @@ Registry access is required for pulling the manifests of the images to be verifi
 
 ## Communication Channel
 
-Although it is secure to transmit artifacts with their signatures via HTTP connections, it is RECOMMENDED to transmit via HTTPS connections for confidentiality and the authenticity of the remote server.
+Although it is secure to transmit artifacts with their signatures via HTTP connections as a tampered artifact can be detected through signature verification, it is RECOMMENDED to transmit via HTTPS connections for confidentiality and the authenticity of the remote server.
 
 Alternatively, clients can be authenticated via mutual TLS authentication (mTLS). In other words, clients connect to servers via HTTP over mTLS by presenting client certificates. In this case, authorization can be applied later without further authentication schemes.
 
