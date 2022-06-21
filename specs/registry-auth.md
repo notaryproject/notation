@@ -2,13 +2,11 @@
 
 Registry access is required for pulling the manifests of the images to be verified along with their signatures as well as other advanced operations. This documentation specifies how authentication to the remote registry works and how registry credentials are stored.
 
-
 ## Communication Channel
 
 Although it is secure to transmit artifacts with their signatures via HTTP connections, it is RECOMMENDED to transmit via HTTPS connections for confidentiality and the authenticity of the remote server.
 
 Alternatively, clients can be authenticated via mutual TLS authentication (mTLS). In other words, clients connect to servers via HTTP over mTLS by presenting client certificates. In this case, authorization can be applied later without further authentication schemes.
-
 
 ## Authentication Schemes
 
@@ -95,7 +93,6 @@ Notation follows the [Docker Registry v2 authentication][oauth2] specification f
 
 **Note** Refresh tokens are often known as identity tokens in the context of registry authentication.
 
-
 ## Credential Store
 
 As local credentials may be required to access the remote registries, they need to be stored and accessed securely. To achieve maximum security, credential helpers are preferred so that credentials are stored in the system key chain with better protection. If credential helpers are not available, notation will fall back to credential files with proper access control.
@@ -121,21 +118,7 @@ The credential store can be specified globally or per registry by setting the no
 
 ### Credential File
 
-The credential file is alternative credential store when credential helpers are not available. The default file path is
-
-```
-{CONFIG}/notation/auth.json
-```
-
-The credential file path can be altered by setting the `credsFile` field of the notation config.
-
-```json
-{
-    "credsFile": "/absolute/path/to/auth.json"
-}
-```
-
-Since credentials are stored in plaintext, the permission of the credential file MUST be kept minimum when storing credentials. On Unix / Linux, the permission MUST be either `0600` (default) or `0400` (read-only).
+TODO: Define local credential experience without credential provider support (#206).
 
 [RFC6749]: https://www.rfc-editor.org/rfc/rfc6749 "OAuth 2.0"
 [RFC7617]: https://www.rfc-editor.org/rfc/rfc7617 "Basic Auth"
