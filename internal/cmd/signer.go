@@ -19,8 +19,8 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		certPath := ctx.String(FlagCertFile.Name)
 		return signature.NewSignerFromFiles(keyPath, certPath)
 	}
-    // Construct a signer from preconfigured key pair in config.json
-    // if key name is provided as the CLI argument
+	// Construct a signer from preconfigured key pair in config.json
+	// if key name is provided as the CLI argument
 	key, err := config.ResolveKey(ctx.String(FlagKey.Name))
 	if err != nil {
 		return nil, err
@@ -28,19 +28,15 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 	if key.X509KeyPair != nil {
 		return signature.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
 	}
-    // Construct a plugin signer if key name provided as the CLI argument
-    // corresponds to an external key
+	// Construct a plugin signer if key name provided as the CLI argument
+	// corresponds to an external key
 	if key.ExternalKey != nil {
 		mgr := manager.New(config.PluginDirPath)
 		runner, err := mgr.Runner(key.PluginName)
 		if err != nil {
 			return nil, err
 		}
-		return &jws.PluginSigner{
-			Runner:       runner,
-			KeyID:        key.ExternalKey.ID,
-			PluginConfig: key.PluginConfig,
-		}, nil
+		return jws.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig)
 	}
 	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
 }

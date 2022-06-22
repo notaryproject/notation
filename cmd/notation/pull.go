@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	notationregistry "github.com/notaryproject/notation-go/pkg/registry"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	notationregistry "github.com/notaryproject/notation/pkg/registry"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 	"oras.land/oras-go/v2/registry"
