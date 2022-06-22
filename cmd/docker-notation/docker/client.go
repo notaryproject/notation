@@ -6,9 +6,9 @@ import (
 
 	dockerconfig "github.com/docker/cli/cli/config"
 	"github.com/docker/cli/cli/config/credentials"
+	notationregistry "github.com/notaryproject/notation-go/pkg/registry"
 	"github.com/notaryproject/notation/internal/version"
 	"github.com/notaryproject/notation/pkg/config"
-	notationregistry "github.com/notaryproject/notation/pkg/registry"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
