@@ -28,6 +28,8 @@ func main() {
 			keyCommand,
 			cacheCommand,
 			pluginCommand,
+			loginCommand,
+			logoutCommand,
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

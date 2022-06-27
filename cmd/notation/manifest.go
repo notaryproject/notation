@@ -37,7 +37,10 @@ func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (not
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	repo := getRepositoryClient(ctx, ref)
+	repo, err := getRepositoryClient(ctx, ref)
+	if err != nil {
+		return notation.Descriptor{}, err
+	}
 	return repo.Resolve(ctx.Context, ref.ReferenceOrDefault())
 }
 
