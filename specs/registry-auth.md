@@ -118,7 +118,21 @@ The credential store can be specified globally or per registry by setting the no
 
 ### Credential File
 
-TODO: Define local credential experience without credential provider support (#206).
+The credential file is alternative credential store when credential helpers are not available. The default file path is
+
+```
+{CONFIG}/notation/auth.json
+```
+
+The credential file path can be altered by setting the `credsFile` field of the notation config.
+
+```json
+{
+    "credsFile": "/absolute/path/to/auth.json"
+}
+```
+
+Since credentials are stored in plaintext, the permission of the credential file MUST be kept minimum when storing credentials. On Unix / Linux, the permission MUST be either `0600` (default) or `0400` (read-only).
 
 [RFC6749]: https://www.rfc-editor.org/rfc/rfc6749 "OAuth 2.0"
 [RFC7617]: https://www.rfc-editor.org/rfc/rfc7617 "Basic Auth"
