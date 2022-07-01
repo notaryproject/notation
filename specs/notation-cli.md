@@ -1,7 +1,7 @@
 # Notation CLI
 
 The following spec outlines the notation CLI.
-The CLI commands are what's currently available in [notation v0.7.1-alpha.1](https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1)
+The CLI commands are what's currently available in [notation v0.7.1-alpha.1](https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1). The CLI experience in alpha.1 does not represent the final user experience, and CLI commands may have breaking changes before RC release as the CLI experience is finalized.
 
 ## Table of Contents
 - [notation](#notation)
