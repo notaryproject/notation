@@ -4,16 +4,16 @@ The following spec outlines the notation CLI.
 The CLI commands are what's currently available in [notation v0.7.1-alpha.1](https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1). The CLI experience in alpha.1 does not represent the final user experience, and CLI commands may have breaking changes before RC release as the CLI experience is finalized.
 
 ## Table of Contents
-- [notation](#notation)
-- [sign](#sign): Signs artifacts
-- [verify](#verify): Verifies OCI Artifacts
-- [push](#push): Push signature to remote
-- [pull](#pull): Pull signatures from remote
-- [list](#list): List signatures from remote
+- [notation](#notation): command group for signing and verification operations
+- [cache](#cache): Manage signature cache
 - [certificate](#certificate): Manage certificates used for verification
 - [key](#key): Manage keys used for signing
-- [cache](#cache): Manage signature cache
+- [list](#list): List signatures from remote
 - [plugin](#plugin): Manage KMS plugins
+- [pull](#pull): Pull signatures from remote
+- [push](#push): Push signature to remote
+- [sign](#sign): Signs artifacts
+- [verify](#verify): Verifies OCI Artifacts
 
 ## notation
 
@@ -32,20 +32,154 @@ AUTHOR:
    CNCF Notary Project
 
 COMMANDS:
-   sign               Signs artifacts
-   verify             Verifies OCI Artifacts
-   push               Push signature to remote
-   pull               Pull signatures from remote
-   list, ls           List signatures from remote
+   cache              Manage signature cache
    certificate, cert  Manage certificates used for verification
    key                Manage keys used for signing
-   cache              Manage signature cache
+   list, ls           List signatures from remote
    plugin             Manage KMS plugins
+   pull               Pull signatures from remote
+   push               Push signature to remote
+   sign               Signs artifacts
+   verify             Verifies OCI Artifacts
    help, h            Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
    --help, -h     show help (default: false)
    --version, -v  print the version (default: false)
+```
+
+## cache
+
+```console
+ notation cache --help
+NAME:
+   notation cache - Manage signature cache
+
+USAGE:
+   notation cache command [command options] [arguments...]
+
+COMMANDS:
+   list, ls    List signatures in cache
+   prune       Prune signature from cache
+   remove, rm  Remove signature from cache
+   help, h     Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+## certificate
+
+```console
+notation certificate --help
+NAME:
+   notation certificate - Manage certificates used for verification
+
+USAGE:
+   notation certificate command [command options] [arguments...]
+
+COMMANDS:
+   add            Add certificate to verification list
+   list, ls       List certificates used for verification
+   remove, rm     Remove certificate from the verification list
+   generate-test  Generates a test RSA key and a corresponding self-signed certificate
+   help, h        Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+## key
+
+```console
+notation key --help
+NAME:
+   notation key - Manage keys used for signing
+
+USAGE:
+   notation key command [command options] [arguments...]
+
+COMMANDS:
+   add          Add key to signing key list
+   update, set  Update key in signing key list
+   list, ls     List keys used for signing
+   remove, rm   Remove key from signing key list
+   help, h      Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+## list
+
+```console
+notation list --help
+NAME:
+   notation list - List signatures from remote
+
+USAGE:
+   notation list [command options] <reference>
+
+OPTIONS:
+   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
+   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
+   --plain-http                remote access via plain HTTP (default: false)
+   --help, -h                  show help (default: false)
+```
+
+## plugin
+
+```console
+notation plugin --help
+NAME:
+   notation plugin - Manage plugins
+
+USAGE:
+   notation plugin command [command options] [arguments...]
+
+COMMANDS:
+   list     List registered plugins
+   help, h  Shows a list of commands or help for one command
+
+OPTIONS:
+   --help, -h  show help (default: false)
+```
+
+## pull
+
+```console
+notation pull --help
+NAME:
+   notation pull - Pull signatures from remote
+
+USAGE:
+   notation pull [command options] <reference>
+
+OPTIONS:
+   --strict                    pull the signature without lookup the manifest (default: false)
+   --output value, -o value    write signature to a specific path
+   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
+   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
+   --plain-http                remote access via plain HTTP (default: false)
+   --help, -h                  show help (default: false)
+```
+
+## push
+
+```console
+notation push --help
+NAME:
+   notation push - Push signature to remote
+
+USAGE:
+   notation push [command options] <reference>
+
+OPTIONS:
+   --signature value, -s value, -f value  signature files  (accepts multiple inputs)
+   --username value, -u value             username for generic remote access [$NOTATION_USERNAME]
+   --password value, -p value             password for generic remote access [$NOTATION_PASSWORD]
+   --plain-http                           remote access via plain HTTP (default: false)
+   --help, -h                             show help (default: false)
 ```
 
 ## sign
@@ -99,135 +233,3 @@ OPTIONS:
    --help, -h                             show help (default: false)
 ```
 
-## push
-
-```console
-notation push --help
-NAME:
-   notation push - Push signature to remote
-
-USAGE:
-   notation push [command options] <reference>
-
-OPTIONS:
-   --signature value, -s value, -f value  signature files  (accepts multiple inputs)
-   --username value, -u value             username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value             password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                           remote access via plain HTTP (default: false)
-   --help, -h                             show help (default: false)
-```
-
-## pull
-
-```console
-notation pull --help
-NAME:
-   notation pull - Pull signatures from remote
-
-USAGE:
-   notation pull [command options] <reference>
-
-OPTIONS:
-   --strict                    pull the signature without lookup the manifest (default: false)
-   --output value, -o value    write signature to a specific path
-   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                remote access via plain HTTP (default: false)
-   --help, -h                  show help (default: false)
-```
-
-## list
-
-```console
-notation list --help
-NAME:
-   notation list - List signatures from remote
-
-USAGE:
-   notation list [command options] <reference>
-
-OPTIONS:
-   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                remote access via plain HTTP (default: false)
-   --help, -h                  show help (default: false)
-```
-
-## certificate
-
-```console
-notation certificate --help
-NAME:
-   notation certificate - Manage certificates used for verification
-
-USAGE:
-   notation certificate command [command options] [arguments...]
-
-COMMANDS:
-   add            Add certificate to verification list
-   list, ls       List certificates used for verification
-   remove, rm     Remove certificate from the verification list
-   generate-test  Generates a test RSA key and a corresponding self-signed certificate
-   help, h        Shows a list of commands or help for one command
-
-OPTIONS:
-   --help, -h  show help (default: false)
-```
-
-## key
-
-```console
-notation key --help
-NAME:
-   notation key - Manage keys used for signing
-
-USAGE:
-   notation key command [command options] [arguments...]
-
-COMMANDS:
-   add          Add key to signing key list
-   update, set  Update key in signing key list
-   list, ls     List keys used for signing
-   remove, rm   Remove key from signing key list
-   help, h      Shows a list of commands or help for one command
-
-OPTIONS:
-   --help, -h  show help (default: false)
-```
-## cache
-
-```console
- notation cache --help
-NAME:
-   notation cache - Manage signature cache
-
-USAGE:
-   notation cache command [command options] [arguments...]
-
-COMMANDS:
-   list, ls    List signatures in cache
-   prune       Prune signature from cache
-   remove, rm  Remove signature from cache
-   help, h     Shows a list of commands or help for one command
-
-OPTIONS:
-   --help, -h  show help (default: false)
-```
-
-## plugin
-
-```console
-notation plugin --help
-NAME:
-   notation plugin - Manage plugins
-
-USAGE:
-   notation plugin command [command options] [arguments...]
-
-COMMANDS:
-   list     List registered plugins
-   help, h  Shows a list of commands or help for one command
-
-OPTIONS:
-   --help, -h  show help (default: false)
-```
