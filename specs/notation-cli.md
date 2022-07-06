@@ -37,7 +37,8 @@ COMMANDS:
    certificate, cert  Manage certificates used for verification
    key                Manage keys used for signing
    list, ls           List signatures from remote
-   login              Provide credentials for authenticated registry operations   plugin             Manage KMS plugins
+   login              Provide credentials for authenticated registry operations   
+   plugin             Manage KMS plugins
    pull               Pull signatures from remote
    push               Push signature to remote
    sign               Signs artifacts
@@ -109,6 +110,23 @@ COMMANDS:
 
 OPTIONS:
    --help, -h  show help (default: false)
+```
+
+## list
+
+```console
+notation list --help
+NAME:
+   notation list - List signatures from remote
+
+USAGE:
+   notation list [command options] <reference>
+
+OPTIONS:
+   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
+   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
+   --plain-http                remote access via plain HTTP (default: false)
+   --help, -h                  show help (default: false)
 ```
 
 ## login
