@@ -8,8 +8,8 @@ The CLI commands are what's currently available in [notation v0.7.1-alpha.1](htt
 - [cache](#cache): Manage signature cache
 - [certificate](#certificate): Manage certificates used for verification
 - [key](#key): Manage keys used for signing
-- [login](#login): Provide credentials for authenticated registry operations
 - [list](#list): List signatures from remote
+- [login](#login): Provide credentials for authenticated registry operations
 - [plugin](#plugin): Manage KMS plugins
 - [pull](#pull): Pull signatures from remote
 - [push](#push): Push signature to remote
