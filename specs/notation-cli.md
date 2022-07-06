@@ -4,13 +4,12 @@ The following spec outlines the notation CLI.
 The CLI commands are what's currently available in [notation v0.7.1-alpha.1](https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1). The CLI experience in alpha.1 does not represent the final user experience, and CLI commands may have breaking changes before RC release as the CLI experience is finalized.
 
 ## Table of Contents
-
 - [notation](#notation): command group for signing and verification operations
 - [cache](#cache): Manage signature cache
 - [certificate](#certificate): Manage certificates used for verification
 - [key](#key): Manage keys used for signing
-- [list](#list): List signatures from remote
 - [login](#login): Provide credentials for authenticated registry operations
+- [list](#list): List signatures from remote
 - [plugin](#plugin): Manage KMS plugins
 - [pull](#pull): Pull signatures from remote
 - [push](#push): Push signature to remote
@@ -38,8 +37,7 @@ COMMANDS:
    certificate, cert  Manage certificates used for verification
    key                Manage keys used for signing
    list, ls           List signatures from remote
-   login              Provide credentials for authenticated registry operations
-   plugin             Manage KMS plugins
+   login              Provide credentials for authenticated registry operations   plugin             Manage KMS plugins
    pull               Pull signatures from remote
    push               Push signature to remote
    sign               Signs artifacts
@@ -111,23 +109,6 @@ COMMANDS:
 
 OPTIONS:
    --help, -h  show help (default: false)
-```
-
-## list
-
-```console
-notation list --help
-NAME:
-   notation list - List signatures from remote
-
-USAGE:
-   notation list [command options] <reference>
-
-OPTIONS:
-   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                remote access via plain HTTP (default: false)
-   --help, -h                  show help (default: false)
 ```
 
 ## login
