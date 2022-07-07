@@ -6,7 +6,7 @@ import (
 
 	"github.com/notaryproject/notation/internal/docker"
 	"github.com/notaryproject/notation/internal/version"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
 var pluginMetadata = docker.PluginMetadata{
@@ -17,11 +17,14 @@ var pluginMetadata = docker.PluginMetadata{
 	URL:              "https://github.com/notaryproject/notation",
 }
 
-var metadataCommand = &cli.Command{
-	Name: docker.PluginMetadataCommandName,
-	Action: func(ctx *cli.Context) error {
-		writer := json.NewEncoder(os.Stdout)
-		return writer.Encode(pluginMetadata)
-	},
-	Hidden: true,
+func metadataCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: docker.PluginMetadataCommandName,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			writer := json.NewEncoder(os.Stdout)
+			return writer.Encode(pluginMetadata)
+		},
+		Hidden: true,
+	}
+	return cmd
 }

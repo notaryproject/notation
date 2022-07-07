@@ -15,22 +15,22 @@ import (
 
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-func generateTestCert(ctx *cli.Context) error {
+func generateTestCert(command *cobra.Command) error {
 	// initialize
-	hosts := ctx.Args().Slice()
+	hosts := command.Flags().Args()
 	if len(hosts) == 0 {
 		return errors.New("missing certificate hosts")
 	}
-	name := ctx.String("name")
+	name, _ := command.Flags().GetString("name")
 	if name == "" {
 		name = hosts[0]
 	}
 
 	// generate RSA private key
-	bits := ctx.Int("bits")
+	bits, _ := command.Flags().GetInt("bits")
 	fmt.Println("generating RSA Key with", bits, "bits")
 	key, keyBytes, err := generateTestKey(bits)
 	if err != nil {
@@ -38,7 +38,8 @@ func generateTestCert(ctx *cli.Context) error {
 	}
 
 	// generate self-signed certificate
-	cert, certBytes, err := generateTestSelfSignedCert(key, hosts, ctx.Duration("expiry"))
+	expiry, _ := command.Flags().GetDuration("expiry")
+	cert, certBytes, err := generateTestSelfSignedCert(key, hosts, expiry)
 	if err != nil {
 		return err
 	}
@@ -63,7 +64,7 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefault := ctx.Bool(keyDefaultFlag.Name)
+	isDefault, _ := command.Flags().GetBool(keyDefaultFlag.Name)
 	keySuite := config.KeySuite{
 		Name: name,
 		X509KeyPair: &config.X509KeyPair{
@@ -71,11 +72,11 @@ func generateTestCert(ctx *cli.Context) error {
 			CertificatePath: certPath,
 		},
 	}
-	err = addKeyCore(cfg, keySuite, ctx.Bool(keyDefaultFlag.Name))
+	err = addKeyCore(cfg, keySuite, isDefault)
 	if err != nil {
 		return err
 	}
-	trust := ctx.Bool("trust")
+	trust, _ := command.Flags().GetBool("trust")
 	if trust {
 		if err := addCertCore(cfg, name, certPath); err != nil {
 			return err

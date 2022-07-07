@@ -6,29 +6,33 @@ import (
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var (
-	pluginCommand = &cli.Command{
-		Name:  "plugin",
-		Usage: "Manage plugins",
-		Subcommands: []*cli.Command{
-			pluginListCommand,
+func pluginCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "plugin",
+		Short: "Manage plugins",
+	}
+	cmd.AddCommand(pluginListCommand())
+	return cmd
+}
+
+func pluginListCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List registered plugins",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listPlugins(cmd)
 		},
 	}
+	return cmd
+}
 
-	pluginListCommand = &cli.Command{
-		Name:    "list",
-		Usage:   "List registered plugins",
-		Aliases: []string{"ls"},
-		Action:  listPlugins,
-	}
-)
-
-func listPlugins(ctx *cli.Context) error {
+func listPlugins(command *cobra.Command) error {
 	mgr := manager.New(config.PluginDirPath)
-	plugins, err := mgr.List(ctx.Context)
+	plugins, err := mgr.List(command.Context())
 	if err != nil {
 		return err
 	}

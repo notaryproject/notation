@@ -5,8 +5,20 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation/internal/docker"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
+
+func metadataCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: docker.PluginMetadataCommandName,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			writer := json.NewEncoder(os.Stdout)
+			return writer.Encode(pluginMetadata)
+		},
+		Hidden: true,
+	}
+	return cmd
+}
 
 var pluginMetadata = docker.PluginMetadata{
 	SchemaVersion:    "0.1.0",
@@ -15,13 +27,4 @@ var pluginMetadata = docker.PluginMetadata{
 	ShortDescription: "Generate artifacts",
 	URL:              "https://github.com/notaryproject/notation",
 	Experimental:     true,
-}
-
-var metadataCommand = &cli.Command{
-	Name: docker.PluginMetadataCommandName,
-	Action: func(ctx *cli.Context) error {
-		writer := json.NewEncoder(os.Stdout)
-		return writer.Encode(pluginMetadata)
-	},
-	Hidden: true,
 }

@@ -1,43 +1,78 @@
 package main
 
-import "github.com/urfave/cli/v2"
+import (
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+)
+
+const (
+	defaultUsernameEnv = "NOTATION_USERNAME"
+	defaultPasswordEnv = "NOTATION_PASSWORD"
+	defaultMediaType   = "application/vnd.docker.distribution.manifest.v2+json"
+)
 
 var (
-	flagUsername = &cli.StringFlag{
-		Name:    "username",
-		Aliases: []string{"u"},
-		Usage:   "username for generic remote access",
-		EnvVars: []string{"NOTATION_USERNAME"},
+	flagUsername = &pflag.Flag{
+		Name:      "username",
+		Shorthand: "u",
+		Usage:     "username for generic remote access",
 	}
-	flagPassword = &cli.StringFlag{
-		Name:    "password",
-		Aliases: []string{"p"},
-		Usage:   "password for generic remote access",
-		EnvVars: []string{"NOTATION_PASSWORD"},
+	setFlagUserName = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(flagUsername.Name, flagUsername.Shorthand, os.Getenv(defaultUsernameEnv), flagUsername.Usage)
 	}
-	flagPlainHTTP = &cli.BoolFlag{
+
+	flagPassword = &pflag.Flag{
+		Name:      "password",
+		Shorthand: "p",
+		Usage:     "password for generic remote access",
+	}
+	setFlagPassword = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(flagPassword.Name, flagPassword.Shorthand, os.Getenv(defaultPasswordEnv), flagPassword.Usage)
+	}
+
+	flagPlainHTTP = &pflag.Flag{
 		Name:  "plain-http",
 		Usage: "remote access via plain HTTP",
 	}
-	flagMediaType = &cli.StringFlag{
+	setFlagPlainHTTP = func(cmd *cobra.Command) {
+		cmd.Flags().Bool(flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
+	}
+
+	flagMediaType = &pflag.Flag{
 		Name:  "media-type",
 		Usage: "specify the media type of the manifest read from file or stdin",
-		Value: "application/vnd.docker.distribution.manifest.v2+json",
 	}
-	flagOutput = &cli.StringFlag{
-		Name:    "output",
-		Aliases: []string{"o"},
-		Usage:   "write signature to a specific path",
+	setFlagMediaType = func(cmd *cobra.Command) {
+		cmd.Flags().String(flagMediaType.Name, defaultMediaType, flagMediaType.Usage)
 	}
-	flagLocal = &cli.BoolFlag{
-		Name:    "local",
-		Aliases: []string{"l"},
-		Usage:   "reference is a local file",
+
+	flagOutput = &pflag.Flag{
+		Name:      "output",
+		Shorthand: "o",
+		Usage:     "write signature to a specific path",
 	}
-	flagSignature = &cli.StringSliceFlag{
+	setFlagOutput = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(flagOutput.Name, flagOutput.Shorthand, "", flagOutput.Usage)
+	}
+
+	flagLocal = &pflag.Flag{
+		Name:      "local",
+		Shorthand: "l",
+		Usage:     "reference is a local file",
+	}
+	setFlagLocal = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(flagLocal.Name, flagLocal.Shorthand, "", flagLocal.Usage)
+	}
+
+	// TODO: only support one shortage
+	flagSignature = &pflag.Flag{
 		Name:      "signature",
-		Aliases:   []string{"s", "f"},
+		Shorthand: "s",
 		Usage:     "signature files",
-		TakesFile: true,
+	}
+	setFlagSignature = func(cmd *cobra.Command) {
+		cmd.Flags().StringSliceP(flagSignature.Name, flagSignature.Shorthand, []string{}, flagSignature.Usage)
 	}
 )

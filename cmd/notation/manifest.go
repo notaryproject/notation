@@ -8,37 +8,37 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 )
 
-func getManifestDescriptorFromContext(ctx *cli.Context) (notation.Descriptor, error) {
-	ref := ctx.Args().First()
+func getManifestDescriptorFromContext(cmd *cobra.Command) (notation.Descriptor, error) {
+	ref := cmd.Flags().Arg(0)
 	if ref == "" {
 		return notation.Descriptor{}, errors.New("missing reference")
 	}
-	return getManifestDescriptorFromContextWithReference(ctx, ref)
+	return getManifestDescriptorFromContextWithReference(cmd, ref)
 }
 
-func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string) (notation.Descriptor, error) {
-	if ctx.Bool(flagLocal.Name) {
-		mediaType := ctx.String(flagMediaType.Name)
+func getManifestDescriptorFromContextWithReference(cmd *cobra.Command, ref string) (notation.Descriptor, error) {
+	if isLocal, _ := cmd.Flags().GetBool(flagLocal.Name); isLocal {
+		mediaType, _ := cmd.Flags().GetString(flagMediaType.Name)
 		if ref == "-" {
 			return getManifestDescriptorFromReader(os.Stdin, mediaType)
 		}
 		return getManifestDescriptorFromFile(ref, mediaType)
 	}
 
-	return getManifestDescriptorFromReference(ctx, ref)
+	return getManifestDescriptorFromReference(cmd, ref)
 }
 
-func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (notation.Descriptor, error) {
+func getManifestDescriptorFromReference(cmd *cobra.Command, reference string) (notation.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	repo := getRepositoryClient(ctx, ref)
-	return repo.Resolve(ctx.Context, ref.ReferenceOrDefault())
+	repo := getRepositoryClient(cmd, ref)
+	return repo.Resolve(cmd.Context(), ref.ReferenceOrDefault())
 }
 
 func getManifestDescriptorFromFile(path, mediaType string) (notation.Descriptor, error) {

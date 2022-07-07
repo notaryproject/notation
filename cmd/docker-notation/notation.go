@@ -1,15 +1,14 @@
 package main
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var notationCommand = &cli.Command{
-	Name:  "notation",
-	Usage: pluginMetadata.ShortDescription,
-	Subcommands: []*cli.Command{
-		pullCommand,
-		pushCommand,
-		signCommand,
-	},
+func notationCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "notation",
+		Short: pluginMetadata.ShortDescription,
+	}
+	cmd.AddCommand(pullCommand(), pushCommand(), signCommand())
+	return cmd
 }

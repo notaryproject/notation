@@ -7,23 +7,24 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/version"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(ctx *cli.Context, reference string) (notationregistry.SignatureRepository, error) {
+func getSignatureRepository(cmd *cobra.Command, reference string) (notationregistry.SignatureRepository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
-	return getRepositoryClient(ctx, ref), nil
+	return getRepositoryClient(cmd, ref), nil
 }
 
-func getRepositoryClient(ctx *cli.Context, ref registry.Reference) *notationregistry.RepositoryClient {
+func getRepositoryClient(cmd *cobra.Command, ref registry.Reference) *notationregistry.RepositoryClient {
 	var plainHTTP bool
-	if ctx.IsSet(flagPlainHTTP.Name) {
-		plainHTTP = ctx.Bool(flagPlainHTTP.Name)
+
+	if cmd.Flags().Lookup(flagPlainHTTP.Name) != nil {
+		plainHTTP, _ = cmd.Flags().GetBool(flagPlainHTTP.Name)
 	} else {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
 		if !plainHTTP {
@@ -32,10 +33,11 @@ func getRepositoryClient(ctx *cli.Context, ref registry.Reference) *notationregi
 			}
 		}
 	}
-
+	username, _ := cmd.Flags().GetString(flagUsername.Name)
+	password, _ := cmd.Flags().GetString(flagPassword.Name)
 	cred := auth.Credential{
-		Username: ctx.String(flagUsername.Name),
-		Password: ctx.String(flagPassword.Name),
+		Username: username,
+		Password: password,
 	}
 	if cred.Username == "" {
 		cred = auth.Credential{

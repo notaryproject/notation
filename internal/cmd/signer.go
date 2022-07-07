@@ -8,19 +8,20 @@ import (
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
 // GetSigner returns a signer according to the CLI context.
-func GetSigner(ctx *cli.Context) (notation.Signer, error) {
+func GetSigner(cmd *cobra.Command) (notation.Signer, error) {
 	// Construct a signer from key and cert file if provided as CLI arguments
-	if keyPath := ctx.String(FlagKeyFile.Name); keyPath != "" {
-		certPath := ctx.String(FlagCertFile.Name)
+	if keyPath, _ := cmd.Flags().GetString(FlagKeyFile.Name); keyPath != "" {
+		certPath, _ := cmd.Flags().GetString(FlagCertFile.Name)
 		return signature.NewSignerFromFiles(keyPath, certPath)
 	}
 	// Construct a signer from preconfigured key pair in config.json
 	// if key name is provided as the CLI argument
-	key, err := config.ResolveKey(ctx.String(FlagKey.Name))
+	keyName, _ := cmd.Flags().GetString(FlagKey.Name)
+	key, err := config.ResolveKey(keyName)
 	if err != nil {
 		return nil, err
 	}
@@ -41,8 +42,8 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 }
 
 // GetExpiry returns the signature expiry according to the CLI context.
-func GetExpiry(ctx *cli.Context) time.Time {
-	expiry := ctx.Duration(FlagExpiry.Name)
+func GetExpiry(cmd *cobra.Command) time.Time {
+	expiry, _ := cmd.Flags().GetDuration(FlagExpiry.Name)
 	if expiry == 0 {
 		return time.Time{}
 	}

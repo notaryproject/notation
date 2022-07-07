@@ -4,41 +4,43 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var listCommand = &cli.Command{
-	Name:      "list",
-	Usage:     "List signatures from remote",
-	Aliases:   []string{"ls"},
-	ArgsUsage: "<reference>",
-	Flags: []cli.Flag{
-		flagUsername,
-		flagPassword,
-		flagPlainHTTP,
-	},
-	Action: runList,
+func listCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "list [reference]",
+		Aliases: []string{"ls"},
+		Short:   "List signatures from remote",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runList(cmd)
+		},
+	}
+	setFlagUserName(cmd)
+	setFlagPassword(cmd)
+	setFlagPlainHTTP(cmd)
+	return cmd
 }
 
-func runList(ctx *cli.Context) error {
+func runList(command *cobra.Command) error {
 	// initialize
-	if !ctx.Args().Present() {
+	if command.Flags().NArg() == 0 {
 		return errors.New("no reference specified")
 	}
 
-	reference := ctx.Args().First()
-	sigRepo, err := getSignatureRepository(ctx, reference)
+	reference := command.Flags().Arg(0)
+	sigRepo, err := getSignatureRepository(command, reference)
 	if err != nil {
 		return err
 	}
 
 	// core process
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, reference)
+	manifestDesc, err := getManifestDescriptorFromReference(command, reference)
 	if err != nil {
 		return err
 	}
 
-	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDesc.Digest)
+	sigManifests, err := sigRepo.ListSignatureManifests(command.Context(), manifestDesc.Digest)
 	if err != nil {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}

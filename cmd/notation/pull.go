@@ -10,67 +10,66 @@ import (
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 )
 
-var pullCommand = &cli.Command{
-	Name:      "pull",
-	Usage:     "Pull signatures from remote",
-	ArgsUsage: "<reference>",
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:  "strict",
-			Usage: "pull the signature without lookup the manifest",
+func pullCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pull [reference]",
+		Short: "Pull signatures from remote",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPull(cmd)
 		},
-		flagOutput,
-		flagUsername,
-		flagPassword,
-		flagPlainHTTP,
-	},
-	Action: runPull,
+	}
+	cmd.Flags().Bool("strict", false, "pull the signature without lookup the manifest")
+	setFlagOutput(cmd)
+	setFlagUserName(cmd)
+	setFlagPassword(cmd)
+	setFlagPlainHTTP(cmd)
+	return cmd
 }
 
-func runPull(ctx *cli.Context) error {
+func runPull(command *cobra.Command) error {
 	// initialize
-	if !ctx.Args().Present() {
+	if command.Flags().NArg() == 0 {
 		return errors.New("no reference specified")
 	}
 
-	reference := ctx.Args().First()
-	sigRepo, err := getSignatureRepository(ctx, reference)
+	reference := command.Flags().Arg(0)
+	sigRepo, err := getSignatureRepository(command, reference)
 	if err != nil {
 		return err
 	}
 
 	// core process
-	if ctx.Bool("strict") {
-		return pullSignatureStrict(ctx, sigRepo, reference)
+	if strict, _ := command.Flags().GetBool("strict"); strict {
+		return pullSignatureStrict(command, sigRepo, reference)
 	}
 
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, reference)
+	manifestDesc, err := getManifestDescriptorFromReference(command, reference)
 	if err != nil {
 		return err
 	}
 
-	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDesc.Digest)
+	sigManifests, err := sigRepo.ListSignatureManifests(command.Context(), manifestDesc.Digest)
 	if err != nil {
 		return fmt.Errorf("list signature manifests failure: %v", err)
 	}
 
-	path := ctx.String(flagOutput.Name)
+	path, _ := command.Flags().GetString(flagOutput.Name)
 	for _, sigManifest := range sigManifests {
 		sigDigest := sigManifest.Blob.Digest
 		if path != "" {
 			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
-			sig, err := sigRepo.Get(ctx.Context, sigDigest)
+			sig, err := sigRepo.Get(command.Context(), sigDigest)
 			if err != nil {
 				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 			}
 			if err := osutil.WriteFile(outputPath, sig); err != nil {
 				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
 			}
-		} else if err := cache.PullSignature(ctx.Context, sigRepo, manifestDesc.Digest, sigDigest); err != nil {
+		} else if err := cache.PullSignature(command.Context(), sigRepo, manifestDesc.Digest, sigDigest); err != nil {
 			return err
 		}
 
@@ -81,7 +80,7 @@ func runPull(ctx *cli.Context) error {
 	return nil
 }
 
-func pullSignatureStrict(ctx *cli.Context, sigRepo notationregistry.SignatureRepository, reference string) error {
+func pullSignatureStrict(command *cobra.Command, sigRepo notationregistry.SignatureRepository, reference string) error {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return err
@@ -91,11 +90,11 @@ func pullSignatureStrict(ctx *cli.Context, sigRepo notationregistry.SignatureRep
 		return fmt.Errorf("invalid signature digest: %v", err)
 	}
 
-	sig, err := sigRepo.Get(ctx.Context, sigDigest)
+	sig, err := sigRepo.Get(command.Context(), sigDigest)
 	if err != nil {
 		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 	}
-	outputPath := ctx.String(flagOutput.Name)
+	outputPath, _ := command.Flags().GetString(flagOutput.Name)
 	if outputPath == "" {
 		outputPath = sigDigest.Encoded() + config.SignatureExtension
 	}
@@ -108,19 +107,19 @@ func pullSignatureStrict(ctx *cli.Context, sigRepo notationregistry.SignatureRep
 	return nil
 }
 
-func pullSignatures(ctx *cli.Context, manifestDigest digest.Digest) error {
-	reference := ctx.Args().First()
-	sigRepo, err := getSignatureRepository(ctx, reference)
+func pullSignatures(command *cobra.Command, manifestDigest digest.Digest) error {
+	reference := command.Flags().Arg(0)
+	sigRepo, err := getSignatureRepository(command, reference)
 	if err != nil {
 		return err
 	}
 
-	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDigest)
+	sigManifests, err := sigRepo.ListSignatureManifests(command.Context(), manifestDigest)
 	if err != nil {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
 	for _, sigManifest := range sigManifests {
-		if err := cache.PullSignature(ctx.Context, sigRepo, manifestDigest, sigManifest.Blob.Digest); err != nil {
+		if err := cache.PullSignature(command.Context(), sigRepo, manifestDigest, sigManifest.Blob.Digest); err != nil {
 			return err
 		}
 	}

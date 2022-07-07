@@ -9,35 +9,35 @@ import (
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var signCommand = &cli.Command{
-	Name:      "sign",
-	Usage:     "Sign a image",
-	ArgsUsage: "<reference>",
-	Flags: []cli.Flag{
-		cmd.FlagKey,
-		cmd.FlagKeyFile,
-		cmd.FlagCertFile,
-		cmd.FlagTimestamp,
-		cmd.FlagExpiry,
-		cmd.FlagReference,
-		&cli.BoolFlag{
-			Name:  "origin",
-			Usage: "mark the current reference as a original reference",
+func signCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "sign [reference]",
+		Short: "Sign a image",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return signImage(cmd)
 		},
-	},
-	Action: signImage,
+	}
+	cmd.SetFlagKey(command)
+	cmd.SetFlagKeyFile(command)
+	cmd.SetFlagCertFile(command)
+	cmd.SetFlagTimestamp(command)
+	cmd.SetFlagExpiry(command)
+	cmd.SetFlagReference(command)
+
+	command.Flags().Bool("origin", false, "mark the current reference as a original reference")
+	return command
 }
 
-func signImage(ctx *cli.Context) error {
-	signer, err := cmd.GetSigner(ctx)
+func signImage(command *cobra.Command) error {
+	signer, err := cmd.GetSigner(command)
 	if err != nil {
 		return err
 	}
 
-	reference := ctx.Args().First()
+	reference := command.Flags().Arg(0)
 	fmt.Println("Generating Docker mainfest:", reference)
 	desc, err := docker.GenerateManifestDescriptor(reference)
 	if err != nil {
@@ -45,8 +45,9 @@ func signImage(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Signing", desc.Digest)
-	identity := ctx.String(cmd.FlagReference.Name)
-	if ctx.Bool("origin") {
+
+	identity, _ := command.Flags().GetString(cmd.FlagReference.Name)
+	if origin, _ := command.Flags().GetBool("origin"); origin {
 		identity = reference
 	}
 	if identity != "" {
@@ -54,8 +55,8 @@ func signImage(ctx *cli.Context) error {
 			"identity": identity,
 		}
 	}
-	sig, err := signer.Sign(ctx.Context, desc, notation.SignOptions{
-		Expiry: cmd.GetExpiry(ctx),
+	sig, err := signer.Sign(command.Context(), desc, notation.SignOptions{
+		Expiry: cmd.GetExpiry(command),
 	})
 	if err != nil {
 		return err

@@ -16,18 +16,22 @@ import (
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var pushCommand = &cli.Command{
-	Name:      "push",
-	Usage:     "Push an image to a registry with its signatures",
-	ArgsUsage: "<reference>",
-	Action:    pushImage,
+func pushCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "push [reference]",
+		Short: "Push an image to a registry with its signatures",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return pushImage(cmd)
+		},
+	}
+	return cmd
 }
 
-func pushImage(ctx *cli.Context) error {
-	desc, err := pushImageAndGetDescriptor(ctx)
+func pushImage(cmd *cobra.Command) error {
+	desc, err := pushImageAndGetDescriptor(cmd)
 	if err != nil {
 		return err
 	}
@@ -41,7 +45,7 @@ func pushImage(ctx *cli.Context) error {
 		return errors.New("no signatures found")
 	}
 
-	client, err := docker.GetSignatureRepository(ctx.Args().First())
+	client, err := docker.GetSignatureRepository(cmd.Flags().Arg(0))
 	if err != nil {
 		return err
 	}
@@ -53,7 +57,7 @@ func pushImage(ctx *cli.Context) error {
 		}
 
 		// pass in nonempty annotations if needed
-		sigDesc, _, err := client.PutSignatureManifest(ctx.Context, sig, desc, make(map[string]string))
+		sigDesc, _, err := client.PutSignatureManifest(cmd.Context(), sig, desc, make(map[string]string))
 		if err != nil {
 			return err
 		}
@@ -69,8 +73,8 @@ func pushImage(ctx *cli.Context) error {
 	return nil
 }
 
-func pushImageAndGetDescriptor(ctx *cli.Context) (notation.Descriptor, error) {
-	args := append([]string{"push"}, ctx.Args().Slice()...)
+func pushImageAndGetDescriptor(pushCmd *cobra.Command) (notation.Descriptor, error) {
+	args := append([]string{"push"}, pushCmd.Flags().Args()...)
 	cmd := exec.Command("docker", args...)
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr

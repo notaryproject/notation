@@ -11,20 +11,24 @@ import (
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 )
 
-var pullCommand = &cli.Command{
-	Name:      "pull",
-	Usage:     "Verify and pull an image from a registry",
-	ArgsUsage: "<reference>",
-	Action:    pullImage,
+func pullCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pull [reference]",
+		Short: "Verify and pull an image from a registry",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return pullImage(cmd)
+		},
+	}
+	return cmd
 }
 
-func pullImage(ctx *cli.Context) error {
-	originalRef := ctx.Args().First()
-	ref, err := verifyRemoteImage(ctx.Context, originalRef)
+func pullImage(cmd *cobra.Command) error {
+	originalRef := cmd.Flags().Arg(0)
+	ref, err := verifyRemoteImage(cmd.Context(), originalRef)
 	if err != nil {
 		return err
 	}

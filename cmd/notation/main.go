@@ -2,35 +2,28 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/notaryproject/notation/internal/version"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	app := &cli.App{
-		Name:    "notation",
-		Usage:   "Notation - Notary V2",
+	cmd := &cobra.Command{
+		Use:     "notation",
+		Short:   "Notation - Notary V2",
 		Version: version.GetVersion(),
-		Authors: []*cli.Author{
-			{
-				Name: "CNCF Notary Project",
-			},
-		},
-		Commands: []*cli.Command{
-			signCommand,
-			verifyCommand,
-			pushCommand,
-			pullCommand,
-			listCommand,
-			certCommand,
-			keyCommand,
-			cacheCommand,
-			pluginCommand,
-		},
 	}
-	if err := app.Run(os.Args); err != nil {
+	cmd.AddCommand(
+		signCommand(),
+		verifyCommand(),
+		pushCommand(),
+		pullCommand(),
+		listCommand(),
+		certCommand(),
+		keyCommand(),
+		cacheCommand(),
+		pluginCommand())
+	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }

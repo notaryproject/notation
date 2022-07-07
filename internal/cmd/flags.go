@@ -5,51 +5,73 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 var (
-	FlagKey = &cli.StringFlag{
-		Name:    "key",
-		Aliases: []string{"k"},
-		Usage:   "signing key name",
+	FlagKey = &pflag.Flag{
+		Name:      "key",
+		Shorthand: "k",
+		Usage:     "signing key name",
+	}
+	SetFlagKey = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(FlagKey.Name, FlagKey.Shorthand, "", FlagKey.Usage)
 	}
 
-	FlagKeyFile = &cli.StringFlag{
-		Name:      "key-file",
-		Usage:     "signing key file",
-		TakesFile: true,
+	FlagKeyFile = &pflag.Flag{
+		Name:  "key-file",
+		Usage: "signing key file",
+	}
+	SetFlagKeyFile = func(cmd *cobra.Command) {
+		cmd.Flags().String(FlagKeyFile.Name, "", FlagKeyFile.Usage)
 	}
 
-	FlagCertFile = &cli.StringFlag{
-		Name:      "cert-file",
-		Usage:     "signing certificate file",
-		TakesFile: true,
+	FlagCertFile = &pflag.Flag{
+		Name:  "cert-file",
+		Usage: "signing certificate file",
+	}
+	SetFlagCertFile = func(cmd *cobra.Command) {
+		cmd.Flags().String(FlagCertFile.Name, "", FlagCertFile.Usage)
 	}
 
-	FlagTimestamp = &cli.StringFlag{
-		Name:    "timestamp",
-		Aliases: []string{"t"},
-		Usage:   "timestamp the signed signature via the remote TSA",
+	FlagTimestamp = &pflag.Flag{
+		Name:      "timestamp",
+		Shorthand: "t",
+		Usage:     "timestamp the signed signature via the remote TSA",
+	}
+	SetFlagTimestamp = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(FlagTimestamp.Name, FlagTimestamp.Shorthand, "", FlagTimestamp.Usage)
 	}
 
-	FlagExpiry = &cli.DurationFlag{
-		Name:    "expiry",
-		Aliases: []string{"e"},
-		Usage:   "expire duration",
+	FlagExpiry = &pflag.Flag{
+		Name:      "expiry",
+		Shorthand: "e",
+		Usage:     "expire duration",
+	}
+	SetFlagExpiry = func(cmd *cobra.Command) {
+		cmd.Flags().DurationP(FlagExpiry.Name, FlagExpiry.Shorthand, time.Duration(0), FlagExpiry.Usage)
 	}
 
-	FlagReference = &cli.StringFlag{
-		Name:    "reference",
-		Aliases: []string{"r"},
-		Usage:   "original reference",
+	FlagReference = &pflag.Flag{
+		Name:      "reference",
+		Shorthand: "r",
+		Usage:     "original reference",
+	}
+	SetFlagReference = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(FlagReference.Name, FlagReference.Shorthand, "", FlagReference.Usage)
 	}
 
-	FlagPluginConfig = &cli.StringFlag{
-		Name:    "pluginConfig",
-		Aliases: []string{"pc"},
-		Usage:   "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
+	// TODO: cobra does not support char shorthand
+	FlagPluginConfig = &pflag.Flag{
+		Name:      "pluginConfig",
+		Shorthand: "c",
+		Usage:     "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
+	}
+	SetFlagPluginConfig = func(cmd *cobra.Command) {
+		cmd.Flags().StringP(FlagPluginConfig.Name, FlagPluginConfig.Shorthand, "", FlagPluginConfig.Usage)
 	}
 )
 
@@ -59,8 +81,8 @@ type KeyValueSlice interface {
 	String() string
 }
 
-func ParseFlagPluginConfig(ctx *cli.Context) (map[string]string, error) {
-	val := ctx.String(FlagPluginConfig.Name)
+func ParseFlagPluginConfig(cmd *cobra.Command) (map[string]string, error) {
+	val, _ := cmd.Flags().GetString(FlagPluginConfig.Name)
 	pluginConfig, err := ParseKeyValueListFlag(val)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", val, FlagPluginConfig.Name, err)

@@ -12,98 +12,107 @@ import (
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 var (
-	keyCommand = &cli.Command{
-		Name:  "key",
-		Usage: "Manage keys used for signing",
-		Subcommands: []*cli.Command{
-			keyAddCommand,
-			keyUpdateCommand,
-			keyListCommand,
-			keyRemoveCommand,
-		},
+	keyDefaultFlag = &pflag.Flag{
+		Name:      "default",
+		Shorthand: "d",
+		Usage:     "mark as default",
 	}
-
-	keyDefaultFlag = &cli.BoolFlag{
-		Name:    "default",
-		Aliases: []string{"d"},
-		Usage:   "mark as default",
-	}
-
-	keyAddCommand = &cli.Command{
-		Name:      "add",
-		Usage:     "Add key to signing key list",
-		ArgsUsage: "[<key_path> <cert_path>]",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "name",
-				Aliases:  []string{"n"},
-				Usage:    "key name",
-				Required: true,
-			},
-			&cli.StringFlag{
-				Name:    "plugin",
-				Aliases: []string{"p"},
-				Usage:   "signing plugin name",
-			},
-			&cli.StringFlag{
-				Name:  "id",
-				Usage: "key id (required if --plugin is set)",
-			},
-			cmd.FlagPluginConfig,
-			keyDefaultFlag,
-		},
-		Action: addKey,
-	}
-
-	keyUpdateCommand = &cli.Command{
-		Name:      "update",
-		Usage:     "Update key in signing key list",
-		Aliases:   []string{"set"},
-		ArgsUsage: "<name>",
-		Flags: []cli.Flag{
-			keyDefaultFlag,
-		},
-		Action: updateKey,
-	}
-
-	keyListCommand = &cli.Command{
-		Name:    "list",
-		Usage:   "List keys used for signing",
-		Aliases: []string{"ls"},
-		Action:  listKeys,
-	}
-
-	keyRemoveCommand = &cli.Command{
-		Name:      "remove",
-		Usage:     "Remove key from signing key list",
-		Aliases:   []string{"rm"},
-		ArgsUsage: "[name] ...",
-		Action:    removeKeys,
+	setKeyDefaultFlag = func(command *cobra.Command) {
+		command.Flags().BoolP(keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
 	}
 )
 
-func addKey(ctx *cli.Context) error {
+func keyCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "key",
+		Short: "Manage keys used for signing",
+	}
+	command.AddCommand(keyAddCommand(), keyUpdateCommand(), keyListCommand(), keyRemoveCommand())
+	return command
+}
+
+func keyAddCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "add [key_path cert_path]",
+		Short: "Add key to signing key list",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return addKey(cmd)
+		},
+	}
+	// TODO: test required
+	command.Flags().StringP("name", "n", "", "key name")
+	command.MarkFlagRequired("name")
+
+	command.Flags().StringP("plugin", "p", "", "signing plugin name")
+	command.Flags().String("id", "", "key id (required if --plugin is set)")
+
+	cmd.SetFlagPluginConfig(command)
+	setKeyDefaultFlag(command)
+
+	return command
+}
+
+func keyUpdateCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:     "update [name]",
+		Aliases: []string{"set"},
+		Short:   "Update key in signing key list",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return updateKey(cmd)
+		},
+	}
+
+	setKeyDefaultFlag(command)
+	return command
+}
+
+func keyListCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List keys used for signing",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listKeys(cmd)
+		},
+	}
+	return command
+}
+
+func keyRemoveCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:     "remove [name]...",
+		Aliases: []string{"rm"},
+		Short:   "Remove key from signing key list",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return removeKeys(cmd)
+		},
+	}
+	return command
+}
+
+func addKey(command *cobra.Command) error {
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
 		return err
 	}
 	var key config.KeySuite
-	pluginName := ctx.String("plugin")
-	name := ctx.String("name")
+	pluginName, _ := command.Flags().GetString("plugin")
+	name, _ := command.Flags().GetString("name")
 	if pluginName != "" {
-		key, err = addExternalKey(ctx, pluginName, name)
+		key, err = addExternalKey(command, pluginName, name)
 	} else {
-		key, err = newX509KeyPair(ctx, name)
+		key, err = newX509KeyPair(command, name)
 	}
 	if err != nil {
 		return err
 	}
 
-	isDefault := ctx.Bool(keyDefaultFlag.Name)
+	isDefault, _ := command.Flags().GetBool(keyDefaultFlag.Name)
 	err = addKeyCore(cfg, key, isDefault)
 	if err != nil {
 		return err
@@ -122,20 +131,20 @@ func addKey(ctx *cli.Context) error {
 	return nil
 }
 
-func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySuite, error) {
-	id := ctx.String("id")
+func addExternalKey(command *cobra.Command, pluginName, keyName string) (config.KeySuite, error) {
+	id, _ := command.Flags().GetString("id")
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
 	mgr := manager.New(config.PluginDirPath)
-	p, err := mgr.Get(ctx.Context, pluginName)
+	p, err := mgr.Get(command.Context(), pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
 	}
 	if p.Err != nil {
 		return config.KeySuite{}, fmt.Errorf("invalid plugin: %w", p.Err)
 	}
-	pluginConfig, err := cmd.ParseFlagPluginConfig(ctx)
+	pluginConfig, err := cmd.ParseFlagPluginConfig(command)
 	if err != nil {
 		return config.KeySuite{}, err
 	}
@@ -149,20 +158,19 @@ func addExternalKey(ctx *cli.Context, pluginName, keyName string) (config.KeySui
 	}, nil
 }
 
-func newX509KeyPair(ctx *cli.Context, keyName string) (config.KeySuite, error) {
-	args := ctx.Args()
-	switch args.Len() {
+func newX509KeyPair(command *cobra.Command, keyName string) (config.KeySuite, error) {
+	switch command.Flags().NArg() {
 	case 0:
 		return config.KeySuite{}, errors.New("missing key and certificate paths")
 	case 1:
 		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
 	}
 
-	keyPath, err := filepath.Abs(args.Get(0))
+	keyPath, err := filepath.Abs(command.Flags().Arg(0))
 	if err != nil {
 		return config.KeySuite{}, err
 	}
-	certPath, err := filepath.Abs(args.Get(1))
+	certPath, err := filepath.Abs(command.Flags().Arg(1))
 	if err != nil {
 		return config.KeySuite{}, err
 	}
@@ -188,9 +196,9 @@ func addKeyCore(cfg *config.File, key config.KeySuite, markDefault bool) error {
 	return nil
 }
 
-func updateKey(ctx *cli.Context) error {
+func updateKey(command *cobra.Command) error {
 	// initialize
-	name := ctx.Args().First()
+	name := command.Flags().Arg(0)
 	if name == "" {
 		return errors.New("missing key name")
 	}
@@ -203,7 +211,7 @@ func updateKey(ctx *cli.Context) error {
 	if !slices.Contains(cfg.SigningKeys.Keys, name) {
 		return errors.New(name + ": not found")
 	}
-	if !ctx.Bool(keyDefaultFlag.Name) {
+	if isDefault, _ := command.Flags().GetBool(keyDefaultFlag.Name); !isDefault {
 		return nil
 	}
 	if cfg.SigningKeys.Default != name {
@@ -218,7 +226,7 @@ func updateKey(ctx *cli.Context) error {
 	return nil
 }
 
-func listKeys(ctx *cli.Context) error {
+func listKeys(command *cobra.Command) error {
 	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
@@ -229,9 +237,9 @@ func listKeys(ctx *cli.Context) error {
 	return ioutil.PrintKeyMap(os.Stdout, cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
 }
 
-func removeKeys(ctx *cli.Context) error {
+func removeKeys(command *cobra.Command) error {
 	// initialize
-	names := ctx.Args().Slice()
+	names := command.Flags().Args()
 	if len(names) == 0 {
 		return errors.New("missing key names")
 	}
