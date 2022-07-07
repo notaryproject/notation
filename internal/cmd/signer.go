@@ -6,9 +6,8 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/plugin/manager"
-	"github.com/notaryproject/notation-go/signature/jws"
+	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/urfave/cli/v2"
 )
 
@@ -36,7 +35,7 @@ func GetSigner(ctx *cli.Context) (notation.Signer, error) {
 		if err != nil {
 			return nil, err
 		}
-		return jws.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig)
+		return signature.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig)
 	}
 	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
 }

@@ -5,8 +5,8 @@ import (
 	"os/exec"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/signature"
 )
 
 func runCommand(command string, args ...string) error {
