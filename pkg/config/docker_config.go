@@ -25,10 +25,9 @@ type DockerConfigFile struct {
 // Load reads the configuration files in the given directory, and sets up
 // the auth config information and returns values.
 func LoadDockerConfig() (*DockerConfigFile, error) {
-	configFile := &DockerConfigFile{}
 	configDir, err := getDockerConfigDir()
 	if err != nil {
-		return configFile, err
+		return nil, err
 	}
 
 	filename := filepath.Join(configDir, dockerConfigFileName)
@@ -36,13 +35,14 @@ func LoadDockerConfig() (*DockerConfigFile, error) {
 	// load latest config file
 	file, err := os.Open(filename)
 	if err != nil {
-		return configFile, fmt.Errorf("%s: %w", filename, err)
+		return nil, fmt.Errorf("%s: %w", filename, err)
 	}
-
 	defer file.Close()
+
+	configFile := &DockerConfigFile{}
 	err = configFile.loadFromReader(file)
 	if err != nil {
-		err = fmt.Errorf("%s: %w", filename, err)
+		return nil, fmt.Errorf("%s: %w", filename, err)
 	}
 	return configFile, err
 }

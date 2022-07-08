@@ -97,9 +97,5 @@ func getSavedCreds(serverAddress string) (auth.Credential, error) {
 		return auth.EmptyCredential, err
 	}
 
-	creds, err := nativeStore.Get(serverAddress)
-	if err != nil {
-		return auth.EmptyCredential, err
-	}
-	return creds, nil
+	return nativeStore.Get(serverAddress)
 }

@@ -9,6 +9,11 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
+const (
+	remoteCredentialsPrefix = "docker-credential-"
+	tokenUsername           = "<token>"
+)
+
 // nativeAuthStore implements a credentials store using native keychain to keep
 // credentials secure.
 type nativeAuthStore struct {

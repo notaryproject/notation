@@ -16,7 +16,6 @@ func LoadConfig() (*config.File, error) {
 		return nil, err
 	}
 	if config != nil && containsAuth(config) {
-		fmt.Println("Using notation config file")
 		return config, nil
 	}
 
@@ -25,7 +24,6 @@ func LoadConfig() (*config.File, error) {
 		return nil, err
 	}
 	if config != nil && containsAuth(config) {
-		fmt.Println("Using docker config file")
 		return config, nil
 	}
 	if !containsAuth(config) {
