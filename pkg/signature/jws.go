@@ -53,6 +53,7 @@ func NewVerifierFromFiles(certPaths []string) (*jws.Verifier, error) {
 			return nil, err
 		}
 		if !verifier.VerifyOptions.Roots.AppendCertsFromPEM(data) {
+			// Encode DER to PEM and try again.
 			certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: data})
 			if !verifier.VerifyOptions.Roots.AppendCertsFromPEM(certPEM) {
 				return nil, fmt.Errorf("failed to parse DER/PEM certificate: %q", path)
