@@ -3,6 +3,7 @@ package signature
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"os"
@@ -52,7 +53,10 @@ func NewVerifierFromFiles(certPaths []string) (*jws.Verifier, error) {
 			return nil, err
 		}
 		if !verifier.VerifyOptions.Roots.AppendCertsFromPEM(data) {
-			return nil, fmt.Errorf("failed to parse PEM certificate: %q", path)
+			certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: data})
+			if !verifier.VerifyOptions.Roots.AppendCertsFromPEM(certPEM) {
+				return nil, fmt.Errorf("failed to parse DER/PEM certificate: %q", path)
+			}
 		}
 	}
 	return verifier, nil
