@@ -27,10 +27,8 @@ func getRegistryClient(ctx *cli.Context, serverAddress string) (*remote.Registry
 	if err != nil {
 		return nil, err
 	}
-	ref := registry.Reference{
-		Registry: serverAddress,
-	}
-	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, ref)
+
+	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, reg.Reference)
 	if err != nil {
 		return nil, err
 	}
