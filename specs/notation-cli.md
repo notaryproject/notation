@@ -9,6 +9,7 @@ The CLI commands are what's currently available in [notation v0.7.1-alpha.1](htt
 - [certificate](#certificate): Manage certificates used for verification
 - [key](#key): Manage keys used for signing
 - [list](#list): List signatures from remote
+- [login](#login): Provide credentials for authenticated registry operations
 - [plugin](#plugin): Manage KMS plugins
 - [pull](#pull): Pull signatures from remote
 - [push](#push): Push signature to remote
@@ -36,6 +37,7 @@ COMMANDS:
    certificate, cert  Manage certificates used for verification
    key                Manage keys used for signing
    list, ls           List signatures from remote
+   login              Provide credentials for authenticated registry operations   
    plugin             Manage KMS plugins
    pull               Pull signatures from remote
    push               Push signature to remote
@@ -121,10 +123,37 @@ USAGE:
    notation list [command options] <reference>
 
 OPTIONS:
-   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                remote access via plain HTTP (default: false)
    --help, -h                  show help (default: false)
+```
+
+## login
+
+```console
+notation login --help
+NAME:
+   notation login - Provides credentials for authenticated registry operations
+
+USAGE:
+   notation login [options] [server]
+
+OPTIONS:
+   --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
+   --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
+   --password-stdin              Take the password from stdin
+   --help, -h                    Show help (default: false)
+
+POSITIONAL
+  <server>                       The registry URL for authentication
+
+GLOBAL ARGUMENTS
+   --plain-http                  Registry access via plain HTTP (default: false)
+
+EXAMPLES
+# Login with provided username and password
+notation login -u <user> -p <password> registry.example.com
+
+# Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables
+notation login registry.example.com
 ```
 
 ## plugin
@@ -156,12 +185,9 @@ USAGE:
    notation pull [command options] <reference>
 
 OPTIONS:
-   --strict                    pull the signature without lookup the manifest (default: false)
-   --output value, -o value    write signature to a specific path
-   --username value, -u value  username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value  password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                remote access via plain HTTP (default: false)
-   --help, -h                  show help (default: false)
+   --strict                    Pull the signature without lookup the manifest (default: false)
+   --output value, -o value    Write signature to a specific path
+   --help, -h                  Show help (default: false)
 ```
 
 ## push
@@ -176,9 +202,6 @@ USAGE:
 
 OPTIONS:
    --signature value, -s value, -f value  signature files  (accepts multiple inputs)
-   --username value, -u value             username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value             password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                           remote access via plain HTTP (default: false)
    --help, -h                             show help (default: false)
 ```
 
@@ -203,9 +226,6 @@ OPTIONS:
    --output value, -o value     write signature to a specific path
    --push                       push after successful signing (default: true)
    --push-reference value       different remote to store signature
-   --username value, -u value   username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value   password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                 remote access via plain HTTP (default: false)
    --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                   show help (default: false)
 ```
@@ -226,10 +246,6 @@ OPTIONS:
    --cert-file value                      certificate files for verification  (accepts multiple inputs)
    --pull                                 pull remote signatures before verification (default: true)
    --local, -l                            reference is a local file (default: false)
-   --username value, -u value             username for generic remote access [$NOTATION_USERNAME]
-   --password value, -p value             password for generic remote access [$NOTATION_PASSWORD]
-   --plain-http                           remote access via plain HTTP (default: false)
    --media-type value                     specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --help, -h                             show help (default: false)
 ```
-
