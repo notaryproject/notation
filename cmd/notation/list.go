@@ -38,14 +38,14 @@ func runList(ctx *cli.Context) error {
 		return err
 	}
 
-	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDesc.Digest)
+	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDesc.Digest)
 	if err != nil {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
 
 	// write out
-	for _, sigDigest := range sigDigests {
-		fmt.Println(sigDigest)
+	for _, sigManifest := range sigManifests {
+		fmt.Println(sigManifest.Blob.Digest)
 	}
 
 	return nil

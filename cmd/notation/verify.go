@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/notaryproject/notation/pkg/signature"
 	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli/v2"
 )

@@ -1,7 +1,7 @@
 package docker
 
 import (
-	notationregistry "github.com/notaryproject/notation-go/pkg/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"oras.land/oras-go/v2/registry"
 )
 

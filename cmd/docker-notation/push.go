@@ -52,16 +52,12 @@ func pushImage(ctx *cli.Context) error {
 			return err
 		}
 
-		sigDesc, err := client.Put(ctx.Context, sig)
+		// pass in nonempty annotations if needed
+		sigDesc, _, err := client.PutSignatureManifest(ctx.Context, sig, desc, make(map[string]string))
 		if err != nil {
 			return err
 		}
-
-		artifactDesc, err := client.Link(ctx.Context, desc, sigDesc)
-		if err != nil {
-			return err
-		}
-		fmt.Println("signature manifest digest:", artifactDesc.Digest, "size:", artifactDesc.Size)
+		fmt.Println("signature manifest digest:", sigDesc.Digest, "size:", sigDesc.Size)
 		return nil
 	}
 	for _, sigDigest := range sigDigests {

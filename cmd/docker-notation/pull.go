@@ -82,15 +82,17 @@ func downloadSignatures(ctx context.Context, ref string, manifestDigest digest.D
 	if err != nil {
 		return nil, err
 	}
-	sigDigests, err := client.Lookup(ctx, manifestDigest)
+	sigManifests, err := client.ListSignatureManifests(ctx, manifestDigest)
 	if err != nil {
 		return nil, err
 	}
+	sigDigests := make([]digest.Digest, 0)
 
-	for _, sigDigest := range sigDigests {
-		if err := cache.PullSignature(ctx, client, manifestDigest, sigDigest); err != nil {
+	for _, sigManifest := range sigManifests {
+		if err := cache.PullSignature(ctx, client, manifestDigest, sigManifest.Blob.Digest); err != nil {
 			return nil, err
 		}
+		sigDigests = append(sigDigests, sigManifest.Blob.Digest)
 	}
 
 	return sigDigests, nil

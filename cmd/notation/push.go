@@ -55,17 +55,14 @@ func runPush(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		sigDesc, err := sigRepo.Put(ctx.Context, sig)
+		// pass in nonempty annotations if needed
+		sigDesc, _, err := sigRepo.PutSignatureManifest(ctx.Context, sig, manifestDesc, make(map[string]string))
 		if err != nil {
-			return fmt.Errorf("push signature failure: %v", err)
-		}
-		desc, err := sigRepo.Link(ctx.Context, manifestDesc, sigDesc)
-		if err != nil {
-			return fmt.Errorf("link signature failure: %v", err)
+			return fmt.Errorf("put signature manifest failure: %v", err)
 		}
 
 		// write out
-		fmt.Println(desc.Digest)
+		fmt.Println(sigDesc.Digest)
 	}
 
 	return nil
@@ -83,14 +80,11 @@ func pushSignature(ctx *cli.Context, ref string, sig []byte) (notation.Descripto
 	}
 
 	// core process
-	sigDesc, err := sigRepo.Put(ctx.Context, sig)
+	// pass in nonempty annotations if needed
+	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx.Context, sig, manifestDesc, make(map[string]string))
 	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("push signature failure: %v", err)
-	}
-	desc, err := sigRepo.Link(ctx.Context, manifestDesc, sigDesc)
-	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("link signature failure: %v", err)
+		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
 	}
 
-	return desc, nil
+	return sigDesc, nil
 }

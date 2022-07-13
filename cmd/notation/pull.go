@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	notationregistry "github.com/notaryproject/notation-go/pkg/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
@@ -53,13 +53,14 @@ func runPull(ctx *cli.Context) error {
 		return err
 	}
 
-	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDesc.Digest)
+	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDesc.Digest)
 	if err != nil {
-		return fmt.Errorf("lookup signature failure: %v", err)
+		return fmt.Errorf("list signature manifests failure: %v", err)
 	}
 
 	path := ctx.String(flagOutput.Name)
-	for _, sigDigest := range sigDigests {
+	for _, sigManifest := range sigManifests {
+		sigDigest := sigManifest.Blob.Digest
 		if path != "" {
 			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
 			sig, err := sigRepo.Get(ctx.Context, sigDigest)
@@ -114,12 +115,12 @@ func pullSignatures(ctx *cli.Context, manifestDigest digest.Digest) error {
 		return err
 	}
 
-	sigDigests, err := sigRepo.Lookup(ctx.Context, manifestDigest)
+	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDigest)
 	if err != nil {
 		return fmt.Errorf("lookup signature failure: %v", err)
 	}
-	for _, sigDigest := range sigDigests {
-		if err := cache.PullSignature(ctx.Context, sigRepo, manifestDigest, sigDigest); err != nil {
+	for _, sigManifest := range sigManifests {
+		if err := cache.PullSignature(ctx.Context, sigRepo, manifestDigest, sigManifest.Blob.Digest); err != nil {
 			return err
 		}
 	}

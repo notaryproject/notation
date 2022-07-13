@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go/pkg/registry"
+	"github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
