@@ -49,5 +49,5 @@ func GetManifestDescriptor(ctx context.Context, ref registry.Reference) (notatio
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	return client.GetManifestDescriptor(ctx, ref.ReferenceOrDefault())
+	return client.Resolve(ctx, ref.ReferenceOrDefault())
 }
