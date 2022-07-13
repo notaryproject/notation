@@ -58,7 +58,7 @@ func runPush(ctx *cli.Context) error {
 		// pass in nonempty annotations if needed
 		sigDesc, _, err := sigRepo.PutSignatureManifest(ctx.Context, sig, manifestDesc, make(map[string]string))
 		if err != nil {
-			return fmt.Errorf("put signature failure: %v", err)
+			return fmt.Errorf("put signature manifest failure: %v", err)
 		}
 
 		// write out
@@ -83,7 +83,7 @@ func pushSignature(ctx *cli.Context, ref string, sig []byte) (notation.Descripto
 	// pass in nonempty annotations if needed
 	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx.Context, sig, manifestDesc, make(map[string]string))
 	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("put signature failure: %v", err)
+		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
 	}
 
 	return sigDesc, nil

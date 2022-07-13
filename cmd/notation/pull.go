@@ -55,7 +55,7 @@ func runPull(ctx *cli.Context) error {
 
 	sigManifests, err := sigRepo.ListSignatureManifests(ctx.Context, manifestDesc.Digest)
 	if err != nil {
-		return fmt.Errorf("list signature failure: %v", err)
+		return fmt.Errorf("list signature manifests failure: %v", err)
 	}
 
 	path := ctx.String(flagOutput.Name)
