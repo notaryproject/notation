@@ -38,7 +38,7 @@ func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (not
 		return notation.Descriptor{}, err
 	}
 	repo := getRepositoryClient(ctx, ref)
-	return repo.GetManifestDescriptor(ctx.Context, ref.ReferenceOrDefault())
+	return repo.Resolve(ctx.Context, ref.ReferenceOrDefault())
 }
 
 func getManifestDescriptorFromFile(path, mediaType string) (notation.Descriptor, error) {
