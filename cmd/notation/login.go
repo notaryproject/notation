@@ -3,6 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"strings"
 
 	"github.com/notaryproject/notation/pkg/auth"
 	"github.com/urfave/cli/v2"
@@ -10,14 +13,25 @@ import (
 )
 
 var loginCommand = &cli.Command{
-	Name:      "login",
-	Usage:     "Log in the specified registry hostname",
-	ArgsUsage: "<SERVER>",
+	Name:  "login",
+	Usage: "Provides credentials for authenticated registry operations",
+	UsageText: `notation login [options] [server]
+	
+Example - Login with provided username and password:
+	notation login -u <user> -p <password> registry.example.com
+
+Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
+	notation login registry.example.com`,
+	ArgsUsage: "[server]",
 	Flags: []cli.Flag{
 		flagUsername,
 		flagPassword,
-		flagPlainHTTP,
+		&cli.BoolFlag{
+			Name:  "password-stdin",
+			Usage: "Take the password from stdin",
+		},
 	},
+	Before: readPassword,
 	Action: runLogin,
 }
 
@@ -64,4 +78,25 @@ func newCredentialFromInput(username, password string) orasauth.Credential {
 		c.RefreshToken = password
 	}
 	return c
+}
+
+func readPassword(ctx *cli.Context) error {
+	if ctx.Bool("password-stdin") {
+		password, err := readLine()
+		if err != nil {
+			return err
+		}
+		ctx.Set(flagPassword.Name, password)
+	}
+	return nil
+}
+
+func readLine() (string, error) {
+	passwordBytes, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		return "", err
+	}
+	password := strings.TrimSuffix(string(passwordBytes), "\n")
+	password = strings.TrimSuffix(password, "\r")
+	return password, nil
 }

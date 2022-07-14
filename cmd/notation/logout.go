@@ -10,7 +10,7 @@ import (
 var logoutCommand = &cli.Command{
 	Name:      "logout",
 	Usage:     "Log out the specified registry hostname",
-	ArgsUsage: "<SERVER>",
+	ArgsUsage: "[server]",
 	Action:    runLogout,
 }
 

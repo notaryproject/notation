@@ -6,18 +6,18 @@ var (
 	flagUsername = &cli.StringFlag{
 		Name:    "username",
 		Aliases: []string{"u"},
-		Usage:   "username for generic remote access",
+		Usage:   "Username for registry operations",
 		EnvVars: []string{"NOTATION_USERNAME"},
 	}
 	flagPassword = &cli.StringFlag{
 		Name:    "password",
 		Aliases: []string{"p"},
-		Usage:   "password for generic remote access",
+		Usage:   "Password for registry operations",
 		EnvVars: []string{"NOTATION_PASSWORD"},
 	}
 	flagPlainHTTP = &cli.BoolFlag{
 		Name:  "plain-http",
-		Usage: "remote access via plain HTTP",
+		Usage: "Registry access via plain HTTP",
 	}
 	flagMediaType = &cli.StringFlag{
 		Name:  "media-type",

@@ -34,7 +34,6 @@ var (
 			flagLocal,
 			flagUsername,
 			flagPassword,
-			flagPlainHTTP,
 		},
 		ArgsUsage: "[reference|manifest_digest]",
 		Action:    listCachedSignatures,
@@ -62,7 +61,6 @@ var (
 			flagLocal,
 			flagUsername,
 			flagPassword,
-			flagPlainHTTP,
 		},
 		Action: pruneCachedSignatures,
 	}
@@ -76,7 +74,6 @@ var (
 			flagLocal,
 			flagUsername,
 			flagPassword,
-			flagPlainHTTP,
 		},
 		Action: removeCachedSignatures,
 	}

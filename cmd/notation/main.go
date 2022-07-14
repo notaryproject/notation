@@ -18,6 +18,9 @@ func main() {
 				Name: "CNCF Notary Project",
 			},
 		},
+		Flags: []cli.Flag{
+			flagPlainHTTP,
+		},
 		Commands: []*cli.Command{
 			signCommand,
 			verifyCommand,
