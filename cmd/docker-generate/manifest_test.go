@@ -12,21 +12,21 @@ func TestGenerateManifestCmd(t *testing.T) {
 		expectedErr       bool
 	}{
 		{
-			expectedOutput:    "abc",
-			expectedReference: "def",
-			args:              []string{"-o", "abc", "def"},
+			expectedOutput:    "output",
+			expectedReference: "reference",
+			args:              []string{"-o", "output", "reference"},
 			expectedErr:       false,
 		},
 		{
-			expectedOutput:    "abc",
+			expectedOutput:    "output",
 			expectedReference: "",
-			args:              []string{"-o", "abc"},
+			args:              []string{"-o", "output"},
 			expectedErr:       false,
 		},
 		{
 			expectedOutput:    "",
-			expectedReference: "def",
-			args:              []string{"def"},
+			expectedReference: "reference",
+			args:              []string{"reference"},
 			expectedErr:       false,
 		},
 		{
@@ -36,13 +36,13 @@ func TestGenerateManifestCmd(t *testing.T) {
 			expectedErr:       false,
 		},
 		{
-			expectedOutput:    "abc",
-			expectedReference: "def",
-			args:              []string{"def", "--output", "abc"},
+			expectedOutput:    "output",
+			expectedReference: "reference",
+			args:              []string{"reference", "--output", "output"},
 			expectedErr:       false,
 		},
 		{
-			args:        []string{"-o", "b", "-n", "x"},
+			args:        []string{"-o", "output", "-n", "reference"},
 			expectedErr: true,
 		},
 	}

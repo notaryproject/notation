@@ -9,7 +9,7 @@ import (
 )
 
 func metadataCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use: docker.PluginMetadataCommandName,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			writer := json.NewEncoder(os.Stdout)
@@ -17,7 +17,6 @@ func metadataCommand() *cobra.Command {
 		},
 		Hidden: true,
 	}
-	return cmd
 }
 
 var pluginMetadata = docker.PluginMetadata{
