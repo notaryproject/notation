@@ -6,26 +6,24 @@ import (
 	"os/exec"
 
 	"github.com/notaryproject/notation/pkg/docker"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var manifestCommand = &cli.Command{
-	Name:      "manifest",
-	Usage:     "generates the manifest of a docker image",
-	ArgsUsage: "[<reference>]",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "output",
-			Aliases: []string{"o"},
-			Usage:   "write to a file instead of stdout",
+func generateManifestCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "manifest [reference]",
+		Short: "generates the manifest of a docker image",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return generateManifest(cmd)
 		},
-	},
-	Action: generateManifest,
+	}
+	cmd.Flags().StringP("output", "o", "", "write to a file instead of stdout")
+	return cmd
 }
 
-func generateManifest(ctx *cli.Context) error {
+func generateManifest(cmd *cobra.Command) error {
 	var reader io.Reader
-	if reference := ctx.Args().First(); reference != "" {
+	if reference := cmd.Flags().Arg(0); reference != "" {
 		cmd := exec.Command("docker", "save", reference)
 		cmd.Stderr = os.Stderr
 		stdout, err := cmd.StdoutPipe()
@@ -41,7 +39,7 @@ func generateManifest(ctx *cli.Context) error {
 	}
 
 	var writer io.Writer
-	if output := ctx.String("output"); output != "" {
+	if output, _ := cmd.Flags().GetString("output"); output != "" {
 		file, err := os.Create(output)
 		if err != nil {
 			return err
