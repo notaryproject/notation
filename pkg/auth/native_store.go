@@ -14,37 +14,37 @@ const (
 	tokenUsername           = "<token>"
 )
 
+// var for unit testing.
+var loadConfig = LoadConfig
+
 // nativeAuthStore implements a credentials store using native keychain to keep
 // credentials secure.
 type nativeAuthStore struct {
 	programFunc client.ProgramFunc
 }
 
-// NewNativeAuthStore creates a new native store that uses a remote helper
+// GetCredentialsStore returns a new credentials store from the settings in the
+// configuration file
+func GetCredentialsStore(registryHostname string) (CredentialStore, error) {
+	configFile, err := loadConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config file, error: %v", err)
+	}
+	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
+		return newNativeAuthStore(helper), nil
+	}
+	return nil, fmt.Errorf("could not get the configured credentials store for registry: %s", registryHostname)
+}
+
+// newNativeAuthStore creates a new native store that uses a remote helper
 // program to manage credentials. Note: it's different from the nativeStore in
 // docker-cli which may fall back to plain text store
-func NewNativeAuthStore(helperSuffix string) CredentialStore {
+func newNativeAuthStore(helperSuffix string) CredentialStore {
 	name := remoteCredentialsPrefix + helperSuffix
 	return &nativeAuthStore{
 		programFunc: client.NewShellProgramFunc(name),
 	}
 }
-
-// GetCredentialsStore returns a new credentials store from the settings in the
-// configuration file
-func GetCredentialsStore(registryHostname string) (CredentialStore, error) {
-	configFile, err := LoadConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load config file, error: %v", err)
-	}
-	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
-		return newNativeStore(helper), nil
-	}
-	return nil, fmt.Errorf("could not get the configured credentials store for registry: %s", registryHostname)
-}
-
-// var for unit testing.
-var newNativeStore = NewNativeAuthStore
 
 // getConfiguredCredentialStore returns the credential helper configured for the
 // given registry, the default credsStore, or the empty string if neither are

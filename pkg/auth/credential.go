@@ -8,10 +8,16 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
+// var for unit tests
+var (
+	loadOrDefault    = config.LoadOrDefault
+	loadDockerConfig = config.LoadDockerConfig
+)
+
 // LoadConfig loads the configuration from the config file
 func LoadConfig() (*config.File, error) {
 	// load notation config first
-	config, err := config.LoadOrDefault()
+	config, err := loadOrDefault()
 	if err != nil {
 		return nil, err
 	}
@@ -19,23 +25,20 @@ func LoadConfig() (*config.File, error) {
 		return config, nil
 	}
 
-	config, err = loadDockerConfig()
+	config, err = loadDockerCredentials()
 	if err != nil {
 		return nil, err
 	}
-	if config != nil && containsAuth(config) {
+	if containsAuth(config) {
 		return config, nil
 	}
-	if !containsAuth(config) {
-		return nil, fmt.Errorf("credentials store config is not set up")
-	}
-	return config, nil
+	return nil, fmt.Errorf("credentials store config is not set up")
 }
 
-// loadDockerConfig loads the configuration from the config file under .docker
+// loadDockerCredentials loads the configuration from the config file under .docker
 // directory
-func loadDockerConfig() (*config.File, error) {
-	dockerConfig, err := config.LoadDockerConfig()
+func loadDockerCredentials() (*config.File, error) {
+	dockerConfig, err := loadDockerConfig()
 	if err != nil {
 		return nil, err
 	}
