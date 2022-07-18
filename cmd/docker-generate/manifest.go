@@ -26,7 +26,7 @@ func generateManifestCommandWithOpts() (*cobra.Command, *generateManifestOpts) {
 			}
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return generateManifest(cmd, opts)
+			return generateManifest(opts)
 		},
 	}
 	cmd.Flags().StringVarP(&opts.output, "output", "o", "", "write to a file instead of stdout")
@@ -38,7 +38,7 @@ func generateManifestCommand() *cobra.Command {
 	return command
 }
 
-func generateManifest(cmd *cobra.Command, opts generateManifestOpts) error {
+func generateManifest(opts generateManifestOpts) error {
 	var reader io.Reader
 	if opts.reference != "" {
 		cmd := exec.Command("docker", "save", opts.reference)
