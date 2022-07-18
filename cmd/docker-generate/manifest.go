@@ -19,6 +19,7 @@ func generateManifestCommandWithOpts() (*cobra.Command, *generateManifestOpts) {
 	cmd := &cobra.Command{
 		Use:   "manifest [reference]",
 		Short: "generates the manifest of a docker image",
+		Args:  cobra.MaximumNArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			if len(args) > 0 {
 				opts.reference = args[0]
