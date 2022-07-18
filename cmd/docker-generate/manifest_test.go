@@ -6,40 +6,49 @@ import (
 
 func TestGenerateManifestCmd(t *testing.T) {
 	tests := []struct {
-		expectedOutput    string
-		expectedReference string
-		args              []string
-		expectedErr       bool
+		generateManifestOpts
+		args        []string
+		expectedErr bool
 	}{
 		{
-			expectedOutput:    "output",
-			expectedReference: "reference",
-			args:              []string{"-o", "output", "reference"},
-			expectedErr:       false,
+			generateManifestOpts{
+				reference: "reference",
+				output:    "output",
+			},
+			[]string{"-o", "output", "reference"},
+			false,
 		},
 		{
-			expectedOutput:    "output",
-			expectedReference: "",
-			args:              []string{"-o", "output"},
-			expectedErr:       false,
+			generateManifestOpts{
+				reference: "",
+				output:    "output",
+			},
+			[]string{"-o", "output"},
+			false,
 		},
 		{
-			expectedOutput:    "",
-			expectedReference: "reference",
-			args:              []string{"reference"},
-			expectedErr:       false,
+			generateManifestOpts{
+				reference: "reference",
+				output:    "",
+			},
+			[]string{"reference"},
+			false,
 		},
 		{
-			expectedOutput:    "",
-			expectedReference: "",
-			args:              []string{},
-			expectedErr:       false,
+			generateManifestOpts{
+				reference: "",
+				output:    "",
+			},
+			[]string{},
+			false,
 		},
 		{
-			expectedOutput:    "output",
-			expectedReference: "reference",
-			args:              []string{"reference", "--output", "output"},
-			expectedErr:       false,
+			generateManifestOpts{
+				reference: "reference",
+				output:    "output",
+			},
+			[]string{"reference", "--output", "output"},
+			false,
 		},
 		{
 			args:        []string{"-o", "output", "-n", "reference"},
@@ -47,7 +56,7 @@ func TestGenerateManifestCmd(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		cmd := generateManifestCommand()
+		cmd, opts := generateManifestCommandWithOpts()
 		err := cmd.ParseFlags(test.args)
 		if err != nil && !test.expectedErr {
 			t.Fatalf("Test failed with error: %v", err)
@@ -58,11 +67,12 @@ func TestGenerateManifestCmd(t *testing.T) {
 		if err != nil {
 			continue
 		}
-		if output, _ := cmd.Flags().GetString("output"); output != test.expectedOutput {
-			t.Fatalf("Expect output: %v, got: %v", test.expectedOutput, output)
+		cmd.PreRun(cmd, cmd.Flags().Args())
+		if opts.output != test.output {
+			t.Fatalf("Expect output: %v, got: %v", test.output, opts.output)
 		}
-		if arg := cmd.Flags().Arg(0); arg != test.expectedReference {
-			t.Fatalf("Expect reference: %v, got: %v", test.expectedReference, arg)
+		if opts.reference != test.reference {
+			t.Fatalf("Expect reference: %v, got: %v", test.reference, opts.reference)
 		}
 	}
 

@@ -9,22 +9,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func generateManifestCommand() *cobra.Command {
+type generateManifestOpts struct {
+	output    string
+	reference string
+}
+
+func generateManifestCommandWithOpts() (*cobra.Command, *generateManifestOpts) {
+	var opts generateManifestOpts
 	cmd := &cobra.Command{
 		Use:   "manifest [reference]",
 		Short: "generates the manifest of a docker image",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				opts.reference = args[0]
+			}
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return generateManifest(cmd)
+			return generateManifest(cmd, opts)
 		},
 	}
-	cmd.Flags().StringP("output", "o", "", "write to a file instead of stdout")
-	return cmd
+	cmd.Flags().StringVarP(&opts.output, "output", "o", "", "write to a file instead of stdout")
+	return cmd, &opts
 }
 
-func generateManifest(cmd *cobra.Command) error {
+func generateManifestCommand() *cobra.Command {
+	command, _ := generateManifestCommandWithOpts()
+	return command
+}
+
+func generateManifest(cmd *cobra.Command, opts generateManifestOpts) error {
 	var reader io.Reader
-	if reference := cmd.Flags().Arg(0); reference != "" {
-		cmd := exec.Command("docker", "save", reference)
+	if opts.reference != "" {
+		cmd := exec.Command("docker", "save", opts.reference)
 		cmd.Stderr = os.Stderr
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
@@ -39,8 +55,8 @@ func generateManifest(cmd *cobra.Command) error {
 	}
 
 	var writer io.Writer
-	if output, _ := cmd.Flags().GetString("output"); output != "" {
-		file, err := os.Create(output)
+	if opts.output != "" {
+		file, err := os.Create(opts.output)
 		if err != nil {
 			return err
 		}
