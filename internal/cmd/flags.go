@@ -62,24 +62,24 @@ var (
 		Shorthand: "k",
 		Usage:     "signing key name",
 	}
-	SetPflagKey = func(cmd *cobra.Command) {
-		cmd.Flags().StringP(PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
+	SetPflagKey = func(cmd *cobra.Command, p *string) {
+		cmd.Flags().StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
 	}
 
 	PflagKeyFile = &pflag.Flag{
 		Name:  "key-file",
 		Usage: "signing key file",
 	}
-	SetPflagKeyFile = func(cmd *cobra.Command) {
-		cmd.Flags().String(PflagKeyFile.Name, "", PflagKeyFile.Usage)
+	SetPflagKeyFile = func(cmd *cobra.Command, p *string) {
+		cmd.Flags().StringVar(p, PflagKeyFile.Name, "", PflagKeyFile.Usage)
 	}
 
 	PflagCertFile = &pflag.Flag{
 		Name:  "cert-file",
 		Usage: "signing certificate file",
 	}
-	SetPflagCertFile = func(cmd *cobra.Command) {
-		cmd.Flags().String(PflagCertFile.Name, "", PflagCertFile.Usage)
+	SetPflagCertFile = func(cmd *cobra.Command, p *string) {
+		cmd.Flags().StringVar(p, PflagCertFile.Name, "", PflagCertFile.Usage)
 	}
 
 	PflagTimestamp = &pflag.Flag{
@@ -87,8 +87,8 @@ var (
 		Shorthand: "t",
 		Usage:     "timestamp the signed signature via the remote TSA",
 	}
-	SetPflagTimestamp = func(cmd *cobra.Command) {
-		cmd.Flags().StringP(PflagTimestamp.Name, PflagTimestamp.Shorthand, "", PflagTimestamp.Usage)
+	SetPflagTimestamp = func(cmd *cobra.Command, p *string) {
+		cmd.Flags().StringVarP(p, PflagTimestamp.Name, PflagTimestamp.Shorthand, "", PflagTimestamp.Usage)
 	}
 
 	PflagExpiry = &pflag.Flag{
@@ -96,8 +96,8 @@ var (
 		Shorthand: "e",
 		Usage:     "expire duration",
 	}
-	SetPflagExpiry = func(cmd *cobra.Command) {
-		cmd.Flags().DurationP(PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
+	SetPflagExpiry = func(cmd *cobra.Command, p *time.Duration) {
+		cmd.Flags().DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
 	}
 
 	PflagReference = &pflag.Flag{
@@ -105,18 +105,18 @@ var (
 		Shorthand: "r",
 		Usage:     "original reference",
 	}
-	SetPflagReference = func(cmd *cobra.Command) {
-		cmd.Flags().StringP(PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
+	SetPflagReference = func(cmd *cobra.Command, p *string) {
+		cmd.Flags().StringVarP(p, PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
 	}
 
-	// TODO: cobra does not support string shorthand
+	// TODO: cobra does not support letter shorthand
 	PflagPluginConfig = &pflag.Flag{
 		Name:      "pluginConfig",
 		Shorthand: "c",
 		Usage:     "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
 	}
-	SetPflagPluginConfig = func(cmd *cobra.Command) {
-		cmd.Flags().StringP(PflagPluginConfig.Name, PflagPluginConfig.Shorthand, "", PflagPluginConfig.Usage)
+	SetPflagPluginConfig = func(cmd *cobra.Command, p *string) {
+		cmd.Flags().StringVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, "", PflagPluginConfig.Usage)
 	}
 )
 
