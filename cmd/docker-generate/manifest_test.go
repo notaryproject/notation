@@ -56,7 +56,8 @@ func TestGenerateManifestCmd(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		cmd, opts := generateManifestCommandWithOpts()
+		opts := &generateManifestOpts{}
+		cmd := generateManifestCommand(opts)
 		err := cmd.ParseFlags(test.args)
 		if err != nil && !test.expectedErr {
 			t.Fatalf("Test failed with error: %v", err)
@@ -68,11 +69,8 @@ func TestGenerateManifestCmd(t *testing.T) {
 			continue
 		}
 		cmd.PreRun(cmd, cmd.Flags().Args())
-		if opts.output != test.output {
-			t.Fatalf("Expect output: %v, got: %v", test.output, opts.output)
-		}
-		if opts.reference != test.reference {
-			t.Fatalf("Expect reference: %v, got: %v", test.reference, opts.reference)
+		if *opts != test.generateManifestOpts {
+			t.Fatalf("Expect generate manifest opts: %v, got: %v", test.generateManifestOpts, *opts)
 		}
 	}
 

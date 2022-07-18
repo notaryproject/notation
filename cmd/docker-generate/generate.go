@@ -8,6 +8,6 @@ func generateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "generate",
 	}
-	cmd.AddCommand(generateManifestCommand())
+	cmd.AddCommand(generateManifestCommand(nil))
 	return cmd
 }

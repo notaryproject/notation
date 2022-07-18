@@ -14,8 +14,10 @@ type generateManifestOpts struct {
 	reference string
 }
 
-func generateManifestCommandWithOpts() (*cobra.Command, *generateManifestOpts) {
-	var opts generateManifestOpts
+func generateManifestCommand(opts *generateManifestOpts) *cobra.Command {
+	if opts == nil {
+		opts = &generateManifestOpts{}
+	}
 	cmd := &cobra.Command{
 		Use:   "manifest [reference]",
 		Short: "generates the manifest of a docker image",
@@ -26,19 +28,14 @@ func generateManifestCommandWithOpts() (*cobra.Command, *generateManifestOpts) {
 			}
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return generateManifest(opts)
+			return generateManifest(cmd, opts)
 		},
 	}
 	cmd.Flags().StringVarP(&opts.output, "output", "o", "", "write to a file instead of stdout")
-	return cmd, &opts
+	return cmd
 }
 
-func generateManifestCommand() *cobra.Command {
-	command, _ := generateManifestCommandWithOpts()
-	return command
-}
-
-func generateManifest(opts generateManifestOpts) error {
+func generateManifest(cmd *cobra.Command, opts *generateManifestOpts) error {
 	var reader io.Reader
 	if opts.reference != "" {
 		cmd := exec.Command("docker", "save", opts.reference)
