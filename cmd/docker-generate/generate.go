@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var generateCommand = &cli.Command{
-	Name: "generate",
-	Subcommands: []*cli.Command{
-		manifestCommand,
-	},
+func generateCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "generate",
+	}
+	cmd.AddCommand(generateManifestCommand(nil))
+	return cmd
 }
