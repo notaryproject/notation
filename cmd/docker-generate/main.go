@@ -2,20 +2,16 @@ package main
 
 import (
 	"log"
-	"os"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	app := &cli.App{
-		Name: "docker",
-		Commands: []*cli.Command{
-			generateCommand,
-			metadataCommand,
-		},
+	cmd := &cobra.Command{
+		Use: "docker",
 	}
-	if err := app.Run(os.Args); err != nil {
+	cmd.AddCommand(generateCommand(), metadataCommand())
+	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }
