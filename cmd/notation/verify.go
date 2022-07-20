@@ -40,7 +40,6 @@ var verifyCommand = &cli.Command{
 		flagLocal,
 		flagUsername,
 		flagPassword,
-		flagPlainHTTP,
 		flagMediaType,
 	},
 	Action: runVerify,

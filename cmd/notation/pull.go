@@ -26,7 +26,6 @@ var pullCommand = &cli.Command{
 		flagOutput,
 		flagUsername,
 		flagPassword,
-		flagPlainHTTP,
 	},
 	Action: runPull,
 }

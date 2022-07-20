@@ -19,7 +19,6 @@ var pushCommand = &cli.Command{
 		flagSignature,
 		flagUsername,
 		flagPassword,
-		flagPlainHTTP,
 	},
 	Action: runPush,
 }

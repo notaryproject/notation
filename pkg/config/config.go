@@ -48,6 +48,8 @@ type File struct {
 	VerificationCertificates VerificationCertificates `json:"verificationCerts"`
 	SigningKeys              SigningKeys              `json:"signingKeys,omitempty"`
 	InsecureRegistries       []string                 `json:"insecureRegistries"`
+	CredentialsStore         string                   `json:"credsStore,omitempty"`
+	CredentialHelpers        map[string]string        `json:"credHelpers,omitempty"`
 }
 
 // VerificationCertificates is a collection of public certs used for verification.

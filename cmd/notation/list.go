@@ -15,7 +15,6 @@ var listCommand = &cli.Command{
 	Flags: []cli.Flag{
 		flagUsername,
 		flagPassword,
-		flagPlainHTTP,
 	},
 	Action: runList,
 }
