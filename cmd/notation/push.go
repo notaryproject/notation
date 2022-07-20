@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -8,32 +9,46 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var pushCommand = &cli.Command{
-	Name:      "push",
-	Usage:     "Push signature to remote",
-	ArgsUsage: "<reference>",
-	Flags: []cli.Flag{
-		flagSignature,
-		flagUsername,
-		flagPassword,
-	},
-	Action: runPush,
+type pushOpts struct {
+	SecureFlagOpts
+	reference  string
+	signatures []string
 }
 
-func runPush(ctx *cli.Context) error {
+func pushCommand(opts *pushOpts) *cobra.Command {
+	if opts == nil {
+		opts = &pushOpts{}
+	}
+	cmd := &cobra.Command{
+		Use:   "push [reference]",
+		Short: "Push signature to remote",
+		Args:  cobra.ExactArgs(1),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			opts.reference = args[0]
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPush(cmd, opts)
+		},
+	}
+	setFlagSignature(cmd.Flags(), &opts.signatures)
+	opts.ApplyFlag(cmd.Flags())
+	return cmd
+}
+
+func runPush(command *cobra.Command, opts *pushOpts) error {
 	// initialize
-	if !ctx.Args().Present() {
+	if opts.reference == "" {
 		return errors.New("no reference specified")
 	}
-	ref := ctx.Args().First()
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
+	ref := opts.reference
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, ref)
 	if err != nil {
 		return err
 	}
-	sigPaths := ctx.StringSlice(flagSignature.Name)
+	sigPaths := opts.signatures
 	if len(sigPaths) == 0 {
 		sigDigests, err := cache.SignatureDigests(manifestDesc.Digest)
 		if err != nil {
@@ -45,7 +60,7 @@ func runPush(ctx *cli.Context) error {
 	}
 
 	// core process
-	sigRepo, err := getSignatureRepository(ctx, ref)
+	sigRepo, err := getSignatureRepository(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return err
 	}
@@ -55,7 +70,7 @@ func runPush(ctx *cli.Context) error {
 			return err
 		}
 		// pass in nonempty annotations if needed
-		sigDesc, _, err := sigRepo.PutSignatureManifest(ctx.Context, sig, manifestDesc, make(map[string]string))
+		sigDesc, _, err := sigRepo.PutSignatureManifest(command.Context(), sig, manifestDesc, make(map[string]string))
 		if err != nil {
 			return fmt.Errorf("put signature manifest failure: %v", err)
 		}
@@ -67,20 +82,20 @@ func runPush(ctx *cli.Context) error {
 	return nil
 }
 
-func pushSignature(ctx *cli.Context, ref string, sig []byte) (notation.Descriptor, error) {
+func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []byte) (notation.Descriptor, error) {
 	// initialize
-	sigRepo, err := getSignatureRepository(ctx, ref)
+	sigRepo, err := getSignatureRepository(opts, ref)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, ref)
+	manifestDesc, err := getManifestDescriptorFromReference(ctx, opts, ref)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
 
 	// core process
 	// pass in nonempty annotations if needed
-	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx.Context, sig, manifestDesc, make(map[string]string))
+	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, manifestDesc, make(map[string]string))
 	if err != nil {
 		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
 	}

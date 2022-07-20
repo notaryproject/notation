@@ -32,7 +32,15 @@ var signCommand = &cli.Command{
 }
 
 func signImage(ctx *cli.Context) error {
-	signer, err := cmd.GetSigner(ctx)
+	// TODO: make this change only to make sure the code can be compiled
+	// According to the https://github.com/notaryproject/notation/discussions/251,
+	//  we can update/deprecate it later
+	signerOpts := &cmd.SignerFlagOpts{
+		Key:      ctx.String(cmd.FlagKey.Name),
+		KeyFile:  ctx.String(cmd.FlagKeyFile.Name),
+		CertFile: ctx.String(cmd.FlagCertFile.Name),
+	}
+	signer, err := cmd.GetSigner(signerOpts)
 	if err != nil {
 		return err
 	}
@@ -55,7 +63,7 @@ func signImage(ctx *cli.Context) error {
 		}
 	}
 	sig, err := signer.Sign(ctx.Context, desc, notation.SignOptions{
-		Expiry: cmd.GetExpiry(ctx),
+		Expiry: cmd.GetExpiry(ctx.Duration(cmd.FlagExpiry.Name)),
 	})
 	if err != nil {
 		return err

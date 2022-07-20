@@ -8,45 +8,45 @@ import (
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(ctx *cli.Context, reference string) (notationregistry.SignatureRepository, error) {
+func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationregistry.SignatureRepository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
-	return getRepositoryClient(ctx, ref)
+	return getRepositoryClient(opts, ref)
 }
 
-func getRegistryClient(ctx *cli.Context, serverAddress string) (*remote.Registry, error) {
+func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, reg.Reference)
+	reg.Client, reg.PlainHTTP, err = getAuthClient(opts, reg.Reference)
 	if err != nil {
 		return nil, err
 	}
 	return reg, nil
 }
 
-func getRepositoryClient(ctx *cli.Context, ref registry.Reference) (*notationregistry.RepositoryClient, error) {
-	authClient, plainHTTP, err := getAuthClient(ctx, ref)
+func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (*notationregistry.RepositoryClient, error) {
+	authClient, plainHTTP, err := getAuthClient(opts, ref)
 	if err != nil {
 		return nil, err
 	}
 	return notationregistry.NewRepositoryClient(authClient, ref, plainHTTP), nil
 }
 
-func getAuthClient(ctx *cli.Context, ref registry.Reference) (*auth.Client, bool, error) {
+func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
 	var plainHTTP bool
-	if ctx.IsSet(flagPlainHTTP.Name) {
-		plainHTTP = ctx.Bool(flagPlainHTTP.Name)
+
+	if opts.PlainHTTP {
+		plainHTTP = opts.PlainHTTP
 	} else {
 		plainHTTP = config.IsRegistryInsecure(ref.Registry)
 		if !plainHTTP {
@@ -55,10 +55,9 @@ func getAuthClient(ctx *cli.Context, ref registry.Reference) (*auth.Client, bool
 			}
 		}
 	}
-
 	cred := auth.Credential{
-		Username: ctx.String(flagUsername.Name),
-		Password: ctx.String(flagPassword.Name),
+		Username: opts.Username,
+		Password: opts.Password,
 	}
 	if cred.Username == "" {
 		cred = auth.Credential{

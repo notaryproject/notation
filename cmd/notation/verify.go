@@ -13,53 +13,57 @@ import (
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var verifyCommand = &cli.Command{
-	Name:      "verify",
-	Usage:     "Verifies OCI Artifacts",
-	ArgsUsage: "<reference>",
-	Flags: []cli.Flag{
-		flagSignature,
-		&cli.StringSliceFlag{
-			Name:    "cert",
-			Aliases: []string{"c"},
-			Usage:   "certificate names for verification",
-		},
-		&cli.StringSliceFlag{
-			Name:      cmd.FlagCertFile.Name,
-			Usage:     "certificate files for verification",
-			TakesFile: true,
-		},
-		&cli.BoolFlag{
-			Name:  "pull",
-			Usage: "pull remote signatures before verification",
-			Value: true,
-		},
-		flagLocal,
-		flagUsername,
-		flagPassword,
-		flagMediaType,
-	},
-	Action: runVerify,
+type verifyOpts struct {
+	RemoteFlagOpts
+	signatures []string
+	certs      []string
+	certFiles  []string
+	pull       bool
+	reference  string
 }
 
-func runVerify(ctx *cli.Context) error {
+func verifyCommand(opts *verifyOpts) *cobra.Command {
+	if opts == nil {
+		opts = &verifyOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "verify [reference]",
+		Short: "Verifies OCI Artifacts",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				opts.reference = args[0]
+			}
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runVerify(cmd, opts)
+		},
+	}
+	setFlagSignature(command.Flags(), &opts.signatures)
+	command.Flags().StringSliceVarP(&opts.certs, "cert", "c", []string{}, "certificate names for verification")
+	command.Flags().StringSliceVar(&opts.certFiles, cmd.PflagCertFile.Name, []string{}, "certificate files for verification")
+	command.Flags().BoolVar(&opts.pull, "pull", true, "pull remote signatures before verification")
+	opts.ApplyFlag(command.Flags())
+	return command
+}
+
+func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// initialize
-	verifier, err := getVerifier(ctx)
+	verifier, err := getVerifier(opts)
 	if err != nil {
 		return err
 	}
-	manifestDesc, err := getManifestDescriptorFromContext(ctx)
+	manifestDesc, err := getManifestDescriptorFromContext(command.Context(), &opts.RemoteFlagOpts, opts.reference)
 	if err != nil {
 		return err
 	}
 
-	sigPaths := ctx.StringSlice(flagSignature.Name)
+	sigPaths := opts.signatures
 	if len(sigPaths) == 0 {
-		if !ctx.Bool(flagLocal.Name) && ctx.Bool("pull") {
-			if err := pullSignatures(ctx, digest.Digest(manifestDesc.Digest)); err != nil {
+		if !opts.Local && opts.pull {
+			if err := pullSignatures(command, opts.reference, &opts.SecureFlagOpts, digest.Digest(manifestDesc.Digest)); err != nil {
 				return err
 			}
 		}
@@ -74,7 +78,7 @@ func runVerify(ctx *cli.Context) error {
 	}
 
 	// core process
-	if err := verifySignatures(ctx.Context, verifier, manifestDesc, sigPaths); err != nil {
+	if err := verifySignatures(command.Context(), verifier, manifestDesc, sigPaths); err != nil {
 		return err
 	}
 
@@ -110,9 +114,8 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 	return lastErr
 }
 
-func getVerifier(ctx *cli.Context) (notation.Verifier, error) {
-	certPaths := ctx.StringSlice(cmd.FlagCertFile.Name)
-	certPaths, err := appendCertPathFromName(certPaths, ctx.StringSlice("cert"))
+func getVerifier(opts *verifyOpts) (notation.Verifier, error) {
+	certPaths, err := appendCertPathFromName(opts.certFiles, opts.certs)
 	if err != nil {
 		return nil, err
 	}

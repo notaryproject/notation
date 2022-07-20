@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -8,41 +9,55 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation/pkg/auth"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	orasauth "oras.land/oras-go/v2/registry/remote/auth"
 )
 
-var loginCommand = &cli.Command{
-	Name:  "login",
-	Usage: "Provides credentials for authenticated registry operations",
-	UsageText: `notation login [options] [server]
-	
-Example - Login with provided username and password:
-	notation login -u <user> -p <password> registry.example.com
-
-Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
-	notation login registry.example.com`,
-	ArgsUsage: "[server]",
-	Flags: []cli.Flag{
-		flagUsername,
-		flagPassword,
-		&cli.BoolFlag{
-			Name:  "password-stdin",
-			Usage: "Take the password from stdin",
-		},
-	},
-	Before: readPassword,
-	Action: runLogin,
+type loginOpts struct {
+	SecureFlagOpts
+	passwordStdin bool
+	server        string
 }
 
-func runLogin(ctx *cli.Context) error {
+func loginCommand(opts *loginOpts) *cobra.Command {
+	if opts == nil {
+		opts = &loginOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "login [options] [server]",
+		Short: "Provides credentials for authenticated registry operations",
+		Long: `notation login [options] [server]
+	
+		Example - Login with provided username and password:
+			notation login -u <user> -p <password> registry.example.com
+		
+		Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
+			notation login registry.example.com`,
+		Args: cobra.ExactArgs(1),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if err := readPassword(opts); err != nil {
+				return err
+			}
+			opts.server = args[0]
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runLogin(cmd, opts)
+		},
+	}
+	command.Flags().BoolVar(&opts.passwordStdin, "passowrd-stdin", false, "Take the password from stdin")
+	opts.ApplyFlag(command.Flags())
+	return command
+}
+
+func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 	// initialize
-	if !ctx.Args().Present() {
+	if opts.server == "" {
 		return errors.New("no hostname specified")
 	}
-	serverAddress := ctx.Args().First()
+	serverAddress := opts.server
 
-	if err := validateAuthConfig(ctx, serverAddress); err != nil {
+	if err := validateAuthConfig(cmd.Context(), opts, serverAddress); err != nil {
 		return err
 	}
 
@@ -52,8 +67,8 @@ func runLogin(ctx *cli.Context) error {
 	}
 	// init creds
 	creds := newCredentialFromInput(
-		ctx.String(flagUsername.Name),
-		ctx.String(flagPassword.Name),
+		opts.Username,
+		opts.Password,
 	)
 	if err = nativeStore.Store(serverAddress, creds); err != nil {
 		return fmt.Errorf("failed to store credentials: %v", err)
@@ -61,12 +76,12 @@ func runLogin(ctx *cli.Context) error {
 	return nil
 }
 
-func validateAuthConfig(ctx *cli.Context, serverAddress string) error {
-	registry, err := getRegistryClient(ctx, serverAddress)
+func validateAuthConfig(ctx context.Context, opts *loginOpts, serverAddress string) error {
+	registry, err := getRegistryClient(&opts.SecureFlagOpts, serverAddress)
 	if err != nil {
 		return err
 	}
-	return registry.Ping(ctx.Context)
+	return registry.Ping(ctx)
 }
 
 func newCredentialFromInput(username, password string) orasauth.Credential {
@@ -80,13 +95,13 @@ func newCredentialFromInput(username, password string) orasauth.Credential {
 	return c
 }
 
-func readPassword(ctx *cli.Context) error {
-	if ctx.Bool("password-stdin") {
+func readPassword(opts *loginOpts) error {
+	if opts.passwordStdin {
 		password, err := readLine()
 		if err != nil {
 			return err
 		}
-		ctx.Set(flagPassword.Name, password)
+		opts.Password = password
 	}
 	return nil
 }

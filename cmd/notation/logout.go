@@ -4,22 +4,36 @@ import (
 	"errors"
 
 	"github.com/notaryproject/notation/pkg/auth"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
-var logoutCommand = &cli.Command{
-	Name:      "logout",
-	Usage:     "Log out the specified registry hostname",
-	ArgsUsage: "[server]",
-	Action:    runLogout,
+type logoutOpts struct {
+	server string
 }
 
-func runLogout(ctx *cli.Context) error {
+func logoutCommand(opts *logoutOpts) *cobra.Command {
+	if opts == nil {
+		opts = &logoutOpts{}
+	}
+	return &cobra.Command{
+		Use:   "logout [server]",
+		Short: "Log out the specified registry hostname",
+		Args:  cobra.ExactArgs(1),
+		PreRun: func(cmd *cobra.Command, args []string) {
+			opts.server = args[0]
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runLogout(cmd, opts)
+		},
+	}
+}
+
+func runLogout(cmd *cobra.Command, opts *logoutOpts) error {
 	// initialize
-	if !ctx.Args().Present() {
+	if opts.server == "" {
 		return errors.New("no hostname specified")
 	}
-	serverAddress := ctx.Args().First()
+	serverAddress := opts.server
 	nativeStore, err := auth.GetCredentialsStore(serverAddress)
 	if err != nil {
 		return err

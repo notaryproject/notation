@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"io"
 	"math"
@@ -8,40 +9,38 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
 	"oras.land/oras-go/v2/registry"
 )
 
-func getManifestDescriptorFromContext(ctx *cli.Context) (notation.Descriptor, error) {
-	ref := ctx.Args().First()
+func getManifestDescriptorFromContext(ctx context.Context, opts *RemoteFlagOpts, ref string) (notation.Descriptor, error) {
 	if ref == "" {
 		return notation.Descriptor{}, errors.New("missing reference")
 	}
-	return getManifestDescriptorFromContextWithReference(ctx, ref)
+	return getManifestDescriptorFromContextWithReference(ctx, opts, ref)
 }
 
-func getManifestDescriptorFromContextWithReference(ctx *cli.Context, ref string) (notation.Descriptor, error) {
-	if ctx.Bool(flagLocal.Name) {
-		mediaType := ctx.String(flagMediaType.Name)
+func getManifestDescriptorFromContextWithReference(ctx context.Context, opts *RemoteFlagOpts, ref string) (notation.Descriptor, error) {
+	if opts.Local {
+		mediaType := opts.MediaType
 		if ref == "-" {
 			return getManifestDescriptorFromReader(os.Stdin, mediaType)
 		}
 		return getManifestDescriptorFromFile(ref, mediaType)
 	}
 
-	return getManifestDescriptorFromReference(ctx, ref)
+	return getManifestDescriptorFromReference(ctx, &opts.SecureFlagOpts, ref)
 }
 
-func getManifestDescriptorFromReference(ctx *cli.Context, reference string) (notation.Descriptor, error) {
+func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string) (notation.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	repo, err := getRepositoryClient(ctx, ref)
+	repo, err := getRepositoryClient(opts, ref)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	return repo.Resolve(ctx.Context, ref.ReferenceOrDefault())
+	return repo.Resolve(ctx, ref.ReferenceOrDefault())
 }
 
 func getManifestDescriptorFromFile(path, mediaType string) (notation.Descriptor, error) {
