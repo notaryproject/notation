@@ -18,6 +18,9 @@ func main() {
 				Name: "CNCF Notary Project",
 			},
 		},
+		Flags: []cli.Flag{
+			flagPlainHTTP,
+		},
 		Commands: []*cli.Command{
 			signCommand,
 			verifyCommand,
@@ -28,6 +31,8 @@ func main() {
 			keyCommand,
 			cacheCommand,
 			pluginCommand,
+			loginCommand,
+			logoutCommand,
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

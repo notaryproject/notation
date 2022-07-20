@@ -36,7 +36,6 @@ var signCommand = &cli.Command{
 		},
 		flagUsername,
 		flagPassword,
-		flagPlainHTTP,
 		flagMediaType,
 		cmd.FlagPluginConfig,
 	},
