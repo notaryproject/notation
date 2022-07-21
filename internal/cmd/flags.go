@@ -108,7 +108,6 @@ var (
 		fs.StringVarP(p, PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
 	}
 
-	// TODO: cobra does not support letter shorthand
 	PflagPluginConfig = &pflag.Flag{
 		Name:      "pluginConfig",
 		Shorthand: "c",

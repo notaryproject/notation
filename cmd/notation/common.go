@@ -87,7 +87,6 @@ type SecureFlagOpts struct {
 func (opts *SecureFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
 	setflagUsername(fs, &opts.Username)
 	setFlagPassword(fs, &opts.Password)
-
 	setFlagPlainHTTP(fs, &opts.PlainHTTP)
 	opts.Username = os.Getenv(defaultUsernameEnv)
 	opts.Password = os.Getenv(defaultPasswordEnv)

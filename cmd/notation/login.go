@@ -28,11 +28,11 @@ func loginCommand(opts *loginOpts) *cobra.Command {
 		Short: "Provides credentials for authenticated registry operations",
 		Long: `notation login [options] [server]
 	
-		Example - Login with provided username and password:
-			notation login -u <user> -p <password> registry.example.com
+Example - Login with provided username and password:
+  notation login -u <user> -p <password> registry.example.com
 		
-		Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
-			notation login registry.example.com`,
+Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
+  notation login registry.example.com`,
 		Args: cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := readPassword(opts); err != nil {
