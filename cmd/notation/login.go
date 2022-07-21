@@ -45,7 +45,7 @@ func loginCommand(opts *loginOpts) *cobra.Command {
 			return runLogin(cmd, opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.passwordStdin, "passowrd-stdin", false, "Take the password from stdin")
+	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
 	opts.ApplyFlag(command.Flags())
 	return command
 }

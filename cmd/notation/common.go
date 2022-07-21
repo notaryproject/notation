@@ -93,22 +93,22 @@ func (opts *SecureFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
 	opts.Password = os.Getenv(defaultPasswordEnv)
 }
 
-type CommanFlagOpts struct {
+type CommonFlagOpts struct {
 	Local     bool
 	MediaType string
 }
 
-func (opts *CommanFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
+func (opts *CommonFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
 	setFlagMediaType(fs, &opts.MediaType)
 	setFlagLocal(fs, &opts.Local)
 }
 
 type RemoteFlagOpts struct {
 	SecureFlagOpts
-	CommanFlagOpts
+	CommonFlagOpts
 }
 
 func (opts *RemoteFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
 	opts.SecureFlagOpts.ApplyFlag(fs)
-	opts.CommanFlagOpts.ApplyFlag(fs)
+	opts.CommonFlagOpts.ApplyFlag(fs)
 }
