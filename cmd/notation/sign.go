@@ -42,8 +42,8 @@ func signCommand(opts *signOpts) *cobra.Command {
 			return runSign(cmd, opts)
 		},
 	}
-	opts.SignerFlagOpts.ApplyFlag(command.Flags())
-	opts.RemoteFlagOpts.ApplyFlag(command.Flags())
+	opts.SignerFlagOpts.ApplyFlags(command.Flags())
+	opts.RemoteFlagOpts.ApplyFlags(command.Flags())
 
 	cmd.SetPflagTimestamp(command.Flags(), &opts.timestamp)
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)

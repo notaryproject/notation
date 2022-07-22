@@ -112,7 +112,7 @@ func keyListCommand() *cobra.Command {
 		Aliases: []string{"ls"},
 		Short:   "List keys used for signing",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listKeys(cmd)
+			return listKeys()
 		},
 	}
 }
@@ -266,7 +266,7 @@ func updateKey(command *cobra.Command, opts *keyUpdateOpts) error {
 	return nil
 }
 
-func listKeys(command *cobra.Command) error {
+func listKeys() error {
 	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {

@@ -46,7 +46,7 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 		},
 	}
 	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
-	opts.ApplyFlag(command.Flags())
+	opts.ApplyFlags(command.Flags())
 	return command
 }
 

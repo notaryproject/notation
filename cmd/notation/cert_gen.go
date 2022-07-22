@@ -37,8 +37,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 
 	// generate self-signed certificate
-	expiry := opts.expiry
-	cert, certBytes, err := generateTestSelfSignedCert(key, hosts, expiry)
+	cert, certBytes, err := generateTestSelfSignedCert(key, hosts, opts.expiry)
 	if err != nil {
 		return err
 	}

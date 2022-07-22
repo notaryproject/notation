@@ -84,7 +84,8 @@ type SecureFlagOpts struct {
 	PlainHTTP bool
 }
 
-func (opts *SecureFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
+// ApplyFlags set flags and their default values for the FlagSet
+func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setflagUsername(fs, &opts.Username)
 	setFlagPassword(fs, &opts.Password)
 	setFlagPlainHTTP(fs, &opts.PlainHTTP)
@@ -97,7 +98,8 @@ type CommonFlagOpts struct {
 	MediaType string
 }
 
-func (opts *CommonFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
+// ApplyFlags set flags and their default values for the FlagSet
+func (opts *CommonFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setFlagMediaType(fs, &opts.MediaType)
 	setFlagLocal(fs, &opts.Local)
 }
@@ -107,7 +109,8 @@ type RemoteFlagOpts struct {
 	CommonFlagOpts
 }
 
-func (opts *RemoteFlagOpts) ApplyFlag(fs *pflag.FlagSet) {
-	opts.SecureFlagOpts.ApplyFlag(fs)
-	opts.CommonFlagOpts.ApplyFlag(fs)
+// ApplyFlags set flags and their default values for the FlagSet
+func (opts *RemoteFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
+	opts.SecureFlagOpts.ApplyFlags(fs)
+	opts.CommonFlagOpts.ApplyFlags(fs)
 }

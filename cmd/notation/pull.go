@@ -39,7 +39,7 @@ func pullCommand(opts *pullOpts) *cobra.Command {
 	}
 	cmd.Flags().BoolVar(&opts.strict, "strict", false, "pull the signature without lookup the manifest")
 	setFlagOutput(cmd.Flags(), &opts.output)
-	opts.ApplyFlag(cmd.Flags())
+	opts.ApplyFlags(cmd.Flags())
 	return cmd
 }
 

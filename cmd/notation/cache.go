@@ -60,7 +60,7 @@ func cacheListCommand(opts *cacheListOpts) *cobra.Command {
 			return listCachedSignatures(cmd, opts)
 		},
 	}
-	opts.ApplyFlag(command.Flags())
+	opts.ApplyFlags(command.Flags())
 	return command
 }
 
@@ -82,7 +82,7 @@ func cachePruneCommand(opts *cachePruneOpts) *cobra.Command {
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "prune all cached signatures")
 	command.Flags().BoolVar(&opts.purge, "purge", false, "remove the signature directory, combined with --all")
 	command.Flags().BoolVarP(&opts.force, "force", "f", false, "do not prompt for confirmation")
-	opts.ApplyFlag(command.Flags())
+	opts.ApplyFlags(command.Flags())
 	return command
 }
 
@@ -103,7 +103,7 @@ func cacheRemoveCommand(opts *cacheRemoveOpts) *cobra.Command {
 			return removeCachedSignatures(cmd, opts)
 		},
 	}
-	opts.ApplyFlag(command.Flags())
+	opts.ApplyFlags(command.Flags())
 	return command
 }
 

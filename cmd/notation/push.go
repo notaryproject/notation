@@ -34,7 +34,7 @@ func pushCommand(opts *pushOpts) *cobra.Command {
 		},
 	}
 	setFlagSignature(cmd.Flags(), &opts.signatures)
-	opts.ApplyFlag(cmd.Flags())
+	opts.ApplyFlags(cmd.Flags())
 	return cmd
 }
 

@@ -27,7 +27,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 			return runList(cmd, opts)
 		},
 	}
-	opts.ApplyFlag(cmd.Flags())
+	opts.ApplyFlags(cmd.Flags())
 	return cmd
 }
 

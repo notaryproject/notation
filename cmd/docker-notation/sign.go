@@ -34,7 +34,7 @@ var signCommand = &cli.Command{
 func signImage(ctx *cli.Context) error {
 	// TODO: make this change only to make sure the code can be compiled
 	// According to the https://github.com/notaryproject/notation/discussions/251,
-	//  we can update/deprecate it later
+	// we can update/deprecate it later
 	signerOpts := &cmd.SignerFlagOpts{
 		Key:      ctx.String(cmd.FlagKey.Name),
 		KeyFile:  ctx.String(cmd.FlagKeyFile.Name),

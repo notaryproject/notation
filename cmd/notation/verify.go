@@ -45,7 +45,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command.Flags().StringSliceVarP(&opts.certs, "cert", "c", []string{}, "certificate names for verification")
 	command.Flags().StringSliceVar(&opts.certFiles, cmd.PflagCertFile.Name, []string{}, "certificate files for verification")
 	command.Flags().BoolVar(&opts.pull, "pull", true, "pull remote signatures before verification")
-	opts.ApplyFlag(command.Flags())
+	opts.ApplyFlags(command.Flags())
 	return command
 }
 
