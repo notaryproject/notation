@@ -18,9 +18,12 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "logout [server]",
 		Short: "Log out the specified registry hostname",
-		Args:  cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("no hostname specified")
+			}
 			opts.server = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runLogout(cmd, opts)
@@ -30,9 +33,6 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 
 func runLogout(cmd *cobra.Command, opts *logoutOpts) error {
 	// initialize
-	if opts.server == "" {
-		return errors.New("no hostname specified")
-	}
 	serverAddress := opts.server
 	nativeStore, err := auth.GetCredentialsStore(serverAddress)
 	if err != nil {

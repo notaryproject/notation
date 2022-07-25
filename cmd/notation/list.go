@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -19,9 +20,12 @@ func listCommand(opts *listOpts) *cobra.Command {
 		Use:     "list [reference]",
 		Aliases: []string{"ls"},
 		Short:   "List signatures from remote",
-		Args:    cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("no reference specified")
+			}
 			opts.reference = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(cmd, opts)

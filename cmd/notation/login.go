@@ -33,12 +33,17 @@ Example - Login with provided username and password:
 		
 Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
   notation login registry.example.com`,
-		Args: cobra.ExactArgs(1),
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("no hostname specified")
+			}
+			opts.server = args[0]
+			return nil
+		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if err := readPassword(opts); err != nil {
 				return err
 			}
-			opts.server = args[0]
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -52,9 +57,6 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 
 func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 	// initialize
-	if opts.server == "" {
-		return errors.New("no hostname specified")
-	}
 	serverAddress := opts.server
 
 	if err := validateAuthConfig(cmd.Context(), opts, serverAddress); err != nil {

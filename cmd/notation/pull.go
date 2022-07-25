@@ -29,9 +29,12 @@ func pullCommand(opts *pullOpts) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pull [reference]",
 		Short: "Pull signatures from remote",
-		Args:  cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("no reference specified")
+			}
 			opts.reference = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runPull(cmd, opts)
@@ -45,10 +48,6 @@ func pullCommand(opts *pullOpts) *cobra.Command {
 
 func runPull(command *cobra.Command, opts *pullOpts) error {
 	// initialize
-	if opts.reference == "" {
-		return errors.New("no reference specified")
-	}
-
 	reference := opts.reference
 	sigRepo, err := getSignatureRepository(&opts.SecureFlagOpts, reference)
 	if err != nil {

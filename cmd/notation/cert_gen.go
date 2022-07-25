@@ -7,7 +7,6 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"math/big"
 	"net"
@@ -20,9 +19,6 @@ import (
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
 	hosts := opts.hosts
-	if len(hosts) == 0 {
-		return errors.New("missing certificate hosts")
-	}
 	name := opts.name
 	if name == "" {
 		name = hosts[0]

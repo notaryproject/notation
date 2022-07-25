@@ -32,10 +32,12 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "verify [reference]",
 		Short: "Verifies OCI Artifacts",
-		PreRun: func(cmd *cobra.Command, args []string) {
-			if len(args) > 0 {
-				opts.reference = args[0]
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing reference")
 			}
+			opts.reference = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runVerify(cmd, opts)

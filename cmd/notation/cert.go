@@ -50,12 +50,15 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "add [path]",
 		Short: "Add certificate to verification list",
-		Args:  cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate path")
+			}
 			opts.path = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addCert(cmd, opts)
+			return addCert(opts)
 		},
 	}
 	command.Flags().StringVarP(&opts.name, "name", "n", "", "certificate name")
@@ -68,7 +71,7 @@ func certListCommand() *cobra.Command {
 		Aliases: []string{"ls"},
 		Short:   "List certificates used for verification",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listCerts(cmd)
+			return listCerts()
 		},
 	}
 	return command
@@ -81,12 +84,15 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		Use:     "remove [name]...",
 		Aliases: []string{"rm"},
 		Short:   "Remove certificate from the verification list",
-		Args:    cobra.MinimumNArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate names")
+			}
 			opts.names = args
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeCerts(cmd, opts)
+			return removeCerts(opts)
 		},
 	}
 	return command
@@ -98,9 +104,12 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "generate-test [host]...",
 		Short: "Generates a test RSA key and a corresponding self-signed certificate",
-		Args:  cobra.MinimumNArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate hosts")
+			}
 			opts.hosts = args
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return generateTestCert(opts)
@@ -115,14 +124,9 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 	return command
 }
 
-func addCert(command *cobra.Command, opts *certAddOpts) error {
+func addCert(opts *certAddOpts) error {
 	// initialize
-
-	path := opts.path
-	if path == "" {
-		return errors.New("missing certificate path")
-	}
-	path, err := filepath.Abs(path)
+	path, err := filepath.Abs(opts.path)
 	if err != nil {
 		return err
 	}
@@ -161,7 +165,7 @@ func addCertCore(cfg *config.File, name, path string) error {
 	return nil
 }
 
-func listCerts(command *cobra.Command) error {
+func listCerts() error {
 	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
@@ -172,13 +176,7 @@ func listCerts(command *cobra.Command) error {
 	return ioutil.PrintCertificateMap(os.Stdout, cfg.VerificationCertificates.Certificates)
 }
 
-func removeCerts(command *cobra.Command, opts *certRemoveOpts) error {
-	// initialize
-	names := opts.names
-	if len(names) == 0 {
-		return errors.New("missing certificate names")
-	}
-
+func removeCerts(opts *certRemoveOpts) error {
 	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
@@ -186,7 +184,7 @@ func removeCerts(command *cobra.Command, opts *certRemoveOpts) error {
 	}
 
 	var removedNames []string
-	for _, name := range names {
+	for _, name := range opts.names {
 		idx := slices.Index(cfg.VerificationCertificates.Certificates, name)
 		if idx < 0 {
 			return errors.New(name + ": not found")

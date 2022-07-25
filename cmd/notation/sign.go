@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -34,9 +35,12 @@ func signCommand(opts *signOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "sign [reference]",
 		Short: "Signs artifacts",
-		Args:  cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing reference")
+			}
 			opts.reference = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runSign(cmd, opts)

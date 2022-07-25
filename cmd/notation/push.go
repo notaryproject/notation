@@ -25,9 +25,12 @@ func pushCommand(opts *pushOpts) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "push [reference]",
 		Short: "Push signature to remote",
-		Args:  cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("no reference specified")
+			}
 			opts.reference = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runPush(cmd, opts)
@@ -40,9 +43,6 @@ func pushCommand(opts *pushOpts) *cobra.Command {
 
 func runPush(command *cobra.Command, opts *pushOpts) error {
 	// initialize
-	if opts.reference == "" {
-		return errors.New("no reference specified")
-	}
 	ref := opts.reference
 	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, ref)
 	if err != nil {

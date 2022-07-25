@@ -51,10 +51,11 @@ func cacheListCommand(opts *cacheListOpts) *cobra.Command {
 		Use:     "list [reference|manifest_digest]",
 		Aliases: []string{"ls"},
 		Short:   "List signatures in cache",
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 0 {
 				opts.reference = args[0]
 			}
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listCachedSignatures(cmd, opts)
@@ -71,9 +72,12 @@ func cachePruneCommand(opts *cachePruneOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "prune [reference|manifest_digest]...",
 		Short: "Prune signature from cache",
-		Args:  cobra.MinimumNArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("nothing to prune")
+			}
 			opts.references = args
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return pruneCachedSignatures(cmd, opts)
@@ -94,10 +98,16 @@ func cacheRemoveCommand(opts *cacheRemoveOpts) *cobra.Command {
 		Use:     "remove [reference|manifest_digest] [signature_digest]...",
 		Aliases: []string{"rm"},
 		Short:   "Remove signature from cache",
-		Args:    cobra.MinimumNArgs(2),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing target manifest")
+			}
 			opts.reference = args[0]
+			if len(args) == 1 {
+				return errors.New("no signature specified")
+			}
 			opts.sigDigests = args[1:]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removeCachedSignatures(cmd, opts)
@@ -176,10 +186,6 @@ func pruneCachedSignatures(command *cobra.Command, opts *cachePruneOpts) error {
 			return os.RemoveAll(config.SignatureStoreDirPath)
 		}
 		return nil
-	}
-
-	if len(opts.references) == 0 {
-		return errors.New("nothing to prune")
 	}
 	refs := opts.references
 	if !opts.force {

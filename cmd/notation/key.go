@@ -63,12 +63,12 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "add [key_path cert_path]",
 		Short: "Add key to signing key list",
-		Args:  cobra.MaximumNArgs(2),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) >= 2 {
 				opts.keyPath = args[0]
 				opts.certPath = args[1]
 			}
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addKey(cmd, opts)
@@ -93,12 +93,15 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 		Use:     "update [name]",
 		Aliases: []string{"set"},
 		Short:   "Update key in signing key list",
-		Args:    cobra.ExactArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing key name")
+			}
 			opts.name = args[0]
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return updateKey(cmd, opts)
+			return updateKey(opts)
 		},
 	}
 
@@ -125,12 +128,15 @@ func keyRemoveCommand(opts *keyRemoveOpts) *cobra.Command {
 		Use:     "remove [name]...",
 		Aliases: []string{"rm"},
 		Short:   "Remove key from signing key list",
-		Args:    cobra.MinimumNArgs(1),
-		PreRun: func(cmd *cobra.Command, args []string) {
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing key names")
+			}
 			opts.names = args
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeKeys(cmd, opts)
+			return removeKeys(opts)
 		},
 	}
 }
@@ -236,13 +242,9 @@ func addKeyCore(cfg *config.File, key config.KeySuite, markDefault bool) error {
 	return nil
 }
 
-func updateKey(command *cobra.Command, opts *keyUpdateOpts) error {
+func updateKey(opts *keyUpdateOpts) error {
 	// initialize
 	name := opts.name
-	if name == "" {
-		return errors.New("missing key name")
-	}
-
 	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
@@ -277,13 +279,7 @@ func listKeys() error {
 	return ioutil.PrintKeyMap(os.Stdout, cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
 }
 
-func removeKeys(command *cobra.Command, opts *keyRemoveOpts) error {
-	// initialize
-	names := opts.names
-	if len(names) == 0 {
-		return errors.New("missing key names")
-	}
-
+func removeKeys(opts *keyRemoveOpts) error {
 	// core process
 	cfg, err := config.LoadOrDefault()
 	if err != nil {
@@ -292,7 +288,7 @@ func removeKeys(command *cobra.Command, opts *keyRemoveOpts) error {
 
 	prevDefault := cfg.SigningKeys.Default
 	var removedNames []string
-	for _, name := range names {
+	for _, name := range opts.names {
 		idx := slices.Index(cfg.SigningKeys.Keys, name)
 		if idx < 0 {
 			return errors.New(name + ": not found")
