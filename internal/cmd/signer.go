@@ -7,7 +7,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation-go/signature"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 )
 
 // GetSigner returns a signer according to the CLI context.
@@ -19,7 +19,7 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	}
 	// Construct a signer from preconfigured key pair in config.json
 	// if key name is provided as the CLI argument
-	key, err := config.ResolveKey(opts.Key)
+	key, err := configutil.ResolveKey(opts.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	// Construct a plugin signer if key name provided as the CLI argument
 	// corresponds to an external key
 	if key.ExternalKey != nil {
-		mgr := manager.New(config.PluginDirPath)
+		mgr := manager.New()
 		runner, err := mgr.Runner(key.PluginName)
 		if err != nil {
 			return nil, err

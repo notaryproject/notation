@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/pkg/cache"
-	"github.com/notaryproject/notation/pkg/config"
 	"github.com/spf13/cobra"
 )
 
@@ -55,7 +55,7 @@ func runPush(command *cobra.Command, opts *pushOpts) error {
 			return err
 		}
 		for _, sigDigest := range sigDigests {
-			sigPaths = append(sigPaths, config.SignaturePath(manifestDesc.Digest, sigDigest))
+			sigPaths = append(sigPaths, dir.Path.CachedSignature(manifestDesc.Digest, sigDigest))
 		}
 	}
 

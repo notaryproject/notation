@@ -7,7 +7,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -48,7 +48,7 @@ func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, 
 	if opts.PlainHTTP {
 		plainHTTP = opts.PlainHTTP
 	} else {
-		plainHTTP = config.IsRegistryInsecure(ref.Registry)
+		plainHTTP = configutil.IsRegistryInsecure(ref.Registry)
 		if !plainHTTP {
 			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
 				plainHTTP = true

@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -130,10 +130,10 @@ func listCachedSignatures(command *cobra.Command, opts *cacheListOpts) error {
 
 	fmt.Println("SIGNATURE")
 	return walkCachedSignatureTree(
-		config.SignatureRootPath(manifestDigest),
+		dir.Path.CachedSignatureRoot(manifestDigest),
 		func(algorithm string, value fs.DirEntry) error {
-			if strings.HasSuffix(value.Name(), config.SignatureExtension) {
-				encoded := strings.TrimSuffix(value.Name(), config.SignatureExtension)
+			if strings.HasSuffix(value.Name(), dir.SignatureExtension) {
+				encoded := strings.TrimSuffix(value.Name(), dir.SignatureExtension)
 				fmt.Printf("%s:%s\n", algorithm, encoded)
 			}
 			return nil
@@ -143,7 +143,7 @@ func listCachedSignatures(command *cobra.Command, opts *cacheListOpts) error {
 func listManifestsWithCachedSignature() error {
 	fmt.Println("MANIFEST")
 	return walkCachedSignatureTree(
-		config.SignatureStoreDirPath,
+		dir.Path.CachedSignatureStoreDirPath(),
 		func(algorithm string, value fs.DirEntry) error {
 			if value.IsDir() {
 				fmt.Printf("%s:%s\n", algorithm, value.Name())
@@ -166,13 +166,13 @@ func pruneCachedSignatures(command *cobra.Command, opts *cachePruneOpts) error {
 			}
 		}
 		if err := walkCachedSignatureTree(
-			config.SignatureStoreDirPath,
+			dir.Path.CachedSignatureStoreDirPath(),
 			func(algorithm string, value fs.DirEntry) error {
 				if !value.IsDir() {
 					return nil
 				}
 				manifestDigest := digest.NewDigestFromEncoded(digest.Algorithm(algorithm), value.Name())
-				if err := os.RemoveAll(config.SignatureRootPath(manifestDigest)); err != nil {
+				if err := os.RemoveAll(dir.Path.CachedSignatureRoot(manifestDigest)); err != nil {
 					return err
 				}
 
@@ -184,7 +184,7 @@ func pruneCachedSignatures(command *cobra.Command, opts *cachePruneOpts) error {
 			return err
 		}
 		if opts.purge {
-			return os.RemoveAll(config.SignatureStoreDirPath)
+			return os.RemoveAll(dir.Path.CachedSignatureStoreDirPath())
 		}
 		return nil
 	}
@@ -204,7 +204,7 @@ func pruneCachedSignatures(command *cobra.Command, opts *cachePruneOpts) error {
 		if err != nil {
 			return err
 		}
-		if err := os.RemoveAll(config.SignatureRootPath(manifestDigest)); err != nil {
+		if err := os.RemoveAll(dir.Path.CachedSignatureRoot(manifestDigest)); err != nil {
 			return err
 		}
 
@@ -224,7 +224,7 @@ func removeCachedSignatures(command *cobra.Command, opts *cacheRemoveOpts) error
 
 	// core process
 	for _, sigDigest := range opts.sigDigests {
-		path := config.SignaturePath(manifestDigest, digest.Digest(sigDigest))
+		path := dir.Path.CachedSignature(manifestDigest, digest.Digest(sigDigest))
 		if err := os.Remove(path); err != nil {
 			return err
 		}

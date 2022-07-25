@@ -7,11 +7,12 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 )
@@ -75,7 +76,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 			return err
 		}
 		for _, sigDigest := range sigDigests {
-			sigPaths = append(sigPaths, config.SignaturePath(manifestDigest, sigDigest))
+			sigPaths = append(sigPaths, dir.Path.CachedSignature(manifestDigest, sigDigest))
 		}
 	}
 
@@ -122,7 +123,7 @@ func getVerifier(opts *verifyOpts) (notation.Verifier, error) {
 		return nil, err
 	}
 	if len(certPaths) == 0 {
-		cfg, err := config.LoadOrDefaultOnce()
+		cfg, err := configutil.LoadConfigOnce()
 		if err != nil {
 			return nil, err
 		}
@@ -138,7 +139,7 @@ func getVerifier(opts *verifyOpts) (notation.Verifier, error) {
 
 func appendCertPathFromName(paths, names []string) ([]string, error) {
 	for _, name := range names {
-		cfg, err := config.LoadOrDefaultOnce()
+		cfg, err := configutil.LoadConfigOnce()
 		if err != nil {
 			return nil, err
 		}

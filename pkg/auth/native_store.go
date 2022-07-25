@@ -5,7 +5,7 @@ import (
 
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/config"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -49,7 +49,7 @@ func newNativeAuthStore(helperSuffix string) CredentialStore {
 // getConfiguredCredentialStore returns the credential helper configured for the
 // given registry, the default credsStore, or the empty string if neither are
 // configured.
-func getConfiguredCredentialStore(c *config.File, registryHostname string) string {
+func getConfiguredCredentialStore(c *config.Config, registryHostname string) string {
 	if c.CredentialHelpers != nil && registryHostname != "" {
 		if helper, exists := c.CredentialHelpers[registryHostname]; exists {
 			return helper
