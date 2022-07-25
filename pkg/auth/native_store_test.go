@@ -154,7 +154,7 @@ func TestNativeStore_StoreIdentityToken(t *testing.T) {
 	}
 }
 
-func TestNativeStore_failedGet(t *testing.T) {
+func TestNativeStore_FailedGet(t *testing.T) {
 	s := &nativeAuthStore{
 		programFunc: mockCommandFn,
 	}
@@ -164,7 +164,7 @@ func TestNativeStore_failedGet(t *testing.T) {
 	}
 }
 
-func TestNativeStore_GetCredentialsStore_loadConfigFailed(t *testing.T) {
+func TestNativeStore_GetCredentialsStore_LoadConfigFailed(t *testing.T) {
 	loadConfig = func() (*config.File, error) {
 		return nil, fmt.Errorf("loadConfig err")
 	}
@@ -174,7 +174,7 @@ func TestNativeStore_GetCredentialsStore_loadConfigFailed(t *testing.T) {
 	}
 }
 
-func TestNativeStore_GetCredentialsStore_noHelperSet(t *testing.T) {
+func TestNativeStore_GetCredentialsStore_NoHelperSet(t *testing.T) {
 	loadConfig = func() (*config.File, error) {
 		return &config.File{}, nil
 	}
@@ -184,7 +184,7 @@ func TestNativeStore_GetCredentialsStore_noHelperSet(t *testing.T) {
 	}
 }
 
-func TestNativeStore_GetCredentialsStore_helperSet(t *testing.T) {
+func TestNativeStore_GetCredentialsStore_HelperSet(t *testing.T) {
 	loadConfig = func() (*config.File, error) {
 		return &config.File{
 			CredentialHelpers: map[string]string{

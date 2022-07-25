@@ -12,7 +12,7 @@ const (
 	validStore = "pass"
 )
 
-func TestLoadConfig_loadNotationConfigFailed(t *testing.T) {
+func TestLoadConfig_LoadNotationConfigFailed(t *testing.T) {
 	loadOrDefault = func() (*config.File, error) {
 		return nil, fmt.Errorf(errMsg)
 	}
@@ -37,7 +37,7 @@ func TestLoadConfig_NotationConfigContainsAuth(t *testing.T) {
 	}
 }
 
-func TestLoadConfig_loadDockerConfigFailed(t *testing.T) {
+func TestLoadConfig_LoadDockerConfigFailed(t *testing.T) {
 	loadOrDefault = func() (*config.File, error) {
 		return nil, nil
 	}
