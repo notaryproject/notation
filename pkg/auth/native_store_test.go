@@ -160,7 +160,7 @@ func TestNativeStore_FailedGet(t *testing.T) {
 	}
 	_, err := s.Get(invalidServerAddress)
 	if err == nil {
-		t.Fatalf("expected err, got %v", err)
+		t.Fatalf("expect error, got nil")
 	}
 }
 
@@ -180,7 +180,7 @@ func TestNativeStore_GetCredentialsStore_NoHelperSet(t *testing.T) {
 	}
 	_, err := GetCredentialsStore(validServerAddress)
 	if err == nil || err.Error() != "could not get the configured credentials store for registry: "+validServerAddress {
-		t.Fatalf("expect error, got nil")
+		t.Fatalf("Didn't get the expected error, but got: %v", err)
 	}
 }
 
