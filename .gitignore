@@ -4,5 +4,5 @@
 # Custom
 bin/
 vendor/
-converage.txt
+coverage.txt
 dist/
