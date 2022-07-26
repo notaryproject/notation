@@ -58,7 +58,7 @@ var (
 
 	certGenerateTestCommand = &cli.Command{
 		Name:      "generate-test",
-		Usage:     "Generates a test RSA key and a corresponding self-signed certificate",
+		Usage:     "Generates a test RSA key and a corresponding self-generated certificate chain",
 		ArgsUsage: "<host> ...",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
