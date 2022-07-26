@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -10,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"net"
 	"time"
 
 	"github.com/notaryproject/notation/internal/osutil"
@@ -37,12 +35,16 @@ func generateTestCert(ctx *cli.Context) error {
 		return err
 	}
 
-	// generate self-signed certificate
-	cert, certBytes, err := generateTestSelfSignedCert(key, hosts, ctx.Duration("expiry"))
+	// generate self-created certificate chain
+	rootCA, rootBytes, rootPrivKey, err := generateTestRootCert(hosts, ctx.Duration("expiry"), bits)
 	if err != nil {
 		return err
 	}
-	fmt.Println("generated certificates expiring on", cert.NotAfter.Format(time.RFC3339))
+	leafCA, leafBytes, err := generateTestLeafCert(rootCA, rootPrivKey, &key.PublicKey, hosts, ctx.Duration("expiry"))
+	if err != nil {
+		return err
+	}
+	fmt.Println("generated certificates expiring on", leafCA.NotAfter.Format(time.RFC3339))
 
 	// write private key
 	keyPath := config.KeyPath(name)
@@ -53,7 +55,7 @@ func generateTestCert(ctx *cli.Context) error {
 
 	// write self-signed certificate
 	certPath := config.CertificatePath(name)
-	if err := osutil.WriteFileWithPermission(certPath, certBytes, 0644, false); err != nil {
+	if err := osutil.WriteFileWithPermission(certPath, append(leafBytes, rootBytes...), 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
 	fmt.Println("wrote certificate:", certPath)
@@ -96,7 +98,7 @@ func generateTestCert(ctx *cli.Context) error {
 	return nil
 }
 
-func generateTestKey(bits int) (crypto.Signer, []byte, error) {
+func generateTestKey(bits int) (*rsa.PrivateKey, []byte, error) {
 	key, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return nil, nil, err
@@ -109,32 +111,8 @@ func generateTestKey(bits int) (crypto.Signer, []byte, error) {
 	return key, keyPEM, nil
 }
 
-func generateTestSelfSignedCert(key crypto.Signer, hosts []string, expiry time.Duration) (*x509.Certificate, []byte, error) {
-	now := time.Now()
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate serial number: %v", err)
-	}
-	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName: hosts[0],
-		},
-		NotBefore:             now,
-		NotAfter:              now.Add(expiry),
-		KeyUsage:              x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning},
-		BasicConstraintsValid: true,
-	}
-	for _, host := range hosts {
-		if ip := net.ParseIP(host); ip != nil {
-			template.IPAddresses = append(template.IPAddresses, ip)
-		} else {
-			template.DNSNames = append(template.DNSNames, host)
-		}
-	}
-	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, key.Public(), key)
+func generateCert(template, parent *x509.Certificate, publicKey *rsa.PublicKey, privateKey *rsa.PrivateKey) (*x509.Certificate, []byte, error) {
+	certBytes, err := x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create certificate: %v", err)
 	}
@@ -144,4 +122,62 @@ func generateTestSelfSignedCert(key crypto.Signer, hosts []string, expiry time.D
 	}
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
 	return cert, certPEM, nil
+}
+
+// generateTestRootCert generates a self-signed root certificate
+func generateTestRootCert(hosts []string, expiry time.Duration, bits int) (*x509.Certificate, []byte, *rsa.PrivateKey, error) {
+	now := time.Now()
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to generate root serial number: %v", err)
+	}
+	rootTemplate := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName: hosts[0] + "RootCA",
+		},
+		NotBefore:             now,
+		NotAfter:              now.Add(expiry),
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	priv, err := rsa.GenerateKey(rand.Reader, bits)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to generate root key: %v", err)
+	}
+	rootCert, rootPEM, err := generateCert(&rootTemplate, &rootTemplate, &priv.PublicKey, priv)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to generate root cert: %v", err)
+	}
+	return rootCert, rootPEM, priv, nil
+}
+
+// generateTestLeafCert generates the leaf certificate with rootCA as parent
+func generateTestLeafCert(rootCA *x509.Certificate, rootKey *rsa.PrivateKey, publicKey *rsa.PublicKey, hosts []string, expiry time.Duration) (*x509.Certificate, []byte, error) {
+	now := time.Now()
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate leaf serial number: %v", err)
+	}
+	leafTemplate := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			CommonName: hosts[0] + "LeafCA",
+		},
+		NotBefore:             now,
+		NotAfter:              now.Add(expiry),
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning},
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+	}
+	leafCert, leafPEM, err := generateCert(&leafTemplate, rootCA, publicKey, rootKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate leaf cert: %v", err)
+	}
+	return leafCert, leafPEM, nil
 }
