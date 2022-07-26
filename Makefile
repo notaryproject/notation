@@ -33,7 +33,7 @@ build: $(addprefix bin/,$(COMMANDS)) ## builds binaries
 
 .PHONY: test
 test: vendor check-line-endings ## run unit tests
-	./scripts/test.sh
+		go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: clean
 clean:
