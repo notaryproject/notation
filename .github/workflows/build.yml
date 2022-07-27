@@ -34,8 +34,5 @@ jobs:
         run: make build
       - name: Run unit tests
         run: make test
-      - name: Upload coverage report
-        uses: actions/upload-artifact@master
-        with:
-          name: notation-coverage-report-${{ github.sha }}
-          path: .cover/
+      - name: Upload coverage to codecov.io
+        uses: codecov/codecov-action@v3
