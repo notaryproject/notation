@@ -116,7 +116,6 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 
 // generateTestRootCert generates a self-signed root certificate
 func generateTestRootCert(hosts []string, bits int) (testhelper.RSACertTuple, []byte, error) {
-	fmt.Println("testing...")
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return testhelper.RSACertTuple{}, nil, fmt.Errorf("failed to generate root key: %v", err)
