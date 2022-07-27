@@ -20,6 +20,7 @@ type cacheListOpts struct {
 	RemoteFlagOpts
 	reference string
 }
+
 type cachePruneOpts struct {
 	RemoteFlagOpts
 	references []string
