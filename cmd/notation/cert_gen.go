@@ -4,13 +4,12 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"math/big"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
 	"github.com/urfave/cli/v2"
@@ -36,15 +35,15 @@ func generateTestCert(ctx *cli.Context) error {
 	}
 
 	// generate self-created certificate chain
-	rootCA, rootBytes, rootPrivKey, err := generateTestRootCert(hosts, ctx.Duration("expiry"), bits)
+	rsaRootCertTuple, rootBytes, err := generateTestRootCert(hosts, bits)
 	if err != nil {
 		return err
 	}
-	leafCA, leafBytes, err := generateTestLeafCert(rootCA, rootPrivKey, &key.PublicKey, hosts, ctx.Duration("expiry"))
+	rsaLeafCertTuple, leafBytes, err := generateTestLeafCert(&rsaRootCertTuple, key, hosts)
 	if err != nil {
 		return err
 	}
-	fmt.Println("generated certificates expiring on", leafCA.NotAfter.Format(time.RFC3339))
+	fmt.Println("generated certificates expiring on", rsaLeafCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
 	keyPath := config.KeyPath(name)
@@ -111,73 +110,23 @@ func generateTestKey(bits int) (*rsa.PrivateKey, []byte, error) {
 	return key, keyPEM, nil
 }
 
-func generateCert(template, parent *x509.Certificate, publicKey *rsa.PublicKey, privateKey *rsa.PrivateKey) (*x509.Certificate, []byte, error) {
-	certBytes, err := x509.CreateCertificate(rand.Reader, template, parent, publicKey, privateKey)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create certificate: %v", err)
-	}
-	cert, err := x509.ParseCertificate(certBytes)
-	if err != nil {
-		return nil, nil, fmt.Errorf("generated invalid certificate: %v", err)
-	}
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
-	return cert, certPEM, nil
+func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rsaCertTuple.Cert.Raw})
 }
 
 // generateTestRootCert generates a self-signed root certificate
-func generateTestRootCert(hosts []string, expiry time.Duration, bits int) (*x509.Certificate, []byte, *rsa.PrivateKey, error) {
-	now := time.Now()
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to generate root serial number: %v", err)
-	}
-	rootTemplate := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName: hosts[0] + "RootCA",
-		},
-		NotBefore:             now,
-		NotAfter:              now.Add(expiry),
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-	}
+func generateTestRootCert(hosts []string, bits int) (testhelper.RSACertTuple, []byte, error) {
+	fmt.Println("testing...")
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to generate root key: %v", err)
+		return testhelper.RSACertTuple{}, nil, fmt.Errorf("failed to generate root key: %v", err)
 	}
-	rootCert, rootPEM, err := generateCert(&rootTemplate, &rootTemplate, &priv.PublicKey, priv)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to generate root cert: %v", err)
-	}
-	return rootCert, rootPEM, priv, nil
+	rsaRootCertTuple := testhelper.GetRSACertTupleWithPK(priv, hosts[0]+"RootCA", nil)
+	return rsaRootCertTuple, generateCertPEM(&rsaRootCertTuple), nil
 }
 
-// generateTestLeafCert generates the leaf certificate with rootCA as parent
-func generateTestLeafCert(rootCA *x509.Certificate, rootKey *rsa.PrivateKey, publicKey *rsa.PublicKey, hosts []string, expiry time.Duration) (*x509.Certificate, []byte, error) {
-	now := time.Now()
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate leaf serial number: %v", err)
-	}
-	leafTemplate := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName: hosts[0] + "LeafCA",
-		},
-		NotBefore:             now,
-		NotAfter:              now.Add(expiry),
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-	}
-	leafCert, leafPEM, err := generateCert(&leafTemplate, rootCA, publicKey, rootKey)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate leaf cert: %v", err)
-	}
-	return leafCert, leafPEM, nil
+// generateTestLeafCert generates the leaf certificate
+func generateTestLeafCert(rsaRootCertTuple *testhelper.RSACertTuple, privateKey *rsa.PrivateKey, hosts []string) (testhelper.RSACertTuple, []byte, error) {
+	rsaLeafCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, hosts[0]+"LeafCA", rsaRootCertTuple)
+	return rsaLeafCertTuple, generateCertPEM(&rsaLeafCertTuple), nil
 }
