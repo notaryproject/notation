@@ -3,8 +3,6 @@
 The notation repo contains the following:
 
 - `notation` - A CLI for signing and verifying artifacts with Notation
-- `docker-generate` - Extends docker with `docker generate` to create locally persisted manifest for signing, without having to push to a registry.
-- `docker-notation` - Extends docker with `docker notation` to enable, sign and verify Notation signatures.
 
 Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.17`.
 
@@ -12,8 +10,6 @@ Building above binaries require [golang](https://golang.org/dl/) with version `>
 
 - Build the binaries, installing them to:
   - `~/bin/notation`
-  - `~/.docker/cli-plugins/docker-generate`
-  - `~/.docker/cli-plugins/docker-notation`
   ```sh
   git clone https://github.com/notaryproject/notation.git
   cd notation
