@@ -5,29 +5,24 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
-	"github.com/urfave/cli/v2"
 )
 
-func generateTestCert(ctx *cli.Context) error {
+func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
-	hosts := ctx.Args().Slice()
-	if len(hosts) == 0 {
-		return errors.New("missing certificate hosts")
-	}
-	name := ctx.String("name")
+	hosts := opts.hosts
+	name := opts.name
 	if name == "" {
 		name = hosts[0]
 	}
 
 	// generate RSA private key
-	bits := ctx.Int("bits")
+	bits := opts.bits
 	fmt.Println("generating RSA Key with", bits, "bits")
 	key, keyBytes, err := generateTestKey(bits)
 	if err != nil {
@@ -64,7 +59,7 @@ func generateTestCert(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isDefault := ctx.Bool(keyDefaultFlag.Name)
+	isDefault := opts.isDefault
 	keySuite := config.KeySuite{
 		Name: name,
 		X509KeyPair: &config.X509KeyPair{
@@ -72,11 +67,11 @@ func generateTestCert(ctx *cli.Context) error {
 			CertificatePath: certPath,
 		},
 	}
-	err = addKeyCore(cfg, keySuite, ctx.Bool(keyDefaultFlag.Name))
+	err = addKeyCore(cfg, keySuite, isDefault)
 	if err != nil {
 		return err
 	}
-	trust := ctx.Bool("trust")
+	trust := opts.trust
 	if trust {
 		if err := addCertCore(cfg, name, certPath); err != nil {
 			return err

@@ -2,40 +2,32 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/notaryproject/notation/internal/version"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	app := &cli.App{
-		Name:    "notation",
-		Usage:   "Notation - Notary V2",
-		Version: version.GetVersion(),
-		Authors: []*cli.Author{
-			{
-				Name: "CNCF Notary Project",
-			},
-		},
-		Flags: []cli.Flag{
-			flagPlainHTTP,
-		},
-		Commands: []*cli.Command{
-			signCommand,
-			verifyCommand,
-			pushCommand,
-			pullCommand,
-			listCommand,
-			certCommand,
-			keyCommand,
-			cacheCommand,
-			pluginCommand,
-			loginCommand,
-			logoutCommand,
-		},
+	cmd := &cobra.Command{
+		Use:          "notation",
+		Short:        "Notation - Notary V2",
+		Version:      version.GetVersion(),
+		SilenceUsage: true,
 	}
-	if err := app.Run(os.Args); err != nil {
+	cmd.AddCommand(
+		signCommand(nil),
+		verifyCommand(nil),
+		pushCommand(nil),
+		pullCommand(nil),
+		listCommand(nil),
+		certCommand(),
+		keyCommand(),
+		cacheCommand(),
+		pluginCommand(),
+		loginCommand(nil),
+		logoutCommand(nil))
+	cmd.PersistentFlags().Bool(flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
+	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }
