@@ -8,51 +8,6 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
-	"github.com/urfave/cli/v2"
-)
-
-var (
-	FlagKey = &cli.StringFlag{
-		Name:    "key",
-		Aliases: []string{"k"},
-		Usage:   "signing key name",
-	}
-
-	FlagKeyFile = &cli.StringFlag{
-		Name:      "key-file",
-		Usage:     "signing key file",
-		TakesFile: true,
-	}
-
-	FlagCertFile = &cli.StringFlag{
-		Name:      "cert-file",
-		Usage:     "signing certificate file",
-		TakesFile: true,
-	}
-
-	FlagTimestamp = &cli.StringFlag{
-		Name:    "timestamp",
-		Aliases: []string{"t"},
-		Usage:   "timestamp the signed signature via the remote TSA",
-	}
-
-	FlagExpiry = &cli.DurationFlag{
-		Name:    "expiry",
-		Aliases: []string{"e"},
-		Usage:   "expire duration",
-	}
-
-	FlagReference = &cli.StringFlag{
-		Name:    "reference",
-		Aliases: []string{"r"},
-		Usage:   "original reference",
-	}
-
-	FlagPluginConfig = &cli.StringFlag{
-		Name:    "pluginConfig",
-		Aliases: []string{"pc"},
-		Usage:   "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
-	}
 )
 
 var (
@@ -127,7 +82,7 @@ type KeyValueSlice interface {
 func ParseFlagPluginConfig(config string) (map[string]string, error) {
 	pluginConfig, err := ParseKeyValueListFlag(config)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", pluginConfig, FlagPluginConfig.Name, err)
+		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", pluginConfig, PflagPluginConfig.Name, err)
 	}
 	return pluginConfig, nil
 }
