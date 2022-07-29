@@ -1,6 +1,5 @@
 MODULE         = github.com/notaryproject/notation
-DOCKER_PLUGINS = docker-generate docker-notation
-COMMANDS       = notation $(DOCKER_PLUGINS)
+COMMANDS       = notation
 GIT_TAG        = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 BUILD_METADATA =
 ifeq ($(GIT_TAG),) # unreleased build
@@ -52,7 +51,7 @@ vendor: ## vendores the go modules
 	GO111MODULE=on go mod vendor
 
 .PHONY: install
-install: install-notation install-docker-plugins ## install the notation cli and docker plugins
+install: install-notation ## install the notation cli
 
 .PHONY: install-notation
 install-notation: bin/notation ## installs the notation cli
@@ -61,7 +60,3 @@ install-notation: bin/notation ## installs the notation cli
 .PHONY: install-docker-%
 install-docker-%: bin/docker-%
 	cp $< ~/.docker/cli-plugins/
-
-.PHONY: install-docker-plugins
-install-docker-plugins: $(addprefix install-,$(DOCKER_PLUGINS)) ## installs the docker plugins
-	cp $(addprefix bin/,$(DOCKER_PLUGINS)) ~/.docker/cli-plugins/

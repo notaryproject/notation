@@ -1,6 +1,6 @@
 # Notation
 
-[![codecov](https://codecov.io/gh/notatryproject/notation/branch/main/graph/badge.svg)](https://codecov.io/gh/notatryproject/notation)
+[![codecov](https://codecov.io/gh/notaryproject/notation/branch/main/graph/badge.svg)](https://codecov.io/gh/notaryproject/notation)
 
 Notation is a project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary V2 specifications][notaryv2-specs].
 
