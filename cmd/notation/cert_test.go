@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func TestCertAddCommand(t *testing.T) {
+func TestCertAddCommand_BasicArgs(t *testing.T) {
 	opts := &certAddOpts{}
 	cmd := certAddCommand(opts)
 	expected := &certAddOpts{
@@ -27,7 +27,7 @@ func TestCertAddCommand(t *testing.T) {
 	}
 }
 
-func TestCertAddCommand_MissinArgs(t *testing.T) {
+func TestCertAddCommand_MissingArgs(t *testing.T) {
 	cmd := certAddCommand(nil)
 	if err := cmd.ParseFlags([]string{}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -37,7 +37,7 @@ func TestCertAddCommand_MissinArgs(t *testing.T) {
 	}
 }
 
-func TestCertRemoveCommand(t *testing.T) {
+func TestCertRemoveCommand_BasicArgs(t *testing.T) {
 	opts := &certRemoveOpts{}
 	cmd := certRemoveCommand(opts)
 	expected := &certRemoveOpts{
@@ -54,7 +54,7 @@ func TestCertRemoveCommand(t *testing.T) {
 	}
 }
 
-func TestCertRemoveCommand_MissinArgs(t *testing.T) {
+func TestCertRemoveCommand_MissingArgs(t *testing.T) {
 	cmd := certRemoveCommand(nil)
 	if err := cmd.ParseFlags([]string{}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -64,7 +64,7 @@ func TestCertRemoveCommand_MissinArgs(t *testing.T) {
 	}
 }
 
-func TestCertGenerateCommand(t *testing.T) {
+func TestCertGenerateCommand_WithExpiry(t *testing.T) {
 	opts := &certGenerateTestOpts{}
 	cmd := certGenerateTestCommand(opts)
 	expected := &certGenerateTestOpts{
@@ -90,7 +90,7 @@ func TestCertGenerateCommand(t *testing.T) {
 	}
 }
 
-func TestCertGenerateTestCommand_MissinArgs(t *testing.T) {
+func TestCertGenerateTestCommand_MissingArgs(t *testing.T) {
 	cmd := certGenerateTestCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestPullCommand(t *testing.T) {
+func TestPullCommand_BasicArgs(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	t.Setenv(defaultPasswordEnv, "password")
 

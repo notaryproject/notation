@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestVerifyCommand(t *testing.T) {
+func TestVerifyCommand_BasicArgs(t *testing.T) {
 	opts := &verifyOpts{}
 	command := verifyCommand(opts)
 	expected := &verifyOpts{
@@ -44,7 +44,7 @@ func TestVerifyCommand(t *testing.T) {
 	}
 }
 
-func TestVerifyCommand_MoreFlags(t *testing.T) {
+func TestVerifyCommand_MoreArgs(t *testing.T) {
 	opts := &verifyOpts{}
 	command := verifyCommand(opts)
 	expected := &verifyOpts{

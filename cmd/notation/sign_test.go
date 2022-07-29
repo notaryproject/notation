@@ -8,7 +8,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 )
 
-func TestSignCommand(t *testing.T) {
+func TestSignCommand_BasicArgs(t *testing.T) {
 	opts := &signOpts{}
 	command := signCommand(opts)
 	expected := &signOpts{
@@ -46,7 +46,7 @@ func TestSignCommand(t *testing.T) {
 	}
 }
 
-func TestSignCommand_MoreFlags(t *testing.T) {
+func TestSignCommand_MoreArgs(t *testing.T) {
 	opts := &signOpts{}
 	command := signCommand(opts)
 	expected := &signOpts{

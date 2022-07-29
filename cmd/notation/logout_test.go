@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestLogoutCommand(t *testing.T) {
+func TestLogoutCommand_BasicArgs(t *testing.T) {
 	opts := &logoutOpts{}
 	cmd := logoutCommand(opts)
 	expected := &logoutOpts{
@@ -21,7 +21,7 @@ func TestLogoutCommand(t *testing.T) {
 	}
 }
 
-func TestLogOutCommand_MissinArgs(t *testing.T) {
+func TestLogOutCommand_MissingArgs(t *testing.T) {
 	cmd := logoutCommand(nil)
 	if err := cmd.ParseFlags([]string{}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestCacheListCommand(t *testing.T) {
+func TestCacheListCommand_BasicArgs(t *testing.T) {
 	opts := &cacheListOpts{}
 	cmd := cacheListCommand(opts)
 	expected := &cacheListOpts{
@@ -34,7 +34,7 @@ func TestCacheListCommand(t *testing.T) {
 	}
 }
 
-func TestCachePruneCommand(t *testing.T) {
+func TestCachePruneCommand_BasicArgs(t *testing.T) {
 	opts := &cachePruneOpts{}
 	cmd := cachePruneCommand(opts)
 	expected := &cachePruneOpts{
@@ -46,12 +46,12 @@ func TestCachePruneCommand(t *testing.T) {
 		all:        true,
 		force:      true,
 		purge:      true,
-		references: []string{"ref0", "ref1", "ref2"},
+		references: []string{"ref0", "ref1", "ref2", "ref3"},
 	}
 	if err := cmd.ParseFlags([]string{
 		"-a",
 		"--purge",
-		"ref0", "ref1", "ref2",
+		"ref0", "ref1", "ref2", "ref3",
 		"-f"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
@@ -63,7 +63,7 @@ func TestCachePruneCommand(t *testing.T) {
 	}
 }
 
-func TestCachePruneCommand_MissinArgs(t *testing.T) {
+func TestCachePruneCommand_MissingArgs(t *testing.T) {
 	cmd := cachePruneCommand(nil)
 	if err := cmd.ParseFlags([]string{}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -73,7 +73,7 @@ func TestCachePruneCommand_MissinArgs(t *testing.T) {
 	}
 }
 
-func TestCacheRemoveCommand(t *testing.T) {
+func TestCacheRemoveCommand_BasicArgs(t *testing.T) {
 	opts := &cacheRemoveOpts{}
 	cmd := cacheRemoveCommand(opts)
 	expected := &cacheRemoveOpts{
@@ -104,7 +104,7 @@ func TestCacheRemoveCommand(t *testing.T) {
 	}
 }
 
-func TestCacheRemoveCommand_MissinArgs(t *testing.T) {
+func TestCacheRemoveCommand_MissingArgs(t *testing.T) {
 	cmd := cacheRemoveCommand(nil)
 	if err := cmd.ParseFlags([]string{"reference"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestKeyAddCommand(t *testing.T) {
+func TestKeyAddCommand_BasicArgs(t *testing.T) {
 	opts := &keyAddOpts{}
 	cmd := keyAddCommand(opts)
 	expected := &keyAddOpts{
@@ -32,7 +32,7 @@ func TestKeyAddCommand(t *testing.T) {
 	}
 }
 
-func TestKeyUpdateCommand(t *testing.T) {
+func TestKeyUpdateCommand_BasicArgs(t *testing.T) {
 	opts := &keyUpdateOpts{}
 	cmd := keyUpdateCommand(opts)
 	expected := &keyUpdateOpts{
@@ -52,7 +52,7 @@ func TestKeyUpdateCommand(t *testing.T) {
 	}
 }
 
-func TestKeyUpdateCommand_MissinArgs(t *testing.T) {
+func TestKeyUpdateCommand_MissingArgs(t *testing.T) {
 	cmd := keyUpdateCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -62,7 +62,7 @@ func TestKeyUpdateCommand_MissinArgs(t *testing.T) {
 	}
 }
 
-func TestKeyRemoveCommand(t *testing.T) {
+func TestKeyRemoveCommand_BasicArgs(t *testing.T) {
 	opts := &keyRemoveOpts{}
 	cmd := keyRemoveCommand(opts)
 	expected := &keyRemoveOpts{
@@ -79,7 +79,7 @@ func TestKeyRemoveCommand(t *testing.T) {
 	}
 }
 
-func TestKeyRemoveCommand_MissinArgs(t *testing.T) {
+func TestKeyRemoveCommand_MissingArgs(t *testing.T) {
 	cmd := keyRemoveCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)

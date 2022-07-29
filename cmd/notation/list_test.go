@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestListCommand(t *testing.T) {
+func TestListCommand_SecretsFromArgs(t *testing.T) {
 	opts := &listOpts{}
 	cmd := listCommand(opts)
 	expected := &listOpts{
@@ -30,7 +30,7 @@ func TestListCommand(t *testing.T) {
 	}
 }
 
-func TestListCommand_SecretFromEnv(t *testing.T) {
+func TestListCommand_SecretsFromEnv(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	t.Setenv(defaultPasswordEnv, "password")
 	opts := &listOpts{}

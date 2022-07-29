@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestPushCommand(t *testing.T) {
+func TestPushCommand_BasicArgs(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	t.Setenv(defaultPasswordEnv, "password")
 

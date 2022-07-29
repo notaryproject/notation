@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestLoginCommand(t *testing.T) {
+func TestLoginCommand_PasswordFromArgs(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
