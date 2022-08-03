@@ -95,7 +95,7 @@ Notation follows the [Docker Registry v2 authentication][oauth2] specification f
 
 ## Credential Store
 
-As local credentials may be required to access the remote registries, they need to be stored and accessed securely. To achieve maximum security, credential helpers are preferred so that credentials are stored in the system key chain with better protection. If credential helpers are not available, notation will fall back to credential files with proper access control.
+As local credentials may be required to access the remote registries, they need to be stored and accessed securely. To achieve maximum security, credential helpers are preferred so that credentials are stored in the system key chain with better protection. If credential helpers are not available, credentials SHOULD be provided to notation via command line parameters `--username` / `--password` or environment variables `NOTATION_USERNAME` / `NOTATION_PASSWORD`.
 
 ### Credential Helper
 
@@ -109,16 +109,9 @@ The credential store can be specified globally or per registry by setting the no
         "registry.wabbit-networks.io": "wabbithelper",
         "another.wabbit-networks.io": "foobar"
     },
-    "credsFile": "/absolute/path/to/auth.json",
     "credsStore": "whatever"
 }
 ```
-
-**Note** The absolute path to credential file `credsFile` is used to store extra metadata by credential helper drivers such as [docker/cli](https://github.com/docker/cli/blob/master/cli/config/credentials/native_store.go).
-
-### Credential File
-
-TODO: Define local credential experience without credential provider support (#206).
 
 [RFC6749]: https://www.rfc-editor.org/rfc/rfc6749 "OAuth 2.0"
 [RFC7617]: https://www.rfc-editor.org/rfc/rfc7617 "Basic Auth"
