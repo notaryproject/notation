@@ -74,7 +74,7 @@ func runPull(command *cobra.Command, opts *pullOpts) error {
 		sigDigest := sigManifest.Blob.Digest
 		if path != "" {
 			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
-			sig, err := sigRepo.Get(command.Context(), sigDigest)
+			sig, err := sigRepo.GetBlob(command.Context(), sigDigest)
 			if err != nil {
 				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 			}
@@ -102,7 +102,7 @@ func pullSignatureStrict(ctx context.Context, opts *pullOpts, sigRepo notationre
 		return fmt.Errorf("invalid signature digest: %v", err)
 	}
 
-	sig, err := sigRepo.Get(ctx, sigDigest)
+	sig, err := sigRepo.GetBlob(ctx, sigDigest)
 	if err != nil {
 		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 	}
