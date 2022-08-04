@@ -1,17 +1,14 @@
 package main
 
 import (
-	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
-	"math/big"
-	"net"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/config"
 )
@@ -32,12 +29,16 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 
-	// generate self-signed certificate
-	cert, certBytes, err := generateTestSelfSignedCert(key, hosts, opts.expiry)
+	// generate self-created certificate chain
+	rsaRootCertTuple, rootBytes, err := generateTestRootCert(hosts, bits)
 	if err != nil {
 		return err
 	}
-	fmt.Println("generated certificates expiring on", cert.NotAfter.Format(time.RFC3339))
+	rsaLeafCertTuple, leafBytes, err := generateTestLeafCert(&rsaRootCertTuple, key, hosts)
+	if err != nil {
+		return err
+	}
+	fmt.Println("generated certificates expiring on", rsaLeafCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
 	keyPath := config.KeyPath(name)
@@ -48,7 +49,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 
 	// write self-signed certificate
 	certPath := config.CertificatePath(name)
-	if err := osutil.WriteFileWithPermission(certPath, certBytes, 0644, false); err != nil {
+	if err := osutil.WriteFileWithPermission(certPath, append(leafBytes, rootBytes...), 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
 	fmt.Println("wrote certificate:", certPath)
@@ -91,7 +92,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	return nil
 }
 
-func generateTestKey(bits int) (crypto.Signer, []byte, error) {
+func generateTestKey(bits int) (*rsa.PrivateKey, []byte, error) {
 	key, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return nil, nil, err
@@ -104,39 +105,22 @@ func generateTestKey(bits int) (crypto.Signer, []byte, error) {
 	return key, keyPEM, nil
 }
 
-func generateTestSelfSignedCert(key crypto.Signer, hosts []string, expiry time.Duration) (*x509.Certificate, []byte, error) {
-	now := time.Now()
-	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: rsaCertTuple.Cert.Raw})
+}
+
+// generateTestRootCert generates a self-signed root certificate
+func generateTestRootCert(hosts []string, bits int) (testhelper.RSACertTuple, []byte, error) {
+	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate serial number: %v", err)
+		return testhelper.RSACertTuple{}, nil, fmt.Errorf("failed to generate root key: %v", err)
 	}
-	template := x509.Certificate{
-		SerialNumber: serialNumber,
-		Subject: pkix.Name{
-			CommonName: hosts[0],
-		},
-		NotBefore:             now,
-		NotAfter:              now.Add(expiry),
-		KeyUsage:              x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageCodeSigning},
-		BasicConstraintsValid: true,
-	}
-	for _, host := range hosts {
-		if ip := net.ParseIP(host); ip != nil {
-			template.IPAddresses = append(template.IPAddresses, ip)
-		} else {
-			template.DNSNames = append(template.DNSNames, host)
-		}
-	}
-	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, key.Public(), key)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create certificate: %v", err)
-	}
-	cert, err := x509.ParseCertificate(certBytes)
-	if err != nil {
-		return nil, nil, fmt.Errorf("generated invalid certificate: %v", err)
-	}
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
-	return cert, certPEM, nil
+	rsaRootCertTuple := testhelper.GetRSACertTupleWithPK(priv, hosts[0]+" CA", nil)
+	return rsaRootCertTuple, generateCertPEM(&rsaRootCertTuple), nil
+}
+
+// generateTestLeafCert generates the leaf certificate
+func generateTestLeafCert(rsaRootCertTuple *testhelper.RSACertTuple, privateKey *rsa.PrivateKey, hosts []string) (testhelper.RSACertTuple, []byte, error) {
+	rsaLeafCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, hosts[0], rsaRootCertTuple)
+	return rsaLeafCertTuple, generateCertPEM(&rsaLeafCertTuple), nil
 }

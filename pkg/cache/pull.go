@@ -25,7 +25,7 @@ func PullSignature(ctx context.Context, sigRepo registry.SignatureRepository, ma
 	}
 
 	// fetch remote if not cached
-	sig, err := sigRepo.Get(ctx, sigDigest)
+	sig, err := sigRepo.GetBlob(ctx, sigDigest)
 	if err != nil {
 		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
 	}

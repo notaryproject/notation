@@ -103,7 +103,7 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "generate-test [host]...",
-		Short: "Generates a test RSA key and a corresponding self-signed certificate",
+		Short: "Generates a test RSA key and a corresponding self-generated certificate chain",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate hosts")
