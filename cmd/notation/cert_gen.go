@@ -115,12 +115,12 @@ func generateTestRootCert(hosts []string, bits int) (testhelper.RSACertTuple, []
 	if err != nil {
 		return testhelper.RSACertTuple{}, nil, fmt.Errorf("failed to generate root key: %v", err)
 	}
-	rsaRootCertTuple := testhelper.GetRSACertTupleWithPK(priv, hosts[0]+"RootCA", nil)
+	rsaRootCertTuple := testhelper.GetRSACertTupleWithPK(priv, hosts[0]+" CA", nil)
 	return rsaRootCertTuple, generateCertPEM(&rsaRootCertTuple), nil
 }
 
 // generateTestLeafCert generates the leaf certificate
 func generateTestLeafCert(rsaRootCertTuple *testhelper.RSACertTuple, privateKey *rsa.PrivateKey, hosts []string) (testhelper.RSACertTuple, []byte, error) {
-	rsaLeafCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, hosts[0]+"LeafCA", rsaRootCertTuple)
+	rsaLeafCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, hosts[0], rsaRootCertTuple)
 	return rsaLeafCertTuple, generateCertPEM(&rsaLeafCertTuple), nil
 }
