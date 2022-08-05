@@ -119,7 +119,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - To assure users opt-into the public keys they trust, add the key to the trusted store
 
   ```bash
-  notation cert add --name "wabbit-networks.io" ~/.config/notation/certificate/wabbit-networks.io.crt
+  notation cert add --name "wabbit-networks.io" ~/.config/notation/localkeys/wabbit-networks.io.crt
   ```
 
 - Verify the `net-monitor:v1` notation signature

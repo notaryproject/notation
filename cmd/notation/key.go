@@ -8,11 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/slices"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -142,7 +143,7 @@ func keyRemoveCommand(opts *keyRemoveOpts) *cobra.Command {
 }
 
 func addKey(command *cobra.Command, opts *keyAddOpts) error {
-	cfg, err := config.LoadOrDefault()
+	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
 		return err
 	}
@@ -159,12 +160,12 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	}
 
 	isDefault := opts.isDefault
-	err = addKeyCore(cfg, key, isDefault)
+	err = addKeyCore(signingKeys, key, isDefault)
 	if err != nil {
 		return err
 	}
 
-	if err := cfg.Save(); err != nil {
+	if err := signingKeys.Save(); err != nil {
 		return err
 	}
 
@@ -182,7 +183,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
-	mgr := manager.New(config.PluginDirPath)
+	mgr := manager.New()
 	p, err := mgr.Get(ctx, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
@@ -231,13 +232,13 @@ func newX509KeyPair(opts *keyAddOpts, keyName string) (config.KeySuite, error) {
 	}, nil
 }
 
-func addKeyCore(cfg *config.File, key config.KeySuite, markDefault bool) error {
-	if slices.Contains(cfg.SigningKeys.Keys, key.Name) {
+func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
+	if slices.Contains(signingKeys.Keys, key.Name) {
 		return errors.New(key.Name + ": already exists")
 	}
-	cfg.SigningKeys.Keys = append(cfg.SigningKeys.Keys, key)
+	signingKeys.Keys = append(signingKeys.Keys, key)
 	if markDefault {
-		cfg.SigningKeys.Default = key.Name
+		signingKeys.Default = key.Name
 	}
 	return nil
 }
@@ -246,19 +247,19 @@ func updateKey(opts *keyUpdateOpts) error {
 	// initialize
 	name := opts.name
 	// core process
-	cfg, err := config.LoadOrDefault()
+	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
 		return err
 	}
-	if !slices.Contains(cfg.SigningKeys.Keys, name) {
+	if !slices.Contains(signingKeys.Keys, name) {
 		return errors.New(name + ": not found")
 	}
 	if !opts.isDefault {
 		return nil
 	}
-	if cfg.SigningKeys.Default != name {
-		cfg.SigningKeys.Default = name
-		if err := cfg.Save(); err != nil {
+	if signingKeys.Default != name {
+		signingKeys.Default = name
+		if err := signingKeys.Save(); err != nil {
 			return err
 		}
 	}
@@ -270,36 +271,36 @@ func updateKey(opts *keyUpdateOpts) error {
 
 func listKeys() error {
 	// core process
-	cfg, err := config.LoadOrDefault()
+	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
 		return err
 	}
 
 	// write out
-	return ioutil.PrintKeyMap(os.Stdout, cfg.SigningKeys.Default, cfg.SigningKeys.Keys)
+	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
 }
 
 func removeKeys(opts *keyRemoveOpts) error {
 	// core process
-	cfg, err := config.LoadOrDefault()
+	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
 		return err
 	}
 
-	prevDefault := cfg.SigningKeys.Default
+	prevDefault := signingKeys.Default
 	var removedNames []string
 	for _, name := range opts.names {
-		idx := slices.Index(cfg.SigningKeys.Keys, name)
+		idx := slices.Index(signingKeys.Keys, name)
 		if idx < 0 {
 			return errors.New(name + ": not found")
 		}
-		cfg.SigningKeys.Keys = slices.Delete(cfg.SigningKeys.Keys, idx)
+		signingKeys.Keys = slices.Delete(signingKeys.Keys, idx)
 		removedNames = append(removedNames, name)
 		if prevDefault == name {
-			cfg.SigningKeys.Default = ""
+			signingKeys.Default = ""
 		}
 	}
-	if err := cfg.Save(); err != nil {
+	if err := signingKeys.Save(); err != nil {
 		return err
 	}
 

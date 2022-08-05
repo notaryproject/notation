@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/opencontainers/go-digest"
 )
 
 // SignatureDigests returns the digest of signatures for a manifest
 func SignatureDigests(manifestDigest digest.Digest) ([]digest.Digest, error) {
-	rootPath := config.SignatureRootPath(manifestDigest)
+	rootPath := dir.Path.CachedSignatureRoot(manifestDigest)
 	algorithmEntries, err := os.ReadDir(rootPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -37,10 +37,10 @@ func SignatureDigests(manifestDigest digest.Digest) ([]digest.Digest, error) {
 				continue
 			}
 			encoded := signatureEntry.Name()
-			if !strings.HasSuffix(encoded, config.SignatureExtension) {
+			if !strings.HasSuffix(encoded, dir.SignatureExtension) {
 				continue
 			}
-			encoded = strings.TrimSuffix(encoded, config.SignatureExtension)
+			encoded = strings.TrimSuffix(encoded, dir.SignatureExtension)
 			digest := digest.NewDigestFromEncoded(digest.Algorithm(algorithm), encoded)
 			if err := digest.Validate(); err != nil {
 				return nil, err

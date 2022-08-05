@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/notaryproject/notation-go/dir"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
-	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -73,7 +73,7 @@ func runPull(command *cobra.Command, opts *pullOpts) error {
 	for _, sigManifest := range sigManifests {
 		sigDigest := sigManifest.Blob.Digest
 		if path != "" {
-			outputPath := filepath.Join(path, sigDigest.Encoded()+config.SignatureExtension)
+			outputPath := filepath.Join(path, sigDigest.Encoded()+dir.SignatureExtension)
 			sig, err := sigRepo.GetBlob(command.Context(), sigDigest)
 			if err != nil {
 				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
@@ -108,7 +108,7 @@ func pullSignatureStrict(ctx context.Context, opts *pullOpts, sigRepo notationre
 	}
 	outputPath := opts.output
 	if outputPath == "" {
-		outputPath = sigDigest.Encoded() + config.SignatureExtension
+		outputPath = sigDigest.Encoded() + dir.SignatureExtension
 	}
 	if err := osutil.WriteFile(outputPath, sig); err != nil {
 		return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)

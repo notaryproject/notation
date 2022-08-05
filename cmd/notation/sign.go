@@ -8,9 +8,9 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/crypto/timestamp"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 )
@@ -81,7 +81,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	// write out
 	path := cmdOpts.output
 	if path == "" {
-		path = config.SignaturePath(digest.Digest(desc.Digest), digest.FromBytes(sig))
+		path = dir.Path.CachedSignature(digest.Digest(desc.Digest), digest.FromBytes(sig))
 	}
 	if err := osutil.WriteFile(path, sig); err != nil {
 		return err

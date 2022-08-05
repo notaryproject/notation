@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 )
 
 const (
@@ -13,7 +14,7 @@ const (
 )
 
 func TestLoadConfig_LoadNotationConfigFailed(t *testing.T) {
-	loadOrDefault = func() (*config.File, error) {
+	loadOrDefault = func() (*config.Config, error) {
 		return nil, fmt.Errorf(errMsg)
 	}
 	_, err := LoadConfig()
@@ -23,10 +24,8 @@ func TestLoadConfig_LoadNotationConfigFailed(t *testing.T) {
 }
 
 func TestLoadConfig_NotationConfigContainsAuth(t *testing.T) {
-	loadOrDefault = func() (*config.File, error) {
-		return &config.File{
-			CredentialsStore: validStore,
-		}, nil
+	loadOrDefault = func() (*config.Config, error) {
+		return &config.Config{CredentialsStore: validStore}, nil
 	}
 	file, err := LoadConfig()
 	if err != nil {
@@ -38,10 +37,10 @@ func TestLoadConfig_NotationConfigContainsAuth(t *testing.T) {
 }
 
 func TestLoadConfig_LoadDockerConfigFailed(t *testing.T) {
-	loadOrDefault = func() (*config.File, error) {
+	loadOrDefault = func() (*config.Config, error) {
 		return nil, nil
 	}
-	loadDockerConfig = func() (*config.DockerConfigFile, error) {
+	loadDockerConfig = func() (*configutil.DockerConfigFile, error) {
 		return nil, fmt.Errorf(errMsg)
 	}
 	_, err := LoadConfig()
@@ -51,11 +50,11 @@ func TestLoadConfig_LoadDockerConfigFailed(t *testing.T) {
 }
 
 func TestLoadConfig_DockerConfigContainsAuth(t *testing.T) {
-	loadOrDefault = func() (*config.File, error) {
+	loadOrDefault = func() (*config.Config, error) {
 		return nil, nil
 	}
-	loadDockerConfig = func() (*config.DockerConfigFile, error) {
-		return &config.DockerConfigFile{
+	loadDockerConfig = func() (*configutil.DockerConfigFile, error) {
+		return &configutil.DockerConfigFile{
 			CredentialsStore: validStore,
 		}, nil
 	}
@@ -69,11 +68,11 @@ func TestLoadConfig_DockerConfigContainsAuth(t *testing.T) {
 }
 
 func TestLoadConfig_DockerConfigEmptyAuth(t *testing.T) {
-	loadOrDefault = func() (*config.File, error) {
+	loadOrDefault = func() (*config.Config, error) {
 		return nil, nil
 	}
-	loadDockerConfig = func() (*config.DockerConfigFile, error) {
-		return &config.DockerConfigFile{}, nil
+	loadDockerConfig = func() (*configutil.DockerConfigFile, error) {
+		return &configutil.DockerConfigFile{}, nil
 	}
 	_, err := LoadConfig()
 	if err == nil {

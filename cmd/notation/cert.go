@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-core-go/x509"
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/slices"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/cobra"
 )
 
@@ -138,7 +139,7 @@ func addCert(opts *certAddOpts) error {
 	}
 
 	// core process
-	cfg, err := config.LoadOrDefault()
+	cfg, err := configutil.LoadConfigOnce()
 	if err != nil {
 		return err
 	}
@@ -154,7 +155,7 @@ func addCert(opts *certAddOpts) error {
 	return nil
 }
 
-func addCertCore(cfg *config.File, name, path string) error {
+func addCertCore(cfg *config.Config, name, path string) error {
 	if slices.Contains(cfg.VerificationCertificates.Certificates, name) {
 		return errors.New(name + ": already exists")
 	}
@@ -167,7 +168,7 @@ func addCertCore(cfg *config.File, name, path string) error {
 
 func listCerts() error {
 	// core process
-	cfg, err := config.LoadOrDefault()
+	cfg, err := configutil.LoadConfigOnce()
 	if err != nil {
 		return err
 	}
@@ -178,7 +179,7 @@ func listCerts() error {
 
 func removeCerts(opts *certRemoveOpts) error {
 	// core process
-	cfg, err := config.LoadOrDefault()
+	cfg, err := configutil.LoadConfigOnce()
 	if err != nil {
 		return err
 	}

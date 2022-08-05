@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/pkg/config"
 	"github.com/opencontainers/go-digest"
 )
 
 // PullSignature pulls the signature if not exists in the cache.
 func PullSignature(ctx context.Context, sigRepo registry.SignatureRepository, manifestDigest, sigDigest digest.Digest) error {
-	sigPath := config.SignaturePath(manifestDigest, sigDigest)
+	sigPath := dir.Path.CachedSignature(manifestDigest, sigDigest)
 	if info, err := os.Stat(sigPath); err == nil {
 		if info.IsDir() {
 			return errors.New("found directory at the signature file path: " + sigPath)
