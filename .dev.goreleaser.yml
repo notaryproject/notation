@@ -1,0 +1,31 @@
+builds:
+  - main: ./cmd/notation
+    id: notation
+    binary: notation
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X {{.ModulePath}}/internal/version.Version={{.Version}} -X {{.ModulePath}}/internal/version.BuildMetadata=
+archives:
+  - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+release:
+  prerelease: true
+  header: |
+    ## Notation Weekly Dev Build ({{ .Date }})
+
+    Welcome to this Weekly Dev Build!
