@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/config"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -165,7 +165,7 @@ func TestNativeStore_FailedGet(t *testing.T) {
 }
 
 func TestNativeStore_GetCredentialsStore_LoadConfigFailed(t *testing.T) {
-	loadConfig = func() (*config.File, error) {
+	loadConfig = func() (*config.Config, error) {
 		return nil, fmt.Errorf("loadConfig err")
 	}
 	_, err := GetCredentialsStore(validServerAddress)
@@ -175,8 +175,8 @@ func TestNativeStore_GetCredentialsStore_LoadConfigFailed(t *testing.T) {
 }
 
 func TestNativeStore_GetCredentialsStore_NoHelperSet(t *testing.T) {
-	loadConfig = func() (*config.File, error) {
-		return &config.File{}, nil
+	loadConfig = func() (*config.Config, error) {
+		return &config.Config{}, nil
 	}
 	_, err := GetCredentialsStore(validServerAddress)
 	if err == nil || err.Error() != "could not get the configured credentials store for registry: "+validServerAddress {
@@ -185,8 +185,8 @@ func TestNativeStore_GetCredentialsStore_NoHelperSet(t *testing.T) {
 }
 
 func TestNativeStore_GetCredentialsStore_HelperSet(t *testing.T) {
-	loadConfig = func() (*config.File, error) {
-		return &config.File{
+	loadConfig = func() (*config.Config, error) {
+		return &config.Config{
 			CredentialHelpers: map[string]string{
 				validServerAddress: validHelper,
 			},

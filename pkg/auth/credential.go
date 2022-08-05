@@ -4,18 +4,19 @@ import (
 	"fmt"
 
 	"github.com/docker/docker-credential-helpers/credentials"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 // var for unit tests
 var (
-	loadOrDefault    = config.LoadOrDefault
-	loadDockerConfig = config.LoadDockerConfig
+	loadOrDefault    = configutil.LoadConfigOnce
+	loadDockerConfig = configutil.LoadDockerConfig
 )
 
 // LoadConfig loads the configuration from the config file
-func LoadConfig() (*config.File, error) {
+func LoadConfig() (*config.Config, error) {
 	// load notation config first
 	config, err := loadOrDefault()
 	if err != nil {
@@ -37,12 +38,12 @@ func LoadConfig() (*config.File, error) {
 
 // loadDockerCredentials loads the configuration from the config file under .docker
 // directory
-func loadDockerCredentials() (*config.File, error) {
+func loadDockerCredentials() (*config.Config, error) {
 	dockerConfig, err := loadDockerConfig()
 	if err != nil {
 		return nil, err
 	}
-	return &config.File{
+	return &config.Config{
 		CredentialHelpers: dockerConfig.CredentialHelpers,
 		CredentialsStore:  dockerConfig.CredentialsStore,
 	}, nil
@@ -50,7 +51,7 @@ func loadDockerCredentials() (*config.File, error) {
 
 // containsAuth returns whether there is authentication configured in this file
 // or not.
-func containsAuth(configFile *config.File) bool {
+func containsAuth(configFile *config.Config) bool {
 	return configFile.CredentialsStore != "" || len(configFile.CredentialHelpers) > 0
 }
 

@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
+	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation/pkg/configutil"
 )
 
 func generateTestCert(opts *certGenerateTestOpts) error {
@@ -41,21 +43,25 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Println("generated certificates expiring on", rsaLeafCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
-	keyPath := config.KeyPath(name)
+	keyPath := dir.Path.Localkey(name, dir.KeyExtension)
 	if err := osutil.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
 	fmt.Println("wrote key:", keyPath)
 
 	// write self-signed certificate
-	certPath := config.CertificatePath(name)
+	certPath := dir.Path.Localkey(name, dir.CertificateExtension)
 	if err := osutil.WriteFileWithPermission(certPath, append(leafBytes, rootBytes...), 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
 	fmt.Println("wrote certificate:", certPath)
 
 	// update config
-	cfg, err := config.LoadOrDefault()
+	signingKeys, err := configutil.LoadSigningkeysOnce()
+	if err != nil {
+		return err
+	}
+	cfg, err := configutil.LoadConfigOnce()
 	if err != nil {
 		return err
 	}
@@ -67,7 +73,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 			CertificatePath: certPath,
 		},
 	}
-	err = addKeyCore(cfg, keySuite, isDefault)
+	err = addKeyCore(signingKeys, keySuite, isDefault)
 	if err != nil {
 		return err
 	}
@@ -78,6 +84,9 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		}
 	}
 	if err := cfg.Save(); err != nil {
+		return err
+	}
+	if err := signingKeys.Save(); err != nil {
 		return err
 	}
 

@@ -34,31 +34,36 @@ The default location and file will be stored at: `~/.config/notation/config.json
         "certs": [
             {
                 "name": "wabbit-networks",
-                "path": "/home/demo/.config/notation/certificate/wabbit-networks.crt"
+                "path": "/home/demo/.config/notation/localkeys/wabbit-networks.crt"
             },
             {
                 "name": "import.acme-rockets",
-                "path": "/home/demo/.config/notation/certificate/import.acme-rockets.crt"
-            }
-        ]
-    },
-    "signingKeys": {
-        "default": "wabbit-networks",
-        "keys": [
-            {
-                "name": "wabbit-networks",
-                "keyPath": "/home/demo/.config/notation/key/wabbit-networks.key",
-                "certPath": "/home/demo/.config/notation/certificate/wabbit-networks.crt"
-            },
-            {
-                "name": "import.acme-rockets",
-                "keyPath": "/home/demo/.config/notation/key/import.acme-rockets.key",
-                "certPath": "/home/demo/.config/notation/certificate/import.acme-rockets.crt"
+                "path": "/home/demo/.config/notation/localkeys/import.acme-rockets.crt"
             }
         ]
     },
     "insecureRegistries": [
         "registry.wabbit-networks.io"
+    ]
+}
+```
+
+`~/.config/notation/signingkeys.json`
+
+```json
+{
+    "default": "wabbit-networks",
+    "keys": [
+        {
+            "name": "wabbit-networks",
+            "keyPath": "/home/demo/.config/notation/localkeys/wabbit-networks.key",
+            "certPath": "/home/demo/.config/notation/localkeys/wabbit-networks.crt"
+        },
+        {
+            "name": "import.acme-rockets",
+            "keyPath": "/home/demo/.config/notation/localkeys/import.acme-rockets.key",
+            "certPath": "/home/demo/.config/notation/localkeys/import.acme-rockets.crt"
+        }
     ]
 }
 ```
