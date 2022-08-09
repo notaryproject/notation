@@ -28,7 +28,7 @@ type nativeAuthStore struct {
 func GetCredentialsStore(registryHostname string) (CredentialStore, error) {
 	configFile, err := loadConfig()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load config file, error: %v", err)
+		return nil, fmt.Errorf("failed to load config file, error: %w", err)
 	}
 	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
 		return newNativeAuthStore(helper), nil
