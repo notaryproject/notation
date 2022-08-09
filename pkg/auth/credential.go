@@ -1,13 +1,17 @@
 package auth
 
 import (
-	"fmt"
+	"errors"
+	"io/fs"
 
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation/pkg/configutil"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
+
+// ErrorCodeCredentialsConfigNotSet indicates the credentials store config was not set up
+var ErrCredentialsConfigNotSet = errors.New("credentials store config was not set up")
 
 // var for unit tests
 var (
@@ -27,13 +31,16 @@ func LoadConfig() (*config.Config, error) {
 	}
 
 	config, err = loadDockerCredentials()
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, ErrCredentialsConfigNotSet
+	}
 	if err != nil {
 		return nil, err
 	}
 	if containsAuth(config) {
 		return config, nil
 	}
-	return nil, fmt.Errorf("credentials store config is not set up")
+	return nil, ErrCredentialsConfigNotSet
 }
 
 // loadDockerCredentials loads the configuration from the config file under .docker
