@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -66,7 +67,9 @@ func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, 
 	}
 	if cred == auth.EmptyCredential {
 		var err error
-		if cred, err = getSavedCreds(ref.Registry); err != nil {
+		cred, err = getSavedCreds(ref.Registry)
+		// local registry may not need credentials
+		if err != nil && !errors.Is(err, loginauth.ErrCredentialsConfigNotSet) {
 			return nil, false, err
 		}
 	}
