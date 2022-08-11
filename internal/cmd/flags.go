@@ -36,6 +36,15 @@ var (
 		fs.StringVar(p, PflagCertFile.Name, "", PflagCertFile.Usage)
 	}
 
+	// TODO: flag name
+	PflagEnvelopeType = &pflag.Flag{
+		Name:  "envelope-type",
+		Usage: "signature envelope format",
+	}
+	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVar(p, PflagEnvelopeType.Name, JswFormat, PflagEnvelopeType.Usage)
+	}
+
 	PflagTimestamp = &pflag.Flag{
 		Name:      "timestamp",
 		Shorthand: "t",
