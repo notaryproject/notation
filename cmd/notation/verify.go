@@ -10,10 +10,12 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/opencontainers/go-digest"
+
 	"github.com/spf13/cobra"
 )
 
@@ -95,12 +97,20 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 		return errors.New("verification failure: no signatures found")
 	}
 
-	var opts notation.VerifyOptions
 	var lastErr error
 	for _, path := range sigPaths {
 		sig, err := os.ReadFile(path)
 		if err != nil {
 			return err
+		}
+		// pass in nonempty annotations if needed
+		// TODO: understand media type in a better way
+		sigMediaType, err := envelope.ParseSigEnvelopeFormat(sig)
+		if err != nil {
+			return err
+		}
+		opts := notation.VerifyOptions{
+			SignatureMediaType: sigMediaType,
 		}
 		desc, err := verifier.Verify(ctx, sig, opts)
 		if err != nil {
