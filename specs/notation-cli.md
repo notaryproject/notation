@@ -69,7 +69,7 @@ COMMANDS:
 OPTIONS:
    --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
    --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
-   --help, -h  show help (default: false)
+   --help, -h                    show help (default: false)
 
 GLOBAL ARGUMENTS
    --plain-http                  Registry access via plain HTTP (default: false)
@@ -130,7 +130,7 @@ USAGE:
 OPTIONS:
    --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
    --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
-   --help, -h                  show help (default: false)
+   --help, -h                    show help (default: false)
 
 GLOBAL ARGUMENTS
    --plain-http                  Registry access via plain HTTP (default: false)
@@ -141,7 +141,7 @@ GLOBAL ARGUMENTS
 ```console
 notation login --help
 NAME:
-   notation login - Provides credentials for authenticated registry operations.
+   notation login - Provides credentials for authenticated registry operations
 
 USAGE:
    notation login [options] [server]
@@ -198,14 +198,14 @@ USAGE:
    notation pull [command options] <reference>
 
 OPTIONS:
-   --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
+   --username value, -u value  Username for registry operations [$NOTATION_USERNAME]
+   --password value, -p value  Password for registry operations [$NOTATION_PASSWORD]
    --strict                    Pull the signature without lookup the manifest (default: false)
    --output value, -o value    Write signature to a specific path
    --help, -h                  Show help (default: false)
 
 GLOBAL ARGUMENTS
-   --plain-http                  Registry access via plain HTTP (default: false)
+   --plain-http                Registry access via plain HTTP (default: false)
 ```
 
 ## push
@@ -219,13 +219,13 @@ USAGE:
    notation push [command options] <reference>
 
 OPTIONS:
-   --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
+   --username value, -u value             Username for registry operations [$NOTATION_USERNAME]
+   --password value, -p value             Password for registry operations [$NOTATION_PASSWORD]
    --signature value, -s value, -f value  signature files  (accepts multiple inputs)
    --help, -h                             show help (default: false)
 
 GLOBAL ARGUMENTS
-   --plain-http                  Registry access via plain HTTP (default: false)
+   --plain-http                           Registry access via plain HTTP (default: false)
 ```
 
 ## sign
@@ -250,12 +250,12 @@ OPTIONS:
    --push                       push after successful signing (default: true)
    --push-reference value       different remote to store signature
    --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
-   --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
+   --username value, -u value   Username for registry operations [$NOTATION_USERNAME]
+   --password value, -p value   Password for registry operations [$NOTATION_PASSWORD]
    --help, -h                   show help (default: false)
 
 GLOBAL ARGUMENTS
-   --plain-http                  Registry access via plain HTTP (default: false)
+   --plain-http                 Registry access via plain HTTP (default: false)
 ```
 
 ## verify
@@ -275,10 +275,10 @@ OPTIONS:
    --pull                                 pull remote signatures before verification (default: true)
    --local, -l                            reference is a local file (default: false)
    --media-type value                     specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
-   --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
+   --username value, -u value             Username for registry operations [$NOTATION_USERNAME]
+   --password value, -p value             Password for registry operations [$NOTATION_PASSWORD]
    --help, -h                             show help (default: false)
 
 GLOBAL ARGUMENTS
-   --plain-http                  Registry access via plain HTTP (default: false)
+   --plain-http                           Registry access via plain HTTP (default: false)
 ```
