@@ -141,7 +141,7 @@ GLOBAL ARGUMENTS
 ```console
 notation login --help
 NAME:
-   notation login - Provides credentials for authenticated registry operations
+   notation login - Provides credentials for authenticated registry operations.
 
 USAGE:
    notation login [options] [server]
@@ -164,6 +164,9 @@ notation login -u <user> -p <password> registry.example.com
 
 # Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables
 notation login registry.example.com
+
+NOTES
+Once login is completed, then -u -p is no longer required for any notation commands against the registry server authenticated.
 ```
 
 ## plugin
