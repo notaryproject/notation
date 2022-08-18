@@ -9,10 +9,10 @@ github.com/golang-jwt/jwt/v4 v4.4.2 h1:rcc4lwaZgFMCZ5jxF9ABolDcIHdBytAFgqFPbSJQA
 github.com/golang-jwt/jwt/v4 v4.4.2/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/notaryproject/notation-core-go v0.0.0-20220809210532-f0a54093ba32 h1:dMZIRt5CMjl9eLJFywlBDDps3AWjgyy6axFnYONak8g=
-github.com/notaryproject/notation-core-go v0.0.0-20220809210532-f0a54093ba32/go.mod h1:n+UjcUoYhvawO/JW5JfZerUUsGbHYTd4wH8ndGeeyas=
-github.com/notaryproject/notation-go v0.9.0-alpha.1.0.20220816013743-c350ef73e5f0 h1:YQS5UhcYc0O7vVoIE2kdeXbZKGVoxEiLJwnm6C8PgQo=
-github.com/notaryproject/notation-go v0.9.0-alpha.1.0.20220816013743-c350ef73e5f0/go.mod h1:crBca+qGBV39lmSnmyJM0L/2gAa/XlEWrID3rXYENXo=
+github.com/notaryproject/notation-core-go v0.1.0-alpha.3 h1:gzB+h5TGzuocWiJxuYZgE/FwUIbJyKAHfk2hWSBbCGg=
+github.com/notaryproject/notation-core-go v0.1.0-alpha.3/go.mod h1:Wfyh5SrQ718JegKPhTs7y74rXg86tWd5NfOx2uHK1nI=
+github.com/notaryproject/notation-go v0.10.0-alpha.3 h1:jDIwUzGHsxwXuIFYLwQ1pPzpO5GFcoaA1X78EixIBo4=
+github.com/notaryproject/notation-go v0.10.0-alpha.3/go.mod h1:PQuu7OZweVU5erEyqriguCvK7CCGF+X5psDj63iEvGk=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86 h1:Oumw+lPnO8qNLTY2mrqPJZMoGExLi/0h/DdikoLTXVU=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86/go.mod h1:aA4vdXRS8E1TG7pLZOz85InHi3BiPdErh8IpJN6E0x4=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
@@ -37,5 +37,5 @@ golang.org/x/sys v0.0.0-20220731174439-a90be440212d/go.mod h1:oPkhp1MJrh7nUepCBc
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
-oras.land/oras-go/v2 v2.0.0-rc.1.0.20220727034506-eb13fdfeefa6 h1:fbJtzJbpZCtdaAvjPvjlTf8CGsUE1+mClxyh/MPne6I=
-oras.land/oras-go/v2 v2.0.0-rc.1.0.20220727034506-eb13fdfeefa6/go.mod h1:IZRIoIJqkAH6x0pL3tVnpyPUyZgthjSyPcH2kgJvBMo=
+oras.land/oras-go/v2 v2.0.0-rc.2 h1:dks9BxPg6HQOxn5+jVNuTFl45FuYvHfLQ6wcP7hVRdE=
+oras.land/oras-go/v2 v2.0.0-rc.2/go.mod h1:IZRIoIJqkAH6x0pL3tVnpyPUyZgthjSyPcH2kgJvBMo=
