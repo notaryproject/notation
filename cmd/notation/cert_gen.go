@@ -43,14 +43,13 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Println("generated certificates expiring on", rsaLeafCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
-	keyPath := dir.Path.Localkey(name, dir.KeyExtension)
+	keyPath, certPath := dir.Path.Localkey(name)
 	if err := osutil.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
 	fmt.Println("wrote key:", keyPath)
 
 	// write self-signed certificate
-	certPath := dir.Path.Localkey(name, dir.CertificateExtension)
 	if err := osutil.WriteFileWithPermission(certPath, append(leafBytes, rootBytes...), 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
