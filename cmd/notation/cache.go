@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -9,95 +10,130 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/notaryproject/notation/pkg/config"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/opencontainers/go-digest"
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 )
 
-var (
-	cacheCommand = &cli.Command{
-		Name:  "cache",
-		Usage: "Manage signature cache",
-		Subcommands: []*cli.Command{
-			cacheListCommand,
-			cachePruneCommand,
-			cacheRemoveCommand,
-		},
-	}
+type cacheListOpts struct {
+	RemoteFlagOpts
+	reference string
+}
 
-	cacheListCommand = &cli.Command{
-		Name:    "list",
-		Usage:   "List signatures in cache",
+type cachePruneOpts struct {
+	RemoteFlagOpts
+	references []string
+	all        bool
+	purge      bool
+	force      bool
+}
+
+type cacheRemoveOpts struct {
+	RemoteFlagOpts
+	reference  string
+	sigDigests []string
+}
+
+func cacheCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "cache",
+		Short: "Manage signature cache",
+	}
+	command.AddCommand(cacheListCommand(nil), cachePruneCommand(nil), cacheRemoveCommand(nil))
+	return command
+}
+
+func cacheListCommand(opts *cacheListOpts) *cobra.Command {
+	if opts == nil {
+		opts = &cacheListOpts{}
+	}
+	command := &cobra.Command{
+		Use:     "list [reference|manifest_digest]",
 		Aliases: []string{"ls"},
-		Flags: []cli.Flag{
-			flagLocal,
-			flagUsername,
-			flagPassword,
-			flagPlainHTTP,
+		Short:   "List signatures in cache",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) > 0 {
+				opts.reference = args[0]
+			}
+			return nil
 		},
-		ArgsUsage: "[reference|manifest_digest]",
-		Action:    listCachedSignatures,
-	}
-
-	cachePruneCommand = &cli.Command{
-		Name:      "prune",
-		Usage:     "Prune signature from cache",
-		ArgsUsage: "[reference|manifest_digest] ...",
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "all",
-				Aliases: []string{"a"},
-				Usage:   "prune all cached signatures",
-			},
-			&cli.BoolFlag{
-				Name:  "purge",
-				Usage: "remove the signature directory, combined with --all",
-			},
-			&cli.BoolFlag{
-				Name:    "force",
-				Aliases: []string{"f"},
-				Usage:   "do not prompt for confirmation",
-			},
-			flagLocal,
-			flagUsername,
-			flagPassword,
-			flagPlainHTTP,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return listCachedSignatures(cmd, opts)
 		},
-		Action: pruneCachedSignatures,
 	}
+	opts.ApplyFlags(command.Flags())
+	return command
+}
 
-	cacheRemoveCommand = &cli.Command{
-		Name:      "remove",
-		Usage:     "Remove signature from cache",
-		Aliases:   []string{"rm"},
-		ArgsUsage: "<reference|manifest_digest> <signature_digest> ...",
-		Flags: []cli.Flag{
-			flagLocal,
-			flagUsername,
-			flagPassword,
-			flagPlainHTTP,
+func cachePruneCommand(opts *cachePruneOpts) *cobra.Command {
+	if opts == nil {
+		opts = &cachePruneOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "prune [reference|manifest_digest]...",
+		Short: "Prune signature from cache",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("nothing to prune")
+			}
+			opts.references = args
+			return nil
 		},
-		Action: removeCachedSignatures,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return pruneCachedSignatures(cmd, opts)
+		},
 	}
-)
+	command.Flags().BoolVarP(&opts.all, "all", "a", false, "prune all cached signatures")
+	command.Flags().BoolVar(&opts.purge, "purge", false, "remove the signature directory, combined with --all")
+	command.Flags().BoolVarP(&opts.force, "force", "f", false, "do not prompt for confirmation")
+	opts.ApplyFlags(command.Flags())
+	return command
+}
 
-func listCachedSignatures(ctx *cli.Context) error {
-	if !ctx.Args().Present() {
+func cacheRemoveCommand(opts *cacheRemoveOpts) *cobra.Command {
+	if opts == nil {
+		opts = &cacheRemoveOpts{}
+	}
+	command := &cobra.Command{
+		Use:     "remove [reference|manifest_digest] [signature_digest]...",
+		Aliases: []string{"rm"},
+		Short:   "Remove signature from cache",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing target manifest")
+			}
+			opts.reference = args[0]
+			if len(args) == 1 {
+				return errors.New("no signature specified")
+			}
+			opts.sigDigests = args[1:]
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return removeCachedSignatures(cmd, opts)
+		},
+	}
+	opts.ApplyFlags(command.Flags())
+	return command
+}
+
+func listCachedSignatures(command *cobra.Command, opts *cacheListOpts) error {
+	if command.Flags().NArg() == 0 {
 		return listManifestsWithCachedSignature()
 	}
 
-	manifestDigest, err := getManifestDigestFromContext(ctx, ctx.Args().First())
+	manifestDigest, err := getManifestDigestFromContext(command.Context(), &opts.RemoteFlagOpts, opts.reference)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("SIGNATURE")
 	return walkCachedSignatureTree(
-		config.SignatureRootPath(manifestDigest),
+		dir.Path.CachedSignatureRoot(manifestDigest),
 		func(algorithm string, value fs.DirEntry) error {
-			if strings.HasSuffix(value.Name(), config.SignatureExtension) {
-				encoded := strings.TrimSuffix(value.Name(), config.SignatureExtension)
+			if strings.HasSuffix(value.Name(), dir.SignatureExtension) {
+				encoded := strings.TrimSuffix(value.Name(), dir.SignatureExtension)
 				fmt.Printf("%s:%s\n", algorithm, encoded)
 			}
 			return nil
@@ -107,7 +143,7 @@ func listCachedSignatures(ctx *cli.Context) error {
 func listManifestsWithCachedSignature() error {
 	fmt.Println("MANIFEST")
 	return walkCachedSignatureTree(
-		config.SignatureStoreDirPath,
+		dir.Path.CachedSignatureStoreDirPath(),
 		func(algorithm string, value fs.DirEntry) error {
 			if value.IsDir() {
 				fmt.Printf("%s:%s\n", algorithm, value.Name())
@@ -116,12 +152,12 @@ func listManifestsWithCachedSignature() error {
 		})
 }
 
-func pruneCachedSignatures(ctx *cli.Context) error {
-	if ctx.Bool("all") {
-		if !ctx.Bool("force") {
+func pruneCachedSignatures(command *cobra.Command, opts *cachePruneOpts) error {
+	if opts.all {
+		if !opts.force {
 			fmt.Println("WARNING! This will remove:")
 			fmt.Println("- all cached signatures")
-			if ctx.Bool("purge") {
+			if opts.purge {
 				fmt.Println("- all files in the cache signature directory")
 			}
 			fmt.Println()
@@ -130,13 +166,13 @@ func pruneCachedSignatures(ctx *cli.Context) error {
 			}
 		}
 		if err := walkCachedSignatureTree(
-			config.SignatureStoreDirPath,
+			dir.Path.CachedSignatureStoreDirPath(),
 			func(algorithm string, value fs.DirEntry) error {
 				if !value.IsDir() {
 					return nil
 				}
 				manifestDigest := digest.NewDigestFromEncoded(digest.Algorithm(algorithm), value.Name())
-				if err := os.RemoveAll(config.SignatureRootPath(manifestDigest)); err != nil {
+				if err := os.RemoveAll(dir.Path.CachedSignatureRoot(manifestDigest)); err != nil {
 					return err
 				}
 
@@ -147,17 +183,13 @@ func pruneCachedSignatures(ctx *cli.Context) error {
 		); err != nil {
 			return err
 		}
-		if ctx.Bool("purge") {
-			return os.RemoveAll(config.SignatureStoreDirPath)
+		if opts.purge {
+			return os.RemoveAll(dir.Path.CachedSignatureStoreDirPath())
 		}
 		return nil
 	}
-
-	if !ctx.Args().Present() {
-		return errors.New("nothing to prune")
-	}
-	refs := ctx.Args().Slice()
-	if !ctx.Bool("force") {
+	refs := opts.references
+	if !opts.force {
 		fmt.Println("WARNING! This will remove cached signatures for manifests below:")
 		for _, ref := range refs {
 			fmt.Println("-", ref)
@@ -168,11 +200,11 @@ func pruneCachedSignatures(ctx *cli.Context) error {
 		}
 	}
 	for _, ref := range refs {
-		manifestDigest, err := getManifestDigestFromContext(ctx, ref)
+		manifestDigest, err := getManifestDigestFromContext(command.Context(), &opts.RemoteFlagOpts, ref)
 		if err != nil {
 			return err
 		}
-		if err := os.RemoveAll(config.SignatureRootPath(manifestDigest)); err != nil {
+		if err := os.RemoveAll(dir.Path.CachedSignatureRoot(manifestDigest)); err != nil {
 			return err
 		}
 
@@ -183,25 +215,16 @@ func pruneCachedSignatures(ctx *cli.Context) error {
 	return nil
 }
 
-func removeCachedSignatures(ctx *cli.Context) error {
+func removeCachedSignatures(command *cobra.Command, opts *cacheRemoveOpts) error {
 	// initialize
-	sigDigests := ctx.Args().Slice()
-	if len(sigDigests) == 0 {
-		return errors.New("missing target manifest")
-	}
-	sigDigests = sigDigests[1:]
-	if len(sigDigests) == 0 {
-		return errors.New("no signature specified")
-	}
-
-	manifestDigest, err := getManifestDigestFromContext(ctx, ctx.Args().First())
+	manifestDigest, err := getManifestDigestFromContext(command.Context(), &opts.RemoteFlagOpts, opts.reference)
 	if err != nil {
 		return err
 	}
 
 	// core process
-	for _, sigDigest := range sigDigests {
-		path := config.SignaturePath(manifestDigest, digest.Digest(sigDigest))
+	for _, sigDigest := range opts.sigDigests {
+		path := dir.Path.CachedSignature(manifestDigest, digest.Digest(sigDigest))
 		if err := os.Remove(path); err != nil {
 			return err
 		}
@@ -238,7 +261,7 @@ func walkCachedSignatureTree(root string, fn func(algorithm string, encodedEntry
 	return nil
 }
 
-func getManifestDigestFromContext(ctx *cli.Context, ref string) (manifestDigest digest.Digest, err error) {
+func getManifestDigestFromContext(ctx context.Context, opts *RemoteFlagOpts, ref string) (manifestDigest digest.Digest, err error) {
 	manifestDigest, err = digest.Parse(ref)
 	if err == nil {
 		return
@@ -253,7 +276,7 @@ func getManifestDigestFromContext(ctx *cli.Context, ref string) (manifestDigest 
 		return
 	}
 
-	manifest, err := getManifestDescriptorFromContextWithReference(ctx, ref)
+	manifest, err := getManifestDescriptorFromContextWithReference(ctx, opts, ref)
 	if err != nil {
 		return
 	}

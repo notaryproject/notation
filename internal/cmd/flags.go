@@ -5,51 +5,71 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/urfave/cli/v2"
+	"github.com/spf13/pflag"
 )
 
 var (
-	FlagKey = &cli.StringFlag{
-		Name:    "key",
-		Aliases: []string{"k"},
-		Usage:   "signing key name",
+	PflagKey = &pflag.Flag{
+		Name:      "key",
+		Shorthand: "k",
+		Usage:     "signing key name",
+	}
+	SetPflagKey = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
 	}
 
-	FlagKeyFile = &cli.StringFlag{
-		Name:      "key-file",
-		Usage:     "signing key file",
-		TakesFile: true,
+	PflagKeyFile = &pflag.Flag{
+		Name:  "key-file",
+		Usage: "signing key file",
+	}
+	SetPflagKeyFile = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVar(p, PflagKeyFile.Name, "", PflagKeyFile.Usage)
 	}
 
-	FlagCertFile = &cli.StringFlag{
-		Name:      "cert-file",
-		Usage:     "signing certificate file",
-		TakesFile: true,
+	PflagCertFile = &pflag.Flag{
+		Name:  "cert-file",
+		Usage: "signing certificate file",
+	}
+	SetPflagCertFile = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVar(p, PflagCertFile.Name, "", PflagCertFile.Usage)
 	}
 
-	FlagTimestamp = &cli.StringFlag{
-		Name:    "timestamp",
-		Aliases: []string{"t"},
-		Usage:   "timestamp the signed signature via the remote TSA",
+	PflagTimestamp = &pflag.Flag{
+		Name:      "timestamp",
+		Shorthand: "t",
+		Usage:     "timestamp the signed signature via the remote TSA",
+	}
+	SetPflagTimestamp = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagTimestamp.Name, PflagTimestamp.Shorthand, "", PflagTimestamp.Usage)
 	}
 
-	FlagExpiry = &cli.DurationFlag{
-		Name:    "expiry",
-		Aliases: []string{"e"},
-		Usage:   "expire duration",
+	PflagExpiry = &pflag.Flag{
+		Name:      "expiry",
+		Shorthand: "e",
+		Usage:     "expire duration",
+	}
+	SetPflagExpiry = func(fs *pflag.FlagSet, p *time.Duration) {
+		fs.DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
 	}
 
-	FlagReference = &cli.StringFlag{
-		Name:    "reference",
-		Aliases: []string{"r"},
-		Usage:   "original reference",
+	PflagReference = &pflag.Flag{
+		Name:      "reference",
+		Shorthand: "r",
+		Usage:     "original reference",
+	}
+	SetPflagReference = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
 	}
 
-	FlagPluginConfig = &cli.StringFlag{
-		Name:    "pluginConfig",
-		Aliases: []string{"pc"},
-		Usage:   "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
+	PflagPluginConfig = &pflag.Flag{
+		Name:      "pluginConfig",
+		Shorthand: "c",
+		Usage:     "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
+	}
+	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, "", PflagPluginConfig.Usage)
 	}
 )
 
@@ -59,11 +79,10 @@ type KeyValueSlice interface {
 	String() string
 }
 
-func ParseFlagPluginConfig(ctx *cli.Context) (map[string]string, error) {
-	val := ctx.String(FlagPluginConfig.Name)
-	pluginConfig, err := ParseKeyValueListFlag(val)
+func ParseFlagPluginConfig(config string) (map[string]string, error) {
+	pluginConfig, err := ParseKeyValueListFlag(config)
 	if err != nil {
-		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", val, FlagPluginConfig.Name, err)
+		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", pluginConfig, PflagPluginConfig.Name, err)
 	}
 	return pluginConfig, nil
 }

@@ -3,26 +3,22 @@ module github.com/notaryproject/notation
 go 1.18
 
 require (
-	github.com/distribution/distribution/v3 v3.0.0-20210804104954-38ab4c606ee3
-	github.com/docker/cli v20.10.14+incompatible
-	github.com/notaryproject/notation-go v0.8.0-alpha.1.0.20220518191708-407537596ed5
+	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
+	github.com/docker/docker-credential-helpers v0.6.4
+	github.com/notaryproject/notation-core-go v0.1.0-alpha.3
+	github.com/notaryproject/notation-go v0.10.0-alpha.3
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.0.2
-	github.com/oras-project/artifacts-spec v1.0.0-draft.1.1
-	github.com/urfave/cli/v2 v2.8.1
-	oras.land/oras-go/v2 v2.0.0-20220124135338-24c5637bde7b
+	github.com/spf13/cobra v1.5.0
+	github.com/spf13/pflag v1.0.5
+	oras.land/oras-go/v2 v2.0.0-rc.2
 )
 
 require (
-	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
-	github.com/docker/docker v20.10.8+incompatible // indirect
-	github.com/docker/docker-credential-helpers v0.6.4 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
-	gotest.tools/v3 v3.0.3 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86 // indirect
+	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
+	github.com/oras-project/artifacts-spec v1.0.0-rc.2 // indirect
+	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sys v0.0.0-20220731174439-a90be440212d // indirect
 )

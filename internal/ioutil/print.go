@@ -5,8 +5,8 @@ import (
 	"io"
 	"text/tabwriter"
 
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin/manager"
-	"github.com/notaryproject/notation/pkg/config"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {

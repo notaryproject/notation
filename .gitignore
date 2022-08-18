@@ -4,3 +4,5 @@
 # Custom
 bin/
 vendor/
+coverage.txt
+dist/
