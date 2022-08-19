@@ -4,8 +4,9 @@
 
 This document describes the checklist to publish a release via GitHub workflow.
 
-## Release Process
+NOTE: Make sure the dependencies in `go.mod` file are expected by the release. For example, if there are dependencies on certain version of notation library (notation-go or notation-core-go), make sure that version of library is released first, and version is updated accordingly in `go.mod` file.
 
+## Release Process
 1. Determine a [SemVer2](https://semver.org/)-valid version prefixed with the letter `v` for release. For example, `version="v1.0.0-alpha.1"`.
 2. Bump up the `Version` in [internal/version/version.go](internal/version/version.go#L5) and open a PR for the changes.
 3. Wait for the PR merge.
