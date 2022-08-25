@@ -45,9 +45,8 @@ Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
 ## Documents
 
 - [Hello World for Notation: Local signing and verification](docs/hello-signing.md)
-- [Build, sign, and verify container images using Notary and Azure Key Vault](https://docs.microsoft.com/en-us/azure/container-registry/container-registry-tutorial-sign-build-push)
-- Build, sign, and verify container images using Notary and AWS KMS (coming soon)
-- Build, sign, and verify container images using Notary and HashiCorp Vault (coming soon)
+- [Build, sign, and verify container images using Notary and Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push)
+
 
 ## Community
 
