@@ -5,13 +5,13 @@ go 1.18
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
 	github.com/docker/docker-credential-helpers v0.6.4
-	github.com/notaryproject/notation-core-go v0.0.0-20220811064831-ab66bb390904
-	github.com/notaryproject/notation-go v0.9.0-alpha.1.0.20220811081659-2ec835dc30c3
+	github.com/notaryproject/notation-core-go v0.0.0-20220825082354-b97da9ba79dd
+	github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220824075203-d5b91e16156d
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
-	github.com/veraison/go-cose v1.0.0-rc.1
-	oras.land/oras-go/v2 v2.0.0-rc.1.0.20220727034506-eb13fdfeefa6
+	github.com/veraison/go-cose v1.0.0-rc.1.0.20220824135457-9d2fab636b83
+	oras.land/oras-go/v2 v2.0.0-rc.2
 )
 
 require (
