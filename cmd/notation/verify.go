@@ -10,7 +10,6 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/configutil"
@@ -101,13 +100,15 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 	for _, path := range sigPaths {
 		sig, err := os.ReadFile(path)
 		if err != nil {
-			return err
+			lastErr = fmt.Errorf("verification failure: %v", err)
+			continue
 		}
 		// pass in nonempty annotations if needed
 		// TODO: understand media type in a better way
-		sigMediaType, err := envelope.ParseSigEnvelopeFormat(sig)
+		sigMediaType, err := signature.GuessSignatureEnvelopeFormat(sig)
 		if err != nil {
-			return err
+			lastErr = fmt.Errorf("verification failure: %v", err)
+			continue
 		}
 		opts := notation.VerifyOptions{
 			SignatureMediaType: sigMediaType,

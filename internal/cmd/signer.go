@@ -13,9 +13,10 @@ import (
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
+// Supported envelope format.
 const (
 	CoseFormat = "cose"
-	JswFormat  = "jws"
+	JwsFormat  = "jws"
 )
 
 // GetSigner returns a signer according to the CLI context.
@@ -46,7 +47,7 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 		if err != nil {
 			return nil, err
 		}
-		return signature.NewSignerPlugin(runner, key.ExternalKey.ID, mediaType, key.PluginConfig)
+		return signature.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig, mediaType)
 	}
 	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
 }
@@ -61,7 +62,7 @@ func GetExpiry(expiry time.Duration) time.Time {
 
 func GetEnvelopeMediaType(sigFormat string) (string, error) {
 	switch sigFormat {
-	case JswFormat:
+	case JwsFormat:
 		return jws.MediaTypeEnvelope, nil
 	case CoseFormat:
 		return cose.MediaTypeEnvelope, nil
