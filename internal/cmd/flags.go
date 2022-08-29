@@ -42,7 +42,7 @@ var (
 		Usage: "signature envelope format",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagEnvelopeType.Name, JswFormat, PflagEnvelopeType.Usage)
+		fs.StringVar(p, PflagEnvelopeType.Name, JwsFormat, PflagEnvelopeType.Usage)
 	}
 
 	PflagTimestamp = &pflag.Flag{
