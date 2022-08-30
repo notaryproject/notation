@@ -39,7 +39,7 @@ var (
 	// TODO: flag name
 	PflagEnvelopeType = &pflag.Flag{
 		Name:  "envelope-type",
-		Usage: "signature envelope format",
+		Usage: "signature envelope format, options: 'jws', 'cose'",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVar(p, PflagEnvelopeType.Name, JwsFormat, PflagEnvelopeType.Usage)
