@@ -82,14 +82,14 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 To get things started quickly, the Notation cli supports self-generated certificate chain. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
 
 - Create a self-generated test certificate chain for signing artifacts.
-  The following will create a self-generated X.509 certificate chain under the `~/config/notation/localkeys` directory along with a private key.
+  The following will create a self-generated X.509 certificate chain under the `~/.config/notation/localkeys` directory along with a private key.
 
   ```bash
   notation cert generate-test --default "wabbit-networks.io"
   ```
 
 - Sign the container image. By default, JWS envelope is used.
-  On success, the signature envelope will be cached under the `~/cache/notation/signatures` directory.
+  On success, the signature envelope will be cached under the `~/.cache/notation/signatures` directory.
 
   ```bash
   notation sign $IMAGE
