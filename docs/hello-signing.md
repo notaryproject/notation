@@ -88,14 +88,14 @@ To get things started quickly, the Notation cli supports self-generated certific
   notation cert generate-test --default "wabbit-networks.io"
   ```
 
-- Sign the container image, by default, JWS envelope is used.
+- Sign the container image. By default, JWS envelope is used.
   On success, the signature envelope will be cached under the `~/cache/notation/signatures` directory
 
   ```bash
   notation sign $IMAGE
   ```
- To sign with COSE envelope
-   ```bash
+  To sign with COSE envelope
+  ```bash
   notation sign --envelope-type cose $IMAGE
   ```
 
