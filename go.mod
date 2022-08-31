@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
 	github.com/docker/docker-credential-helpers v0.6.4
-	github.com/notaryproject/notation-core-go v0.0.0-20220826063805-89bf7623e96a
+	github.com/notaryproject/notation-core-go v0.0.0-20220831010912-8681e4f21c63
 	github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220829033635-a237dc31dbf4
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/spf13/cobra v1.5.0
