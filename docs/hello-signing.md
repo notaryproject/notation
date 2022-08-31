@@ -82,7 +82,7 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 To get things started quickly, the Notation cli supports generating self signed certificates. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
 
 - Generate a self-signed test certificate for signing artifacts
-  The following will generate a self-signed X.509 certificate under the `~/config/notation/` directory
+  The following will generate a self-signed X.509 certificate under the `~/.config/notation/` directory
 
   ```bash
   notation cert generate-test --default "wabbit-networks.io"
