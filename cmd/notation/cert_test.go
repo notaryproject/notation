@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
-	"time"
 )
 
 func TestCertAddCommand_BasicArgs(t *testing.T) {
@@ -64,7 +63,7 @@ func TestCertRemoveCommand_MissingArgs(t *testing.T) {
 	}
 }
 
-func TestCertGenerateCommand_WithExpiry(t *testing.T) {
+func TestCertGenerateCommand(t *testing.T) {
 	opts := &certGenerateTestOpts{}
 	cmd := certGenerateTestCommand(opts)
 	expected := &certGenerateTestOpts{
@@ -72,7 +71,6 @@ func TestCertGenerateCommand_WithExpiry(t *testing.T) {
 		name:      "name",
 		bits:      2048,
 		isDefault: true,
-		expiry:    365 * 24 * time.Hour,
 	}
 	if err := cmd.ParseFlags([]string{
 		"host0", "host1",
