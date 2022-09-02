@@ -16,12 +16,12 @@ This documentation specifies the recommended directory structure for those compo
 
 The directories for various components are classified into the following catagories.
 
-| Alias     | Description                                                                         |
-| --------- | ----------------------------------------------------------------------------------- |
-| `BIN`     | Directory for executable binaries                                                   |
-| `LIBEXEC` | Directory for binaries not meant to be executed directly by users' shell or scripts |
-| `CONFIG`  | Directory for configurations                                                        |
-| `CACHE`   | Directory for user-specific cache                                                   |
+| Alias              | Description                                                                         |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| `NOTATION_BIN`     | Directory for executable binaries                                                   |
+| `NOTATION_LIBEXEC` | Directory for binaries not meant to be executed directly by users' shell or scripts |
+| `NOTATION_CONFIG`  | Directory for configurations                                                        |
+| `NOTATION_CACHE`   | Directory for user-specific cache                                                   |
 
 Although it is recommended to install `notation` with its plugins and default configurations at the system level, it is possible to install at the user level.
 
@@ -31,59 +31,56 @@ On Unix systems, `notation` follows [Filesystem Hierarchy Standard][FHS] for sys
 
 Default directory paths for various operating systems at system level are specified as below.
 
-| Directory | Unix           | Windows                       | Darwin                         |
-| --------- | -------------- | ----------------------------- | ------------------------------ |
-| `BIN`     | `/usr/bin`     | `%ProgramFiles%/notation/bin` | `/usr/local/bin`               |
-| `LIBEXEC` | `/usr/libexec` | `%ProgramFiles%`              | `/usr/local/lib`               |
-| `CONFIG`  | `/etc`         | `%ProgramData%`               | `/Library/Application Support` |
+| Directory          | Unix                    | Windows                       | Darwin                                  |
+| ------------------ | ----------------------- | ----------------------------- | --------------------------------------- |
+| `NOTATION_BIN`     | `/usr/bin`              | `%ProgramFiles%/notation/bin` | `/usr/local/bin`                        |
+| `NOTATION_LIBEXEC` | `/usr/libexec/notation` | `%ProgramFiles%/notation`     | `/usr/local/lib/notation`               |
+| `NOTATION_CONFIG`  | `/etc/notation`         | `%ProgramData%/notation`      | `/Library/Application Support/notation` |
 
-`CACHE` is omitted since it is user specific.
+`NOTATION_CACHE` is omitted since it is user specific.
 
 ### User Level
 
 Default directory paths for various operating systems at user level are specified as below.
 
-| Directory | Unix               | Windows          | Darwin                          |
-| --------- | ------------------ | ---------------- | ------------------------------- |
-| `LIBEXEC` | `$XDG_CONFIG_HOME` | `%AppData%`      | `~/Library/Application Support` |
-| `CONFIG`  | `$XDG_CONFIG_HOME` | `%AppData%`      | `~/Library/Application Support` |
-| `CACHE`   | `$XDG_CACHE_HOME`  | `%LocalAppData%` | `~/Library/Caches`              |
+| Directory          | Unix                        | Windows                   | Darwin                                   |
+| ------------------ | --------------------------- | ------------------------- | ---------------------------------------- |
+| `NOTATION_LIBEXEC` | `$XDG_CONFIG_HOME/notation` | `%AppData%/notation`      | `~/Library/Application Support/notation` |
+| `NOTATION_CONFIG`  | `$XDG_CONFIG_HOME/notation` | `%AppData%/notation`      | `~/Library/Application Support/notation` |
+| `NOTATION_CACHE`   | `$XDG_CACHE_HOME/notation`  | `%LocalAppData%/notation` | `~/Library/Caches/notation`              |
 
 On Unix, `$XDG_CONFIG_HOME` is default to `~/.config` and `$XDG_CACHE_HOME` is default to `~/.cache` if XDG environment variables are empty.
 
-There is no default `BIN` path at user level since the `notation` binary can be put anywhere as long as it in the `PATH` environment variable. Common directories on Unix/Darwin are `~/bin` and `~/.local/bin` where manual `PATH` update by users may be required.
+There is no default `NOTATION_BIN` path at user level since the `notation` binary can be put anywhere as long as it in the `PATH` environment variable. Common directories on Unix/Darwin are `~/bin` and `~/.local/bin` where manual `PATH` update by users may be required.
 
 ## Structure
 
 The overall directory structure for `notation` is summarized as follows.
 
 ```
-{BIN}
+{NOTATION_BIN}
 └── notation
-{CACHE}
-└── notation
-    └── signatures
-        └── {manifest-digest-algorithm}
-            └── {manifest-digest}
-                └── {signature-blob-digest-algorithm}
-                    └── {signature-digest}.sig
-{CONFIG}
-└── notation
-    ├── config.json
-    ├── localkeys
-    │   ├── {key-name}.crt
-    │   └── {key-name}.pem
-    ├── signingkeys.json
-    ├── trustpolicy.json
-    └── truststore
-        └── {trust-store-type}
-            └── {named-store}
-                └── {cert-file}
-{LIBEXEC}
-└── notation
-    └── plugins
-        └── {plugin-name}
-            └── notation-{plugin-name}
+{NOTATION_CACHE}
+└── signatures
+    └── {manifest-digest-algorithm}
+        └── {manifest-digest}
+            └── {signature-blob-digest-algorithm}
+                └── {signature-digest}.sig
+{NOTATION_CONFIG}
+├── config.json
+├── localkeys
+│   ├── {key-name}.crt
+│   └── {key-name}.pem
+├── signingkeys.json
+├── trustpolicy.json
+└── truststore
+    └── {trust-store-type}
+        └── {named-store}
+            └── {cert-file}
+{NOTATION_LIBEXEC}
+└── plugins
+    └── {plugin-name}
+        └── notation-{plugin-name}
 ```
 
 ### Notation Binary
@@ -91,13 +88,13 @@ The overall directory structure for `notation` is summarized as follows.
 The path for the `notation` binary is
 
 ```
-{BIN}/notation
+{NOTATION_BIN}/notation
 ```
 
 On Windows, the `.exe` extension is required for executables.
 
 ```
-{BIN}/notation.exe
+{NOTATION_BIN}/notation.exe
 ```
 
 ### Plugin
@@ -105,13 +102,13 @@ On Windows, the `.exe` extension is required for executables.
 [Plugins][Plugin] are binaries not meant to be executed directly by users' shell or scripts. The path of a plugin follows the pattern below.
 
 ```
-{LIBEXEC}/notation/plugins/{plugin-name}/notation-{plugin-name}
+{NOTATION_LIBEXEC}/plugins/{plugin-name}/notation-{plugin-name}
 ```
 
 On Windows, the `.exe` extension is required for executables.
 
 ```
-{LIBEXEC}/notation/plugins/{plugin-name}/notation-{plugin-name}.exe
+{NOTATION_LIBEXEC}/plugins/{plugin-name}/notation-{plugin-name}.exe
 ```
 
 ### General Configuration
@@ -119,7 +116,7 @@ On Windows, the `.exe` extension is required for executables.
 The path of the general configuration file of the `notation` CLI is
 
 ```
-{CONFIG}/notation/config.json
+{NOTATION_CONFIG}/config.json
 ```
 
 ### Trust Store
@@ -127,7 +124,7 @@ The path of the general configuration file of the `notation` CLI is
 The path of a certificate file in a [Trust Store][TS] follows the pattern of
 
 ```
-{CONFIG}/notation/truststore/{trust-store-type}/{named-store}/{cert-file}
+{NOTATION_CONFIG}/truststore/{trust-store-type}/{named-store}/{cert-file}
 ```
 
 ### Trust Policy
@@ -135,7 +132,7 @@ The path of a certificate file in a [Trust Store][TS] follows the pattern of
 The path of the [Trust Policy][TP] file is
 
 ```
-{CONFIG}/notation/trustpolicy.json
+{NOTATION_CONFIG}/trustpolicy.json
 ```
 
 ### Signature Caches
@@ -143,19 +140,18 @@ The path of the [Trust Policy][TP] file is
 The signatures are cached to optimize the network traffic. The path of cached signatures for a certain target manifest (e.g. an image manifest) follows the pattern below.
 
 ```
-{CACHE}/notation/signatures/{manifest-digest-algorithm}/{manifest-digest}/{signature-blob-digest-algorithm}/{signature-digest}.sig
+{NOTATION_CACHE}/signatures/{manifest-digest-algorithm}/{manifest-digest}/{signature-blob-digest-algorithm}/{signature-digest}.sig
 ```
 
 or in a hierarchical view
 
 ```
-{CACHE}
-└── notation
-    └── signatures
-        └── {manifest-digest-algorithm}
-            └── {manifest-digest}
-                └── {signature-blob-digest-algorithm}
-                    └── {signature-digest}.sig
+{NOTATION_CACHE}
+└── signatures
+    └── {manifest-digest-algorithm}
+        └── {manifest-digest}
+            └── {signature-blob-digest-algorithm}
+                └── {signature-digest}.sig
 ```
 
 ### Signing Key Store
@@ -163,16 +159,16 @@ or in a hierarchical view
 Developers sign artifacts using local private keys with associated certificate chain. The signing key information is tracked in a JSON file at
 
 ```
-{CONFIG}/notation/signingkeys.json
+{NOTATION_CONFIG}/signingkeys.json
 ```
 
-Since the signing key store is user-specific, the system level `{CONFIG}` is not recommended. Developers SHOULD consider safe places to store the passphrase-protected key and certificate pairs, or opt to remote signing.
+Since the signing key store is user-specific, the system level `{NOTATION_CONFIG}` is not recommended. Developers SHOULD consider safe places to store the passphrase-protected key and certificate pairs, or opt to remote signing.
 
 For testing purpose, the following directory structure is suggested.
 
 ```
-{CONFIG}/notation/localkeys/{key-name}.crt
-{CONFIG}/notation/localkeys/{key-name}.pem
+{NOTATION_CONFIG}/localkeys/{key-name}.crt
+{NOTATION_CONFIG}/localkeys/{key-name}.pem
 ```
 
 Since `signingkeys.json` takes references in absolute paths, it is not required to copy the private keys and certificates used for signing to the above directory structure.
