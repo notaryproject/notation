@@ -264,7 +264,6 @@ func certsPrinter(path string) error {
 }
 
 func checkError(err error) error {
-	// if path does not exist, the path can be used to create file
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
