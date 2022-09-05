@@ -1,6 +1,8 @@
 package osutil
 
 import (
+	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -35,4 +37,33 @@ func WriteFileWithPermission(path string, data []byte, perm fs.FileMode, overwri
 		return err
 	}
 	return file.Close()
+}
+
+// Copy the src file to dst. Existing file will be overwritten.
+func Copy(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+
+	if err := os.MkdirAll(dst, 0700); err != nil {
+		return 0, err
+	}
+	certFile := filepath.Join(dst, filepath.Base(src))
+	destination, err := os.Create(certFile)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	return io.Copy(destination, source)
 }
