@@ -1,13 +1,14 @@
 package main
 
 import (
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 
-	"github.com/notaryproject/notation-core-go/x509"
+	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/internal/slices"
@@ -24,6 +25,12 @@ type certAddOpts struct {
 type certListOpts struct {
 	storeType  string
 	namedStore string
+}
+
+type certShowOpts struct {
+	storeType  string
+	namedStore string
+	cert       string
 }
 
 type certRemoveOpts struct {
@@ -46,7 +53,7 @@ func certCommand() *cobra.Command {
 	}
 
 	// command.AddCommand(certAddCommand(nil), certListCommand(), certRemoveCommand(nil), certGenerateTestCommand(nil))
-	command.AddCommand(certAddCommand(nil), certListCommand(nil), certRemoveCommand(nil))
+	command.AddCommand(certAddCommand(nil), certListCommand(nil), certShowCommand(nil), certRemoveCommand(nil))
 	return command
 }
 
@@ -87,6 +94,23 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 	}
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	return command
+}
+
+func certShowCommand(opts *certShowOpts) *cobra.Command {
+	if opts == nil {
+		opts = &certShowOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "show -t type -s name -f fileName",
+		Short: "Show certificate details given trust store type, named store, and cert file name",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return showCerts(opts)
+		},
+	}
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	command.Flags().StringVarP(&opts.cert, "fileName", "f", "", "specify cert file name")
 	return command
 }
 
@@ -155,7 +179,7 @@ func addCert(opts *certAddOpts) error {
 		}
 
 		// check if the target path is a cert (support PEM and DER formats)
-		if _, err := x509.ReadCertificateFile(certPath); err != nil {
+		if _, err := corex509.ReadCertificateFile(certPath); err != nil {
 			continue
 		}
 
@@ -223,6 +247,32 @@ func listCerts(opts *certListOpts) error {
 	return nil
 }
 
+func showCerts(opts *certShowOpts) error {
+	storeType := opts.storeType
+	if storeType == "" {
+		return errors.New("missing trust store type")
+	}
+	namedStore := opts.namedStore
+	if namedStore == "" {
+		return errors.New("missing named store")
+	}
+	cert := opts.cert
+	if cert == "" {
+		return errors.New("missing cert fileName")
+	}
+
+	path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
+	if err != nil {
+		return err
+	}
+	certs, err := corex509.ReadCertificateFile(path)
+	if err != nil || len(certs) == 0 {
+		return err
+	}
+	showRootCA(certs[len(certs)-1])
+	return nil
+}
+
 func removeCerts(opts *certRemoveOpts) error {
 	// core process
 	cfg, err := configutil.LoadConfigOnce()
@@ -263,9 +313,68 @@ func certsPrinter(path string) error {
 	})
 }
 
+func showRootCA(cert *x509.Certificate) {
+	fmt.Println("Issuer: ", cert.Issuer)
+	fmt.Println("Subject: ", cert.Subject)
+	fmt.Println("Valid from: ", cert.NotBefore)
+	fmt.Println("Valid to: ", cert.NotAfter)
+	fmt.Println("Version: ", cert.Version)
+	fmt.Println("Serial number: ", cert.SerialNumber)
+	fmt.Println("Signature Algorithm: ", cert.SignatureAlgorithm)
+	fmt.Println("Public Key Algorithm: ", cert.PublicKeyAlgorithm)
+	fmt.Println("Public Key: ", cert.PublicKey)
+	keyUsage, ok := KeyUsageNameMap[cert.KeyUsage]
+	if ok {
+		fmt.Println("Key Usage: ", keyUsage)
+	}
+	var extKeyUsage []string
+	for _, u := range cert.ExtKeyUsage {
+		extKeyUsageString, ok := ExtKeyUsagesNameMap[u]
+		if ok {
+			extKeyUsage = append(extKeyUsage, extKeyUsageString)
+		}
+	}
+	fmt.Println("Extended key usages: ", extKeyUsage)
+	fmt.Println("Basic Constraints Valid: ", cert.BasicConstraintsValid)
+	fmt.Println("IsCA: ", cert.IsCA)
+}
+
 func checkError(err error) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
 	return nil
+}
+
+// KeyUsageNameMap is a map of x509.Certificate KeyUsage map used in Notation
+// CLI
+var KeyUsageNameMap = map[x509.KeyUsage]string{
+	x509.KeyUsageDigitalSignature:  "Digital Signature",
+	x509.KeyUsageContentCommitment: "Non Repudiation",
+	x509.KeyUsageKeyEncipherment:   "Key Encipherment",
+	x509.KeyUsageDataEncipherment:  "Data Encipherment",
+	x509.KeyUsageKeyAgreement:      "Key Agreement",
+	x509.KeyUsageCertSign:          "Certificate Sign",
+	x509.KeyUsageCRLSign:           "CRL Sign",
+	x509.KeyUsageEncipherOnly:      "Encipher Only",
+	x509.KeyUsageDecipherOnly:      "Decipher Only",
+}
+
+// ExtKeyUsagesNameMap is a map of x509.Certificate ExtKeyUsages map used
+// in Notation CLI
+var ExtKeyUsagesNameMap = map[x509.ExtKeyUsage]string{
+	x509.ExtKeyUsageAny:                            "Any",
+	x509.ExtKeyUsageServerAuth:                     "TLS Web Server Authentication",
+	x509.ExtKeyUsageClientAuth:                     "TLS Web Client Authentication",
+	x509.ExtKeyUsageCodeSigning:                    "Code Signing",
+	x509.ExtKeyUsageEmailProtection:                "E-mail Protection",
+	x509.ExtKeyUsageIPSECEndSystem:                 "IPSec End System",
+	x509.ExtKeyUsageIPSECTunnel:                    "IPSec Tunnel",
+	x509.ExtKeyUsageIPSECUser:                      "IPSec User",
+	x509.ExtKeyUsageTimeStamping:                   "Time Stamping",
+	x509.ExtKeyUsageOCSPSigning:                    "OCSP Signing",
+	x509.ExtKeyUsageMicrosoftServerGatedCrypto:     "Microsoft Server Gated Crypto",
+	x509.ExtKeyUsageNetscapeServerGatedCrypto:      "Netscape Server Gated Crypto",
+	x509.ExtKeyUsageMicrosoftCommercialCodeSigning: "Microsoft Commercial Code Signing",
+	x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "Microsoft Kernel Code Signing",
 }
