@@ -102,15 +102,24 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 		opts = &certShowOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "show -t type -s name -f fileName",
-		Short: "Show certificate details given trust store type, named store, and cert file name",
+		Use:   "show -t type -s name fileName",
+		Short: "Show certificate details given trust store type, named store, and cert file name. If input is a certificate chain, only details of the root certificate is displayed",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate path")
+			}
+			if len(args) > 1 {
+				return errors.New("show only supports single certificate file")
+			}
+			opts.cert = args[0]
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return showCerts(opts)
 		},
 	}
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
-	command.Flags().StringVarP(&opts.cert, "fileName", "f", "", "specify cert file name")
 	return command
 }
 
