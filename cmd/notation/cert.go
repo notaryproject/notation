@@ -11,8 +11,6 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/internal/slices"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +32,10 @@ type certShowOpts struct {
 }
 
 type certRemoveOpts struct {
-	names []string
+	storeType  string
+	namedStore string
+	cert       string
+	all        bool
 }
 
 // type certGenerateTestOpts struct {
@@ -128,20 +129,25 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		opts = &certRemoveOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "remove [name]...",
+		Use:     "delete [-t type] -s name {--all | fileName}",
 		Aliases: []string{"rm"},
-		Short:   "Remove certificate from the verification list",
+		Short:   "Remove certificate from the trust store",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("missing certificate names")
+			if !opts.all && len(args) == 0 {
+				return errors.New("needs to specify certificate name or set --all flag")
 			}
-			opts.names = args
+			if len(args) != 0 {
+				opts.cert = args[0]
+			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removeCerts(opts)
 		},
 	}
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	command.Flags().BoolVarP(&opts.all, "all", "a", false, "if set to true, remove all certificates in the named store")
 	return command
 }
 
@@ -326,33 +332,64 @@ func showCerts(opts *certShowOpts) error {
 }
 
 func removeCerts(opts *certRemoveOpts) error {
-	// core process
-	cfg, err := configutil.LoadConfigOnce()
+	namedStore := opts.namedStore
+	if namedStore == "" {
+		return errors.New("missing named store")
+	}
+	storeType := opts.storeType
+	// Remove all certificates under namedStore
+	if opts.all {
+		if storeType == "" {
+			// Delete all certificates under namedStore
+			path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", "ca", namedStore)
+			if err != nil {
+				return err
+			}
+			if err = osutil.CleanDir(path); err != nil {
+				return err
+			}
+
+			path, err = dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", "tsa", namedStore)
+			if err != nil {
+				return err
+			}
+			if err = osutil.CleanDir(path); err != nil {
+				return err
+			}
+		} else {
+			// Remove all certificates under storeType/namedStore
+			path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
+			if err != nil {
+				return err
+			}
+			if err = osutil.CleanDir(path); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// Remove a certain certificate with path storeType/namedStore/cert
+	if storeType == "" {
+		return errors.New("missing trust store type")
+	}
+	if opts.cert == "" {
+		return errors.New("missing certificate fileName")
+	}
+	path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, opts.cert)
 	if err != nil {
 		return err
 	}
-
-	var removedNames []string
-	for _, name := range opts.names {
-		idx := slices.Index(cfg.VerificationCertificates.Certificates, name)
-		if idx < 0 {
-			return errors.New(name + ": not found")
-		}
-		cfg.VerificationCertificates.Certificates = slices.Delete(cfg.VerificationCertificates.Certificates, idx)
-		removedNames = append(removedNames, name)
-	}
-	if err := cfg.Save(); err != nil {
+	err = os.RemoveAll(path)
+	if err != nil {
 		return err
 	}
+	fmt.Printf("Successfully deleted %s\n", path)
 
-	// write out
-	for _, name := range removedNames {
-		fmt.Println(name)
-	}
 	return nil
 }
 
-// certsPrinter walk through path as root and prints out all regular files in it
+// certsPrinter walks through path and prints out all regular files in it
 func certsPrinter(path string) error {
 	return filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -365,6 +402,7 @@ func certsPrinter(path string) error {
 	})
 }
 
+// showRootCA displays details of a root certificate
 func showRootCA(cert *x509.Certificate) {
 	fmt.Println("Issuer: ", cert.Issuer)
 	fmt.Println("Subject: ", cert.Subject)
