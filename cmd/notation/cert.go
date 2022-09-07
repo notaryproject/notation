@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
@@ -179,9 +180,6 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 
 func addCert(opts *certAddOpts) error {
 	storeType := opts.storeType
-	if storeType == "" {
-		return errors.New("missing trust store type")
-	}
 	namedStore := opts.namedStore
 	if namedStore == "" {
 		return errors.New("missing named store")
@@ -404,19 +402,27 @@ func certsPrinter(path string) error {
 
 // showRootCA displays details of a root certificate
 func showRootCA(cert *x509.Certificate) {
-	fmt.Println("Issuer: ", cert.Issuer)
-	fmt.Println("Subject: ", cert.Subject)
-	fmt.Println("Valid from: ", cert.NotBefore)
-	fmt.Println("Valid to: ", cert.NotAfter)
-	fmt.Println("Version: ", cert.Version)
-	fmt.Println("Serial number: ", cert.SerialNumber)
-	fmt.Println("Signature Algorithm: ", cert.SignatureAlgorithm)
-	fmt.Println("Public Key Algorithm: ", cert.PublicKeyAlgorithm)
-	fmt.Println("Public Key: ", cert.PublicKey)
-	keyUsage, ok := corex509.KeyUsageNameMap[cert.KeyUsage]
-	if ok {
-		fmt.Println("Key Usage: ", keyUsage)
+	fmt.Println("Issuer:", cert.Issuer)
+	fmt.Println("Subject:", cert.Subject)
+	fmt.Println("Valid from:", cert.NotBefore)
+	fmt.Println("Valid to:", cert.NotAfter)
+	fmt.Println("Version:", cert.Version)
+	fmt.Println("Serial number:", cert.SerialNumber)
+	fmt.Println("Signature Algorithm:", cert.SignatureAlgorithm)
+	fmt.Println("Public Key Algorithm:", cert.PublicKeyAlgorithm)
+	fmt.Println("Public Key:", cert.PublicKey)
+
+	// KeyUsage
+	var keyUsage []string
+	for k, v := range corex509.KeyUsageNameMap {
+		if cert.KeyUsage&k != 0 {
+			keyUsage = append(keyUsage, v)
+		}
 	}
+	keyUsagePrint := strings.Join(keyUsage, ", ")
+	fmt.Println("Key Usage:", keyUsagePrint)
+
+	// ExtKeyUsage
 	var extKeyUsage []string
 	for _, u := range cert.ExtKeyUsage {
 		extKeyUsageString, ok := corex509.ExtKeyUsagesNameMap[u]
@@ -424,9 +430,10 @@ func showRootCA(cert *x509.Certificate) {
 			extKeyUsage = append(extKeyUsage, extKeyUsageString)
 		}
 	}
-	fmt.Println("Extended key usages: ", extKeyUsage)
-	fmt.Println("Basic Constraints Valid: ", cert.BasicConstraintsValid)
-	fmt.Println("IsCA: ", cert.IsCA)
+	fmt.Println("Extended key usages:", extKeyUsage)
+
+	fmt.Println("Basic Constraints Valid:", cert.BasicConstraintsValid)
+	fmt.Println("IsCA:", cert.IsCA)
 }
 
 func checkError(err error) error {
