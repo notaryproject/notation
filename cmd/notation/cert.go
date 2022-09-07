@@ -171,26 +171,69 @@ func addCert(opts *certAddOpts) error {
 	if namedStore == "" {
 		return errors.New("missing named store")
 	}
+	var success []string
+	var failure []string
+	var errorSlice []error
 	for _, p := range opts.path {
-		// initialize
-		certPath, err := filepath.Abs(p)
+		err := AddCertCore(p, storeType, namedStore, false)
 		if err != nil {
-			return err
+			failure = append(failure, p)
+			errorSlice = append(errorSlice, err)
+		} else {
+			success = append(success, p)
 		}
-
-		// check if the target path is a cert (support PEM and DER formats)
-		if _, err := corex509.ReadCertificateFile(certPath); err != nil {
-			continue
+	}
+	if len(success) != 0 {
+		fmt.Println("Successfully added following certificates into Trust Store:")
+		for _, p := range success {
+			fmt.Println(p)
 		}
+	}
 
-		// core process
-		path := dir.Path.X509TrustStore(storeType, namedStore)
-		_, err = osutil.Copy(certPath, path)
-		if err != nil {
-			return err
+	if len(failure) != 0 {
+		fmt.Println("Failed to add following certificates into Trust Store:")
+
+		for ind := range failure {
+			fmt.Printf("%s, with error \"%s\"\n", failure[ind], errorSlice[ind])
 		}
+	}
 
-		// write out
+	return nil
+}
+
+// AddCertCore adds a single cert file at path to the trust store with dir
+// truststore/x509/storeType/namedStore
+func AddCertCore(path, storeType, namedStore string, display bool) error {
+	// initialize
+	certPath, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+	if storeType == "" {
+		return errors.New("missing trust store type")
+	}
+	if namedStore == "" {
+		return errors.New("missing named store")
+	}
+
+	// check if the target path is a cert (support PEM and DER formats)
+	if _, err := corex509.ReadCertificateFile(certPath); err != nil {
+		return err
+	}
+
+	// core process
+	trustStorePath := dir.Path.X509TrustStore(storeType, namedStore)
+	// check if certificate already in the trust store
+	if _, err := os.Stat(filepath.Join(trustStorePath, filepath.Base(certPath))); err == nil {
+		return errors.New("certificate already exists in the Trust Store, try delete it and add again")
+	}
+	_, err = osutil.Copy(certPath, trustStorePath)
+	if err != nil {
+		return err
+	}
+
+	// write out
+	if display {
 		fmt.Println(filepath.Base(certPath))
 	}
 	return nil
@@ -323,13 +366,13 @@ func showRootCA(cert *x509.Certificate) {
 	fmt.Println("Signature Algorithm: ", cert.SignatureAlgorithm)
 	fmt.Println("Public Key Algorithm: ", cert.PublicKeyAlgorithm)
 	fmt.Println("Public Key: ", cert.PublicKey)
-	keyUsage, ok := KeyUsageNameMap[cert.KeyUsage]
+	keyUsage, ok := corex509.KeyUsageNameMap[cert.KeyUsage]
 	if ok {
 		fmt.Println("Key Usage: ", keyUsage)
 	}
 	var extKeyUsage []string
 	for _, u := range cert.ExtKeyUsage {
-		extKeyUsageString, ok := ExtKeyUsagesNameMap[u]
+		extKeyUsageString, ok := corex509.ExtKeyUsagesNameMap[u]
 		if ok {
 			extKeyUsage = append(extKeyUsage, extKeyUsageString)
 		}
@@ -344,37 +387,4 @@ func checkError(err error) error {
 		return err
 	}
 	return nil
-}
-
-// KeyUsageNameMap is a map of x509.Certificate KeyUsage map used in Notation
-// CLI
-var KeyUsageNameMap = map[x509.KeyUsage]string{
-	x509.KeyUsageDigitalSignature:  "Digital Signature",
-	x509.KeyUsageContentCommitment: "Non Repudiation",
-	x509.KeyUsageKeyEncipherment:   "Key Encipherment",
-	x509.KeyUsageDataEncipherment:  "Data Encipherment",
-	x509.KeyUsageKeyAgreement:      "Key Agreement",
-	x509.KeyUsageCertSign:          "Certificate Sign",
-	x509.KeyUsageCRLSign:           "CRL Sign",
-	x509.KeyUsageEncipherOnly:      "Encipher Only",
-	x509.KeyUsageDecipherOnly:      "Decipher Only",
-}
-
-// ExtKeyUsagesNameMap is a map of x509.Certificate ExtKeyUsages map used
-// in Notation CLI
-var ExtKeyUsagesNameMap = map[x509.ExtKeyUsage]string{
-	x509.ExtKeyUsageAny:                            "Any",
-	x509.ExtKeyUsageServerAuth:                     "TLS Web Server Authentication",
-	x509.ExtKeyUsageClientAuth:                     "TLS Web Client Authentication",
-	x509.ExtKeyUsageCodeSigning:                    "Code Signing",
-	x509.ExtKeyUsageEmailProtection:                "E-mail Protection",
-	x509.ExtKeyUsageIPSECEndSystem:                 "IPSec End System",
-	x509.ExtKeyUsageIPSECTunnel:                    "IPSec Tunnel",
-	x509.ExtKeyUsageIPSECUser:                      "IPSec User",
-	x509.ExtKeyUsageTimeStamping:                   "Time Stamping",
-	x509.ExtKeyUsageOCSPSigning:                    "OCSP Signing",
-	x509.ExtKeyUsageMicrosoftServerGatedCrypto:     "Microsoft Server Gated Crypto",
-	x509.ExtKeyUsageNetscapeServerGatedCrypto:      "Netscape Server Gated Crypto",
-	x509.ExtKeyUsageMicrosoftCommercialCodeSigning: "Microsoft Commercial Code Signing",
-	x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "Microsoft Kernel Code Signing",
 }
