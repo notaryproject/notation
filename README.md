@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/notaryproject/notation/branch/main/graph/badge.svg)](https://codecov.io/gh/notaryproject/notation)
 
-Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary V2 specifications][notaryv2-specs].
+Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary v2 specifications][notaryv2-specs].
 
 ## Table of Contents
 
@@ -80,7 +80,7 @@ This project has adopted the [CNCF Code of Conduct](https://github.com/cncf/foun
 
 This project is covered under the Apache 2.0 license. You can read the license [here](LICENSE).
 
-[Notation Releases]:      https://github.com/notaryproject/notation/releases
-[Notary v2 Specs]:         https://github.com/notaryproject/notaryproject
-[ORAS artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
-[CNCF Distribution]:      https://github.com/oras-project/distribution
+[notation-releases]:      https://github.com/notaryproject/notation/releases
+[notaryv2-specs]:         https://github.com/notaryproject/notaryproject
+[artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
+[cncf-distribution]:      https://github.com/oras-project/distribution
