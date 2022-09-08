@@ -17,17 +17,17 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 
 ## Notation Quick Start
 
-- Install the Notation CLI from [Notation Releases][notation-releases]
+- Install the Notation CLI from [Notation Releases][notation-releases]:
     ```bash
     curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.10.0-alpha.3/notation_0.10.0-alpha.3_linux_amd64.tar.gz
     tar xvzf notation.tar.gz -C ~/bin notation
     ```
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
+- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support:
   ```bash
   docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc
   ```
 
-- Build, Push, Sign, Verify the `net-monitor` software
+- Build, push, sign, verify the `net-monitor` software:
 
   ```bash
   export IMAGE=localhost:5000/net-monitor:v1
@@ -39,14 +39,13 @@ Notation is a CLI project to add signatures as standard items in the registry ec
   notation verify --plain-http $IMAGE
   ```
 
-Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
+> Note: Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
 
 
 ## Documents
 
 - [Hello World for Notation: Local signing and verification](docs/hello-signing.md)
 - [Build, sign, and verify container images using Notary and Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push)
-
 
 ## Community
 
@@ -59,8 +58,8 @@ Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
 
 ### Notary v2 Community Meeting
 
-- Mondays 5-6pm pacific time, 8-9pm US Eastern, 8-9am Shanghai
-- Thursdays 9-10am pacific time, 12pm US Eastern, 5pm UK
+- Mondays 5-6 PM Pacific time, 8-9 PM US Eastern, 8-9 AM Shanghai
+- Thursdays 9-10 AM Pacific time, 12 PM US Eastern, 5 PM UK
 
 Join us at [Zoom Dial-in link](https://zoom.us/my/cncfnotaryproject) / Passcode: 77777. Please see the [CNCF Calendar](https://www.cncf.io/calendar/) for community meeting details. Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
