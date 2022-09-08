@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 )
 
 func TestSignCommand_BasicArgs(t *testing.T) {
@@ -26,7 +27,7 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:          "key",
 			KeyFile:      "keyfile",
 			CertFile:     "certfile",
-			EnvelopeType: cmd.JwsFormat,
+			EnvelopeType: envelope.Jws,
 		},
 		push: true,
 	}
@@ -67,7 +68,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			Key:          "key",
 			KeyFile:      "keyfile",
 			CertFile:     "certfile",
-			EnvelopeType: cmd.CoseFormat,
+			EnvelopeType: envelope.Cose,
 		},
 		output: "outputfile",
 		push:   false,
@@ -112,7 +113,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 			Key:          "key",
 			KeyFile:      "keyfile",
 			CertFile:     "certfile",
-			EnvelopeType: cmd.JwsFormat,
+			EnvelopeType: envelope.Jws,
 		},
 		push:            true,
 		expiry:          365 * 24 * time.Hour,

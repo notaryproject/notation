@@ -10,13 +10,8 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation-go/signature"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/pkg/configutil"
-)
-
-// Supported envelope format.
-const (
-	CoseFormat = "cose"
-	JwsFormat  = "jws"
 )
 
 // GetSigner returns a signer according to the CLI context.
@@ -62,9 +57,9 @@ func GetExpiry(expiry time.Duration) time.Time {
 
 func GetEnvelopeMediaType(sigFormat string) (string, error) {
 	switch sigFormat {
-	case JwsFormat:
+	case envelope.Jws:
 		return jws.MediaTypeEnvelope, nil
-	case CoseFormat:
+	case envelope.Cose:
 		return cose.MediaTypeEnvelope, nil
 	}
 	return "", fmt.Errorf("signature format %s not supported", sigFormat)
