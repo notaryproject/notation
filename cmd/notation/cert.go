@@ -132,7 +132,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "delete [-t type] -s name {--all | fileName}",
 		Aliases: []string{"rm"},
-		Short:   "Delete certificate from the trust store",
+		Short:   "Delete certificates from the trust store",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if !opts.all && len(args) == 0 {
 				return errors.New("needs to specify certificate name or set --all flag")
