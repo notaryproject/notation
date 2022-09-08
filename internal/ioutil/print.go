@@ -80,3 +80,38 @@ func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerif
 		fmt.Printf("%s\n\n", outcome.Error.Error())
 	}
 }
+
+func PrintPolicyMap(w io.Writer, v []*verification.TrustPolicy) error {
+	tw := newTabWriter(w)
+	fmt.Fprintln(tw, "NAME\tSCOPE\tVERIFICATION_LEVEL\tTRUST_STORE\tTRUSTED_IDENTITY\t")
+	for _, policy := range v {
+		fmt.Fprintf(
+			tw,
+			"%s\t%s\t%+v\t%s\t%s\n",
+			policy.Name,
+			policy.RegistryScopes,
+			policy.SignatureVerification,
+			policy.TrustStores,
+			policy.TrustedIdentities,
+		)
+	}
+	return tw.Flush()
+}
+
+func PrintPolicyNames(w io.Writer, v []*verification.TrustPolicy, header string) error {
+	tw := newTabWriter(w)
+	fmt.Fprintln(tw, header)
+	for _, policy := range v {
+		fmt.Fprintln(tw, policy.Name)
+	}
+	return tw.Flush()
+}
+
+func PrintDeletedPolicyNames(w io.Writer, v []string) error {
+	tw := newTabWriter(w)
+	fmt.Fprintln(tw, "Deleted Policies:")
+	for _, name := range v {
+		fmt.Fprintln(tw, name)
+	}
+	return tw.Flush()
+}
