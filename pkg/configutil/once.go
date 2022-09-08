@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation/internal/envelope"
 )
 
 var (
@@ -24,6 +25,10 @@ func LoadConfigOnce() (*config.Config, error) {
 	var err error
 	configOnce.Do(func() {
 		configInfo, err = config.LoadConfig()
+		// set default value
+		if configInfo.EnvelopeType == "" {
+			configInfo.EnvelopeType = envelope.Jws
+		}
 	})
 	return configInfo, err
 }
