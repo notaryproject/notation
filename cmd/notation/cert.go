@@ -267,7 +267,7 @@ func listCerts(opts *certListOpts) error {
 		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509")
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
-				return err
+				return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 			}
 		}
 		return nil
@@ -279,7 +279,7 @@ func listCerts(opts *certListOpts) error {
 		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
-				return err
+				return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 			}
 		}
 
@@ -292,7 +292,7 @@ func listCerts(opts *certListOpts) error {
 		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", storeType)
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
-				return err
+				return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
 			}
 		}
 	} else {
@@ -301,14 +301,14 @@ func listCerts(opts *certListOpts) error {
 		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "ca", namedStore)
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
-				return err
+				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 			}
 		}
 
 		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "tsa", namedStore)
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
-				return err
+				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 			}
 		}
 	}
@@ -333,14 +333,14 @@ func showCerts(opts *certShowOpts) error {
 	// User level has priority over System level
 	path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
 	certs, err := corex509.ReadCertificateFile(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
 	if len(certs) == 0 {
-		return fmt.Errorf("missing certificate file under %s", path)
+		return fmt.Errorf("%s not found", path)
 	}
 	showRootCA(certs[len(certs)-1])
 
