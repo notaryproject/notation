@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -113,37 +114,36 @@ func TestCertRemoveCommand_MissingArgs(t *testing.T) {
 	}
 }
 
-// func TestCertGenerateCommand(t *testing.T) {
-// 	opts := &certGenerateTestOpts{}
-// 	cmd := certGenerateTestCommand(opts)
-// 	expected := &certGenerateTestOpts{
-// 		hosts:     []string{"host0", "host1", "host2"},
-// 		name:      "name",
-// 		bits:      2048,
-// 		isDefault: true,
-// 	}
-// 	if err := cmd.ParseFlags([]string{
-// 		"host0", "host1",
-// 		"-n", expected.name,
-// 		"--bits", fmt.Sprint(expected.bits),
-// 		"host2",
-// 		"--default"}); err != nil {
-// 		t.Fatalf("Parse Flag failed: %v", err)
-// 	}
-// 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
-// 		t.Fatalf("Parse Args failed: %v", err)
-// 	}
-// 	if !reflect.DeepEqual(*expected, *opts) {
-// 		t.Fatalf("Expect cert generate test opts: %v, got: %v", expected, opts)
-// 	}
-// }
+func TestCertGenerateCommand(t *testing.T) {
+	opts := &certGenerateTestOpts{}
+	cmd := certGenerateTestCommand(opts)
+	expected := &certGenerateTestOpts{
+		host:      "host0",
+		name:      "name",
+		bits:      2048,
+		isDefault: true,
+	}
+	if err := cmd.ParseFlags([]string{
+		"host0",
+		"-n", "name",
+		"--bits", fmt.Sprint(2048),
+		"--default"}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
+		t.Fatalf("Parse Args failed: %v", err)
+	}
+	if !reflect.DeepEqual(*expected, *opts) {
+		t.Fatalf("Expect cert generate test opts: %v, got: %v", expected, opts)
+	}
+}
 
-// func TestCertGenerateTestCommand_MissingArgs(t *testing.T) {
-// 	cmd := certGenerateTestCommand(nil)
-// 	if err := cmd.ParseFlags(nil); err != nil {
-// 		t.Fatalf("Parse Flag failed: %v", err)
-// 	}
-// 	if err := cmd.Args(cmd, cmd.Flags().Args()); err == nil {
-// 		t.Fatal("Parse Args expected error, but ok")
-// 	}
-// }
+func TestCertGenerateTestCommand_MissingArgs(t *testing.T) {
+	cmd := certGenerateTestCommand(nil)
+	if err := cmd.ParseFlags(nil); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := cmd.Args(cmd, cmd.Flags().Args()); err == nil {
+		t.Fatal("Parse Args expected error, but ok")
+	}
+}
