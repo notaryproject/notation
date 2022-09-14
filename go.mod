@@ -5,8 +5,8 @@ go 1.19
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
 	github.com/docker/docker-credential-helpers v0.6.4
-	github.com/notaryproject/notation-core-go v0.0.0-20220907021043-25e180615917
-	github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220913055000-accfc98c37e8
+	github.com/notaryproject/notation-core-go v0.0.0-20220907034926-8cdaf86b4d7c
+	github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220914025852-0192ce0945bf
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5

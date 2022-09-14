@@ -165,7 +165,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 		return err
 	}
 
-	if err := signingKeys.Save(); err != nil {
+	if err := signingKeys.Save(""); err != nil {
 		return err
 	}
 
@@ -259,7 +259,7 @@ func updateKey(opts *keyUpdateOpts) error {
 	}
 	if signingKeys.Default != name {
 		signingKeys.Default = name
-		if err := signingKeys.Save(); err != nil {
+		if err := signingKeys.Save(""); err != nil {
 			return err
 		}
 	}
@@ -300,7 +300,7 @@ func removeKeys(opts *keyRemoveOpts) error {
 			signingKeys.Default = ""
 		}
 	}
-	if err := signingKeys.Save(); err != nil {
+	if err := signingKeys.Save(""); err != nil {
 		return err
 	}
 

@@ -39,13 +39,13 @@ type certRemoveOpts struct {
 	all        bool
 }
 
-// type certGenerateTestOpts struct {
-// 	name      string
-// 	bits      int
-// 	trust     bool
-// 	hosts     []string
-// 	isDefault bool
-// }
+type certGenerateTestOpts struct {
+	name      string
+	bits      int
+	trust     bool
+	host      string
+	isDefault bool
+}
 
 func certCommand() *cobra.Command {
 	command := &cobra.Command{
@@ -54,8 +54,7 @@ func certCommand() *cobra.Command {
 		Short:   "Manage trust store and certificates used for verification",
 	}
 
-	// command.AddCommand(certAddCommand(nil), certListCommand(), certRemoveCommand(nil), certGenerateTestCommand(nil))
-	command.AddCommand(certAddCommand(nil), certListCommand(nil), certShowCommand(nil), certRemoveCommand(nil))
+	command.AddCommand(certAddCommand(nil), certListCommand(nil), certShowCommand(nil), certRemoveCommand(nil), certGenerateTestCommand(nil))
 	return command
 }
 
@@ -152,31 +151,31 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 	return command
 }
 
-// func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
-// 	if opts == nil {
-// 		opts = &certGenerateTestOpts{}
-// 	}
-// 	command := &cobra.Command{
-// 		Use:   "generate-test [host]...",
-// 		Short: "Generates a test RSA key and a corresponding self-generated certificate chain",
-// 		Args: func(cmd *cobra.Command, args []string) error {
-// 			if len(args) == 0 {
-// 				return errors.New("missing certificate hosts")
-// 			}
-// 			opts.hosts = args
-// 			return nil
-// 		},
-// 		RunE: func(cmd *cobra.Command, args []string) error {
-// 			return generateTestCert(opts)
-// 		},
-// 	}
+func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
+	if opts == nil {
+		opts = &certGenerateTestOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "generate-test [host]...",
+		Short: "Generates a test RSA key and a corresponding self-generated certificate chain",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate hosts")
+			}
+			opts.host = args[0]
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return generateTestCert(opts)
+		},
+	}
 
-// 	command.Flags().StringVarP(&opts.name, "name", "n", "", "key and certificate name")
-// 	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
-// 	command.Flags().BoolVar(&opts.trust, "trust", false, "add the generated certificate to the verification list")
-// 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
-// 	return command
-// }
+	command.Flags().StringVarP(&opts.name, "name", "n", "", "key and certificate name")
+	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
+	command.Flags().BoolVar(&opts.trust, "trust", false, "add the generated certificate to the trust store")
+	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+	return command
+}
 
 func addCert(opts *certAddOpts) error {
 	storeType := opts.storeType
@@ -197,14 +196,14 @@ func addCert(opts *certAddOpts) error {
 		}
 	}
 	if len(success) != 0 {
-		fmt.Println("Successfully added following certificates into Trust Store:")
+		fmt.Printf("Successfully added following certificates to named store %s of type %s:\n", namedStore, storeType)
 		for _, p := range success {
 			fmt.Println(p)
 		}
 	}
 
 	if len(failure) != 0 {
-		fmt.Println("Failed to add following certificates into Trust Store:")
+		fmt.Printf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
 
 		for ind := range failure {
 			fmt.Printf("%s, with error \"%s\"\n", failure[ind], errorSlice[ind])
@@ -242,7 +241,7 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	}
 	// check if certificate already in the trust store
 	if _, err := os.Stat(filepath.Join(trustStorePath, filepath.Base(certPath))); err == nil {
-		return errors.New("certificate already exists in the Trust Store, delete it and try again")
+		return errors.New("certificate already exists in the Trust Store")
 	}
 	_, err = osutil.Copy(certPath, trustStorePath)
 	if err != nil {
@@ -251,7 +250,7 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 
 	// write out
 	if display {
-		fmt.Println(filepath.Base(certPath))
+		fmt.Printf("Successfully added %s to named store %s of type %s\n", filepath.Base(certPath), namedStore, storeType)
 	}
 
 	return nil
