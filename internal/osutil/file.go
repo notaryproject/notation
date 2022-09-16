@@ -111,13 +111,13 @@ func CleanDir(dir string) error {
 		success = append(success, path)
 	}
 
+	// write out
 	if len(success) != 0 {
 		fmt.Println("Successfully deleted following certificates from Trust Store:")
 		for _, p := range success {
 			fmt.Println(p)
 		}
 	}
-
 	if len(failure) != 0 {
 		fmt.Println("Failed to delete following certificates from Trust Store:")
 
