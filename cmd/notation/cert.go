@@ -347,14 +347,7 @@ func showCerts(opts *certShowOpts) error {
 	}
 
 	//write out
-	fmt.Println("Display certificate details. Starting from leaf certificate if it's a certificate chain.")
-	fmt.Println("-----------------------------------------------------------------------------------------")
-	for ind, cert := range certs {
-		showCert(cert)
-		if ind != len(certs)-1 {
-			fmt.Println("-----------------------------------------------------------------------------------------")
-		}
-	}
+	displayCerts(certs)
 
 	return nil
 }
@@ -457,6 +450,18 @@ func printCerts(root string) error {
 	})
 }
 
+// displayCerts writes out details of certificates for 'notation cert show'
+func displayCerts(certs []*x509.Certificate) {
+	fmt.Println("Display certificate details. Starting from leaf certificate if it's a certificate chain.")
+	fmt.Println("-----------------------------------------------------------------------------------------")
+	for ind, cert := range certs {
+		showCert(cert)
+		if ind != len(certs)-1 {
+			fmt.Println("-----------------------------------------------------------------------------------------")
+		}
+	}
+}
+
 // showCert displays details of a certificate
 func showCert(cert *x509.Certificate) {
 	fmt.Println("Issuer:", cert.Issuer)
@@ -467,7 +472,9 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("Serial number:", cert.SerialNumber)
 	fmt.Println("Signature Algorithm:", cert.SignatureAlgorithm)
 	fmt.Println("Public Key Algorithm:", cert.PublicKeyAlgorithm)
-	fmt.Println("Public Key:", cert.PublicKey)
+
+	// SubjectPublicKeyInfo
+	fmt.Println("SubjectPublicKeyInfo:", cert.PublicKey)
 
 	// KeyUsage
 	var keyUsage []string
