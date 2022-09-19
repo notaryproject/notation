@@ -12,15 +12,16 @@ import (
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
-	hosts := opts.hosts
+	host := opts.host
 	name := opts.name
 	if name == "" {
-		name = hosts[0]
+		name = host
 	}
 
 	// generate RSA private key
@@ -32,11 +33,11 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 
 	// generate self-created certificate chain
-	rsaRootCertTuple, rootBytes, err := generateTestRootCert(hosts, bits)
+	rsaRootCertTuple, rootBytes, err := generateTestRootCert(host, bits)
 	if err != nil {
 		return err
 	}
-	rsaLeafCertTuple, leafBytes, err := generateTestLeafCert(&rsaRootCertTuple, key, hosts)
+	rsaLeafCertTuple, leafBytes, err := generateTestLeafCert(&rsaRootCertTuple, key, host)
 	if err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 	fmt.Println("wrote key:", keyPath)
 
-	// write self-signed certificate
+	// write certificate chain
 	if err := osutil.WriteFileWithPermission(certPath, append(leafBytes, rootBytes...), 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
@@ -77,15 +78,17 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 	trust := opts.trust
+	// Add to the trust store
 	if trust {
-		if err := addCertCore(cfg, name, certPath); err != nil {
+		if err := AddCertCore(certPath, "ca", name, true); err != nil {
 			return err
 		}
 	}
-	if err := cfg.Save(); err != nil {
+	addCertToConfig(cfg, name, certPath)
+	if err := cfg.Save(""); err != nil {
 		return err
 	}
-	if err := signingKeys.Save(); err != nil {
+	if err := signingKeys.Save(""); err != nil {
 		return err
 	}
 
@@ -93,9 +96,6 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Printf("%s: added to the key list\n", name)
 	if isDefault {
 		fmt.Printf("%s: marked as default\n", name)
-	}
-	if trust {
-		fmt.Printf("%s: added to the certificate list\n", name)
 	}
 	return nil
 }
@@ -118,17 +118,29 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 }
 
 // generateTestRootCert generates a self-signed root certificate
-func generateTestRootCert(hosts []string, bits int) (testhelper.RSACertTuple, []byte, error) {
+func generateTestRootCert(host string, bits int) (testhelper.RSACertTuple, []byte, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return testhelper.RSACertTuple{}, nil, fmt.Errorf("failed to generate root key: %v", err)
 	}
-	rsaRootCertTuple := testhelper.GetRSACertTupleWithPK(priv, hosts[0]+" CA", nil)
+	rsaRootCertTuple := testhelper.GetRSACertTupleWithPK(priv, host+" CA", nil)
 	return rsaRootCertTuple, generateCertPEM(&rsaRootCertTuple), nil
 }
 
 // generateTestLeafCert generates the leaf certificate
-func generateTestLeafCert(rsaRootCertTuple *testhelper.RSACertTuple, privateKey *rsa.PrivateKey, hosts []string) (testhelper.RSACertTuple, []byte, error) {
-	rsaLeafCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, hosts[0], rsaRootCertTuple)
+func generateTestLeafCert(rsaRootCertTuple *testhelper.RSACertTuple, privateKey *rsa.PrivateKey, host string) (testhelper.RSACertTuple, []byte, error) {
+	rsaLeafCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, host, rsaRootCertTuple)
 	return rsaLeafCertTuple, generateCertPEM(&rsaLeafCertTuple), nil
+}
+
+// addCertToConfig adds a certificate chain to config.json
+// TODO: Notation will use certificates in the trust store to do verification.
+// 		 Remove this path once trust policy is merged.
+func addCertToConfig(cfg *config.Config, name, path string) {
+	if !slices.Contains(cfg.VerificationCertificates.Certificates, name) {
+		cfg.VerificationCertificates.Certificates = append(cfg.VerificationCertificates.Certificates, config.CertificateReference{
+			Name: name,
+			Path: path,
+		})
+	}
 }

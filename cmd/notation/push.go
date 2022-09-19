@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/spf13/cobra"
 )
@@ -70,7 +71,12 @@ func runPush(command *cobra.Command, opts *pushOpts) error {
 			return err
 		}
 		// pass in nonempty annotations if needed
-		sigDesc, _, err := sigRepo.PutSignatureManifest(command.Context(), sig, manifestDesc, make(map[string]string))
+		// TODO: understand media type in a better way
+		sigMediaType, err := signature.GuessSignatureEnvelopeFormat(sig)
+		if err != nil {
+			return err
+		}
+		sigDesc, _, err := sigRepo.PutSignatureManifest(command.Context(), sig, sigMediaType, manifestDesc, make(map[string]string))
 		if err != nil {
 			return fmt.Errorf("put signature manifest failure: %v", err)
 		}
@@ -95,7 +101,12 @@ func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []
 
 	// core process
 	// pass in nonempty annotations if needed
-	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, manifestDesc, make(map[string]string))
+	// TODO: understand media type in a better way
+	sigMediaType, err := signature.GuessSignatureEnvelopeFormat(sig)
+	if err != nil {
+		return notation.Descriptor{}, err
+	}
+	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, sigMediaType, manifestDesc, make(map[string]string))
 	if err != nil {
 		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
 	}
