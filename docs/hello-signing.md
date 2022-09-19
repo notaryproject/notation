@@ -98,6 +98,10 @@ To get things started quickly, the Notation cli supports self-signed certificate
   ```bash
   notation sign --envelope-type cose $IMAGE
   ```
+  To save the generated digest
+  ```
+  export DIGEST=$(notation sign $IMAGE)
+  ```
 
 - List the image, and any associated signatures
 
@@ -112,7 +116,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Attempt to verify the $IMAGE notation signature
 
   ```bash
-  notation verify $IMAGE
+  notation verify --plain-http $REPO@$DIGEST
   ```
 
   *The above verification should fail, as you haven't yet configured the keys to trust.*
@@ -131,7 +135,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Verify the `net-monitor:v1` notation signature
 
   ```bash
-  notation verify $IMAGE
+  notation verify --plain-http $REPO@$DIGEST
   ```
 
   This should now succeed because the image is signed with a trusted public key
