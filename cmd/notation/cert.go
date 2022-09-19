@@ -77,7 +77,7 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 		},
 	}
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "ca", "specify trust store type, options: ca, tsa")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	command.Flags().StringVarP(&opts.namedStore, "store", "s", "default", "specify named store")
 	return command
 }
 
@@ -104,7 +104,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "show -t type -s name fileName",
-		Short: "Show certificate details given trust store type, named store, and cert file name. If input is a certificate chain, only details of the root certificate is displayed. User level has priority over System level",
+		Short: "Show certificate details given trust store type, named store, and cert file name. If input is a certificate chain, all certificates in the chain is displayed starting from the leaf. User level has priority over System level",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate path")
@@ -160,7 +160,7 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 		Short: "Generates a test RSA key and a corresponding self-generated certificate chain",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing certificate hosts")
+				return errors.New("missing certificate host")
 			}
 			opts.host = args[0]
 			return nil
@@ -178,10 +178,13 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 }
 
 func addCert(opts *certAddOpts) error {
-	storeType := opts.storeType
-	namedStore := opts.namedStore
+	storeType := strings.TrimSpace(opts.storeType)
+	if storeType == "" {
+		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
+	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
-		return errors.New("missing named store")
+		return errors.New("named store cannot be empty or contain only whitespaces")
 	}
 	var success []string
 	var failure []string
@@ -195,13 +198,14 @@ func addCert(opts *certAddOpts) error {
 			success = append(success, p)
 		}
 	}
+
+	//write out
 	if len(success) != 0 {
 		fmt.Printf("Successfully added following certificates to named store %s of type %s:\n", namedStore, storeType)
 		for _, p := range success {
 			fmt.Println(p)
 		}
 	}
-
 	if len(failure) != 0 {
 		fmt.Printf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
 
@@ -221,11 +225,13 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	if err != nil {
 		return err
 	}
+	storeType = strings.TrimSpace(storeType)
 	if storeType == "" {
-		return errors.New("missing trust store type")
+		return errors.New("store type cannot be empty or contain only whitespaces")
 	}
+	namedStore = strings.TrimSpace(namedStore)
 	if namedStore == "" {
-		return errors.New("missing named store")
+		return errors.New("named store cannot be empty or contain only whitespaces")
 	}
 
 	// check if the target path is a cert (support PEM and DER formats)
@@ -243,6 +249,7 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	if _, err := os.Stat(filepath.Join(trustStorePath, filepath.Base(certPath))); err == nil {
 		return errors.New("certificate already exists in the Trust Store")
 	}
+	// add cert to trust store
 	_, err = osutil.Copy(certPath, trustStorePath)
 	if err != nil {
 		return err
@@ -257,8 +264,8 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 }
 
 func listCerts(opts *certListOpts) error {
-	namedStore := opts.namedStore
-	storeType := opts.storeType
+	namedStore := strings.TrimSpace(opts.namedStore)
+	storeType := strings.TrimSpace(opts.storeType)
 
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
@@ -269,6 +276,7 @@ func listCerts(opts *certListOpts) error {
 				return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 			}
 		}
+
 		return nil
 	}
 
@@ -316,17 +324,17 @@ func listCerts(opts *certListOpts) error {
 }
 
 func showCerts(opts *certShowOpts) error {
-	storeType := opts.storeType
+	storeType := strings.TrimSpace(opts.storeType)
 	if storeType == "" {
-		return errors.New("missing trust store type")
+		return errors.New("store type cannot be empty or contain only whitespaces")
 	}
-	namedStore := opts.namedStore
+	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
-		return errors.New("missing named store")
+		return errors.New("named store cannot be empty or contain only whitespaces")
 	}
-	cert := opts.cert
+	cert := strings.TrimSpace(opts.cert)
 	if cert == "" {
-		return errors.New("missing cert fileName")
+		return errors.New("certificate fileName cannot be empty or contain only whitespaces")
 	}
 
 	// User level has priority over System level
@@ -341,17 +349,19 @@ func showCerts(opts *certShowOpts) error {
 	if len(certs) == 0 {
 		return fmt.Errorf("%s not found", path)
 	}
-	showRootCA(certs[len(certs)-1])
+
+	//write out
+	displayCerts(certs)
 
 	return nil
 }
 
 func removeCerts(opts *certRemoveOpts) error {
-	namedStore := opts.namedStore
+	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
-		return errors.New("missing named store")
+		return errors.New("named store cannot be empty or contain only whitespaces")
 	}
-	storeType := opts.storeType
+	storeType := strings.TrimSpace(opts.storeType)
 	var errorSlice []error
 
 	if opts.all {
@@ -363,6 +373,7 @@ func removeCerts(opts *certRemoveOpts) error {
 			// Delete all certificates under storeType/namedStore
 			errorSlice = removeCertsCore(storeType, namedStore, "", true, errorSlice)
 		}
+		// write out on failure
 		if len(errorSlice) > 0 {
 			fmt.Println("Failed to clear following named stores:")
 			for _, err := range errorSlice {
@@ -375,12 +386,14 @@ func removeCerts(opts *certRemoveOpts) error {
 
 	// Delete a certain certificate with path storeType/namedStore/cert
 	if storeType == "" {
-		return errors.New("missing trust store type")
+		return errors.New("to delete a specific certificate, store type cannot be empty or contain only whitespaces")
 	}
-	if opts.cert == "" {
-		return errors.New("missing certificate fileName")
+	cert := strings.TrimSpace(opts.cert)
+	if cert == "" {
+		return errors.New("to delete a specific certificate, certificate fileName cannot be empty or contain only whitespaces")
 	}
-	errorSlice = removeCertsCore(storeType, namedStore, opts.cert, false, errorSlice)
+	errorSlice = removeCertsCore(storeType, namedStore, cert, false, errorSlice)
+	// write out on failure
 	if len(errorSlice) > 0 {
 		fmt.Println("Failed to delete following certificates:")
 		for _, err := range errorSlice {
@@ -409,6 +422,7 @@ func removeCertsCore(storeType, namedStore, cert string, all bool, errorSlice []
 			if err = os.RemoveAll(path); err != nil {
 				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
 			} else {
+				// write out on success
 				fmt.Printf("Successfully deleted %s\n", path)
 				return []error{}
 			}
@@ -440,8 +454,20 @@ func printCerts(root string) error {
 	})
 }
 
-// showRootCA displays details of a root certificate
-func showRootCA(cert *x509.Certificate) {
+// displayCerts writes out details of certificates for 'notation cert show'
+func displayCerts(certs []*x509.Certificate) {
+	fmt.Println("Display certificate details. Starting from leaf certificate if it's a certificate chain.")
+	fmt.Println("-----------------------------------------------------------------------------------------")
+	for ind, cert := range certs {
+		showCert(cert)
+		if ind != len(certs)-1 {
+			fmt.Println("-----------------------------------------------------------------------------------------")
+		}
+	}
+}
+
+// showCert displays details of a certificate
+func showCert(cert *x509.Certificate) {
 	fmt.Println("Issuer:", cert.Issuer)
 	fmt.Println("Subject:", cert.Subject)
 	fmt.Println("Valid from:", cert.NotBefore)
@@ -450,7 +476,9 @@ func showRootCA(cert *x509.Certificate) {
 	fmt.Println("Serial number:", cert.SerialNumber)
 	fmt.Println("Signature Algorithm:", cert.SignatureAlgorithm)
 	fmt.Println("Public Key Algorithm:", cert.PublicKeyAlgorithm)
-	fmt.Println("Public Key:", cert.PublicKey)
+
+	// SubjectPublicKeyInfo
+	fmt.Println("SubjectPublicKeyInfo:", cert.PublicKey)
 
 	// KeyUsage
 	var keyUsage []string
