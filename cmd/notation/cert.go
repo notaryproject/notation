@@ -178,7 +178,10 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 }
 
 func addCert(opts *certAddOpts) error {
-	storeType := opts.storeType
+	storeType := strings.TrimSpace(opts.storeType)
+	if storeType == "" {
+		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
 	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
 		return errors.New("named store cannot be empty or contain only whitespaces")
@@ -273,6 +276,7 @@ func listCerts(opts *certListOpts) error {
 				return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 			}
 		}
+
 		return nil
 	}
 
