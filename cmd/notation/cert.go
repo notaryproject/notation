@@ -11,6 +11,7 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
@@ -37,6 +38,7 @@ type certRemoveOpts struct {
 	namedStore string
 	cert       string
 	all        bool
+	confirmed  bool
 }
 
 type certGenerateTestOpts struct {
@@ -148,6 +150,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "if set to true, remove all certificates in the named store")
+	command.Flags().BoolVarP(&opts.confirmed, "confirm", "y", false, "if yes, do not prompt for confirmation")
 	return command
 }
 
@@ -369,7 +372,7 @@ func removeCerts(opts *certRemoveOpts) error {
 
 	if opts.all {
 		// Delete all certificates under storeType/namedStore
-		errorSlice = removeCertsCore(storeType, namedStore, "", true, errorSlice)
+		errorSlice = removeCertsCore(storeType, namedStore, "", true, opts.confirmed, errorSlice)
 
 		// write out on failure
 		if len(errorSlice) > 0 {
@@ -387,7 +390,7 @@ func removeCerts(opts *certRemoveOpts) error {
 	if cert == "" {
 		return errors.New("to delete a specific certificate, certificate fileName cannot be empty or contain only whitespaces")
 	}
-	errorSlice = removeCertsCore(storeType, namedStore, cert, false, errorSlice)
+	errorSlice = removeCertsCore(storeType, namedStore, cert, false, opts.confirmed, errorSlice)
 	// write out on failure
 	if len(errorSlice) > 0 {
 		fmt.Println("Failed to delete following certificates:")
@@ -401,10 +404,20 @@ func removeCerts(opts *certRemoveOpts) error {
 
 // removeCertsCore deletes certificate files from the User level trust store
 // under dir truststore/x509/storeType/namedStore
-func removeCertsCore(storeType, namedStore, cert string, all bool, errorSlice []error) []error {
+func removeCertsCore(storeType, namedStore, cert string, all, confirmed bool, errorSlice []error) []error {
 	if all {
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 		if err == nil {
+			prompt := fmt.Sprintf("Are you sure you want to removes all regular files under dir: %q?", path)
+			confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+			if err != nil {
+				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+				return errorSlice
+			}
+			if !confirmed {
+				return errorSlice
+			}
+
 			if err = osutil.CleanDir(path); err != nil {
 				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
 			}
@@ -414,6 +427,16 @@ func removeCertsCore(storeType, namedStore, cert string, all bool, errorSlice []
 	} else {
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 		if err == nil {
+			prompt := fmt.Sprintf("Are you sure you want to delete: %q?", path)
+			confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+			if err != nil {
+				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+				return errorSlice
+			}
+			if !confirmed {
+				return errorSlice
+			}
+
 			if err = os.RemoveAll(path); err != nil {
 				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
 			} else {
