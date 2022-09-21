@@ -76,8 +76,8 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 			return addCert(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "ca", "specify trust store type, options: ca, tsa")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "default", "specify named store")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	return command
 }
 
@@ -93,7 +93,7 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 			return listCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	return command
 }
@@ -119,7 +119,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 			return showCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	return command
 }
@@ -145,7 +145,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 			return removeCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "if set to true, remove all certificates in the named store")
 	return command
@@ -312,7 +312,7 @@ func listCerts(opts *certListOpts) error {
 			}
 		}
 
-		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "tsa", namedStore)
+		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "signingAuthority", namedStore)
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
 				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
@@ -362,17 +362,15 @@ func removeCerts(opts *certRemoveOpts) error {
 		return errors.New("named store cannot be empty or contain only whitespaces")
 	}
 	storeType := strings.TrimSpace(opts.storeType)
+	if storeType == "" {
+		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
 	var errorSlice []error
 
 	if opts.all {
-		if storeType == "" {
-			// Delete all certificates under namedStore
-			errorSlice = removeCertsCore("ca", namedStore, "", true, errorSlice)
-			errorSlice = removeCertsCore("tsa", namedStore, "", true, errorSlice)
-		} else {
-			// Delete all certificates under storeType/namedStore
-			errorSlice = removeCertsCore(storeType, namedStore, "", true, errorSlice)
-		}
+		// Delete all certificates under storeType/namedStore
+		errorSlice = removeCertsCore(storeType, namedStore, "", true, errorSlice)
+
 		// write out on failure
 		if len(errorSlice) > 0 {
 			fmt.Println("Failed to clear following named stores:")
@@ -385,9 +383,6 @@ func removeCerts(opts *certRemoveOpts) error {
 	}
 
 	// Delete a certain certificate with path storeType/namedStore/cert
-	if storeType == "" {
-		return errors.New("to delete a specific certificate, store type cannot be empty or contain only whitespaces")
-	}
 	cert := strings.TrimSpace(opts.cert)
 	if cert == "" {
 		return errors.New("to delete a specific certificate, certificate fileName cannot be empty or contain only whitespaces")
