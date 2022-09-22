@@ -29,7 +29,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		Use:   "verify <reference>",
 		Short: "Verifies OCI Artifacts",
 		Long: `Verifies OCI Artifacts:
-  notation verify [--config <key>:<value>] [--username <username>] [--password <password>] <reference>`,
+  notation verify [--config <key>=<value>] [--username <username>] [--password <password>] <reference>`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -56,11 +56,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set up verification plugin config.
 	configs := make(map[string]string)
 	for _, c := range opts.config {
-		idx := strings.Index(c, ":")
-		if idx == -1 || idx == 0 || idx == len(c) - 1 {
+		parts := strings.Split(c, "=")
+		if len(parts) != 2 {
 			return fmt.Errorf("invalid config option: %s", c)
 		}
-		configs[c[0:idx]] = c[idx+1:]
+		configs[parts[0]] = parts[1]
 	}
 	ctx := command.Context()
 	verification.WithPluginConfig(ctx, configs)

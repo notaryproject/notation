@@ -111,6 +111,31 @@ To get things started quickly, the Notation cli supports self-signed certificate
 
 ## Verify a Container Image Using Notation Signatures
 
+Notation provides a trust policy for users to specify trusted identities which will sign the artifiacts, and level of signature verification to use. A trust policy is a JSON document, below example works for the current case.
+
+```
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-images",
+            "registryScopes": [
+                "localhost:5000/net-monitor"
+            ],
+            "signatureVerification": {
+                "level": "strict"
+            },
+            "trustStores": [
+                "ca:wabbit-networks.io"
+            ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=Notary"
+            ]
+        }
+    ]
+}
+```
+
 To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify that the artifact was unmodified after it was created (integrity), and from an trusted entity (authenticity). Notation uses a set of configured public keys that represent trusted entities, to verify the content. The `notation cert generate-test` command created the public key, however it must be explicitly added for verification to succeed.
 
 - Attempt to verify the $IMAGE notation signature
