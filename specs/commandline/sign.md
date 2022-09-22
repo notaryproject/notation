@@ -1,69 +1,64 @@
----
-title: "notation sign"
-description: "The notation sign command description and usage"
-keywords: "notation, sign"
----
 # notation sign
 ## Description
 Use `notation sign` to sign artifacts.
 
-If the signing artifact is a container image stored in a registry, the signature is pushed to the registry by default after signing successfully, and the digest of the container image is returned.
+If the container image being signed is stored in the registry, upon successful signing, the generated signature will be pushed to the registry and the digest of the container image will be returned.
 ## Outline
 ```console
-$ notation sign --help
 Sign artifacts
 
 Usage:
-  notation sign [reference] [flags]
+  notation sign <reference> [flags]
 
 Flags:
-      --cert-file string        signing certificate file
-  -e, --expiry duration         expire duration
-  -h, --help                    help for sign
-  -k, --key string              signing key name
-      --key-file string         signing key file
-  -l, --local                   reference is a local file
-      --media-type string       specify the media type of the manifest read from file or stdin (default "application/vnd.docker.distribution.manifest.v2+json")
-  -o, --output string           write signature to a specific path
+      --cert-file string        Location of file containing signing(leaf) certificate and certificate chain
+  -e, --expiry duration         Expire duration in seconds, minutes or hours
+  -h, --help                    Help for sign
+  -k, --key string              Signing key name
+      --key-file string         Signing key file
   -p, --password string         Password for registry operations (default from $NOTATION_PASSWORD)
-  -c, --pluginConfig string     list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values
-      --push                    push after successful signing (default true)
-  -r, --reference string        original reference
+  -c, --pluginConfig string     List of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values
   -u, --username string         Username for registry operations (default from $NOTATION_USERNAME)
 
 Global Flags:
       --plain-http   Registry access via plain HTTP
 ```
 ## Usage
-### sign a container image with a local key and certificate
+### Sign a container image
 ```console
-notation sign <image> --key-file <key path> --cert-file <cert path> 
-```
-### sign a container image using a key name
-```console
-# Add a key with a key name referencing signing key file
-notation key add -n <key name> <key path> <cert path> 
+# Add a key and make it a default signing key
+notation key add -n <key name> <key path> <cert path> --default
 
-# sign a container image using a key name
-notation sign <image> --key <key name>
+# [Optional] Change a default signing key
+notation key update <key name> --default
+
+# Sign a container image using the default signing key
+notation sign <image>
 ```
-### sign a container image with key and certificate stored in a Key Vault
+### Sign a container image using a remote key
 ```console
-# Pre-condition: 
+# Prerequisites: 
 # - A Key Vault plugin is installed in notation
-# - User creates keys and certificates in a Key vault
-# Add the key with a key name referencing the key stored in Key Vault
-notation key add -n <key name> --plugin <plugin name> --id <key id>
+# - User creates keys and certificates in a Key Vault
+# Add a default signing key referencing the key stored in the Key Vault
+notation key add -n <key name> --plugin <plugin name> --id <remote key id> --default
 
-# sign a container image using a key name
+# sign a container image using a remote key
+notation sign <image>
+```
+### Sign a container image and specify the signature expiry duration, for example 24 hours
+```console
+notation sign <image> --expiry 24h
+```
+### Sign a container image using a specified signing key
+```console
+# List signing keys to get the key name
+notation key list
+
+# Sign a container image using the specified key name
 notation sign <image> --key <key name>
 ```
-### store signature in a local file
+### Sign a container image using a local key and certificate which are not added in the signing key list
 ```console
-# disable auto push and store signature in a specified file
-notation sign <image> --key <key name> --push false -o <signature file>
-```
-### sign a local file and store signature in a specified file
-```console
-notation sign -l <local file> --key <key name> -o <signature file>
+notation sign <image> --key-file <key path> --cert-file <cert path>
 ```
