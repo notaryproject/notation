@@ -160,7 +160,7 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "generate-test -n [name] -b [bits] [--default] [--trust] <host>",
-		Short: "Generates a test RSA key and a corresponding self-signed certificate",
+		Short: "Generate a test RSA key and a corresponding self-signed certificate",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate host")
@@ -408,7 +408,7 @@ func removeCertsCore(storeType, namedStore, cert string, all, confirmed bool, er
 	if all {
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 		if err == nil {
-			prompt := fmt.Sprintf("Are you sure you want to removes all regular files under dir: %q?", path)
+			prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under dir: %q?", path)
 			confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 			if err != nil {
 				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
