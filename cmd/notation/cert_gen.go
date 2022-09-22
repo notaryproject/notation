@@ -45,7 +45,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 	fmt.Println("wrote key:", keyPath)
 
-	// write certificate chain
+	// write the self-signed certificate
 	if err := osutil.WriteFileWithPermission(certPath, certBytes, 0644, false); err != nil {
 		return fmt.Errorf("failed to write certificate file: %v", err)
 	}
@@ -118,7 +118,7 @@ func generateSelfSignedCert(privateKey *rsa.PrivateKey, host string) (testhelper
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
 }
 
-// addCertToConfig adds a certificate chain to config.json
+// addCertToConfig adds a self-signed certificate to config.json
 // TODO: Notation will use certificates in the trust store to do verification.
 // 		 Remove this path once trust policy is merged.
 func addCertToConfig(cfg *config.Config, name, path string) {
