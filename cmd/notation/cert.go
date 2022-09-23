@@ -11,6 +11,7 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
@@ -37,6 +38,7 @@ type certRemoveOpts struct {
 	namedStore string
 	cert       string
 	all        bool
+	confirmed  bool
 }
 
 type certGenerateTestOpts struct {
@@ -63,7 +65,7 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 		opts = &certAddOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "add -t type -s name path...",
+		Use:   "add -t <type> -s <name> <path...>",
 		Short: "Add certificates to the trust store. This command only operates on User level",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -76,8 +78,8 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 			return addCert(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "ca", "specify trust store type, options: ca, tsa")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "default", "specify named store")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	return command
 }
 
@@ -93,7 +95,7 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 			return listCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	return command
 }
@@ -103,7 +105,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 		opts = &certShowOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "show -t type -s name fileName",
+		Use:   "show -t <type> -s <name> <fileName>",
 		Short: "Show certificate details given trust store type, named store, and cert file name. If input is a certificate chain, all certificates in the chain is displayed starting from the leaf. User level has priority over System level",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -119,7 +121,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 			return showCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	return command
 }
@@ -129,7 +131,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		opts = &certRemoveOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "delete [-t type] -s name {--all | fileName}",
+		Use:     "delete -t <type> -s <name> [-y] (--all | <fileName>)",
 		Aliases: []string{"rm"},
 		Short:   "Delete certificates from the trust store. This command only operates on User level",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -145,9 +147,10 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 			return removeCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, tsa")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "if set to true, remove all certificates in the named store")
+	command.Flags().BoolVarP(&opts.confirmed, "confirm", "y", false, "if yes, do not prompt for confirmation")
 	return command
 }
 
@@ -156,8 +159,8 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 		opts = &certGenerateTestOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "generate-test [host]...",
-		Short: "Generates a test RSA key and a corresponding self-generated certificate chain",
+		Use:   "generate-test [-n name] [-b bits] [--default] [--trust] <host>",
+		Short: "Generate a test RSA key and a corresponding self-signed certificate",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate host")
@@ -210,7 +213,7 @@ func addCert(opts *certAddOpts) error {
 		fmt.Printf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
 
 		for ind := range failure {
-			fmt.Printf("%s, with error \"%s\"\n", failure[ind], errorSlice[ind])
+			fmt.Printf("%s, with error %q\n", failure[ind], errorSlice[ind])
 		}
 	}
 
@@ -312,7 +315,7 @@ func listCerts(opts *certListOpts) error {
 			}
 		}
 
-		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "tsa", namedStore)
+		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "signingAuthority", namedStore)
 		for _, path := range paths {
 			if err := checkError(printCerts(path)); err != nil {
 				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
@@ -347,7 +350,7 @@ func showCerts(opts *certShowOpts) error {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
 	if len(certs) == 0 {
-		return fmt.Errorf("%s not found", path)
+		return fmt.Errorf("failed to show details of certificate %s, with error: no valid certificate presents", cert)
 	}
 
 	//write out
@@ -362,17 +365,15 @@ func removeCerts(opts *certRemoveOpts) error {
 		return errors.New("named store cannot be empty or contain only whitespaces")
 	}
 	storeType := strings.TrimSpace(opts.storeType)
+	if storeType == "" {
+		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
 	var errorSlice []error
 
 	if opts.all {
-		if storeType == "" {
-			// Delete all certificates under namedStore
-			errorSlice = removeCertsCore("ca", namedStore, "", true, errorSlice)
-			errorSlice = removeCertsCore("tsa", namedStore, "", true, errorSlice)
-		} else {
-			// Delete all certificates under storeType/namedStore
-			errorSlice = removeCertsCore(storeType, namedStore, "", true, errorSlice)
-		}
+		// Delete all certificates under storeType/namedStore
+		errorSlice = removeAllCerts(storeType, namedStore, opts.confirmed, errorSlice)
+
 		// write out on failure
 		if len(errorSlice) > 0 {
 			fmt.Println("Failed to clear following named stores:")
@@ -385,14 +386,11 @@ func removeCerts(opts *certRemoveOpts) error {
 	}
 
 	// Delete a certain certificate with path storeType/namedStore/cert
-	if storeType == "" {
-		return errors.New("to delete a specific certificate, store type cannot be empty or contain only whitespaces")
-	}
 	cert := strings.TrimSpace(opts.cert)
 	if cert == "" {
 		return errors.New("to delete a specific certificate, certificate fileName cannot be empty or contain only whitespaces")
 	}
-	errorSlice = removeCertsCore(storeType, namedStore, cert, false, errorSlice)
+	errorSlice = removeCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
 	// write out on failure
 	if len(errorSlice) > 0 {
 		fmt.Println("Failed to delete following certificates:")
@@ -404,31 +402,54 @@ func removeCerts(opts *certRemoveOpts) error {
 	return nil
 }
 
-// removeCertsCore deletes certificate files from the User level trust store
+// removeAllCerts deletes all certificate files from the User level trust store
 // under dir truststore/x509/storeType/namedStore
-func removeCertsCore(storeType, namedStore, cert string, all bool, errorSlice []error) []error {
-	if all {
-		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
-		if err == nil {
-			if err = osutil.CleanDir(path); err != nil {
-				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
-			}
-		} else {
-			errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+func removeAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
+	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
+	if err == nil {
+		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under dir: %q?", path)
+		confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+		if err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+			return errorSlice
+		}
+		if !confirmed {
+			return errorSlice
+		}
+
+		if err = osutil.CleanDir(path); err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 		}
 	} else {
-		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
-		if err == nil {
-			if err = os.RemoveAll(path); err != nil {
-				errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
-			} else {
-				// write out on success
-				fmt.Printf("Successfully deleted %s\n", path)
-				return []error{}
-			}
-		} else {
-			errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+	}
+	return errorSlice
+}
+
+// removeCert deletes a specific certificate file from the User level
+// trust store, namely truststore/x509/storeType/namedStore/cert
+func removeCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
+	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
+	if err == nil {
+		prompt := fmt.Sprintf("Are you sure you want to delete: %q?", path)
+		confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+		if err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+			return errorSlice
 		}
+		if !confirmed {
+			return errorSlice
+		}
+
+		if err = os.RemoveAll(path); err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+		} else {
+			// write out on success
+			fmt.Printf("Successfully deleted %s\n", path)
+			return []error{}
+		}
+	} else {
+		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 	}
 
 	return errorSlice
