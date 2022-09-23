@@ -8,7 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/signature"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/spf13/cobra"
 )
@@ -72,7 +72,7 @@ func runPush(command *cobra.Command, opts *pushOpts) error {
 		}
 		// pass in nonempty annotations if needed
 		// TODO: understand media type in a better way
-		sigMediaType, err := signature.GuessSignatureEnvelopeFormat(sig)
+		sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []
 	// core process
 	// pass in nonempty annotations if needed
 	// TODO: understand media type in a better way
-	sigMediaType, err := signature.GuessSignatureEnvelopeFormat(sig)
+	sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
