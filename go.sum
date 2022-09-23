@@ -13,8 +13,8 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/notaryproject/notation-core-go v0.0.0-20220923044937-70115d5d5e51 h1:5dTUhbgdBSXtFm5u2AYycxt4CO+a3ReJ1gptCc+f4xc=
 github.com/notaryproject/notation-core-go v0.0.0-20220923044937-70115d5d5e51/go.mod h1:s8DZptmN1rZS0tBLTPt/w+d4o6eAcGWTYYJlXaJhQ4U=
-github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220914060703-40995c1062ec h1:hVQNoVa2cFGFnQ1J0UE9ax26Q3JKs57nWxVJwggufzE=
-github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220914060703-40995c1062ec/go.mod h1:Tf/EIh88vKsv3qKdKz66tG6bB2QgBGQd3KjWCBfVdss=
+github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220923073303-d09480aa8927 h1:ej95IENyn4dhyXvEiCV3PT0dUPv481o3XA5U7J1hq9o=
+github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220923073303-d09480aa8927/go.mod h1:hCKWJ3R8Ts9Duf571S40dYixigH/lb+BAZAXlp+AoIs=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86 h1:Oumw+lPnO8qNLTY2mrqPJZMoGExLi/0h/DdikoLTXVU=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86/go.mod h1:aA4vdXRS8E1TG7pLZOz85InHi3BiPdErh8IpJN6E0x4=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
@@ -43,5 +43,5 @@ golang.org/x/sys v0.0.0-20220731174439-a90be440212d/go.mod h1:oPkhp1MJrh7nUepCBc
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
 gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
-oras.land/oras-go/v2 v2.0.0-rc.2 h1:dks9BxPg6HQOxn5+jVNuTFl45FuYvHfLQ6wcP7hVRdE=
-oras.land/oras-go/v2 v2.0.0-rc.2/go.mod h1:IZRIoIJqkAH6x0pL3tVnpyPUyZgthjSyPcH2kgJvBMo=
+oras.land/oras-go/v2 v2.0.0-rc.3 h1:O4GeIwJ9Ge7rbCkqa/M7DLrL55ww+ZEc+Rhc63OYitU=
+oras.land/oras-go/v2 v2.0.0-rc.3/go.mod h1:PrY+cCglzK/DrQoJUtxbYVbL94ZHecVS3eJR01RglpE=
