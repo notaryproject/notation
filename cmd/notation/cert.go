@@ -83,7 +83,7 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 		opts = &certListOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "list [-t type] [-s name]",
+		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List certificates used for verification. This command operates on User level and System level",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -126,7 +126,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		opts = &certRemoveOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "delete -t <type> -s <name> [-y] (--all | <fileName>)",
+		Use:     "delete -t <type> -s <name> (--all | <fileName>)",
 		Aliases: []string{"rm"},
 		Short:   "Delete certificates from the trust store. This command only operates on User level",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -154,7 +154,7 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 		opts = &certGenerateTestOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "generate-test [-n name] [-b bits] [--default] [--trust] <host>",
+		Use:   "generate-test <host>",
 		Short: "Generate a test RSA key and a corresponding self-signed certificate",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
