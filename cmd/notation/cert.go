@@ -131,7 +131,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		opts = &certRemoveOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "delete -t <type> -s <name> [-y] (--all | fileName)",
+		Use:     "delete -t <type> -s <name> [-y] (--all | <fileName>)",
 		Aliases: []string{"rm"},
 		Short:   "Delete certificates from the trust store. This command only operates on User level",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -213,7 +213,7 @@ func addCert(opts *certAddOpts) error {
 		fmt.Printf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
 
 		for ind := range failure {
-			fmt.Printf("%s, with error \"%s\"\n", failure[ind], errorSlice[ind])
+			fmt.Printf("%s, with error %q\n", failure[ind], errorSlice[ind])
 		}
 	}
 
@@ -410,7 +410,7 @@ func removeAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under dir: %q?", path)
 		confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {
-			errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 			return errorSlice
 		}
 		if !confirmed {
@@ -418,10 +418,10 @@ func removeAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 		}
 
 		if err = osutil.CleanDir(path); err != nil {
-			errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 		}
 	} else {
-		errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 	}
 	return errorSlice
 }
@@ -434,7 +434,7 @@ func removeCert(storeType, namedStore, cert string, confirmed bool, errorSlice [
 		prompt := fmt.Sprintf("Are you sure you want to delete: %q?", path)
 		confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {
-			errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 			return errorSlice
 		}
 		if !confirmed {
@@ -442,14 +442,14 @@ func removeCert(storeType, namedStore, cert string, confirmed bool, errorSlice [
 		}
 
 		if err = os.RemoveAll(path); err != nil {
-			errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 		} else {
 			// write out on success
 			fmt.Printf("Successfully deleted %s\n", path)
 			return []error{}
 		}
 	} else {
-		errorSlice = append(errorSlice, fmt.Errorf("%s with error \"%s\"", path, err.Error()))
+		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 	}
 
 	return errorSlice
