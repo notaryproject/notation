@@ -1,6 +1,7 @@
 package ioutil
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -15,20 +16,17 @@ func AskForConfirmation(r io.Reader, prompt string, confirmed bool) (bool, error
 
 	fmt.Print(prompt, " [y/N] ")
 
-	var response string
-	if _, err := fmt.Fscanln(r, &response); err != nil {
-		// in case of directly pressing Enter
-		if err.Error() == "unexpected newline" {
-			return false, nil
-		}
-
-		return false, err
+	scanner := bufio.NewScanner(r)
+	if ok := scanner.Scan(); !ok {
+		return false, scanner.Err()
 	}
+	response := scanner.Text()
 
 	switch strings.ToLower(response) {
 	case "y", "yes":
 		return true, nil
 	default:
+		fmt.Println("Operation cancelled.")
 		return false, nil
 	}
 }
