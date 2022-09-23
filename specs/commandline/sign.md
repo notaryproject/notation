@@ -38,7 +38,7 @@ notation sign https://<registry>/<repository>:<tag>
 ### Sign a container image using a remote key
 ```console
 # Prerequisites: 
-# - A compliant signing plugin is installed in notation. See notation plugin documentation for more details [link](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md).
+# - A compliant signing plugin is installed in notation. See notation plugin documentation for more details (https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md).
 # - User creates keys and certificates in a 3rd party key provider (e.g. key vault, key management service). The signing plugin installed in previous step must support generating signatures using this key provider.
 
 # Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it.
