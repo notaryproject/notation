@@ -17,7 +17,7 @@ Flags:
   -k, --key string              Signing key name, for a key previously added to notation's key list.
       --key-file string         Signing key file. Use this flag with flag '--cert-file' together.
   -p, --password string         Password for registry operations (default to $NOTATION_PASSWORD if not specified)
-  -c, --pluginConfig string     List of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values
+  -c, --pluginConfig string     Optional list of comma-separated {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
   -u, --username string         Username for registry operations (default from $NOTATION_USERNAME)
 
 Global Flags:
@@ -26,8 +26,8 @@ Global Flags:
 ## Usage
 ### Sign a container image
 ```
-# Add a key and make it a default signing key
-notation key add -n <key name> <key path> <cert path> --default
+# Add a key which uses a local private key and certificate, and make it a default signing key
+notation key add --name <key name> <key path> <cert path> --default
 
 # [Optional] Change a default signing key
 notation key update <key name> --default
@@ -42,7 +42,7 @@ notation sign https://<registry>/<repository>:<tag>
 # - User creates keys and certificates in a 3rd party key provider (e.g. key vault, key management service). The signing plugin installed in previous step must support generating signatures using this key provider.
 
 # Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it.
-notation key add -n <key name> --plugin <plugin name> --id <remote key id> --default
+notation key add --name <key name> --plugin <plugin name> --id <remote key id> --default
 
 # sign a container image using a remote key
 notation sign https://<registry>/<repository>:<tag>
