@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation
 
-go 1.19
+go 1.18
 
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
