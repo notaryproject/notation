@@ -115,7 +115,7 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 
 // generateTestCert generates a self-signed non-CA certificate
 func generateSelfSignedCert(privateKey *rsa.PrivateKey, host string) (testhelper.RSACertTuple, []byte, error) {
-	rsaCertTuple := testhelper.GetRSACertTupleWithPK(privateKey, host, nil)
+	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, host)
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
 }
 
