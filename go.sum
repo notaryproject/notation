@@ -11,10 +11,10 @@ github.com/golang-jwt/jwt/v4 v4.4.2 h1:rcc4lwaZgFMCZ5jxF9ABolDcIHdBytAFgqFPbSJQA
 github.com/golang-jwt/jwt/v4 v4.4.2/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
-github.com/notaryproject/notation-core-go v0.0.0-20220923044937-70115d5d5e51 h1:5dTUhbgdBSXtFm5u2AYycxt4CO+a3ReJ1gptCc+f4xc=
-github.com/notaryproject/notation-core-go v0.0.0-20220923044937-70115d5d5e51/go.mod h1:s8DZptmN1rZS0tBLTPt/w+d4o6eAcGWTYYJlXaJhQ4U=
-github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220923073303-d09480aa8927 h1:ej95IENyn4dhyXvEiCV3PT0dUPv481o3XA5U7J1hq9o=
-github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220923073303-d09480aa8927/go.mod h1:hCKWJ3R8Ts9Duf571S40dYixigH/lb+BAZAXlp+AoIs=
+github.com/notaryproject/notation-core-go v0.0.0-20220926023941-e7aa03204754 h1:GDZ4iH72knZwsgcOUz6y22vZ/mV+tCxeBl/I9jVWIi8=
+github.com/notaryproject/notation-core-go v0.0.0-20220926023941-e7aa03204754/go.mod h1:s8DZptmN1rZS0tBLTPt/w+d4o6eAcGWTYYJlXaJhQ4U=
+github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220926044148-68dfda13bb1d h1:C/4OCvmaxrCSruAEFHwCMH55e44aWVLWN4JeL/a5+vQ=
+github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220926044148-68dfda13bb1d/go.mod h1:sgM4TsGODz1H+TfwUfzyhKHROO62iX6Kr9LgOc/+buk=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86 h1:Oumw+lPnO8qNLTY2mrqPJZMoGExLi/0h/DdikoLTXVU=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86/go.mod h1:aA4vdXRS8E1TG7pLZOz85InHi3BiPdErh8IpJN6E0x4=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
