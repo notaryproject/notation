@@ -18,7 +18,7 @@ Flags:
       --key-file string         Signing key file. Use this flag with flag '--cert-file' together.
   -p, --password string         Password for registry operations (default to $NOTATION_PASSWORD if not specified)
   -c, --pluginConfig string     Optional list of comma-separated {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
-  -u, --username string         Username for registry operations (default from $NOTATION_USERNAME)
+  -u, --username string         Username for registry operations (default to $NOTATION_USERNAME if not specified)
 
 Global Flags:
       --plain-http   Registry access via plain HTTP
