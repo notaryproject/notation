@@ -98,6 +98,10 @@ To get things started quickly, the Notation cli supports self-signed certificate
   ```bash
   notation sign --envelope-type cose $IMAGE
   ```
+  To save the generated digest
+  ```
+  export DIGEST=$(notation sign $IMAGE)
+  ```
 
 - List the image, and any associated signatures
 
@@ -107,12 +111,37 @@ To get things started quickly, the Notation cli supports self-signed certificate
 
 ## Verify a Container Image Using Notation Signatures
 
+Notation provides a trust policy for users to specify trusted identities which will sign the artifiacts, and level of signature verification to use. A trust policy is a JSON document, below example works for the current case.
+
+```
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-images",
+            "registryScopes": [
+                "localhost:5000/net-monitor"
+            ],
+            "signatureVerification": {
+                "level": "strict"
+            },
+            "trustStores": [
+                "ca:wabbit-networks.io"
+            ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=Notary"
+            ]
+        }
+    ]
+}
+```
+
 To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify that the artifact was unmodified after it was created (integrity), and from an trusted entity (authenticity). Notation uses a set of configured public keys that represent trusted entities, to verify the content. The `notation cert generate-test` command created the public key, however it must be explicitly added for verification to succeed.
 
 - Attempt to verify the $IMAGE notation signature
 
   ```bash
-  notation verify $IMAGE
+  notation verify --plain-http $REPO@$DIGEST
   ```
 
   *The above verification should fail, as you haven't yet configured the keys to trust.*
@@ -131,7 +160,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Verify the `net-monitor:v1` notation signature
 
   ```bash
-  notation verify $IMAGE
+  notation verify --plain-http $REPO@$DIGEST
   ```
 
   This should now succeed because the image is signed with a trusted public key
