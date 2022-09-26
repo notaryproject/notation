@@ -62,8 +62,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		}
 		configs[parts[0]] = parts[1]
 	}
-	ctx := command.Context()
-	verification.WithPluginConfig(ctx, configs)
+	ctx := verification.WithPluginConfig(command.Context(), configs)
 
 	// core verify process.
 	outcomes, err := verifier.Verify(ctx, opts.reference)
