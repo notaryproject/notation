@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -18,10 +19,15 @@ type policyOpts struct {
 	name       string
 	scopes     []string
 	level      string
-	override   []string
+	override   string
 	stores     []string
 	identities []string
 	certPath   string
+}
+
+type deleteOpts struct {
+	names     []string
+	confirmed bool
 }
 
 func policyCommand() *cobra.Command {
@@ -33,7 +39,7 @@ func policyCommand() *cobra.Command {
 		policyListCommand(),
 		policyShowCommand(),
 		policyResolveCommand(),
-		policyDeleteCommand(),
+		policyDeleteCommand(nil),
 		policyUpdateCommand(nil),
 		policyAddCommand(nil),
 	)
@@ -64,7 +70,7 @@ func policyShowCommand() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShowCommand(cmd, policyName)
+			return runShowCommand(policyName)
 		},
 	}
 }
@@ -82,27 +88,32 @@ func policyResolveCommand() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runResolveCommand(cmd, scope)
+			return runResolveCommand(scope)
 		},
 	}
 }
 
-func policyDeleteCommand() *cobra.Command {
-	var policyNames []string
-	return &cobra.Command{
+func policyDeleteCommand(opts *deleteOpts) *cobra.Command {
+	if opts == nil {
+		opts = &deleteOpts{}
+	}
+	command := &cobra.Command{
 		Use:   "delete <policy_name> ...",
 		Short: "Delete specified policies",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("no policy specified")
 			}
-			policyNames = append(policyNames, args...)
+			opts.names = append(opts.names, args...)
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDeleteCommand(cmd, policyNames)
+			return runDeleteCommand(opts)
 		},
 	}
+	command.Flags().BoolVarP(&opts.confirmed, "confirm", "y", false, "if yes, do not prompt for confirmation")
+
+	return command
 }
 
 func policyUpdateCommand(opts *policyOpts) *cobra.Command {
@@ -114,7 +125,7 @@ func policyUpdateCommand(opts *policyOpts) *cobra.Command {
 		Short: "Update existing policies",
 		Long: `Update existing policies
 notation policy update path/to/config/file
-notation policy update [--scope <registry>/<repository] [--level <level>] [--level-override <key>:<value>] [--trust-store <type>:<name>] [--identity <identity>] <policy_name>
+notation policy update [--scope <registry>/<repository] [--level <level>] [--level-override <key>=<value>] [--trust-store <type>:<name>] [--identity <identity>] <policy_name>
 
 Example - Update policies from a config file
 	notation policy update "/home/user/trustpolicy.json"
@@ -133,12 +144,15 @@ Example - Update policy from options
 			opts.configPath = args[0]
 			return nil
 		},
+		PreRun: func(cmd *cobra.Command, args []string) {
+			trimSpace(opts)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return updatePolicy(cmd, opts)
+			return updatePolicy(opts)
 		},
 	}
 
-	opts.ApplyFlags(command.Flags())
+	opts.applyFlags(command.Flags())
 	return command
 }
 
@@ -151,7 +165,7 @@ func policyAddCommand(opts *policyOpts) *cobra.Command {
 		Short: "Add new policies",
 		Long: `Add new policies
 notation policy add path/to/config/file
-notation policy add --name <name> --scope <registry>/<repository> --level <level> --level-override <key>:<value> --trust-store <type>:<name> --identity <identity> [--identity-cert <cert_name>]
+notation policy add --name <name> --scope <registry>/<repository> --level <level> --level-override <key>=<value> --trust-store <type>:<name> --identity <identity> [--identity-cert <cert_name>]
 
 Example - Add policies from a config file
 	notation policy add "/home/user/trustpolicy.json"
@@ -165,20 +179,27 @@ Example - Add policy from options
 		--identity "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
 		--identity-cert acme_root.crt`,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) > 0 {
+			if len(args) == 1 {
 				opts.configPath = args[0]
+			} else if len(args) == 0 {
+				return errors.New("no arguments provided")
+			} else {
+				fmt.Println("multiple files provided, only the first one will be honored")
 			}
 			return nil
 		},
+		PreRun: func(cmd *cobra.Command, args []string) {
+			trimSpace(opts)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addPolicy(cmd, opts)
+			return addPolicy(opts)
 		},
 	}
 
-	opts.ApplyFlags(command.Flags())
+	opts.applyFlags(command.Flags())
 	command.Flags().StringVar(&opts.name, "name", "", "policy name")
 	// TODO: support add cert to the specified directory.
-	command.Flags().StringVar(&opts.certPath, "identity-cert", "", "path to the root certificate file")
+	command.Flags().StringVar(&opts.certPath, "identity-cert", "", "path to the certificate file")
 	return command
 }
 
@@ -192,7 +213,7 @@ func listPolicies() error {
 	return ioutil.PrintPolicyMap(os.Stdout, policies)
 }
 
-func runShowCommand(cmd *cobra.Command, policyName string) error {
+func runShowCommand(policyName string) error {
 	policyDocument, err := verification.LoadDefaultPolicyDocument()
 	if err != nil {
 		return err
@@ -206,7 +227,7 @@ func runShowCommand(cmd *cobra.Command, policyName string) error {
 	return ioutil.PrintPolicyMap(os.Stdout, []*verification.TrustPolicy{policy})
 }
 
-func runResolveCommand(cmd *cobra.Command, scope string) error {
+func runResolveCommand(scope string) error {
 	policyDocument, err := verification.LoadDefaultPolicyDocument()
 	if err != nil {
 		return err
@@ -217,28 +238,37 @@ func runResolveCommand(cmd *cobra.Command, scope string) error {
 	return ioutil.PrintPolicyMap(os.Stdout, policies)
 }
 
-func runDeleteCommand(cmd *cobra.Command, policyNames []string) error {
+func runDeleteCommand(opts *deleteOpts) error {
+	prompt := fmt.Sprintf("Are you sure you want to delete policies: %s ?", strings.Join(opts.names, ", "))
+	confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, opts.confirmed)
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return nil
+	}
+
 	policyDocument, err := verification.LoadDefaultPolicyDocument()
 	if err != nil {
 		return err
 	}
 
-	if err = policyDocument.DeletePolicies(policyNames, dir.UserLevel); err != nil {
+	if err = policyDocument.DeletePolicies(opts.names, dir.UserLevel); err != nil {
 		return err
 	}
 
-	ioutil.PrintDeletedPolicyNames(os.Stdout, policyNames)
+	ioutil.PrintDeletedPolicyNames(os.Stdout, opts.names)
 	return nil
 }
 
-func updatePolicy(cmd *cobra.Command, opts *policyOpts) error {
-	policyDocument, err := verification.LoadDefaultPolicyDocument()
+func updatePolicy(opts *policyOpts) error {
+	opts.prepareForUpdate()
+	newPolicies, err := loadPoliciesFromOptions(opts)
 	if err != nil {
 		return err
 	}
-	opts.prepareForUpdate()
 
-	newPolicies, err := loadPoliciesFromOptions(opts)
+	policyDocument, err := verification.LoadDefaultPolicyDocument()
 	if err != nil {
 		return err
 	}
@@ -251,13 +281,13 @@ func updatePolicy(cmd *cobra.Command, opts *policyOpts) error {
 	return nil
 }
 
-func addPolicy(cmd *cobra.Command, opts *policyOpts) error {
-	policyDocument, err := verification.LoadDefaultPolicyDocument()
+func addPolicy(opts *policyOpts) error {
+	policies, err := loadPoliciesFromOptions(opts)
 	if err != nil {
 		return err
 	}
 
-	policies, err := loadPoliciesFromOptions(opts)
+	policyDocument, err := verification.LoadDefaultPolicyDocument()
 	if err != nil {
 		return err
 	}
@@ -271,7 +301,7 @@ func addPolicy(cmd *cobra.Command, opts *policyOpts) error {
 }
 
 func loadPoliciesFromOptions(opts *policyOpts) ([]*verification.TrustPolicy, error) {
-	if opts.configPath == "" {
+	if len(opts.configPath) == 0 {
 		// create a policy from options.
 		policy, err := newPolicyFromOptions(opts)
 		if err != nil {
@@ -284,15 +314,15 @@ func loadPoliciesFromOptions(opts *policyOpts) ([]*verification.TrustPolicy, err
 }
 
 func newPolicyFromOptions(opts *policyOpts) (*verification.TrustPolicy, error) {
-	override := make(map[string]string)
-	// initialize override map from the input if provided.
-	for _, config := range opts.override {
-		idx := strings.Index(config, ":")
-		if idx == -1 {
-			return nil, fmt.Errorf("invalid override config: %s", config)
-		}
-		override[config[0:idx]] = config[idx+1:]
+	if len(opts.name) == 0 {
+		return nil, errors.New("no name specified")
 	}
+	override, err := cmd.ParseFlagPluginConfig(opts.override)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: check the default values of each fields once spec is available.
 
 	return &verification.TrustPolicy{
 		Name:           opts.name,
@@ -306,10 +336,10 @@ func newPolicyFromOptions(opts *policyOpts) (*verification.TrustPolicy, error) {
 	}, nil
 }
 
-func (opts *policyOpts) ApplyFlags(fs *pflag.FlagSet) {
+func (opts *policyOpts) applyFlags(fs *pflag.FlagSet) {
 	fs.StringSliceVar(&opts.scopes, "scope", nil, "registry scopes")
 	fs.StringVar(&opts.level, "level", "", "verification level")
-	fs.StringSliceVar(&opts.override, "level-override", nil, "config of custom verification level")
+	fs.StringVar(&opts.override, "level-coverride", "", "list of comma-separated {key}={value} pairs that override the behavior of the verification level")
 	fs.StringSliceVar(&opts.stores, "trust-store", nil, "trust stores containing trusted roots")
 	fs.StringArrayVar(&opts.identities, "identity", nil, "trusted identities")
 }
@@ -320,4 +350,9 @@ func (opts *policyOpts) prepareForUpdate() {
 		opts.name = opts.configPath
 		opts.configPath = ""
 	}
+}
+
+func trimSpace(opts *policyOpts) {
+	opts.configPath = strings.TrimSpace(opts.configPath)
+	opts.name = strings.TrimSpace(opts.name)
 }
