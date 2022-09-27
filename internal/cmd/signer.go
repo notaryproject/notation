@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation-go/signature"
@@ -13,9 +14,11 @@ import (
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	// Construct a signer from key and cert file if provided as CLI arguments
+	// TODO: support cose media type
+	envelopeType := jws.MediaTypeEnvelope
 	if keyPath := opts.KeyFile; keyPath != "" {
 		certPath := opts.CertFile
-		return signature.NewSignerFromFiles(keyPath, certPath)
+		return signature.NewSignerFromFiles(keyPath, certPath, envelopeType)
 	}
 	// Construct a signer from preconfigured key pair in config.json
 	// if key name is provided as the CLI argument
@@ -24,7 +27,7 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 		return nil, err
 	}
 	if key.X509KeyPair != nil {
-		return signature.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
+		return signature.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath, envelopeType)
 	}
 	// Construct a plugin signer if key name provided as the CLI argument
 	// corresponds to an external key
@@ -34,7 +37,7 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 		if err != nil {
 			return nil, err
 		}
-		return signature.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig)
+		return signature.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig, envelopeType)
 	}
 	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
 }
