@@ -47,8 +47,19 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
-	// initialize.
-	verifier, err := getVerifier(opts)
+	// resolve the given reference and set the digest.
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	if err != nil {
+		return err
+	}
+	ref, err := orasregistry.ParseReference(opts.reference)
+	if err != nil {
+		return err
+	}
+	ref.Reference = manifestDesc.Digest.String()
+
+	// initialize verifier.
+	verifier, err := getVerifier(opts, ref)
 	if err != nil {
 		return err
 	}
@@ -65,18 +76,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := verification.WithPluginConfig(command.Context(), configs)
 
 	// core verify process.
-	outcomes, err := verifier.Verify(ctx, opts.reference)
+	outcomes, err := verifier.Verify(ctx, ref.String())
 
 	// write out.
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err)
+	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
 }
 
-func getVerifier(opts *verifyOpts) (*verification.Verifier, error) {
-	ref, err := orasregistry.ParseReference(opts.reference)
-	if err != nil {
-		return nil, err
-	}
-
+func getVerifier(opts *verifyOpts, ref orasregistry.Reference) (*verification.Verifier, error) {
 	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return nil, err
