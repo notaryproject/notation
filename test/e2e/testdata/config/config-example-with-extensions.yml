@@ -22,7 +22,7 @@ health:
 auth:
   htpasswd:
     realm: test-basic
-    path: /etc/docker/registry/passwd # hello:oras-test
+    path: /etc/docker/registry/passwd # user:password
 # Configuration for extensions. It follows the below schema
 # extensions
 #   namespace:

@@ -1,6 +1,7 @@
 package scenario
 
 import (
+	"fmt"
 	"path/filepath"
 
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
@@ -35,13 +36,19 @@ var _ = Describe("notation user", func() {
 			)
 			BeforeEach(func() {
 				sigPath = filepath.Join(configDir, "sign-cose.sig")
+				Expect(utils.WritePolicy(configDir, utils.DefaultPolicy)).NotTo(HaveOccurred())
 				commands = utils.CommandGroup{
+					{
+						Description: "prepare a key and cert",
+						Args: []string{
+							"cert", "generate-test", utils.DefaultStore, "--trust",
+						},
+					},
 					{
 						Description: "sign and save the signature to a local file",
 						Args: []string{
 							"sign", reference,
-							"--key-file", utils.NotationE2EKeyPath,
-							"--cert-file", utils.NotationE2ECertPath,
+							"-k", utils.DefaultStore,
 							"--envelope-type", "cose",
 							"-o", sigPath,
 						},
@@ -53,7 +60,6 @@ var _ = Describe("notation user", func() {
 						Description: "verify signature from remote registry",
 						Args: []string{
 							"verify", reference,
-							"--cert-file", utils.NotationE2ECertPath,
 						},
 					},
 				}
@@ -65,33 +71,33 @@ var _ = Describe("notation user", func() {
 
 			})
 			utils.ExecCommandGroup("sign pull verify", &commands)
-			utils.ExecCommandGroupInUserEnv("host sign pull verify", &commands)
 		})
 	})
 	Context("test in docker", func() {
 		When("using jws envelope", func() {
-			var (
-				commands utils.CommandGroup
-				certName string
-				sigPath  string
-			)
+			var commands utils.CommandGroup
 			BeforeEach(func() {
-				certName = "hello"
-				sigPath = filepath.Join(configDir, "sign-jws.sig")
 				commands = utils.CommandGroup{
 					{
 						Description: "prepare a key and cert",
 						Args: []string{
-							"cert", "generate-test", certName,
+							"cert", "generate-test", "hello", "--name", utils.DefaultStore, "--trust",
+						},
+					},
+					{
+						// For executing in docker, create a new policy to test
+						Description: "create a default policy",
+						Binary:      "sh",
+						Args: []string{
+							"-c", fmt.Sprintf("cat <<EOF >> ~/.config/notation/trustpolicy.json\n%v\nEOF", utils.DefaultPolicy),
 						},
 					},
 					{
 						Description: "sign and save the signature to a local file",
 						Args: []string{
 							"sign", reference,
-							"--key", certName,
+							"--key", utils.DefaultStore,
 							"--envelope-type", "jws",
-							"-o", sigPath,
 							"-p", utils.TestRegistry.Password,
 							"-u", utils.TestRegistry.Username,
 						},
@@ -100,7 +106,6 @@ var _ = Describe("notation user", func() {
 						Description: "verify signature from remote registry",
 						Args: []string{
 							"verify", reference,
-							"--cert", certName,
 							"-p", utils.TestRegistry.Password,
 							"-u", utils.TestRegistry.Username,
 						},

@@ -7,7 +7,6 @@ import (
 
 	_ "github.com/notaryproject/notation-core-go/signature/cose"
 	_ "github.com/notaryproject/notation-core-go/signature/jws"
-	"github.com/notaryproject/notation-go/dir"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -32,8 +31,6 @@ var TestRegistry registry = registry{
 
 var (
 	NotationBinaryPath  string
-	NotationE2EKeyPath  string
-	NotationE2ECertPath string
 	NotationBinaryImage string = "notation-e2e"
 )
 
@@ -86,20 +83,6 @@ func setUpRegistry() {
 	}
 }
 
-func setUpKeyCerts() {
-	NotationE2EKeyPath, NotationE2ECertPath = dir.Path.Localkey("e2e")
-	_, err := Exec("rm", ExecOpts{}, NotationE2EKeyPath, NotationE2ECertPath)
-	if err != nil {
-		panic(fmt.Sprintf("E2E set up certs failed: %v", err))
-	}
-	_, err = Exec(NotationBinaryPath, ExecOpts{}, "cert", "generate-test", "e2e")
-	if err != nil {
-		panic(fmt.Sprintf("E2E set up certs failed: %v", err))
-	}
-	fmt.Printf("Testing based on private key locates in %v\n", NotationE2EKeyPath)
-	fmt.Printf("Testing based on certificate chain locates in %v\n", NotationE2ECertPath)
-}
-
 func setUpNotationImage() {
 	if image := os.Getenv(notationBinaryImage); image != "" {
 		NotationBinaryImage = image
@@ -111,6 +94,5 @@ func init() {
 	RegisterFailHandler(Fail)
 	setUpRegistry()
 	setUpNotationBinary()
-	setUpKeyCerts()
 	setUpNotationImage()
 }

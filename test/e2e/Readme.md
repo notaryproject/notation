@@ -10,7 +10,7 @@ Using [Gomega](https://onsi.github.io/gomega/) as the matching library.
     * **images**: a test artifact to be signed.
     * **config**: username and password used by the test registry.
 
-2. **Initialization**： **test/e2e/internal/utils/init.go** contains init functions, including setting up notation-binary path, registry password and cert path. These variables can be set through environment variables.
+2. **Initialization**： **test/e2e/internal/utils/init.go** contains init functions, including setting up notation-binary path, registry password. These variables can be set through environment variables.
 
 3. **TestScenario** will run all tests in the package. Pay attention to *test/e2e/scenario/sign.go*. This is where I wrote the spec(test cases).
 
@@ -44,6 +44,8 @@ Using [Gomega](https://onsi.github.io/gomega/) as the matching library.
     * Install Golang.
     * Install Docker.
     * install Ginkgo CLI.
+    
+        `go install github.com/onsi/ginkgo/v2/ginkgo`
     * Clone the repository.
     * Run `./test/e2e/local.sh absolute_path_to_your_notation_binary` in the repository's root directory. It is a simple shell script which only sets some environment variables, builds the notation image and starts the test registry.
     

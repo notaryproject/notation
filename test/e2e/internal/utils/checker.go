@@ -7,22 +7,22 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-// CheckFileExist checks file exists
+// CheckFileExist checks file exists.
 func CheckFileExist(f string) {
 	_, err := os.Stat(f)
 	Expect(err).ShouldNot(HaveOccurred())
 }
 
-// CheckFileNotExist checks file not exist
+// CheckFileNotExist checks file not exist.
 func CheckFileNotExist(f string) {
 	_, err := os.Stat(f)
 	Expect(err).Should(HaveOccurred())
 	Expect(os.IsNotExist(err)).To(BeTrue())
 }
 
-// CheckSignatureFormatSupported checks signature from sigPath is supported by notation
+// CheckSignatureFormatSupported checks signature from sigPath is supported by notation.
 //
-// Currently only cose and jws is supported
+// Currently only cose and jws is supported.
 func CheckSignatureFormatSupported(sigPath string) string {
 	sig, err := os.ReadFile(sigPath)
 	Expect(err).ShouldNot(HaveOccurred())
@@ -35,13 +35,13 @@ func CheckSignatureFormatSupported(sigPath string) string {
 	return ""
 }
 
-// CheckSignatureFormatJWS checks whether signature is jws format
+// CheckSignatureFormatJWS checks whether signature is jws format.
 func CheckSignatureFormatJWS(sigPath string) {
 	t := CheckSignatureFormatSupported(sigPath)
 	Expect(t).To(Equal("application/jws"))
 }
 
-// CheckSignatureFormatJWS checks whether signature is cose format
+// CheckSignatureFormatJWS checks whether signature is cose format.
 func CheckSignatureFormatCose(sigPath string) {
 	t := CheckSignatureFormatSupported(sigPath)
 	Expect(t).To(Equal("application/cose"))

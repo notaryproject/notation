@@ -18,7 +18,7 @@ type ExecOpts struct {
 	Stdin  io.Reader
 	Stdout io.Writer
 	Stderr io.Writer
-	// Env is the environment variables used by thie command.
+	// Env is the environment variables used by the command.
 	Env map[string]string
 }
 
@@ -27,8 +27,11 @@ type ExecOpts struct {
 type CommandOpts struct {
 	ExecOpts
 	Description string
-	Args        []string
-	ShouldFail  bool
+	// Binary is an executable file. The default value will be notation binary if not provided.
+	Binary string
+	// Args is arguments to execute the binary.
+	Args       []string
+	ShouldFail bool
 	// Checker is an user-provided function used to validate the result of a Command.
 	Checker func(CommandOpts, *gexec.Session)
 }
@@ -106,15 +109,13 @@ func Exec(binary string, opts ExecOpts, args ...string) (*gexec.Session, error) 
 	return session, nil
 }
 
-func description(text string, args []string) string {
-	return fmt.Sprintf("%s: notation %s", text, strings.Join(args, " "))
+func description(text string, binary string, args []string) string {
+	return fmt.Sprintf("%s: %s %s", text, binary, strings.Join(args, " "))
 }
 
 // batchExec executes a batch of notation commands. If containerID is provided, it will execute all commands in a container.
 func batchExec(text string, commands *CommandGroup, containerID string) {
 	for _, command := range *commands {
-		By(description(text, command.Args))
-
 		if command.ExecOpts.Stdout == nil {
 			command.ExecOpts.Stdout = GinkgoWriter
 		}
@@ -122,14 +123,24 @@ func batchExec(text string, commands *CommandGroup, containerID string) {
 			command.ExecOpts.Stderr = GinkgoWriter
 		}
 
-		name := NotationBinaryPath
+		name := command.Binary
 		args := command.Args
 		if containerID != "" {
 			name = "docker"
-			args = append([]string{"exec", containerID, "notation"}, command.Args...)
-			By("executing command in docker...")
+			binary := command.Binary
+			// by default call notation
+			if command.Binary == "" {
+				binary = "notation"
+			}
+			args = append([]string{"exec", containerID, binary}, command.Args...)
+		} else {
+			// by default call notation
+			if command.Binary == "" {
+				name = NotationBinaryPath
+			}
 		}
 
+		By(description(text, name, args))
 		session, err := Exec(name, command.ExecOpts, args...)
 		Expect(err).ShouldNot(HaveOccurred())
 		var exitCode int
@@ -145,27 +156,21 @@ func batchExec(text string, commands *CommandGroup, containerID string) {
 }
 
 // ExecCommandGroup executes every notation command in a single spec on the host machine.
+// If binary is not provided in a single command, command will execuate notation with args.
+// Otherwise command will execute the given binary with args.
 func ExecCommandGroup(text string, commands *CommandGroup) {
 	It(fmt.Sprintf("[%s]", text), func() {
 		batchExec(text, commands, "")
 	})
 }
 
-// ExecCommandGroupWithUserEnv executes commands in a clean user directory
-// while sharing the same system config with the host machine.
-func ExecCommandGroupInUserEnv(text string, commands *CommandGroup) {
-	It(fmt.Sprintf("[%s]", text), func() {
-		dir, _, err := SetUpUserDir()
-		Expect(err).ShouldNot(HaveOccurred())
-		nCommands := NewCommandGroup(*commands, WithUserDir(dir))
-		batchExec(text, &nCommands, "")
-	})
-}
-
-// ExecCommandGroupWithSysEnv executes notation commands in a container.
+// ExecCommandGroupWithSysEnv executes commands in a container.
 // User and system config/cache will be isolated from the host machine.
 // This function is typically used to test system level config.
 // Environment variables won't be set in this case.
+// It will first create  a container if containerID is not provided.
+// If binary is not provided in a single command, command will execuate notation with args.
+// Otherwise command will execute the given binary with args.
 func ExecCommandGroupInContainer(text string, commands *CommandGroup) {
 	It(fmt.Sprintf("[%s]", text), func() {
 		containerID, _, err := SetUpContainer()
