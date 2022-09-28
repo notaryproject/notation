@@ -98,10 +98,6 @@ To get things started quickly, the Notation cli supports self-signed certificate
   ```bash
   notation sign --envelope-type cose $IMAGE
   ```
-  To save the generated digest
-  ```
-  export DIGEST=$(notation sign $IMAGE)
-  ```
 
 - List the image, and any associated signatures
 
@@ -111,7 +107,7 @@ To get things started quickly, the Notation cli supports self-signed certificate
 
 ## Verify a Container Image Using Notation Signatures
 
-Notation provides a trust policy for users to specify trusted identities which will sign the artifiacts, and level of signature verification to use. A trust policy is a JSON document, below example works for the current case.
+Notation provides a trust policy [`~/.config/notation/trustpolicy.json`] for users to specify trusted identities which will sign the artifiacts, and level of signature verification to use. A trust policy is a JSON document, below example works for the current case.
 
 ```
 {
@@ -141,14 +137,16 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Attempt to verify the $IMAGE notation signature
 
   ```bash
-  notation verify --plain-http $REPO@$DIGEST
+  notation verify --plain-http $IMAGE
   ```
 
   *The above verification should fail, as you haven't yet configured the keys to trust.*
 
   ```bash
-  Error: trust certificate not specified
-  2022/08/31 10:24:19 trust certificate not specified
+  ERROR: signature verification failed
+
+  1 signature failed verification, error is listed as below:
+  error while loading the trust store, "~/.config/notation/truststore/x509/ca/wabbit-networks.io" does not exist
   ```
 
 - To assure users opt-into the public keys they trust, add the key to the trusted store
@@ -160,7 +158,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Verify the `net-monitor:v1` notation signature
 
   ```bash
-  notation verify --plain-http $REPO@$DIGEST
+  notation verify --plain-http $IMAGE
   ```
 
   This should now succeed because the image is signed with a trusted public key
