@@ -2,12 +2,11 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 
 	orasregistry "oras.land/oras-go/v2/registry"
@@ -18,7 +17,7 @@ import (
 type verifyOpts struct {
 	SecureFlagOpts
 	reference string
-	config    []string
+	config    string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -26,10 +25,10 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		opts = &verifyOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "verify <reference>",
+		Use:   "verify [flags] <reference>",
 		Short: "Verifies OCI Artifacts",
 		Long: `Verifies OCI Artifacts:
-  notation verify [--config <key>=<value>] [--username <username>] [--password <password>] <reference>`,
+  notation verify [--config <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -42,41 +41,38 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		},
 	}
 	opts.ApplyFlags(command.Flags())
-	command.Flags().StringSliceVar(&opts.config, "config", nil, "verification plugin config (accepts multiple inputs)")
+	command.Flags().StringVarP(&opts.config, "config", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
 	return command
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
-	// initialize.
-	verifier, err := getVerifier(opts)
+	// resolve the given reference and set the digest.
+	ref, err := resolveReference(command, opts)
+	if err != nil {
+		return err
+	}
+
+	// initialize verifier.
+	verifier, err := getVerifier(opts, ref)
 	if err != nil {
 		return err
 	}
 
 	// set up verification plugin config.
-	configs := make(map[string]string)
-	for _, c := range opts.config {
-		parts := strings.Split(c, "=")
-		if len(parts) != 2 {
-			return fmt.Errorf("invalid config option: %s", c)
-		}
-		configs[parts[0]] = parts[1]
+	configs, err := cmd.ParseFlagPluginConfig(opts.config)
+	if err != nil {
+		return err
 	}
-	ctx := verification.WithPluginConfig(command.Context(), configs)
 
 	// core verify process.
-	outcomes, err := verifier.Verify(ctx, opts.reference)
+	ctx := verification.WithPluginConfig(command.Context(), configs)
+	outcomes, err := verifier.Verify(ctx, ref.String())
 
 	// write out.
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err)
+	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
 }
 
-func getVerifier(opts *verifyOpts) (*verification.Verifier, error) {
-	ref, err := orasregistry.ParseReference(opts.reference)
-	if err != nil {
-		return nil, err
-	}
-
+func getVerifier(opts *verifyOpts, ref orasregistry.Reference) (*verification.Verifier, error) {
 	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return nil, err
@@ -85,4 +81,19 @@ func getVerifier(opts *verifyOpts) (*verification.Verifier, error) {
 	repo := registry.NewRepositoryClient(authClient, ref, plainHTTP)
 
 	return verification.NewVerifier(repo)
+}
+
+func resolveReference(command *cobra.Command, opts *verifyOpts) (orasregistry.Reference, error) {
+	ref, err := orasregistry.ParseReference(opts.reference)
+	if err != nil {
+		return orasregistry.Reference{}, err
+	}
+
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	if err != nil {
+		return orasregistry.Reference{}, err
+	}
+
+	ref.Reference = manifestDesc.Digest.String()
+	return ref, nil
 }

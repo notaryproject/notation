@@ -54,28 +54,29 @@ func PrintCertificateMap(w io.Writer, v []config.CertificateReference) error {
 	return tw.Flush()
 }
 
-func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error) error {
+func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string) error {
 	tw := newTabWriter(w)
 
-	overallResult := "success"
-	if resultErr != nil {
-		overallResult = "failure"
+	if resultErr == nil {
+		fmt.Fprintf(tw, "%s\n", digest)
+		return nil
 	}
-	fmt.Fprintf(tw, "OVERALL RESULT: %s\n", overallResult)
 
-	if resultErr != nil {
-		fmt.Fprintf(tw, "ERROR: %s\n", resultErr.Error())
-		printOutcomes(tw, v)
-	}
+	fmt.Fprintf(tw, "ERROR: %s\n\n", resultErr.Error())
+	printOutcomes(tw, v)
 
 	return tw.Flush()
 }
 
 func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome) {
-	if len(outcomes) > 0 {
-		fmt.Fprintln(tw, "DETAILED ERRORS:")
-		for _, outcome := range outcomes {
-			fmt.Println(outcome.Error)
-		}
+	if len(outcomes) == 1 {
+		fmt.Println("1 signature failed verification, error is listed as below:")
+	} else {
+		fmt.Printf("%d signatures failed verification, errors are listed as below:\n", len(outcomes))
+	}
+
+	for _, outcome := range outcomes {
+		// TODO: print out the signature digest once the outcome contains it.
+		fmt.Printf("%s\n\n", outcome.Error.Error())
 	}
 }
