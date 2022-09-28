@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signature"
@@ -95,7 +96,10 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 		return errors.New("verification failure: no signatures found")
 	}
 
-	var opts notation.VerifyOptions
+	// TODO: support cose media type
+	opts := notation.VerifyOptions{
+		SignatureMediaType: jws.MediaTypeEnvelope,
+	}
 	var lastErr error
 	for _, path := range sigPaths {
 		sig, err := os.ReadFile(path)
