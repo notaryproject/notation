@@ -37,13 +37,12 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 		SecureFlagOpts: SecureFlagOpts{
 			PlainHTTP: true,
 		},
-		config: []string{"key1=val1", "key2=val2"},
+		config: "key1=val1,key2=val2",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--plain-http",
-		"--config", expected.config[0],
-		"--config", expected.config[1]}); err != nil {
+		"--config", expected.config}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
