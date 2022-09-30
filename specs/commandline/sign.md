@@ -15,13 +15,13 @@ Usage:
   notation sign <reference> [flags]
 
 Flags:
-      --cert-file string        Location of file containing signing(leaf) certificate and certificate chain. Use this flag with '--key-file'.
-  -e, --expiry duration         Optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes, hours or days.
+      --cert-file string        Location of file containing a complete certificate chain for the signing key. Use this flag with '--key-file'.
+  -e, --expiry duration         Optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes, hours or days. For example: 30d or 1d3h20m.
   -h, --help                    Help for sign
   -k, --key string              Signing key name, for a key previously added to notation's key list.
       --key-file string         Location of file containing signing key file. Use this flag with '--cert-file'.
-  -p, --password string         Password for registry operations (default to $NOTATION_PASSWORD if not specified)
-  -c, --plugin-config string     Optional, list of comma-separated {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
+  -p, --password string         Password or identity token for registry operations (default to $NOTATION_PASSWORD if not specified)
+  --plugin-config strings       List of {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
   -u, --username string         Username for registry operations (default to $NOTATION_USERNAME if not specified)
 
 Global Flags:
@@ -32,49 +32,52 @@ Global Flags:
 
 ### Sign a container image
 
-```text
+```shell
 # Add a key which uses a local private key and certificate, and make it a default signing key
-notation key add --name <key name> <key path> <cert path> --default
+notation key add --name <key_name> <key_path> <cert_path> --default
 
-# [Optional] Change a default signing key
-notation key update <key name> --default
+# Or change the default signing key to an existing signing key
+notation key update <key_name> --default
 
 # Sign a container image using the default signing key
-notation sign https://<registry>/<repository>:<tag>
+notation sign <registry>/<repository>:<tag>
+
+# Or using container image digests instead of tags. A container image digest uniquely and immutably identifies a container image.
+notation sign <registry>/<repository>@<digest>
 ```
 
 ### Sign a container image using a remote key
 
-```text
+```shell
 # Prerequisites: 
 # - A compliant signing plugin is installed in notation. See notation plugin documentation (https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details.
 # - User creates keys and certificates in a 3rd party key provider (e.g. key vault, key management service). The signing plugin installed in previous step must support generating signatures using this key provider.
 
 # Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it.
-notation key add --name <key name> --plugin <plugin name> --id <remote key id> --default
+notation key add --name <key_name> --plugin <plugin name> --id <remote key id> --default
 
 # sign a container image using a remote key
-notation sign https://<registry>/<repository>:<tag>
+notation sign <registry>/<repository>:<tag>
 ```
 
 ### Sign a container image and specify the signature expiry duration, for example 1 day
 
-```text
-notation sign https://<registry>/<repository>:<tag> --expiry 24h
+```shell
+notation sign <registry>/<repository>:<tag> --expiry 1d
 ```
 
 ### Sign a container image using a specified signing key
 
-```text
+```shell
 # List signing keys to get the key name
 notation key list
 
 # Sign a container image using the specified key name
-notation sign https://<registry>/<repository>:<tag> --key <key name>
+notation sign https://<registry>/<repository>:<tag> --key <key_name>
 ```
 
 ### Sign a container image using a local key and certificate which are not added in the signing key list
 
-```text
-notation sign https://<registry>/<repository>:<tag> --key-file <key path> --cert-file <cert path>
+```shell
+notation sign https://<registry>/<repository>:<tag> --key-file <key_path> --cert-file <cert_path>
 ```
