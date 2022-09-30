@@ -34,5 +34,20 @@ jobs:
         run: make build
       - name: Run unit tests
         run: make test
+      - name: Run e2e tests
+        run:  | 
+          trap 'docker kill notation-e2e-registry || true' ERR
+          docker kill notation-e2e-registry || true
+          docker run -d -p 5000:5000 --rm --name notation-e2e-registry \
+            --mount type=bind,source=$GITHUB_WORKSPACE/test/e2e/testdata/config/config-example-with-extensions.yml,target=/etc/docker/registry/config.yml \
+            --mount type=bind,source=$GITHUB_WORKSPACE/test/e2e/testdata/config/passwd,target=/etc/docker/registry/passwd \
+            ghcr.io/oras-project/registry:latest
+          docker load -i $GITHUB_WORKSPACE/test/e2e/testdata/images/net-monitor.tar.gz
+          docker build -t notation-e2e -f $GITHUB_WORKSPACE/Dockerfile $GITHUB_WORKSPACE
+          go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
+          ginkgo -r -p $GITHUB_WORKSPACE/test/e2e/scenario
+          docker kill notation-e2e-registry || true
+        env: 
+          NOTATION_E2E_BINARY_PATH: bin/notation
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v3
