@@ -4,7 +4,7 @@
 
 Use `notation sign` to sign artifacts.
 
-Signs a container artifact that is stored in a registry. Upon successful signing, the generated signature is pushed to the registry and the digest of the container image is returned.
+Signs an OCI artifact that is stored in a registry. Upon successful signing, the generated signature is pushed to the registry with the digest of the OCI artifact returned.
 
 ## Outline
 
@@ -21,7 +21,7 @@ Flags:
   -k, --key string              Signing key name, for a key previously added to notation's key list.
       --key-file string         Location of file containing signing key file. Use this flag with '--cert-file'.
   -p, --password string         Password or identity token for registry operations (default to $NOTATION_PASSWORD if not specified)
-  --plugin-config strings       List of {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
+      --plugin-config strings   List of {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
   -u, --username string         Username for registry operations (default to $NOTATION_USERNAME if not specified)
 
 Global Flags:
@@ -34,10 +34,10 @@ Global Flags:
 
 ```shell
 # Add a key which uses a local private key and certificate, and make it a default signing key
-notation key add --name <key_name> <key_path> <cert_path> --default
+notation key add --default --name <key_name> <key_path> <cert_path>
 
 # Or change the default signing key to an existing signing key
-notation key update <key_name> --default
+notation key update --default <key_name>
 
 # Sign a container image using the default signing key
 notation sign <registry>/<repository>:<tag>
@@ -54,16 +54,26 @@ notation sign <registry>/<repository>@<digest>
 # - User creates keys and certificates in a 3rd party key provider (e.g. key vault, key management service). The signing plugin installed in previous step must support generating signatures using this key provider.
 
 # Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it.
-notation key add --name <key_name> --plugin <plugin name> --id <remote key id> --default
+notation key add --default --name <key_name> --plugin <plugin_name> --id <remote_key_id>
 
 # sign a container image using a remote key
 notation sign <registry>/<repository>:<tag>
 ```
 
+### Sign an OCI artifact using the default signing key
+
+```shell
+# Prerequisites: 
+# A default signing key is configured using CLI "notation key"
+
+# Use a digest that uniquely and immutably identifies an OCI artifact.
+notation sign <registry>/<repository>@<digest>
+```
+
 ### Sign a container image and specify the signature expiry duration, for example 1 day
 
 ```shell
-notation sign <registry>/<repository>:<tag> --expiry 1d
+notation sign --expiry 1d <registry>/<repository>:<tag>
 ```
 
 ### Sign a container image using a specified signing key
