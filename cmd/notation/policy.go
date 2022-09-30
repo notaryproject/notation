@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation/internal/certificate"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
@@ -181,9 +182,7 @@ Example - Add policy from options
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 1 {
 				opts.configPath = args[0]
-			} else if len(args) == 0 {
-				return errors.New("no arguments provided")
-			} else {
+			} else if len(args) > 1 {
 				fmt.Println("multiple files provided, only the first one will be honored")
 			}
 			return nil
@@ -198,7 +197,6 @@ Example - Add policy from options
 
 	opts.applyFlags(command.Flags())
 	command.Flags().StringVar(&opts.name, "name", "", "policy name")
-	// TODO: support add cert to the specified directory.
 	command.Flags().StringVar(&opts.certPath, "identity-cert", "", "path to the certificate file")
 	return command
 }
@@ -296,6 +294,10 @@ func addPolicy(opts *policyOpts) error {
 		return err
 	}
 
+	if err = addCertificate(opts.certPath, opts.stores); err != nil {
+		return err
+	}
+
 	ioutil.PrintPolicyNames(os.Stdout, policies, "Added Policies:")
 	return nil
 }
@@ -339,7 +341,7 @@ func newPolicyFromOptions(opts *policyOpts) (*verification.TrustPolicy, error) {
 func (opts *policyOpts) applyFlags(fs *pflag.FlagSet) {
 	fs.StringSliceVar(&opts.scopes, "scope", nil, "registry scopes")
 	fs.StringVar(&opts.level, "level", "", "verification level")
-	fs.StringVar(&opts.override, "level-coverride", "", "list of comma-separated {key}={value} pairs that override the behavior of the verification level")
+	fs.StringVar(&opts.override, "level-override", "", "list of comma-separated {key}={value} pairs that override the behavior of the verification level")
 	fs.StringSliceVar(&opts.stores, "trust-store", nil, "trust stores containing trusted roots")
 	fs.StringArrayVar(&opts.identities, "identity", nil, "trusted identities")
 }
@@ -355,4 +357,23 @@ func (opts *policyOpts) prepareForUpdate() {
 func trimSpace(opts *policyOpts) {
 	opts.configPath = strings.TrimSpace(opts.configPath)
 	opts.name = strings.TrimSpace(opts.name)
+	opts.certPath = strings.TrimSpace(opts.certPath)
+}
+
+func addCertificate(certPath string, stores []string) error {
+	if len(certPath) == 0 {
+		return nil
+	}
+
+	for _, store := range stores {
+		parts := strings.Split(store, ":")
+		if len(parts) != 2 {
+			return fmt.Errorf("trust store: %s is invalid, the valid format is: type:name", store)
+		}
+		if err := certificate.AddCertCore(certPath, parts[0], parts[1], false); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
