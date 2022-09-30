@@ -73,11 +73,11 @@ notation sign <registry>/<repository>:<tag> --expiry 1d
 notation key list
 
 # Sign a container image using the specified key name
-notation sign https://<registry>/<repository>:<tag> --key <key_name>
+notation sign <registry>/<repository>:<tag> --key <key_name>
 ```
 
 ### Sign a container image using a local key and certificate which are not added in the signing key list
 
 ```shell
-notation sign https://<registry>/<repository>:<tag> --key-file <key_path> --cert-file <cert_path>
+notation sign <registry>/<repository>:<tag> --key-file <key_path> --cert-file <cert_path>
 ```
