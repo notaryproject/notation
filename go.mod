@@ -6,7 +6,7 @@ require (
 	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
 	github.com/docker/docker-credential-helpers v0.6.4
 	github.com/notaryproject/notation-core-go v0.1.0-alpha.3.0.20220929020818-b5df54c7465b
-	github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220929024950-97fd645d3cfb
+	github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20220930021926-2e9630d549b7
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/pflag v1.0.5
