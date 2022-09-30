@@ -16,7 +16,7 @@ Usage:
 
 Flags:
       --cert-file string        Location of file containing a complete certificate chain for the signing key. Use this flag with '--key-file'.
-  -e, --expiry duration         Optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes, hours or days. For example: 30d or 1d3h20m.
+  -e, --expiry duration         Optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m
   -h, --help                    Help for sign
   -k, --key string              Signing key name, for a key previously added to notation's key list.
       --key-file string         Location of file containing signing key file. Use this flag with '--cert-file'.
