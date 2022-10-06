@@ -23,13 +23,13 @@ Flags:
 
 ### Log in with provided username and password
 
-```text
+```shell
 notation login -u <username> -p <password> registry.example.com
 ```
 
 ### Log in using $NOTATION_USERNAME $NOTATION_PASSWORD variables
 
-```text
+```shell
 # Prerequisites:
 # set environment variable NOTATION_USERNAME and NOTATION_PASSWORD
 notation login registry.example.com

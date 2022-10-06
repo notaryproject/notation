@@ -21,6 +21,6 @@ Flags:
 
 ### Log out from an OCI registry
 
-```text
+```shell
 notation logout registry.example.com
 ```

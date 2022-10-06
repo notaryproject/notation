@@ -51,7 +51,7 @@ Currently there is no subcommand available for plugin un-installation. Plugin pu
 
 ### List installed plugins
 
-```text
+```shell
 notation plugin list
 ```
 

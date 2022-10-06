@@ -2,12 +2,12 @@
 
 ## Description
 
-Use `notation list` to list all the signatures of the signing artifact.
+Use `notation list` to list all the signatures of the signed artifact.
 
 ## Outline
 
 ```text
-List all the signatures of signing artifacts
+List all the signatures of signed artifacts
 
 Usage:
   notation list <reference> [flags]
@@ -23,10 +23,10 @@ Flags:
 
 ## Usage
 
-### List all the signatures of the signing container image
+### List all the signatures of the signed container image
 
 ```text
-notation list https://<registry>/<repository>:<tag>
+notation list <registry>/<repository>:<tag>
 ```
 
-Upon successful execution, the digests of signatures of signing container image are printed out.
+Upon successful execution, the digests of signatures of signed container image are printed out.
