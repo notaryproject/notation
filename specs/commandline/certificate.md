@@ -14,7 +14,7 @@ There could be more trust store types introduced in the future.
 Here is an example of trust store directory structure:
 
 ```text
-$XDG_CONFIG_HOME/notation/trust-store
+$XDG_CONFIG_HOME/notation/truststore
     /x509
         /ca
             /acme-rockets
@@ -30,14 +30,14 @@ $XDG_CONFIG_HOME/notation/trust-store
 
 In this example, there are two certificates stored in trust store named `acme-rockets` of type `ca`. There is one certificate stored in trust store named `wabbit-networks` of type `signingAuthority`.
 
-Please be noted there wil be user level trust store and system level trust store. See [Directory spec](https://github.com/notaryproject/notation/blob/main/specs/directory.md) for more details. The commands `notation certificate add` and `notation certificate delete` are performed only on user level trust store.
+Please be noted there will be user level trust store and system level trust store. See [Directory spec](https://github.com/notaryproject/notation/blob/main/specs/directory.md) for more details. The commands `notation certificate add` and `notation certificate delete` are performed only on user level trust store.
 
 ## Outline
 
 ### notation certificate
 
 ```text
-Manage certificates in trust store
+Manage certificates in trust store for signature verification
 
 Usage:
   notation certificate [command]
@@ -48,9 +48,9 @@ Aliases:
 Available Commands:
   add           Add certificates to the trust store. This command only operates on User level.
   delete        Delete certificates from the trust store. This command only operates on User level.
-  generate-test Generate a test RSA key and a corresponding self-generated certificate
+  generate-test Generate a test RSA key and a corresponding self-signed certificate.
   list          List certificates used for verification. This command operates on User level and System level.
-  show          Show certificate details given trust store type, named store, and certificate file name. If certificate file contains certificate chain, all certificates in the chain are displayed starting from the leaf. Certificate file on User level is displayed prior to  System level.
+  show          Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains a certificate chain, all certificates in the chain are displayed starting from the leaf. User level has priority over System level.
 
 Flags:
   -h, --help   help for certificate
@@ -99,7 +99,7 @@ Global Flags:
 ### notation certificate show
 
 ```text
-Show certificate details given trust store type, named store, and certificate file name. If certificate file contains certificate chain, all certificates in the chain are displayed starting from the leaf. Certificate file on User level is displayed prior to System level.
+Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains a certificate chain, all certificates in the chain are displayed starting from the leaf. User level has priority over System level.
 
 Usage:
   notation certificate show -t <type> -s <name> <fileName> [flags]
@@ -138,7 +138,7 @@ Global Flags:
 ### notation certificate generate-test
 
 ```text
-Generate a test RSA key and a corresponding self-generated certificate
+Generate a test RSA key and a corresponding self-signed certificate.
 
 Usage:
   notation certificate generate-test <host> [flags]
@@ -162,7 +162,7 @@ Global Flags:
 notation certificate add --type <type> --store <name> <cert_path>...
 ```
 
-If a certificate file contains one certificate, this certificate MUST be self-signed certificate. If a certificate file contains multiple certificates, all these certificates MUST be CA type.
+For each certificate in a certificate file, it MUST be either CA type or self-signed.
 
 Upon successful adding, the certificate files are added into directory`{NOTATION_CONFIG}/truststore/x509/<type>/<name>/`, and a list of certificate filepaths are printed out. If the adding fails, an error message is printed out by listing which certificate files are successfully added, and which certificate files are not along with detailed reasons.
 
@@ -206,15 +206,19 @@ notation cert show --type <type> --store <name> <cert_file_name>
 
 Upon successful show, the certificate details are printed out starting from leaf certificate if it's a certificate chain. Here is a list of certificate properties:
 
+* Issuer
+* Subject
+* Valid from
+* Valid to
 * version
 * Serial Number
 * Signature Algorithm
-* Issuer
-* Validity
-* Subject
+* Public Key Algorithm
 * Subject Public Key Info
 * X509v3 Key Usage: critical
 * X509v3 Extended Key Usage
+* Basic Constraints Valid
+* IsCA
 
 If the showing fails, an error message is printed out with specific reasons.
 
@@ -237,7 +241,7 @@ A prompt is showed asking user to confirm the deletion. Upon successful deletion
 ### Generate a local RSA key and a corresponding self-generated certificate for testing purpose and add the certificate into trust store
 
 ```bash
-notation certificate generate-test "wabbit-networks.io" --trust
+notation certificate generate-test --trust "wabbit-networks.io"
 ```
 
 Upon successful execution, a local key file and certificate file named `wabbit-networks.io` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as certificate subject.CommonName. With `--trust` flag set, the certificate is added into a trust store named `wabbit-networks.io` of type `ca`.
