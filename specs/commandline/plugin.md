@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation plugin` to manage the lifecycle of plugins. See notation [plugin documentation](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details. The `notation plugin` command by itself performs no action. In order to operate on a plugin, one of the subcommands must be used. The current available subcommand is `notation plugin list`.
+Use `notation plugin` to manage the lifecycle of plugins. See notation [plugin documentation](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details. The `notation plugin` command by itself performs no action. In order to operate on a plugin, one of the subcommands must be used.
 
 ## Outline
 
@@ -18,7 +18,9 @@ Available Commands:
   list        List registered plugins
 
 Flags:
-  -h, --help   help for plugin
+  -h, --help          help for plugin
+
+RUN 'notation plugin <command> --help' for more information on a command.
 ```
 
 ### notation plugin list
@@ -29,14 +31,11 @@ List installed plugins
 Usage:
   notation plugin list [flags]
 
+Flags:
+  -h, --help          help for list
+
 Aliases:
   list, ls
-
-Flags:
-  -h, --help   help for list
-
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ## Usage
@@ -56,3 +55,10 @@ notation plugin list
 ```
 
 Upon successful execution, a list of plugins are printed out with information of name, description, version, capabilities and errors. The capabilities show what the plugin is capable of, for example, the plugin can generate signatures or verify signatures. The information of errors indicates whether the plugin installed properly. `<nil>` of Error indicates the plugin installed successfully.
+
+An example of output from `notation plugin list`:
+
+```text
+NAME       DESCRIPTION                                   VERSION             CAPABILITIES                ERROR
+azure-kv   Sign artifacts with keys in Azure Key Vault   v0.3.1-alpha.1      [SIGNATURE_GENERATOR.RAW]   <nil>
+```

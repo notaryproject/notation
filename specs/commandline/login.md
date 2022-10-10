@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation login` to log in to an OCI registry.
+Use `notation login` to log in to an OCI registry. Users can execute `notation login` multiple times to log in multiple registries.
 
 ## Outline
 
@@ -10,13 +10,14 @@ Use `notation login` to log in to an OCI registry.
 Log in to an OCI registry
 
 Usage:
-  notation login <server> [flags]
+  notation login [flags] <server>
 
 Flags:
   -h, --help              help for login
-  -p, --password string   Password for registry operations (default to $NOTATION_PASSWORD if not specified)
-      --password-stdin    Take the password from stdin
-  -u, --username string   Username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -p, --password string   password for registry operations (default to $NOTATION_PASSWORD if not specified)
+      --password-stdin    take the password from stdin
+      --plain-http        registry access via plain HTTP
+  -u, --username string   username for registry operations (default to $NOTATION_USERNAME if not specified)
 ```
 
 ## Usage
