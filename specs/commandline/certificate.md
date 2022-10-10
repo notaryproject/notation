@@ -50,13 +50,11 @@ Available Commands:
   delete        Delete certificates from the trust store. This command only operates on User level.
   generate-test Generate a test RSA key and a corresponding self-signed certificate.
   list          List certificates used for verification. This command operates on User level and System level.
-  show          Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains a certificate chain, all certificates in the chain are displayed starting from the leaf. User level has priority over System level.
+  show          Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.
 
 Flags:
   -h, --help   help for certificate
 
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ### notation certificate add
@@ -65,15 +63,13 @@ Global Flags:
 Add certificates to the trust store. This command only operates on User level.
 
 Usage:
-  notation certificate add --type <type> --store <name> <filepath...> [flags]
+  notation certificate add --type <type> --store <name> [flags] <filepath...>
 
 Flags:
-  -h, --help   Help for certificate
-  -s, --store string   Specify named store
-  -t, --type string    Specify trust store type, options: ca, signingAuthority
+  -h, --help           help for certificate
+  -s, --store string   specify named store
+  -t, --type string    specify trust store type, options: ca, signingAuthority
 
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ### notation certificate list
@@ -92,8 +88,6 @@ Flags:
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
 
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ### notation certificate show
@@ -102,15 +96,13 @@ Global Flags:
 Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains a certificate chain, all certificates in the chain are displayed starting from the leaf. User level has priority over System level.
 
 Usage:
-  notation certificate show -t <type> -s <name> <fileName> [flags]
+  notation certificate show -t <type> -s <name> [flags] <fileName>
 
 Flags:
   -h, --help           help for show
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
 
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ### notation certificate delete
@@ -119,20 +111,18 @@ Global Flags:
 Delete certificates from the trust store. This command only operates on User level.
 
 Usage:
-  notation certificate delete -t <type> -s <name> (--all | <cert_filename>) [flags]
+  notation certificate delete -t <type> -s <name> [flags] (--all | <cert_filename>)
 
 Aliases:
   delete, rm
 
 Flags:
-  -a, --all            If set to true, remove all certificates in the named store
-  -y, --confirm        If yes, do not prompt for confirmation of deletion
+  -a, --all            remove all certificates in the named store
+  -y, --yes            do not prompt for confirmation
   -h, --help           help for delete
-  -s, --store string   Specify named store
-  -t, --type string    Specify trust store type, options: ca, signingAuthority
+  -s, --store string   specify named store
+  -t, --type string    specify trust store type, options: ca, signingAuthority
 
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ### notation certificate generate-test
@@ -141,7 +131,7 @@ Global Flags:
 Generate a test RSA key and a corresponding self-signed certificate.
 
 Usage:
-  notation certificate generate-test <host> [flags]
+  notation certificate generate-test [flags] <host>
 
 Flags:
   -b, --bits int      RSA key bits (default 2048)
@@ -150,8 +140,6 @@ Flags:
   -n, --name string   key and certificate name
       --trust         add the generated certificate to the trust store
 
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ## Usage
@@ -210,15 +198,8 @@ Upon successful show, the certificate details are printed out starting from leaf
 * Subject
 * Valid from
 * Valid to
-* version
-* Serial Number
-* Signature Algorithm
-* Public Key Algorithm
-* Subject Public Key Info
-* X509v3 Key Usage: critical
-* X509v3 Extended Key Usage
-* Basic Constraints Valid
 * IsCA
+* Thumbprints
 
 If the showing fails, an error message is printed out with specific reasons.
 

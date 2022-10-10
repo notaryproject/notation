@@ -17,11 +17,11 @@ Usage:
 Available Commands:
   add         Add key to signing key list
   list        List keys used for signing
-  remove      Remove key from signing key list
+  delete      Delete key from signing key list
   update      Update key in signing key list
 
 Flags:
-  -h, --help   help for key
+  -h, --help  help for key
 ```
 
 ### notation key add
@@ -30,14 +30,14 @@ Flags:
 Add key to signing key list
 
 Usage:
-  notation key add <key_name> [key_path cert_path] [flags]
+  notation key add [flags] <key_name> [key_path cert_path]
 
 Flags:
-  -d, --default               mark as default
-  -h, --help                  help for add
-      --id string             key id (required if --plugin is set)
-  -p, --plugin string         signing plugin name
-      --plugin-config string  list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values
+  -d, --default                mark as default
+  -h, --help                   help for add
+      --id string              key id (required if --plugin is set)
+  -p, --plugin string          signing plugin name
+      --plugin-config strings  {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values
 ```
 
 ### notation key list
@@ -46,29 +46,24 @@ Flags:
 List keys used for signing
 
 Usage:
-  notation key list [flags]
+  notation key [--help] list
 
 Aliases:
   list, ls
 
-Flags:
-  -h, --help   help for list
-
 ```
 
-### notation key remove
+### notation key delete
 
 ```text
-Remove key from signing key list
+Delete key from signing key list
 
 Usage:
-  notation key remove <key_name>... [flags]
+  notation key delete [--help] <key_name>...
 
 Aliases:
-  remove, rm
+  delete, rm
 
-Flags:
-  -h, --help   help for remove
 ```
 
 ### notation key update
@@ -77,7 +72,7 @@ Flags:
 Update key in signing key list
 
 Usage:
-  notation key update <key_name> [flags]
+  notation key update [flags] <key_name>
 
 Aliases:
   update, set
@@ -122,10 +117,10 @@ notation key list
 
 Upon successful execution, a list of keys is printed out with information of name, key path, certificate path, key id and plugin name. The default signing key name is preceded by an asterisk. The key id and plugin name are used together to provide the information of the key identifier for the remote key and the plugin associated with it.
 
-### Remove two keys from signing key list
+### Delete two keys from signing key list
 
 ```shell
-notation key remove <key_name_1> <key_name_2>
+notation key delete <key_name_1> <key_name_2>
 ```
 
-Upon successful execution, the names of removed signing keys are printed out. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+Upon successful execution, the names of deleted signing keys are printed out. Please be noted if default signing key is deleted, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
