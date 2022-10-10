@@ -10,8 +10,8 @@ import (
 
 // Supported envelope format.
 const (
-	Cose = "cose"
-	Jws  = "jws"
+	COSE = "cose"
+	JWS  = "jws"
 )
 
 // SpeculateSignatureEnvelopeFormat speculates envelope format by looping all builtin envelope format.

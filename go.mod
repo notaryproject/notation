@@ -25,5 +25,3 @@ require (
 	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
 	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect
 )
-
-replace github.com/notaryproject/notation-go => github.com/chloeyin/notation-go v0.8.0-alpha.1.0.20220929023947-bac6075dccee
