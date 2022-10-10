@@ -46,10 +46,13 @@ Flags:
 List keys used for signing
 
 Usage:
-  notation key [--help] list
+  notation key [flags] list
 
 Aliases:
   list, ls
+
+Flags:
+  -h, --help                   help for list
 
 ```
 
@@ -59,10 +62,13 @@ Aliases:
 Delete key from signing key list
 
 Usage:
-  notation key delete [--help] <key_name>...
+  notation key delete [flags] <key_name>...
 
 Aliases:
   delete, rm
+
+Flags:
+  -h, --help                   help for delete
 
 ```
 
