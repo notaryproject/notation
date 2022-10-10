@@ -13,7 +13,7 @@ Usage:
   notation logout [flags] [server]
 
 Flags:
-      --all           log out from all registries
+      --all           log out from all logged in registries
   -h, --help          help for logout
       --plain-http    registry access via plain HTTP
 ```
@@ -26,7 +26,7 @@ Flags:
 notation logout registry.example.com
 ```
 
-## Log out from all registries
+## Log out from all logged in registries
 
 ```shell
 notation logout --all
