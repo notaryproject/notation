@@ -107,7 +107,7 @@ To get things started quickly, the Notation cli supports self-signed certificate
 
 ## Verify a Container Image Using Notation Signatures
 
-Notation provides a trust policy [`~/.config/notation/trustpolicy.json`] for users to specify trusted identities which will sign the artifiacts, and level of signature verification to use. A trust policy is a JSON document, below example works for the current case.
+Notation provides a trust policy for users to specify trusted identities which will sign the artifiacts, and level of signature verification to use. A trust policy is a JSON document, below example works for the current case.
 
 ```
 {
