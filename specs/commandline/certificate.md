@@ -2,7 +2,7 @@
 
 ## Description
 
-Use ```notation certificate``` command to add/list/delete certificates in a trust store. Update an existing certificate is not allowed since the thumbprint will be inconsistent, which results in a new certificate.
+Use ```notation certificate``` command to add/list/delete certificates in notation's trust store. Updating an existing certificate is not allowed since the thumbprint will be inconsistent, which results in a new certificate.
 
 The trust store is in the format of a directory in the filesystem as`x509/<type>/<name>/*.crt|*.cer|*.pem`. Currently two types of trust store are supported:
 
