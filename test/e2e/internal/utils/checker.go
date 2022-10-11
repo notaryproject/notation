@@ -3,7 +3,7 @@ package utils
 import (
 	"os"
 
-	"github.com/notaryproject/notation-core-go/signature"
+	"github.com/notaryproject/notation-go/core/signature"
 	. "github.com/onsi/gomega"
 )
 

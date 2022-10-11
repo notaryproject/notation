@@ -1,6 +1,7 @@
 package certificate
 
 import (
+	"crypto/sha1"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -9,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	corex509 "github.com/notaryproject/notation-core-go/x509"
+	corex509 "github.com/notaryproject/notation-go/core/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -132,37 +133,8 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("Subject:", cert.Subject)
 	fmt.Println("Valid from:", cert.NotBefore)
 	fmt.Println("Valid to:", cert.NotAfter)
-	fmt.Println("Version:", cert.Version)
-	fmt.Println("Serial number:", cert.SerialNumber)
-	fmt.Println("Signature Algorithm:", cert.SignatureAlgorithm)
-	fmt.Println("Public Key Algorithm:", cert.PublicKeyAlgorithm)
-
-	// SubjectPublicKeyInfo
-	fmt.Println("SubjectPublicKeyInfo:", cert.PublicKey)
-
-	// KeyUsage
-	var keyUsage []string
-	for k, v := range KeyUsageNameMap {
-		if cert.KeyUsage&k != 0 {
-			keyUsage = append(keyUsage, v)
-		}
-	}
-	keyUsagePrint := strings.Join(keyUsage, ", ")
-	fmt.Println("Key Usage:", keyUsagePrint)
-
-	// ExtKeyUsage
-	var extKeyUsage []string
-	for _, u := range cert.ExtKeyUsage {
-		extKeyUsageString, ok := ExtKeyUsagesNameMap[u]
-		if ok {
-			extKeyUsage = append(extKeyUsage, extKeyUsageString)
-		}
-	}
-	extKeyUsagePrint := strings.Join(extKeyUsage, ", ")
-	fmt.Println("Extended key usages:", extKeyUsagePrint)
-
-	fmt.Println("Basic Constraints Valid:", cert.BasicConstraintsValid)
 	fmt.Println("IsCA:", cert.IsCA)
+	fmt.Println("Thumbprints:", sha1.Sum(cert.Raw))
 }
 
 // RemoveAllCerts deletes all certificate files from the User level trust store
