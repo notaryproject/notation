@@ -7,6 +7,7 @@ import (
 
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin/manager"
+	"github.com/notaryproject/notation-go/verification"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
@@ -51,4 +52,31 @@ func PrintCertificateMap(w io.Writer, v []config.CertificateReference) error {
 		fmt.Fprintf(tw, "%s\t%s\t\n", cert.Name, cert.Path)
 	}
 	return tw.Flush()
+}
+
+func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string) error {
+	tw := newTabWriter(w)
+
+	if resultErr == nil {
+		fmt.Fprintf(tw, "%s\n", digest)
+		return nil
+	}
+
+	fmt.Fprintf(tw, "ERROR: %s\n\n", resultErr.Error())
+	printOutcomes(tw, v)
+
+	return tw.Flush()
+}
+
+func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome) {
+	if len(outcomes) == 1 {
+		fmt.Println("1 signature failed verification, error is listed as below:")
+	} else {
+		fmt.Printf("%d signatures failed verification, errors are listed as below:\n", len(outcomes))
+	}
+
+	for _, outcome := range outcomes {
+		// TODO: print out the signature digest once the outcome contains it.
+		fmt.Printf("%s\n\n", outcome.Error.Error())
+	}
 }
