@@ -2,19 +2,22 @@
 
 ## Description
 
-Use `notation verify` command to verify signatures on an artifact. Signature verification succeeds if verification succeeds for at least one signature. The digest of the supplied artifact is returned upon successful verification.
+Use `notation verify` command to verify signatures on an artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. The digest of the supplied artifact is returned upon successful verification. It is recommended that this digest reference be used to pull the artifact subsequently, as registry tags may be mutable, and a tag reference can point to a different artifact that what was verified.
 
 ## Outline
 
+```text
 Verify artifacts against signatures
 
 Usage:
   notation verify <reference> [flags]
 
 Flags:
-  -h, --help                help for verify
-  -p, --password string     Password for registry operations (default to $NOTATION_PASSWORD if not specified)
-  -u, --username string     Username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -h, --help                    help for verify
+  -p, --password string         Password for registry operations (default to $NOTATION_PASSWORD if not specified)
+      --plugin-config strings   {key}={value} pairs that are passed as is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+  -u, --username string         Username for registry operations (default to $NOTATION_USERNAME if not specified)
+```
 
 ## Usage
 
@@ -30,7 +33,7 @@ Users who consume signed artifact from a registry use the trust policy to specif
 
 An example of `trustpolicy.json`:
 
-```text
+```jsonc
 {
     "version": "1.0",
     "trustPolicies": [
@@ -52,7 +55,7 @@ An example of `trustpolicy.json`:
 
 In this example, only one policy is configured with the name `wabbit-networks-images`. With the value of property `registryScopes` set to `*`, this policy applies to all artifacts from any registry location. User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/main/trust-store-trust-policy-specification.md#trust-policy) for details.
 
-### Verify signatures on a container image stored in a registry (Neither trust store nor trust policy is configured)
+### Verify signatures on a container image stored in a registry (Neither trust store nor trust policy is configured yet)
 
 ```shell
 
@@ -63,7 +66,7 @@ notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
 # Configure trust policy by creating a JSON document named "trustpolicy.json" under directory "{NOTATION_CONFIG}"
 # Example on Linux
-cat <<EOF > $HOME/.config/notaton/trustpolicy.json
+cat <<EOF > $HOME/.config/notation/trustpolicy.json
 {
     "version": "1.0",
     "trustPolicies": [
