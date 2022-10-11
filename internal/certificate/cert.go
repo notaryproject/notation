@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	corex509 "github.com/notaryproject/notation-core-go/x509"
+	corex509 "github.com/notaryproject/notation-go/core/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/osutil"

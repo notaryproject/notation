@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/signature/cose"
-	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/core/signature/cose"
+	"github.com/notaryproject/notation-go/core/signature/jws"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/internal/envelope"
