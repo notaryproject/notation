@@ -14,7 +14,7 @@ This spec contains reference information on using notation commands. Each comman
 | [plugin](./commandline/plugin.md)           | Manage plugins                         |
 | [sign](./commandline/sign.md)               | Sign artifacts                         |
 | [verify](./commandline/verify.md)           | Verify artifacts                       |
-| [version](./commandline/version.md)         | Prints the version                     |
+| [version](./commandline/version.md)         | Print the version                     |
 
 ## Notation Outline
 
@@ -34,7 +34,7 @@ Available Commands:
   plugin      Manage plugins
   sign        Sign artifacts
   verify      Verify artifacts
-  version     Prints the version
+  version     Print the version
 
 Flags:
   -h, --help         help for notation
