@@ -22,6 +22,7 @@ func main() {
 		listCommand(nil),
 		certCommand(),
 		keyCommand(),
+		policyCommand(),
 		cacheCommand(),
 		pluginCommand(),
 		loginCommand(nil),
