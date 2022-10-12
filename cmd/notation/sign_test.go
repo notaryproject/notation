@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 )
 
 func TestSignCommand_BasicArgs(t *testing.T) {
@@ -23,9 +24,10 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			},
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
-			Key:      "key",
-			KeyFile:  "keyfile",
-			CertFile: "certfile",
+			Key:          "key",
+			KeyFile:      "keyfile",
+			CertFile:     "certfile",
+			EnvelopeType: envelope.JWS,
 		},
 		push: true,
 	}
@@ -63,9 +65,10 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			},
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
-			Key:      "key",
-			KeyFile:  "keyfile",
-			CertFile: "certfile",
+			Key:          "key",
+			KeyFile:      "keyfile",
+			CertFile:     "certfile",
+			EnvelopeType: envelope.COSE,
 		},
 		output: "outputfile",
 		push:   false,
@@ -82,6 +85,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--push=false",
 		"--media-type", expected.MediaType,
 		"-l",
+		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
 		"--output", expected.output,
 		"--expiry", expected.expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -106,9 +110,10 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 			},
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
-			Key:      "key",
-			KeyFile:  "keyfile",
-			CertFile: "certfile",
+			Key:          "key",
+			KeyFile:      "keyfile",
+			CertFile:     "certfile",
+			EnvelopeType: envelope.JWS,
 		},
 		push:            true,
 		expiry:          365 * 24 * time.Hour,
@@ -126,6 +131,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 		"--push-reference", expected.pushReference,
 		"-r", expected.originReference,
 		"--local",
+		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String(),
 		"--pluginConfig", expected.pluginConfig}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
