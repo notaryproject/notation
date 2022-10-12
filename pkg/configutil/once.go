@@ -27,7 +27,7 @@ func LoadConfigOnce() (*config.Config, error) {
 		configInfo, err = config.LoadConfig("")
 		// set default value
 		if configInfo.EnvelopeType == "" {
-			configInfo.EnvelopeType = envelope.Jws
+			configInfo.EnvelopeType = envelope.JWS
 		}
 	})
 	return configInfo, err

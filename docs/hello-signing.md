@@ -137,7 +137,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Attempt to verify the $IMAGE notation signature
 
   ```bash
-  notation verify --plain-http $IMAGE
+  notation verify $IMAGE
   ```
 
   *The above verification should fail, as you haven't yet configured the keys to trust.*
@@ -158,7 +158,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Verify the `net-monitor:v1` notation signature
 
   ```bash
-  notation verify --plain-http $IMAGE
+  notation verify $IMAGE
   ```
 
   This should now succeed because the image is signed with a trusted public key

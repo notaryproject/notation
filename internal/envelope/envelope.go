@@ -10,13 +10,13 @@ import (
 
 // Supported envelope format.
 const (
-	Cose = "cose"
-	Jws  = "jws"
+	COSE = "cose"
+	JWS  = "jws"
 )
 
 // SpeculateSignatureEnvelopeFormat speculates envelope format by looping all builtin envelope format.
 //
-// TODO: find a better way to inspect the type of envelope.
+// TODO: abandon this fature in RC1.
 func SpeculateSignatureEnvelopeFormat(raw []byte) (string, error) {
 	var msg gcose.Sign1Message
 	if err := msg.UnmarshalCBOR(raw); err == nil {

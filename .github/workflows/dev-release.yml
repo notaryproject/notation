@@ -3,6 +3,7 @@ name: dev-release
 on:
   schedule:
     - cron: '0 16 * * 0'  # at 16:00 on Sunday (UTC)
+  workflow_dispatch:
 
 jobs:
   build:

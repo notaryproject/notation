@@ -44,7 +44,7 @@ var (
 		Usage: "signature envelope format, options: 'jws', 'cose'",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		defaultEnvelopeFormat := envelope.Jws
+		defaultEnvelopeFormat := envelope.JWS
 		// load config to get envelopeType
 		config, err := configutil.LoadConfigOnce()
 		if err == nil && config.EnvelopeType != "" {
