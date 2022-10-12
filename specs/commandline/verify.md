@@ -7,7 +7,7 @@ Use `notation verify` command to verify signatures on an artifact. Signature ver
 ## Outline
 
 ```text
-Verify artifacts against signatures
+Verify signatures associated with the artifact.
 
 Usage:
   notation verify <reference> [flags]
@@ -21,7 +21,7 @@ Flags:
 
 ## Usage
 
-User needs to configure trust store and trust policy properly before using `notation verify` command.
+Pre-requisite: User needs to configure trust store and trust policy properly before using `notation verify` command.
 
 ### Configure Trust Store
 
