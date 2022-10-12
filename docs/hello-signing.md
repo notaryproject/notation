@@ -72,48 +72,53 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 - List the image, and any associated signatures
 
   ```bash
-  notation list --plain-http $IMAGE
+  notation list $IMAGE
   ```
 
   At this point, the results are empty, as there are no existing signatures
 
 ## Signing a Container Image
 
-To get things started quickly, the Notation cli supports generating self signed certificates. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
+To get things started quickly, the Notation cli supports self-generated signing certificate. As you automate the signing of content, you will most likely want to create and store the private keys in a key vault. (Detailed production steps will be covered later)
 
-- Generate a self-signed test certificate for signing artifacts
-  The following will generate a self-signed X.509 certificate under the `~/config/notation/` directory
+- Create a self-signed test certificate for signing artifacts
+  The following will create a self-signed X.509 certificate under the `~/.config/notation/localkeys` directory along with a private key.
 
   ```bash
   notation cert generate-test --default "wabbit-networks.io"
   ```
 
-- Sign the container image
+- Sign the container image. By default, JWS envelope is used.
 
   ```bash
-  notation sign --plain-http $IMAGE
+  notation sign $IMAGE
+  ```
+  To sign with COSE envelope
+  ```bash
+  notation sign --envelope-type cose $IMAGE
   ```
 
 - List the image, and any associated signatures
 
   ```bash
-  notation list --plain-http $IMAGE
+  notation list $IMAGE
   ```
 
 ## Verify a Container Image Using Notation Signatures
 
-To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify that the artifact was unmodified after it was created (integrity), and from an trusted entity (authenticity). Notation uses a set of configured public keys that represent trusted entities, to verify the content. The `notation cert generate-test` command created the public key, however it must be implicitly added for verification to succeed.
+To avoid a Trojan Horse attack, and before pulling an artifact into an environment, it is important to verify that the artifact was unmodified after it was created (integrity), and from an trusted entity (authenticity). Notation uses a set of configured public keys that represent trusted entities, to verify the content. The `notation cert generate-test` command created the public key, however it must be explicitly added for verification to succeed.
 
 - Attempt to verify the $IMAGE notation signature
 
   ```bash
-  notation verify --plain-http $IMAGE
+  notation verify $IMAGE
   ```
 
   *The above verification should fail, as you haven't yet configured the keys to trust.*
 
   ```bash
-  2021/09/07 11:40:51 trust certificate not specified
+  Error: trust certificate not specified
+  2022/08/31 10:24:19 trust certificate not specified
   ```
 
 - To assure users opt-into the public keys they trust, add the key to the trusted store
@@ -125,7 +130,7 @@ To avoid a Trojan Horse attack, and before pulling an artifact into an environme
 - Verify the `net-monitor:v1` notation signature
 
   ```bash
-  notation verify --plain-http $IMAGE
+  notation verify $IMAGE
   ```
 
   This should now succeed because the image is signed with a trusted public key
