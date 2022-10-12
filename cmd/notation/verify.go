@@ -105,7 +105,6 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 			continue
 		}
 		// pass in nonempty annotations if needed
-		// TODO: understand media type in a better way
 		sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
 		if err != nil {
 			lastErr = fmt.Errorf("verification failure: %v", err)
