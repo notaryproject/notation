@@ -11,8 +11,8 @@ github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NH
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/notaryproject/notation-core-go v0.1.0-alpha.4 h1:0OhA2PjwT0TAouHOrU4K+8H9YM6E/e4/ocoq+JiHeOw=
 github.com/notaryproject/notation-core-go v0.1.0-alpha.4/go.mod h1:s8DZptmN1rZS0tBLTPt/w+d4o6eAcGWTYYJlXaJhQ4U=
-github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20221009143310-e2ae1fecf077 h1:LshczxRKk5d/5ZOVr/qG0aZr9bu6CVYmdLgSTzTGG8w=
-github.com/notaryproject/notation-go v0.10.0-alpha.3.0.20221009143310-e2ae1fecf077/go.mod h1:26t4uYh4bkLWMjtG/eakOWIRpqZiF7fMCs55q0WGwTE=
+github.com/notaryproject/notation-go v0.11.0-alpha.4 h1:PNptLtrhW0jyw10hUWU+KNzvzeuBBZmg+/1IUaGYE10=
+github.com/notaryproject/notation-go v0.11.0-alpha.4/go.mod h1:4xYTcW4wfsXkXw3piUA53uSW82RwdXyipSEtiiRVrCw=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86 h1:Oumw+lPnO8qNLTY2mrqPJZMoGExLi/0h/DdikoLTXVU=
 github.com/opencontainers/distribution-spec/specs-go v0.0.0-20220620172159-4ab4752c3b86/go.mod h1:aA4vdXRS8E1TG7pLZOz85InHi3BiPdErh8IpJN6E0x4=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
