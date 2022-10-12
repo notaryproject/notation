@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signature"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/opencontainers/go-digest"
+
 	"github.com/spf13/cobra"
 )
 
@@ -96,15 +97,21 @@ func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestD
 		return errors.New("verification failure: no signatures found")
 	}
 
-	// TODO: support cose media type
-	opts := notation.VerifyOptions{
-		SignatureMediaType: jws.MediaTypeEnvelope,
-	}
 	var lastErr error
 	for _, path := range sigPaths {
 		sig, err := os.ReadFile(path)
 		if err != nil {
-			return err
+			lastErr = fmt.Errorf("verification failure: %v", err)
+			continue
+		}
+		// pass in nonempty annotations if needed
+		sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
+		if err != nil {
+			lastErr = fmt.Errorf("verification failure: %v", err)
+			continue
+		}
+		opts := notation.VerifyOptions{
+			SignatureMediaType: sigMediaType,
 		}
 		desc, err := verifier.Verify(ctx, sig, opts)
 		if err != nil {
