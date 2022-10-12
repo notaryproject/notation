@@ -7,9 +7,9 @@ import (
 // SignerFlagOpts cmd opts for using cmd.GetSigner
 type SignerFlagOpts struct {
 	Key          string
-	EnvelopeType string
 	KeyFile      string
 	CertFile     string
+	EnvelopeType string
 }
 
 // ApplyFlags set flags and their default values for the FlagSet
