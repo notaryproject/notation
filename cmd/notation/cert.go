@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/config"
@@ -27,7 +26,6 @@ type certRemoveOpts struct {
 type certGenerateTestOpts struct {
 	name      string
 	bits      int
-	expiry    time.Duration
 	trust     bool
 	hosts     []string
 	isDefault bool
@@ -119,7 +117,6 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 
 	command.Flags().StringVarP(&opts.name, "name", "n", "", "key and certificate name")
 	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
-	command.Flags().DurationVarP(&opts.expiry, "expiry", "e", 365*24*time.Hour, "certificate expiry")
 	command.Flags().BoolVar(&opts.trust, "trust", false, "add the generated certificate to the verification list")
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 	return command
