@@ -10,7 +10,7 @@ Use `notation verify` command to verify signatures on an artifact. Signature ver
 Verify signatures associated with the artifact.
 
 Usage:
-  notation verify <reference> [flags]
+  notation verify [flags] <reference>
 
 Flags:
   -h, --help                    help for verify
@@ -39,14 +39,14 @@ An example of `trustpolicy.json`:
     "trustPolicies": [
         {
             // Policy for all artifacts, from any registry location.
-            "name": "wabbit-networks-images",   // Name of the policy.
-            "registryScopes": [ "*" ],          // The registry artifacts to which the policy applies.
-            "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
-              "level" : "strict" 
+            "name": "wabbit-networks-images",  // Name of the policy.
+            "registryScopes": [ "*" ],         // The registry artifacts to which the policy applies.
+            "signatureVerification": {         // The level of verification - strict, permissive, audit, skip.
+                "level": "strict"
             },
-            "trustStores": ["ca:wabbit-networks"], // The trust stores that contains the X.509 trusted roots.
-            "trustedIdentities": [              // Identities that are trusted to sign the artifact.
-              "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
+            "trustStores": [ "ca:wabbit-networks" ], // The trust stores that contains the X.509 trusted roots.
+            "trustedIdentities": [                   // Identities that are trusted to sign the artifact.
+                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
             ]
         }
     ]
@@ -74,11 +74,11 @@ cat <<EOF > $HOME/.config/notation/trustpolicy.json
             "name": "wabbit-networks-images",   // Name of the policy.
             "registryScopes": [ "registry.wabbit-networks.io/software/net-monitor" ],          // The registry artifacts to which the policy applies.
             "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
-              "level" : "strict" 
+                "level" : "strict" 
             },
-            "trustStores": ["ca:wabbit-networks"], // The trust stores that contains the X.509 trusted roots.
-            "trustedIdentities": [              // Identities that are trusted to sign the artifact.
-              "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
+            "trustStores": [ "ca:wabbit-networks" ], // The trust stores that contains the X.509 trusted roots.
+            "trustedIdentities": [                   // Identities that are trusted to sign the artifact.
+                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
             ]
         }
     ]
@@ -87,7 +87,6 @@ EOF
 
 # Verify signatures on a container image 
 notation verify registry.wabbit-networks.io/software/net-monitor:v1
-
 ```
 
 ### Verify signatures on an OCI artifact stored in a registry (Trust store and trust policy are configured properly)
@@ -97,5 +96,4 @@ notation verify registry.wabbit-networks.io/software/net-monitor:v1
 
 # Verify signatures on an OCI artifact identified by the digest
 notation verify registry.wabbit-networks.io/software/net-monitor@sha256:abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234
-
 ```
