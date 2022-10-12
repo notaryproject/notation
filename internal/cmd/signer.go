@@ -57,9 +57,9 @@ func GetExpiry(expiry time.Duration) time.Time {
 
 func GetEnvelopeMediaType(sigFormat string) (string, error) {
 	switch sigFormat {
-	case envelope.Jws:
+	case envelope.JWS:
 		return jws.MediaTypeEnvelope, nil
-	case envelope.Cose:
+	case envelope.COSE:
 		return cose.MediaTypeEnvelope, nil
 	}
 	return "", fmt.Errorf("signature format %s not supported", sigFormat)
