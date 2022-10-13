@@ -48,7 +48,7 @@ func certCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:     "certificate",
 		Aliases: []string{"cert"},
-		Short:   "Manage certificates in trust store",
+		Short:   "Manage certificates in trust store for signature verification.",
 	}
 
 	command.AddCommand(certAddCommand(nil), certListCommand(nil), certShowCommand(nil), certRemoveCommand(nil), certGenerateTestCommand(nil))
@@ -60,8 +60,8 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 		opts = &certAddOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "add -t <type> -s <name> <path...>",
-		Short: "Add certificates to the trust store. This command only operates on User level",
+		Use:   "add --type <type> --store <name> [flags] <cert_path>...",
+		Short: "Add certificates to the trust store. This command only operates on User level.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate path")
@@ -85,7 +85,7 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "List certificates used for verification. This command operates on User level and System level",
+		Short:   "List certificates in the trust store. This command operates on both User level and System level.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listCerts(opts)
 		},
@@ -100,8 +100,8 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 		opts = &certShowOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "show -t <type> -s <name> <fileName>",
-		Short: "Show certificate details given trust store type, named store, and cert file name. If input is a certificate chain, all certificates in the chain is displayed starting from the leaf. User level has priority over System level",
+		Use:   "show --type <type> --store <name> [flags] <cert_fileName>",
+		Short: "Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate path")
@@ -126,9 +126,9 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		opts = &certRemoveOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "delete -t <type> -s <name> (--all | <fileName>)",
+		Use:     "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
 		Aliases: []string{"rm"},
-		Short:   "Delete certificates from the trust store. This command only operates on User level",
+		Short:   "Delete certificates from the trust store. This command only operates on User level.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if !opts.all && len(args) == 0 {
 				return errors.New("needs to specify certificate name or set --all flag")
@@ -144,8 +144,8 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 	}
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
-	command.Flags().BoolVarP(&opts.all, "all", "a", false, "if set to true, remove all certificates in the named store")
-	command.Flags().BoolVarP(&opts.confirmed, "confirm", "y", false, "if yes, do not prompt for confirmation")
+	command.Flags().BoolVarP(&opts.all, "all", "a", false, "remove all certificates in the named store")
+	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")
 	return command
 }
 
@@ -154,8 +154,8 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 		opts = &certGenerateTestOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "generate-test <host>",
-		Short: "Generate a test RSA key and a corresponding self-signed certificate",
+		Use:   "generate-test [flags] <host>",
+		Short: "Generate a test RSA key and a corresponding self-signed certificate.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate host")
