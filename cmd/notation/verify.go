@@ -37,7 +37,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		Short: "Verifies OCI Artifacts",
 		Long: `
 ** This command is in preview and under development. **
-Prerequiste: a trusted certificate needs to be generated or added using command "notation cert". 
+Prerequiste: a trusted certificate needs to be generated or added using the command "notation cert". 
 
 Example - Verify a signature using the trusted certificate:
   notation verify <registry>/<repository>:<tag>
