@@ -22,6 +22,10 @@ func pluginListCommand() *cobra.Command {
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List registered plugins",
+		Long: `
+Example - List registered Notation plugins:
+  notation plugin list
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPlugins(cmd)
 		},
