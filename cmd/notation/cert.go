@@ -37,16 +37,16 @@ func certCommand() *cobra.Command {
 		Aliases: []string{"cert"},
 		Short:   "Manage certificates used for verification",
 		Long: `
-Example - Generates a self-signed test certificate and add the generated certificate to the verification list:
+Example - Generate a self-signed test certificate and add the generated certificate to the verification list:
   notation cert generate-test -n localcert --trust true
 
 Example - Add the certificate to the trusted path
   notation cert add --name <key_name> <cert_path>
 
-Example - Generates a self-signed test certificate and set it to default:
+Example - Generate a self-signed test certificate and set it to default:
   notation cert generate-test -d <key_name>
 
-Example - list the existed certificates
+Example - List the existing certificates
   notation cert ls
 
 Example - Remove the certificate

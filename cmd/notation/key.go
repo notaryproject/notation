@@ -52,6 +52,16 @@ func keyCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "key",
 		Short: "Manage keys used for signing",
+		Long: `
+Example - Add a key to signing key list:
+  notation key add --name <key_name> --plugin <plugin_name> --id <key_id>
+
+Example - List keys used for signing:
+  notation key list
+
+Example - Remove the key from signing key list:
+  notation remove <key_name>
+`,
 	}
 	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyRemoveCommand(nil))
 	return command
