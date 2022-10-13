@@ -3,6 +3,7 @@ package certificate
 import (
 	"crypto/sha1"
 	"crypto/x509"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -134,7 +135,9 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("Valid from:", cert.NotBefore)
 	fmt.Println("Valid to:", cert.NotAfter)
 	fmt.Println("IsCA:", cert.IsCA)
-	fmt.Println("Thumbprints:", sha1.Sum(cert.Raw))
+
+	h := sha1.Sum(cert.Raw)
+	fmt.Println("Thumbprints:", hex.EncodeToString(h[:]))
 }
 
 // RemoveAllCerts deletes all certificate files from the User level trust store
