@@ -8,8 +8,6 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 
 ## Table of Contents
 
-- [Notation](#notation)
-  - [Table of Contents](#table-of-contents)
   - [Notation Quick Start](#notation-quick-start)
   - [Documents](#documents)
   - [Community](#community)
@@ -19,7 +17,7 @@ Notation is a CLI project to add signatures as standard items in the registry ec
   - [Support](#support)
   - [Code of Conduct](#code-of-conduct)
   - [License](#license)
-
+  
 ## Notation Quick Start
 
 - Install the Notation CLI from [Notation Releases][notation-releases]:
