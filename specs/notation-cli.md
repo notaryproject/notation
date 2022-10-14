@@ -14,7 +14,7 @@ This spec contains reference information on using notation commands. Each comman
 | [plugin](./commandline/plugin.md)           | Manage plugins                         |
 | [sign](./commandline/sign.md)               | Sign artifacts                         |
 | [verify](./commandline/verify.md)           | Verify artifacts                       |
-| [version](./commandline/version.md)         | Print the version                     |
+| [version](./commandline/version.md)         | Print the version of notation CLI      |
 
 ## Notation Outline
 
@@ -26,7 +26,7 @@ Usage:
 
 Available Commands:
   certificate Manage certificates in trust store
-  help        Help about any command
+  help        Provide a terse summary of all options
   key         Manage keys used for signing
   list        List signatures of the signed artifact
   login       Login to registries
@@ -34,7 +34,7 @@ Available Commands:
   plugin      Manage plugins
   sign        Sign artifacts
   verify      Verify artifacts
-  version     Print the version
+  version     Print the version of notation CLI
 
 Flags:
   -h, --help         help for notation
