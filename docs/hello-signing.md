@@ -47,15 +47,16 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 
 - Install [Docker Desktop](https://www.docker.com/products/docker-desktop) for local docker operations
 - Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
+  
   ```bash
-  docker run -d -p ${PORT}:5000 ghcr.io/oras-project/registry:v0.0.3-alpha
+  docker run -d -p ${PORT}:5000 ghcr.io/oras-project/registry:v1.0.0-rc2
   ```
 
 - Acquire the Notation CLI (Notation releases can be found at: [Notation Releases][notation-releases])
 
   ```bash
   #LINUX, including WSL
-  curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.7.1-alpha.1/notation_0.7.1-alpha.1_linux_amd64.tar.gz
+  curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.11.0-alpha.4/notation_0.11.0-alpha.4_linux_amd64.tar.gz
   tar xvzf notation.tar.gz -C ~/bin notation
   ```
 
@@ -93,7 +94,9 @@ To get things started quickly, the Notation cli supports self-generated signing 
   ```bash
   notation sign $IMAGE
   ```
+
   To sign with COSE envelope
+
   ```bash
   notation sign --envelope-type cose $IMAGE
   ```
@@ -176,6 +179,6 @@ Here are the additional steps to simulate a fully qualified DNS name for wabbit-
 
 - Continue with [Getting Started](#getting-started), but skip the environment variable configurations
 
-[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.7.1-alpha.1
+[notation-releases]:      https://github.com/notaryproject/notation/releases/tag/v0.11.0-alpha.4
 [artifact-manifest]:      https://github.com/oras-project/artifacts-spec/blob/main/artifact-manifest.md
 [cncf-distribution]:      https://github.com/oras-project/distribution
