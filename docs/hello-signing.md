@@ -49,7 +49,7 @@ ACME Rockets will only deploy software that's been scanned and approved by the A
 - Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support.
   
   ```bash
-  docker run -d -p ${PORT}:5000 ghcr.io/oras-project/registry:v1.0.0-rc2
+  docker run -d -p ${PORT}:5000 ghcr.io/oras-project/registry:v1.0.0-rc.2
   ```
 
 - Acquire the Notation CLI (Notation releases can be found at: [Notation Releases][notation-releases])
