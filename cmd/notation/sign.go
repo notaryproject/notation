@@ -35,8 +35,7 @@ func signCommand(opts *signOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "sign [reference]",
 		Short: "Sign OCI artifacts",
-		Long: `
-Sign OCI artifacts
+		Long: `Sign OCI artifacts
 
 Prerequisite: a signing key needs to be configured using the command "notation key".
 

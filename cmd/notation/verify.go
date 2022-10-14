@@ -35,8 +35,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "verify [reference]",
 		Short: "Verify OCI artifacts",
-		Long: `
-Verify OCI artifacts
+		Long: `Verify OCI artifacts
 
 Prerequisite: a trusted certificate needs to be generated or added using the command "notation cert". 
 
