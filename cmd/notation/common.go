@@ -16,7 +16,7 @@ var (
 	flagUsername = &pflag.Flag{
 		Name:      "username",
 		Shorthand: "u",
-		Usage:     "Username for registry operations (default from $NOTATION_USERNAME)",
+		Usage:     "username for registry operations (if not specified, defaults to $NOTATION_USERNAME)",
 	}
 	setflagUsername = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVarP(p, flagUsername.Name, flagUsername.Shorthand, "", flagUsername.Usage)
@@ -25,7 +25,7 @@ var (
 	flagPassword = &pflag.Flag{
 		Name:      "password",
 		Shorthand: "p",
-		Usage:     "Password for registry operations (default from $NOTATION_PASSWORD)",
+		Usage:     "password for registry operations (if not specified, defaults to $NOTATION_PASSWORD)",
 	}
 	setFlagPassword = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVarP(p, flagPassword.Name, flagPassword.Shorthand, "", flagPassword.Usage)

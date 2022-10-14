@@ -34,7 +34,26 @@ func signCommand(opts *signOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "sign [reference]",
-		Short: "Signs artifacts",
+		Short: "Sign OCI artifacts",
+		Long: `Sign OCI artifacts
+
+Prerequisite: a signing key needs to be configured using the command "notation key".
+
+Example - Sign a container image using the default signing key, with the default JWS envelope:
+  notation sign <registry>/<repository>:<tag>
+
+Example - Sign a container image using the default signing key, with the COSE envelope:
+  notation sign --envelope-type cose <registry>/<repository>:<tag> 
+
+Example - Sign a container image using the specified key name
+  notation sign --key <key_name> <registry>/<repository>:<tag>
+
+Example - Sign a container image using a local testing key and certificate file directly
+  notation sign --key-file <key_path> --cert-file <cert_path> <registry>/<repository>:<tag>
+
+Example - Sign a container image using the image digest
+  notation sign <registry>/<repository>@<digest>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
