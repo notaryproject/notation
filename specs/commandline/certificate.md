@@ -37,7 +37,7 @@ Please be noted there will be user level trust store and system level trust stor
 ### notation certificate
 
 ```text
-Manage certificates in trust store for signature verification
+Manage certificates in trust store for signature verification.
 
 Usage:
   notation certificate [command]
@@ -49,12 +49,11 @@ Available Commands:
   add           Add certificates to the trust store. This command only operates on User level.
   delete        Delete certificates from the trust store. This command only operates on User level.
   generate-test Generate a test RSA key and a corresponding self-signed certificate.
-  list          List certificates used for verification. This command operates on User level and System level.
+  list          List certificates in the trust store. This command operates on both User level and System level.
   show          Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.
 
 Flags:
   -h, --help   help for certificate
-
 ```
 
 ### notation certificate add
@@ -63,13 +62,12 @@ Flags:
 Add certificates to the trust store. This command only operates on User level.
 
 Usage:
-  notation certificate add --type <type> --store <name> [flags] <filepath...>
+  notation certificate add --type <type> --store <name> [flags] <cert_path>...
 
 Flags:
-  -h, --help           help for certificate
+  -h, --help           help for add
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
-
 ```
 
 ### notation certificate list
@@ -87,22 +85,20 @@ Flags:
   -h, --help           help for list
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
-
 ```
 
 ### notation certificate show
 
 ```text
-Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains a certificate chain, all certificates in the chain are displayed starting from the leaf. User level has priority over System level.
+Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.
 
 Usage:
-  notation certificate show -t <type> -s <name> [flags] <fileName>
+  notation certificate show --type <type> --store <name> [flags] <fileName>
 
 Flags:
   -h, --help           help for show
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
-
 ```
 
 ### notation certificate delete
@@ -111,18 +107,17 @@ Flags:
 Delete certificates from the trust store. This command only operates on User level.
 
 Usage:
-  notation certificate delete -t <type> -s <name> [flags] (--all | <cert_filename>)
+  notation certificate delete --type <type> --store <name> [flags] (--all | <filename>)
 
 Aliases:
   delete, rm
 
 Flags:
   -a, --all            remove all certificates in the named store
-  -y, --yes            do not prompt for confirmation
   -h, --help           help for delete
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
-
+  -y, --yes            do not prompt for confirmation
 ```
 
 ### notation certificate generate-test
@@ -139,7 +134,6 @@ Flags:
   -h, --help          help for generate-test
   -n, --name string   key and certificate name
       --trust         add the generated certificate to the trust store
-
 ```
 
 ## Usage
@@ -189,7 +183,7 @@ Upon successful listing, all the certificate files in the trust store named `<na
 ### Show details of a certain certificate file
 
 ```bash
-notation cert show --type <type> --store <name> <cert_file_name>
+notation certificate show --type <type> --store <name> <cert_fileName>
 ```
 
 Upon successful show, the certificate details are printed out starting from leaf certificate if it's a certificate chain. Here is a list of certificate properties:
@@ -206,7 +200,7 @@ If the showing fails, an error message is printed out with specific reasons.
 ### Delete all certificates of a certain named store of a certain type
 
 ```bash
-notation cert delete --type <type> --store <name> --all
+notation certificate delete --type <type> --store <name> --all
 ```
 
 A prompt is showed asking user to confirm the deletion. Upon successful deletion, all certificates in trust store named `<name>` of type `<type>` are deleted. If deletion fails, a list of successful deleted certificate files is printed out as well as a list of deletion-failure certificates with specific reasons.
@@ -214,7 +208,7 @@ A prompt is showed asking user to confirm the deletion. Upon successful deletion
 ### Delete a specific certificate of a certain named store of a certain type
 
 ```bash
-notation cert delete --type <type> --store <name> <cert_file_name>
+notation certificate delete --type <type> --store <name> <cert_fileName>
 ```
 
 A prompt is showed asking user to confirm the deletion. Upon successful deletion, the specific certificate is deleted in trust store named `<name>` of type `<type>`. If deletion fails, an error message with specific reasons is printed out.
