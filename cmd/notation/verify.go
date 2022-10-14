@@ -34,7 +34,20 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "verify [reference]",
-		Short: "Verifies OCI Artifacts",
+		Short: "Verify OCI artifacts",
+		Long: `Verify OCI artifacts
+
+Prerequisite: a trusted certificate needs to be generated or added using the command "notation cert". 
+
+Example - Verify a signature using the trusted certificate:
+  notation verify <registry>/<repository>:<tag>
+
+Example - Verify a signature associated with an OCI artifact identified by the digest:
+  notation verify <registry>/<repository>@<digest>
+
+Example - Verify a signature using a trusted certificate in a specified path:
+  notation verify --cert-file <cert_path> <registry>/<repository>:<tag>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
