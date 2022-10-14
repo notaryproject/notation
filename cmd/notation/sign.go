@@ -34,9 +34,11 @@ func signCommand(opts *signOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "sign [reference]",
-		Short: "Signs artifacts",
+		Short: "Sign OCI artifacts",
 		Long: `
-Prerequiste: a signing key needs to be configured using the command "notation key".
+Sign OCI artifacts
+
+Prerequisite: a signing key needs to be configured using the command "notation key".
 
 Example - Sign a container image using the default signing key, with the default JWS envelope:
   notation sign <registry>/<repository>:<tag>
