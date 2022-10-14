@@ -10,8 +10,6 @@ Upon successful execution, the following information is printed.
 Notation: Notary v2, A tool to sign, store, and verify artifacts.
 
 Version:    <version_in_format_vX.Y.Z[suffix]>
-Go version: <version in format goX.Y.Z>
-Git commit: <commit_id_in_7_characters>
 ```
 
 ## Outline
@@ -41,6 +39,4 @@ An example output:
 Notation: Notary v2, A tool to sign, store, and verify artifacts.
 
 Version:    v1.0.0-rc.1
-Go version: go1.19.1
-Git commit: abcd123
 ```
