@@ -22,7 +22,8 @@ func pluginListCommand() *cobra.Command {
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List registered plugins",
-		Long: `
+		Long: `List registered plugins
+
 Example - List registered Notation plugins:
   notation plugin list
 `,
