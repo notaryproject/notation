@@ -58,7 +58,7 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 	tw := newTabWriter(w)
 
 	if resultErr == nil {
-		fmt.Fprintf(tw, "%s\n", digest)
+		fmt.Fprintf(tw, "Signature verification succeeded for %s\n", digest)
 		return nil
 	}
 

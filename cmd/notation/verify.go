@@ -5,13 +5,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verification"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 
 	"github.com/spf13/cobra"
-	orasregistry "oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry"
 )
 
 type verifyOpts struct {
@@ -72,21 +72,21 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
 }
 
-func getVerifier(opts *verifyOpts, ref orasregistry.Reference) (*verification.Verifier, error) {
+func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifier, error) {
 	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	repo := registry.NewRepositoryClient(authClient, ref, plainHTTP)
+	repo := notationregistry.NewRepositoryClient(authClient, ref, plainHTTP)
 
 	return verification.NewVerifier(repo)
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (orasregistry.Reference, error) {
-	ref, err := orasregistry.ParseReference(opts.reference)
+func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
+	ref, err := registry.ParseReference(opts.reference)
 	if err != nil {
-		return orasregistry.Reference{}, err
+		return registry.Reference{}, err
 	}
 
 	if isDigestReference(opts.reference) {
@@ -96,7 +96,7 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (orasregistry.Re
 	// Resolve tag reference to digest reference.
 	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return orasregistry.Reference{}, err
+		return registry.Reference{}, err
 	}
 
 	ref.Reference = manifestDesc.Digest.String()
