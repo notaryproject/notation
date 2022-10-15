@@ -2,12 +2,23 @@
 
 ## Description
 
-Use `notation list` to list all the signatures of the signed artifact.
+Use `notation list` to list all the signatures associated with signed artifact.
+
+`Tags` are mutable, but `Digests` uniquely and immutably identify an artifact. If a tag is used to identify a signed artifact, notation resolves the tag to the `digest` first.
+
+Upon successful execution, both the digest of the signed artifact and the digests of signatures associated with signed artifact are printed out as following:
+
+```shell
+<registry>/<repository>@<digest>
+└── application/vnd.cncf.notary.v2.signature
+    ├──<digest_of_signature>
+    └──<digest_of_signature>
+```
 
 ## Outline
 
 ```text
-List all the signatures of signed artifacts
+List all the signatures associated with signed artifact
 
 Usage:
   notation list [flags] <reference>
@@ -30,4 +41,11 @@ Flags:
 notation list <registry>/<repository>:<tag>
 ```
 
-Upon successful execution, the digests of signatures of signed container image are printed out.
+An example output:
+
+```shell
+localhost:5000/net-monitor:v1
+└── application/vnd.cncf.notary.v2.signature
+    ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+```
