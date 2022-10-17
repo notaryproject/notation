@@ -22,7 +22,6 @@ Usage:
 
 Flags:
   -h, --help          Help for version
-
 ```
 
 ## Usage
