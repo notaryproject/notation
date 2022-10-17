@@ -93,7 +93,7 @@ Flags:
 Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.
 
 Usage:
-  notation certificate show --type <type> --store <name> [flags] <fileName>
+  notation certificate show --type <type> --store <name> [flags] <cert_fileName>
 
 Flags:
   -h, --help           help for show
@@ -107,7 +107,7 @@ Flags:
 Delete certificates from the trust store. This command only operates on User level.
 
 Usage:
-  notation certificate delete --type <type> --store <name> [flags] (--all | <filename>)
+  notation certificate delete --type <type> --store <name> [flags] (--all | <cert_fileName>)
 
 Aliases:
   delete, rm
