@@ -14,15 +14,8 @@ The default location and file will be stored at: `~/.config/notation/config.json
 
 | Property                  | Type     | Value                                                                                                                                                     |
 | ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `verificationCerts.certs` | _array_  | collection of name/value pairs for a collection of public certs that are used for verification. These may be replaced with a future policy configuration. |
-| `cert.name`               | _string_ | a named reference to the certificate                                                                                                                      |
-| `cert.path`               | _string_ | a location by which the certificate can be found by the notation cli or notation libraries                                                                |
-| `signingKeys.default`     | _string_ | the signing key to be used when `notation sign` is called without `--name`                                                                                |
-| `signingKeys.keys`        | _array_  | a collection of name/value pairs of signing keys.                                                                                                         |
-| `key.name`                | _string_ | a named reference to the key                                                                                                                              |
-| `key.keyPath`             | _string_ | a location by which the key can be found by the notation cli or notation libraries                                                                        |
-| `key.certPath`            | _string_ | a location by which the paired certificate can be found by the notation cli or notation libraries                                                         |
 | `insecureRegistries`      | _array_  | a list of registries that may be used without https                                                                                                       |
+| `envelopeType`            | _string_ | `jws` is the default value, available type includes `jws` and `cose`                                                                                      |
 
 ## Samples
 
@@ -30,21 +23,10 @@ The default location and file will be stored at: `~/.config/notation/config.json
 
 ```json
 {
-    "verificationCerts": {
-        "certs": [
-            {
-                "name": "wabbit-networks",
-                "path": "/home/demo/.config/notation/localkeys/wabbit-networks.crt"
-            },
-            {
-                "name": "import.acme-rockets",
-                "path": "/home/demo/.config/notation/localkeys/import.acme-rockets.crt"
-            }
-        ]
-    },
     "insecureRegistries": [
         "registry.wabbit-networks.io"
-    ]
+    ],
+    "envelopeType": "jws"
 }
 ```
 
