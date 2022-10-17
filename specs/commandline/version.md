@@ -9,7 +9,7 @@ Upon successful execution, the following information is printed.
 ```text
 Notation: Notary v2, A tool to sign, store, and verify artifacts.
 
-Version:    <version_in_format_vX.Y.Z[suffix]>
+Version:    <MAJOR.MINOR.PATCH>
 ```
 
 ## Outline
@@ -38,5 +38,5 @@ An example output:
 ```text
 Notation: Notary v2, A tool to sign, store, and verify artifacts.
 
-Version:    v1.0.0-rc.1
+Version:    1.0.0
 ```
