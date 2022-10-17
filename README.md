@@ -8,25 +8,29 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 
 ## Table of Contents
 
-- [Notation Quick Start](#notation-quick-start)
-- [Contributing](#contributing)
-- [Core Documents](#core-documents)
-- [Community](#community)
-- [Release Management](#release-management)
-- [Support](#support)
-- [Code of Conduct](#code-of-conduct)
-- [License](#license)
-
+  - [Notation Quick Start](#notation-quick-start)
+  - [Documents](#documents)
+  - [Community](#community)
+    - [Development and Contributing](#development-and-contributing)
+    - [Notary v2 Community Meeting](#notary-v2-community-meeting)
+  - [Release Management](#release-management)
+  - [Support](#support)
+  - [Code of Conduct](#code-of-conduct)
+  - [License](#license)
+  
 ## Notation Quick Start
 
 - Install the Notation CLI from [Notation Releases][notation-releases]:
-    ```bash
-    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.10.0-alpha.3/notation_0.10.0-alpha.3_linux_amd64.tar.gz
-    tar xvzf notation.tar.gz -C ~/bin notation
-    ```
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support:
+
   ```bash
-  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc
+  curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.11.0-alpha.4/notation_0.11.0-alpha.4_linux_amd64.tar.gz
+  tar xvzf notation.tar.gz -C ~/bin notation
+  ```
+
+- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support:
+  
+  ```bash
+  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc2
   ```
 
 - Build, push, sign, verify the `net-monitor` software:
@@ -42,7 +46,6 @@ Notation is a CLI project to add signatures as standard items in the registry ec
   ```
 
 > Note: Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
-
 
 ## Documents
 
