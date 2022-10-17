@@ -7,6 +7,7 @@ This spec contains reference information on using notation commands. Each comman
 | Command                                     | Description                            |
 | ------------------------------------------- | -------------------------------------- |
 | [certificate](./commandline/certificate.md) | Manage certificates in trust store     |
+| [help](#notation-outline)                   | Provide a terse summary of all options |
 | [key](./commandline/key.md)                 | Manage keys used for signing           |
 | [list](./commandline/list.md)               | List signatures of the signed artifact |
 | [login](./commandline/login.md)             | Login to registries                    |
