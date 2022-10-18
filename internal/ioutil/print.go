@@ -59,7 +59,7 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 
 	if resultErr == nil {
 		fmt.Fprintf(tw, "Signature verification succeeded for %s\n", digest)
-		// TODO: print out failed validations as warnings.
+		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
 
@@ -73,7 +73,7 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome, digest string) {
 	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n\n", len(outcomes), digest)
 
-	// TODO: print out detailed errors in debug mode.
+	// TODO[https://github.com/notaryproject/notation/issues/304]: print out detailed errors in debug mode.
 	for idx, outcome := range outcomes {
 		fmt.Printf("Signature #%d : %s\n", idx+1, outcome.Error.Error())
 	}

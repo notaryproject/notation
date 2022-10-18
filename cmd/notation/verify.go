@@ -31,7 +31,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 
 Prerequisite: a trusted certificate needs to be generated or added using the command "notation cert". 
 
-notation verify [--pluginConfig <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
+notation verify [--plugin-config <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -44,7 +44,7 @@ notation verify [--pluginConfig <key>=<value>,...] [--username <username>] [--pa
 		},
 	}
 	opts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.pluginConfig, "pluginConfig", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
+	command.Flags().StringVarP(&opts.pluginConfig, "plugin-config", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
 	return command
 }
 

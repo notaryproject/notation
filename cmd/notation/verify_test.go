@@ -42,7 +42,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--plain-http",
-		"--pluginConfig", expected.pluginConfig}); err != nil {
+		"--plugin-config", expected.pluginConfig}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
