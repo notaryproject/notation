@@ -58,15 +58,6 @@ var (
 	setFlagLocal = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, flagLocal.Name, flagLocal.Shorthand, false, flagLocal.Usage)
 	}
-
-	flagSignature = &pflag.Flag{
-		Name:      "signature",
-		Shorthand: "s",
-		Usage:     "signature files",
-	}
-	setFlagSignature = func(fs *pflag.FlagSet, p *[]string) {
-		fs.StringSliceVarP(p, flagSignature.Name, flagSignature.Shorthand, []string{}, flagSignature.Usage)
-	}
 )
 
 type SecureFlagOpts struct {

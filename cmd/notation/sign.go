@@ -106,7 +106,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		}
 	}
 
-	fmt.Println(desc.Digest)
+	fmt.Println("Sign succeeded for", desc.Digest)
 	return nil
 }
 
