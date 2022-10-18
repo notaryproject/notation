@@ -49,15 +49,6 @@ var (
 		fs.StringVar(p, flagMediaType.Name, defaultMediaType, flagMediaType.Usage)
 	}
 
-	flagOutput = &pflag.Flag{
-		Name:      "output",
-		Shorthand: "o",
-		Usage:     "write signature to a specific path",
-	}
-	setFlagOutput = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, flagOutput.Name, flagOutput.Shorthand, "", flagOutput.Usage)
-	}
-
 	flagLocal = &pflag.Flag{
 		Name:      "local",
 		Shorthand: "l",

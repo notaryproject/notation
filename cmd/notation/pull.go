@@ -1,124 +1,14 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"path/filepath"
 
-	"github.com/notaryproject/notation-go/dir"
-	notationregistry "github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/cache"
 	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2/registry"
 )
 
-type pullOpts struct {
-	SecureFlagOpts
-	strict    bool
-	reference string
-	output    string
-}
-
-func pullCommand(opts *pullOpts) *cobra.Command {
-	if opts == nil {
-		opts = &pullOpts{}
-	}
-	cmd := &cobra.Command{
-		Use:   "pull [reference]",
-		Short: "Pull signatures from remote",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("no reference specified")
-			}
-			opts.reference = args[0]
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPull(cmd, opts)
-		},
-	}
-	cmd.Flags().BoolVar(&opts.strict, "strict", false, "pull the signature without lookup the manifest")
-	setFlagOutput(cmd.Flags(), &opts.output)
-	opts.ApplyFlags(cmd.Flags())
-	return cmd
-}
-
-func runPull(command *cobra.Command, opts *pullOpts) error {
-	// initialize
-	reference := opts.reference
-	sigRepo, err := getSignatureRepository(&opts.SecureFlagOpts, reference)
-	if err != nil {
-		return err
-	}
-
-	// core process
-	if opts.strict {
-		return pullSignatureStrict(command.Context(), opts, sigRepo, reference)
-	}
-
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference)
-	if err != nil {
-		return err
-	}
-
-	sigManifests, err := sigRepo.ListSignatureManifests(command.Context(), manifestDesc.Digest)
-	if err != nil {
-		return fmt.Errorf("list signature manifests failure: %v", err)
-	}
-
-	path := opts.output
-	for _, sigManifest := range sigManifests {
-		sigDigest := sigManifest.Blob.Digest
-		if path != "" {
-			outputPath := filepath.Join(path, sigDigest.Encoded()+dir.SignatureExtension)
-			sig, err := sigRepo.GetBlob(command.Context(), sigDigest)
-			if err != nil {
-				return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
-			}
-			if err := osutil.WriteFile(outputPath, sig); err != nil {
-				return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
-			}
-		} else if err := cache.PullSignature(command.Context(), sigRepo, manifestDesc.Digest, sigDigest); err != nil {
-			return err
-		}
-
-		// write out
-		fmt.Println(sigDigest)
-	}
-
-	return nil
-}
-
-func pullSignatureStrict(ctx context.Context, opts *pullOpts, sigRepo notationregistry.SignatureRepository, reference string) error {
-	ref, err := registry.ParseReference(reference)
-	if err != nil {
-		return err
-	}
-	sigDigest, err := ref.Digest()
-	if err != nil {
-		return fmt.Errorf("invalid signature digest: %v", err)
-	}
-
-	sig, err := sigRepo.GetBlob(ctx, sigDigest)
-	if err != nil {
-		return fmt.Errorf("get signature failure: %v: %v", sigDigest, err)
-	}
-	outputPath := opts.output
-	if outputPath == "" {
-		outputPath = sigDigest.Encoded() + dir.SignatureExtension
-	}
-	if err := osutil.WriteFile(outputPath, sig); err != nil {
-		return fmt.Errorf("fail to write signature: %v: %v", sigDigest, err)
-	}
-
-	// write out
-	fmt.Println(sigDigest)
-	return nil
-}
-
+// TODO: This can be deprecated once the new verify command is merged into main.
 func pullSignatures(command *cobra.Command, reference string, opts *SecureFlagOpts, manifestDigest digest.Digest) error {
 	sigRepo, err := getSignatureRepository(opts, reference)
 	if err != nil {

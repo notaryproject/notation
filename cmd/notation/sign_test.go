@@ -70,7 +70,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			CertFile:     "certfile",
 			EnvelopeType: envelope.COSE,
 		},
-		output: "outputfile",
 		push:   false,
 		expiry: 24 * time.Hour,
 	}
@@ -86,7 +85,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--media-type", expected.MediaType,
 		"-l",
 		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
-		"--output", expected.output,
 		"--expiry", expected.expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
