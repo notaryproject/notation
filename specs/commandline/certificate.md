@@ -30,8 +30,6 @@ $XDG_CONFIG_HOME/notation/truststore
 
 In this example, there are two certificates stored in trust store named `acme-rockets` of type `ca`. There is one certificate stored in trust store named `wabbit-networks` of type `signingAuthority`.
 
-Please be noted there will be user level trust store and system level trust store. See [Directory spec](https://github.com/notaryproject/notation/blob/main/specs/directory.md) for more details. The commands `notation certificate add` and `notation certificate delete` are performed only on user level trust store.
-
 ## Outline
 
 ### notation certificate
@@ -46,11 +44,11 @@ Aliases:
   certificate, cert
 
 Available Commands:
-  add           Add certificates to the trust store. This command only operates on User level.
-  delete        Delete certificates from the trust store. This command only operates on User level.
+  add           Add certificates to the trust store.
+  delete        Delete certificates from the trust store.
   generate-test Generate a test RSA key and a corresponding self-signed certificate.
-  list          List certificates in the trust store. This command operates on both User level and System level.
-  show          Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.
+  list          List certificates in the trust store.
+  show          Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.
 
 Flags:
   -h, --help   help for certificate
@@ -59,7 +57,7 @@ Flags:
 ### notation certificate add
 
 ```text
-Add certificates to the trust store. This command only operates on User level.
+Add certificates to the trust store.
 
 Usage:
   notation certificate add --type <type> --store <name> [flags] <cert_path>...
@@ -73,7 +71,7 @@ Flags:
 ### notation certificate list
 
 ```text
-List certificates in the trust store. This command operates on both User level and System level.
+List certificates in the trust store.
 
 Usage:
   notation certificate list [flags]
@@ -90,7 +88,7 @@ Flags:
 ### notation certificate show
 
 ```text
-Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.
+Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.
 
 Usage:
   notation certificate show --type <type> --store <name> [flags] <cert_fileName>
@@ -104,7 +102,7 @@ Flags:
 ### notation certificate delete
 
 ```text
-Delete certificates from the trust store. This command only operates on User level.
+Delete certificates from the trust store.
 
 Usage:
   notation certificate delete --type <type> --store <name> [flags] (--all | <cert_fileName>)
