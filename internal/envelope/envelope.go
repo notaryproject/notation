@@ -2,6 +2,7 @@ package envelope
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/notaryproject/notation-core-go/signature/cose"
 	"github.com/notaryproject/notation-core-go/signature/jws"
@@ -27,4 +28,14 @@ func SpeculateSignatureEnvelopeFormat(raw []byte) (string, error) {
 		return "", errors.New("unsupported signature format")
 	}
 	return jws.MediaTypeEnvelope, nil
+}
+
+func GetEnvelopeMediaType(sigFormat string) (string, error) {
+	switch sigFormat {
+	case JWS:
+		return jws.MediaTypeEnvelope, nil
+	case COSE:
+		return cose.MediaTypeEnvelope, nil
+	}
+	return "", fmt.Errorf("signature format %s not supported", sigFormat)
 }
