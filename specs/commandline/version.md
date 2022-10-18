@@ -9,7 +9,9 @@ Upon successful execution, the following information is printed.
 ```text
 Notation: Notary v2, A tool to sign, store, and verify artifacts.
 
-Version:    <MAJOR.MINOR.PATCH>
+Version:     <MAJOR.MINOR.PATCH>
+Go version:  go<MAJOR.MINOR.PATCH>
+Git commit:  <long_hash>
 ```
 
 ## Outline
@@ -37,5 +39,7 @@ An example output:
 ```text
 Notation: Notary v2, A tool to sign, store, and verify artifacts.
 
-Version:    1.0.0
+Version:     1.0.0
+Go Version:  go1.19.2
+Git commit:  1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a
 ```
