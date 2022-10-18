@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/notaryproject/notation-go/core/signature/cose"
-	_ "github.com/notaryproject/notation-go/core/signature/jws"
+	_ "github.com/notaryproject/notation-core-go/signature/cose"
+	_ "github.com/notaryproject/notation-core-go/signature/jws"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
