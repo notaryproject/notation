@@ -11,16 +11,17 @@ import (
 	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/internal/certificate"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
-	hosts := opts.hosts
+	host := opts.host
 	name := opts.name
 	if name == "" {
-		name = hosts[0]
+		name = host
 	}
 
 	// generate RSA private key
@@ -31,8 +32,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 
-	// generate self-signed certificate
-	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, hosts[0])
+	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, host)
 	if err != nil {
 		return err
 	}
@@ -56,10 +56,6 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := configutil.LoadConfigOnce()
-	if err != nil {
-		return err
-	}
 	isDefault := opts.isDefault
 	keySuite := config.KeySuite{
 		Name: name,
@@ -73,13 +69,11 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 	trust := opts.trust
+	// Add to the trust store
 	if trust {
-		if err := addCertCore(cfg, name, certPath); err != nil {
+		if err := certificate.AddCertCore(certPath, "ca", name, true); err != nil {
 			return err
 		}
-	}
-	if err := cfg.Save(); err != nil {
-		return err
 	}
 	if err := signingKeys.Save(); err != nil {
 		return err
@@ -89,9 +83,6 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Printf("%s: added to the key list\n", name)
 	if isDefault {
 		fmt.Printf("%s: marked as default\n", name)
-	}
-	if trust {
-		fmt.Printf("%s: added to the certificate list\n", name)
 	}
 	return nil
 }
