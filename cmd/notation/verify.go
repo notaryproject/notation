@@ -27,8 +27,11 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "verify [flags] <reference>",
 		Short: "Verifies OCI Artifacts",
-		Long: `Verifies OCI Artifacts:
-  notation verify [--config <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
+		Long: `Verifies OCI Artifacts
+
+Prerequisite: a trusted certificate needs to be generated or added using the command "notation cert". 
+
+notation verify [--pluginConfig <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -41,7 +44,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		},
 	}
 	opts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.pluginConfig, "config", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
+	command.Flags().StringVarP(&opts.pluginConfig, "pluginConfig", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
 	return command
 }
 

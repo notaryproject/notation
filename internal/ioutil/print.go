@@ -65,12 +65,16 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 
 	fmt.Fprintf(tw, "ERROR: %s\n\n", resultErr.Error())
 	printOutcomes(tw, v, digest)
+	tw.Flush()
 
-	return tw.Flush()
+	return resultErr
 }
 
 func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome, digest string) {
-	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n", len(outcomes), digest)
+	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n\n", len(outcomes), digest)
 
 	// TODO: print out detailed errors in debug mode.
+	for idx, outcome := range outcomes {
+		fmt.Printf("Signature #%d : %s\n", idx+1, outcome.Error.Error())
+	}
 }
