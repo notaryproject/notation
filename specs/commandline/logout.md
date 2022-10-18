@@ -26,7 +26,7 @@ Flags:
 notation logout registry.example.com
 ```
 
-## Log out from all logged in registries
+### Log out from all logged in registries
 
 ```shell
 notation logout --all
