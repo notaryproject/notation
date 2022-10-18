@@ -2,12 +2,10 @@ package scenario
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("notation user", func() {
@@ -31,11 +29,9 @@ var _ = Describe("notation user", func() {
 	Context("signs", func() {
 		When("using cose envelope", func() {
 			var (
-				sigPath  string
 				commands utils.CommandGroup
 			)
 			BeforeEach(func() {
-				sigPath = filepath.Join(configDir, "sign-cose.sig")
 				Expect(utils.WritePolicy(configDir, utils.DefaultPolicy)).NotTo(HaveOccurred())
 				commands = utils.CommandGroup{
 					{
@@ -45,15 +41,11 @@ var _ = Describe("notation user", func() {
 						},
 					},
 					{
-						Description: "sign and save the signature to a local file",
+						Description: "sign",
 						Args: []string{
 							"sign", reference,
 							"-k", utils.DefaultStore,
 							"--envelope-type", "cose",
-							"-o", sigPath,
-						},
-						Checker: func(c utils.CommandOpts, s *gexec.Session) {
-							utils.CheckSignatureFormatCose(sigPath)
 						},
 					},
 					{
@@ -70,7 +62,7 @@ var _ = Describe("notation user", func() {
 				)
 
 			})
-			utils.ExecCommandGroup("sign pull verify", &commands)
+			utils.ExecCommandGroup("sign and verify", &commands)
 		})
 	})
 	Context("test in docker", func() {
@@ -93,7 +85,7 @@ var _ = Describe("notation user", func() {
 						},
 					},
 					{
-						Description: "sign and save the signature to a local file",
+						Description: "sign",
 						Args: []string{
 							"sign", reference,
 							"--key", utils.DefaultStore,
@@ -112,7 +104,7 @@ var _ = Describe("notation user", func() {
 					},
 				}
 			})
-			utils.ExecCommandGroupInContainer("docker sign pull verify", &commands)
+			utils.ExecCommandGroupInContainer("docker sign and verify", &commands)
 		})
 	})
 })

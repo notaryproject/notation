@@ -51,7 +51,7 @@ func WithAuth(username, password string) CommandGroupOpts {
 	}
 }
 
-// WithUserDir sets up user config and cache directory for the CommandGroup.
+// WithUserDir sets up user config for the CommandGroup.
 func WithUserDir(dir string) CommandGroupOpts {
 	return func(g CommandGroup) {
 		for i, c := range g {
@@ -78,16 +78,14 @@ func (opts ExecOpts) WithAuth(username, password string) ExecOpts {
 	return opts
 }
 
-// WithUserDir creates an ExecOpts with user config and cache directory setted(By setting $XDG_CONFIG_HOME and $XDG_CACHE_HOME).
+// WithUserDir creates an ExecOpts with user config setted(By setting $XDG_CONFIG_HOME).
 func (opts ExecOpts) WithUserDir(dir string) ExecOpts {
 	if opts.Env == nil {
 		opts.Env = make(map[string]string)
 	}
-	configDir, cacheDir := filepath.Join(dir, "config"), filepath.Join(dir, "cache")
+	configDir := filepath.Join(dir, "config")
 	os.MkdirAll(configDir, os.ModePerm)
-	os.MkdirAll(cacheDir, os.ModePerm)
 	opts.Env["XDG_CONFIG_HOME"] = configDir
-	opts.Env["XDG_CACHE_HOME"] = cacheDir
 	return opts
 }
 
@@ -165,7 +163,7 @@ func ExecCommandGroup(text string, commands *CommandGroup) {
 }
 
 // ExecCommandGroupWithSysEnv executes commands in a container.
-// User and system config/cache will be isolated from the host machine.
+// User and system config will be isolated from the host machine.
 // This function is typically used to test system level config.
 // Environment variables won't be set in this case.
 // It will first create  a container if containerID is not provided.
