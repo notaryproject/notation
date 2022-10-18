@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/core/testhelper"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/certificate"
 	"github.com/notaryproject/notation/internal/osutil"

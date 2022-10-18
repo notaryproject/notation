@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/notaryproject/notation-go/core/signature/cose"
-	"github.com/notaryproject/notation-go/core/signature/jws"
+	"github.com/notaryproject/notation-core-go/signature/cose"
+	"github.com/notaryproject/notation-core-go/signature/jws"
 	gcose "github.com/veraison/go-cose"
 )
 

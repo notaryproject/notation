@@ -17,13 +17,10 @@ func main() {
 	cmd.AddCommand(
 		signCommand(nil),
 		verifyCommand(nil),
-		pushCommand(nil),
-		pullCommand(nil),
 		listCommand(nil),
 		certCommand(),
 		keyCommand(),
 		policyCommand(),
-		cacheCommand(),
 		pluginCommand(),
 		loginCommand(nil),
 		logoutCommand(nil))

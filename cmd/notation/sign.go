@@ -8,10 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/crypto/timestamp"
-	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +18,6 @@ type signOpts struct {
 	timestamp       string
 	expiry          time.Duration
 	originReference string
-	output          string
 	push            bool
 	pushReference   string
 	pluginConfig    string
@@ -52,7 +48,6 @@ func signCommand(opts *signOpts) *cobra.Command {
 	cmd.SetPflagTimestamp(command.Flags(), &opts.timestamp)
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagReference(command.Flags(), &opts.originReference)
-	setFlagOutput(command.Flags(), &opts.output)
 
 	command.Flags().BoolVar(&opts.push, "push", true, "push after successful signing")
 	command.Flags().StringVar(&opts.pushReference, "push-reference", "", "different remote to store signature")
@@ -79,14 +74,6 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	path := cmdOpts.output
-	if path == "" {
-		path = dir.Path.CachedSignature(digest.Digest(desc.Digest), digest.FromBytes(sig))
-	}
-	if err := osutil.WriteFile(path, sig); err != nil {
-		return err
-	}
-
 	if ref := cmdOpts.pushReference; cmdOpts.push && !(cmdOpts.Local && ref == "") {
 		if ref == "" {
 			ref = cmdOpts.reference

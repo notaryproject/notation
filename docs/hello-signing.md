@@ -89,7 +89,6 @@ To get things started quickly, the Notation cli supports self-signed certificate
   ```
 
 - Sign the container image. By default, JWS envelope is used.
-  On success, the signature envelope will be cached under the `~/.cache/notation/signatures` directory.
 
   ```bash
   notation sign $IMAGE
