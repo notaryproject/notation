@@ -29,6 +29,9 @@ var (
 		defaultEnvelopeFormat := envelope.JWS
 		// load config to get envelopeType
 		config, err := configutil.LoadConfigOnce()
+		if err != nil {
+			fmt.Printf("Warning: %v, `envelopeType` of config.json will be overwritten by command line flag `--envelope-type`", err)
+		}
 		if err == nil && config.EnvelopeType != "" {
 			defaultEnvelopeFormat = config.EnvelopeType
 		}
