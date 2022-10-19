@@ -61,11 +61,7 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "add --type <type> --store <name> [flags] <cert_path>...",
-<<<<<<< HEAD
-		Short: "Add certificates to the trust store. This command only operates on User level.",
-=======
 		Short: "Add certificates to the trust store.",
->>>>>>> truststore
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate path")
@@ -89,11 +85,7 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
-<<<<<<< HEAD
-		Short:   "List certificates in the trust store. This command operates on both User level and System level.",
-=======
 		Short:   "List certificates in the trust store.",
->>>>>>> truststore
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listCerts(opts)
 		},
@@ -109,11 +101,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "show --type <type> --store <name> [flags] <cert_fileName>",
-<<<<<<< HEAD
-		Short: "Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed. User level has priority over System level.",
-=======
 		Short: "Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.",
->>>>>>> truststore
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate path")
@@ -140,11 +128,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
 		Aliases: []string{"rm"},
-<<<<<<< HEAD
-		Short:   "Delete certificates from the trust store. This command only operates on User level.",
-=======
 		Short:   "Delete certificates from the trust store.",
->>>>>>> truststore
 		Args: func(cmd *cobra.Command, args []string) error {
 			if !opts.all && len(args) == 0 {
 				return errors.New("needs to specify certificate name or set --all flag")
@@ -238,20 +222,12 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
 	if namedStore == "" && storeType == "" {
-<<<<<<< HEAD
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509")
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
-			}
-=======
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509")
 		if err := certificate.CheckError(err); err != nil {
 			return err
 		}
 		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
->>>>>>> truststore
 		}
 
 		return nil
@@ -260,20 +236,12 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509/storeType/namedStore,
 	// display empty if there's no such certificate
 	if namedStore != "" && storeType != "" {
-<<<<<<< HEAD
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", storeType, namedStore)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
-			}
-=======
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 		if err := certificate.CheckError(err); err != nil {
 			return err
 		}
 		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
->>>>>>> truststore
 		}
 
 		return nil
@@ -282,38 +250,16 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under x509/storeType, display empty if
 	// there's no certificate yet
 	if storeType != "" {
-<<<<<<< HEAD
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", storeType)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
-			}
-=======
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType)
 		if err := certificate.CheckError(err); err != nil {
 			return err
 		}
 		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
->>>>>>> truststore
 		}
 	} else {
 		// List all certificates under named store namedStore, display empty if
 		// there's no such certificate
-<<<<<<< HEAD
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "ca", namedStore)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
-			}
-		}
-
-		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "signingAuthority", namedStore)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
-			}
-=======
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", "ca", namedStore)
 		if err := certificate.CheckError(err); err != nil {
 			return err
@@ -328,7 +274,6 @@ func listCerts(opts *certListOpts) error {
 		}
 		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
->>>>>>> truststore
 		}
 	}
 
@@ -349,12 +294,7 @@ func showCerts(opts *certShowOpts) error {
 		return errors.New("certificate fileName cannot be empty or contain only whitespaces")
 	}
 
-<<<<<<< HEAD
-	// User level has priority over System level
-	path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
-=======
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
->>>>>>> truststore
 	if err != nil {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}

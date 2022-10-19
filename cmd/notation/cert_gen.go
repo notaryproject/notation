@@ -13,7 +13,6 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/internal/certificate"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
@@ -76,15 +75,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 			return err
 		}
 	}
-<<<<<<< HEAD
-	addCertToConfig(cfg, name, certPath)
-	if err := cfg.Save(""); err != nil {
-		return err
-	}
 	if err := signingKeys.Save(""); err != nil {
-=======
-	if err := signingKeys.Save(); err != nil {
->>>>>>> truststore
 		return err
 	}
 
@@ -117,19 +108,4 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 func generateSelfSignedCert(privateKey *rsa.PrivateKey, host string) (testhelper.RSACertTuple, []byte, error) {
 	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, host)
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
-<<<<<<< HEAD
-}
-
-// addCertToConfig adds a self-signed certificate to config.json
-// TODO: Notation will use certificates in the trust store to do verification.
-// 		 Remove this path once trust policy is merged.
-func addCertToConfig(cfg *config.Config, name, path string) {
-	if !slices.Contains(cfg.VerificationCertificates.Certificates, name) {
-		cfg.VerificationCertificates.Certificates = append(cfg.VerificationCertificates.Certificates, config.CertificateReference{
-			Name: name,
-			Path: path,
-		})
-	}
-=======
->>>>>>> truststore
 }
