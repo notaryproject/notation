@@ -30,7 +30,7 @@ Flags:
 Add key to signing key list
 
 Usage:
-  notation key add [flags] <key_name> [key_path cert_path]
+  notation key add [flags] <key_name>
 
 Flags:
   -d, --default                mark as default
@@ -90,14 +90,6 @@ Flags:
 ```
 
 ## Usage
-
-### Add a local key to signing key list and make it as default signing key
-
-```shell
-notation key add --default <key_name> <key_file_path> <cert_file_path> 
-```
-
-Upon successful adding, a key name is printed out for added signing key with additional info "marked as default".
 
 ### Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it
 
