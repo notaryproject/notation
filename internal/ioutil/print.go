@@ -58,26 +58,24 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 	tw := newTabWriter(w)
 
 	if resultErr == nil {
-		fmt.Fprintf(tw, "%s\n", digest)
+		fmt.Fprintf(tw, "Signature verification succeeded for %s\n", digest)
+		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
 
 	fmt.Fprintf(tw, "ERROR: %s\n\n", resultErr.Error())
-	printOutcomes(tw, v)
+	printOutcomes(tw, v, digest)
+	tw.Flush()
 
-	return tw.Flush()
+	return resultErr
 }
 
-func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome) {
-	if len(outcomes) == 1 {
-		fmt.Println("1 signature failed verification, error is listed as below:")
-	} else {
-		fmt.Printf("%d signatures failed verification, errors are listed as below:\n", len(outcomes))
-	}
+func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome, digest string) {
+	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n\n", len(outcomes), digest)
 
-	for _, outcome := range outcomes {
-		// TODO: print out the signature digest once the outcome contains it.
-		fmt.Printf("%s\n\n", outcome.Error.Error())
+	// TODO[https://github.com/notaryproject/notation/issues/304]: print out detailed errors in debug mode.
+	for idx, outcome := range outcomes {
+		fmt.Printf("Signature #%d : %s\n", idx+1, outcome.Error.Error())
 	}
 }
 
