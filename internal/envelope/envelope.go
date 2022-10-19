@@ -30,6 +30,7 @@ func SpeculateSignatureEnvelopeFormat(raw []byte) (string, error) {
 	return jws.MediaTypeEnvelope, nil
 }
 
+// GetEnvelopeMediaType converts the envelope type to mediaType name.
 func GetEnvelopeMediaType(sigFormat string) (string, error) {
 	switch sigFormat {
 	case JWS:
