@@ -29,7 +29,6 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			CertFile:     "certfile",
 			EnvelopeType: envelope.JWS,
 		},
-		push: true,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -70,7 +69,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			CertFile:     "certfile",
 			EnvelopeType: envelope.COSE,
 		},
-		push:   false,
 		expiry: 24 * time.Hour,
 	}
 	if err := command.ParseFlags([]string{
@@ -81,7 +79,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--key-file", expected.KeyFile,
 		"--cert-file", expected.CertFile,
 		"--plain-http",
-		"--push=false",
 		"--media-type", expected.MediaType,
 		"-l",
 		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
@@ -113,20 +110,16 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 			CertFile:     "certfile",
 			EnvelopeType: envelope.JWS,
 		},
-		push:            true,
 		expiry:          365 * 24 * time.Hour,
 		pluginConfig:    "key0=val0,key1=val1,key2=val2",
 		originReference: "originref",
-		pushReference:   "pushref",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
 		"--key-file", expected.KeyFile,
 		"--cert-file", expected.CertFile,
-		"--push",
 		"--media-type", expected.MediaType,
-		"--push-reference", expected.pushReference,
 		"-r", expected.originReference,
 		"--local",
 		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
