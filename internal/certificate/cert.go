@@ -50,7 +50,7 @@ var ExtKeyUsagesNameMap = map[x509.ExtKeyUsage]string{
 	x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "Microsoft Kernel Code Signing",
 }
 
-// AddCertCore adds a single cert file at path to the User level trust store
+// AddCertCore adds a single cert file at path to the trust store
 // under dir truststore/x509/storeType/namedStore
 func AddCertCore(path, storeType, namedStore string, display bool) error {
 	// initialize
@@ -73,7 +73,7 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	}
 
 	// core process
-	// get User level trust store path
+	// get the trust store path
 	trustStorePath, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err := CheckError(err); err != nil {
 		return err
@@ -140,7 +140,7 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("Thumbprints:", hex.EncodeToString(h[:]))
 }
 
-// RemoveAllCerts deletes all certificate files from the User level trust store
+// RemoveAllCerts deletes all certificate files from the trust store
 // under dir truststore/x509/storeType/namedStore
 func RemoveAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
@@ -164,7 +164,7 @@ func RemoveAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 	return errorSlice
 }
 
-// RemoveCert deletes a specific certificate file from the User level
+// RemoveCert deletes a specific certificate file from the
 // trust store, namely truststore/x509/storeType/namedStore/cert
 func RemoveCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)

@@ -57,10 +57,6 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := configutil.LoadConfigOnce()
-	if err != nil {
-		return err
-	}
 	isDefault := opts.isDefault
 	keySuite := config.KeySuite{
 		Name: name,
@@ -80,11 +76,15 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 			return err
 		}
 	}
+<<<<<<< HEAD
 	addCertToConfig(cfg, name, certPath)
 	if err := cfg.Save(""); err != nil {
 		return err
 	}
 	if err := signingKeys.Save(""); err != nil {
+=======
+	if err := signingKeys.Save(); err != nil {
+>>>>>>> truststore
 		return err
 	}
 
@@ -117,6 +117,7 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 func generateSelfSignedCert(privateKey *rsa.PrivateKey, host string) (testhelper.RSACertTuple, []byte, error) {
 	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, host)
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
+<<<<<<< HEAD
 }
 
 // addCertToConfig adds a self-signed certificate to config.json
@@ -129,4 +130,6 @@ func addCertToConfig(cfg *config.Config, name, path string) {
 			Path: path,
 		})
 	}
+=======
+>>>>>>> truststore
 }

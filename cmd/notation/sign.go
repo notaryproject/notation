@@ -9,6 +9,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/crypto/timestamp"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +19,6 @@ type signOpts struct {
 	timestamp       string
 	expiry          time.Duration
 	originReference string
-	push            bool
-	pushReference   string
 	pluginConfig    string
 	reference       string
 }
@@ -30,7 +29,26 @@ func signCommand(opts *signOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "sign [reference]",
-		Short: "Signs artifacts",
+		Short: "Sign OCI artifacts",
+		Long: `Sign OCI artifacts
+
+Prerequisite: a signing key needs to be configured using the command "notation key".
+
+Example - Sign a container image using the default signing key, with the default JWS envelope:
+  notation sign <registry>/<repository>:<tag>
+
+Example - Sign a container image using the default signing key, with the COSE envelope:
+  notation sign --envelope-type cose <registry>/<repository>:<tag> 
+
+Example - Sign a container image using the specified key name
+  notation sign --key <key_name> <registry>/<repository>:<tag>
+
+Example - Sign a container image using a local testing key and certificate file directly
+  notation sign --key-file <key_path> --cert-file <cert_path> <registry>/<repository>:<tag>
+
+Example - Sign a container image using the image digest
+  notation sign <registry>/<repository>@<digest>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -48,11 +66,8 @@ func signCommand(opts *signOpts) *cobra.Command {
 	cmd.SetPflagTimestamp(command.Flags(), &opts.timestamp)
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagReference(command.Flags(), &opts.originReference)
-
-	command.Flags().BoolVar(&opts.push, "push", true, "push after successful signing")
-	command.Flags().StringVar(&opts.pushReference, "push-reference", "", "different remote to store signature")
-
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+
 	return command
 }
 
@@ -74,17 +89,13 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	if ref := cmdOpts.pushReference; cmdOpts.push && !(cmdOpts.Local && ref == "") {
-		if ref == "" {
-			ref = cmdOpts.reference
-		}
-		if _, err := pushSignature(command.Context(), &cmdOpts.SecureFlagOpts, ref, sig); err != nil {
-			return fmt.Errorf("fail to push signature to %q: %v: %v",
-				ref,
-				desc.Digest,
-				err,
-			)
-		}
+	ref := cmdOpts.reference
+	if _, err := pushSignature(command.Context(), &cmdOpts.SecureFlagOpts, ref, sig); err != nil {
+		return fmt.Errorf("fail to push signature to %q: %v: %v",
+			ref,
+			desc.Digest,
+			err,
+		)
 	}
 
 	fmt.Println(desc.Digest)
@@ -116,4 +127,29 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descri
 		TSA:          tsa,
 		PluginConfig: pluginConfig,
 	}, nil
+}
+
+func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []byte) (notation.Descriptor, error) {
+	// initialize
+	sigRepo, err := getSignatureRepository(opts, ref)
+	if err != nil {
+		return notation.Descriptor{}, err
+	}
+	manifestDesc, err := getManifestDescriptorFromReference(ctx, opts, ref)
+	if err != nil {
+		return notation.Descriptor{}, err
+	}
+
+	// core process
+	// pass in nonempty annotations if needed
+	sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
+	if err != nil {
+		return notation.Descriptor{}, err
+	}
+	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, sigMediaType, manifestDesc, make(map[string]string))
+	if err != nil {
+		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
+	}
+
+	return sigDesc, nil
 }

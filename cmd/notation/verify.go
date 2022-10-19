@@ -3,21 +3,21 @@ package main
 import (
 	"errors"
 	"os"
+	"strings"
 
-	"github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verification"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 
-	orasregistry "oras.land/oras-go/v2/registry"
-
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry"
 )
 
 type verifyOpts struct {
 	SecureFlagOpts
-	reference string
-	config    string
+	reference    string
+	pluginConfig string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -27,8 +27,11 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "verify [flags] <reference>",
 		Short: "Verifies OCI Artifacts",
-		Long: `Verifies OCI Artifacts:
-  notation verify [--config <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
+		Long: `Verifies OCI Artifacts
+
+Prerequisite: a trusted certificate needs to be generated or added using the command "notation cert". 
+
+notation verify [--plugin-config <key>=<value>,...] [--username <username>] [--password <password>] <reference>`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -41,7 +44,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		},
 	}
 	opts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.config, "config", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
+	command.Flags().StringVarP(&opts.pluginConfig, "plugin-config", "c", "", "list of comma-separated {key}={value} pairs that are passed as is to the plugin")
 	return command
 }
 
@@ -59,7 +62,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// set up verification plugin config.
-	configs, err := cmd.ParseFlagPluginConfig(opts.config)
+	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return err
 	}
@@ -72,28 +75,43 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
 }
 
-func getVerifier(opts *verifyOpts, ref orasregistry.Reference) (*verification.Verifier, error) {
+func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifier, error) {
 	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	repo := registry.NewRepositoryClient(authClient, ref, plainHTTP)
+	repo := notationregistry.NewRepositoryClient(authClient, ref, plainHTTP)
 
 	return verification.NewVerifier(repo)
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (orasregistry.Reference, error) {
-	ref, err := orasregistry.ParseReference(opts.reference)
+func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
+	ref, err := registry.ParseReference(opts.reference)
 	if err != nil {
-		return orasregistry.Reference{}, err
+		return registry.Reference{}, err
 	}
 
+	if isDigestReference(opts.reference) {
+		return ref, nil
+	}
+
+	// Resolve tag reference to digest reference.
 	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return orasregistry.Reference{}, err
+		return registry.Reference{}, err
 	}
 
 	ref.Reference = manifestDesc.Digest.String()
 	return ref, nil
+}
+
+func isDigestReference(reference string) bool {
+	parts := strings.SplitN(reference, "/", 2)
+	if len(parts) == 1 {
+		return false
+	}
+
+	index := strings.Index(parts[1], "@")
+	return index != -1
 }

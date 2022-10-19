@@ -174,9 +174,6 @@ OPTIONS:
    --expiry value, -e value     expire duration (default: 0s)
    --reference value, -r value  original reference
    --local, -l                  reference is a local file (default: false)
-   --output value, -o value     write signature to a specific path
-   --push                       push after successful signing (default: true)
-   --push-reference value       different remote to store signature
    --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --username value, -u value   Username for registry operations [$NOTATION_USERNAME]
    --password value, -p value   Password for registry operations [$NOTATION_PASSWORD]
