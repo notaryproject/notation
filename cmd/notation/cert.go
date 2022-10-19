@@ -222,11 +222,12 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
 	if namedStore == "" && storeType == "" {
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509")
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
-			}
+		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509")
+		if err := certificate.CheckError(err); err != nil {
+			return err
+		}
+		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 		}
 
 		return nil
@@ -235,11 +236,12 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509/storeType/namedStore,
 	// display empty if there's no such certificate
 	if namedStore != "" && storeType != "" {
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", storeType, namedStore)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
-			}
+		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
+		if err := certificate.CheckError(err); err != nil {
+			return err
+		}
+		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+			return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
 
 		return nil
@@ -248,27 +250,30 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under x509/storeType, display empty if
 	// there's no certificate yet
 	if storeType != "" {
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", storeType)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
-			}
+		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType)
+		if err := certificate.CheckError(err); err != nil {
+			return err
+		}
+		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+			return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
 	} else {
 		// List all certificates under named store namedStore, display empty if
 		// there's no such certificate
-		paths := dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "ca", namedStore)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
-			}
+		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", "ca", namedStore)
+		if err := certificate.CheckError(err); err != nil {
+			return err
+		}
+		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+			return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 		}
 
-		paths = dir.Path.ConfigFS.ListAllPath(dir.TrustStoreDir, "x509", "signingAuthority", namedStore)
-		for _, path := range paths {
-			if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
-			}
+		path, err = dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", "signingAuthority", namedStore)
+		if err := certificate.CheckError(err); err != nil {
+			return err
+		}
+		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+			return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 		}
 	}
 
@@ -289,7 +294,7 @@ func showCerts(opts *certShowOpts) error {
 		return errors.New("certificate fileName cannot be empty or contain only whitespaces")
 	}
 
-	path, err := dir.Path.ConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
+	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 	if err != nil {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
