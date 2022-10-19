@@ -5,14 +5,11 @@ The CLI commands are what's currently available in [notation v0.7.1-alpha.1](htt
 
 ## Table of Contents
 - [notation](#notation): command group for signing and verification operations
-- [cache](#cache): Manage signature cache
 - [certificate](#certificate): Manage certificates used for verification
 - [key](#key): Manage keys used for signing
 - [list](#list): List signatures from remote
 - [login](#login): Provide credentials for authenticated registry operations
 - [plugin](#plugin): Manage KMS plugins
-- [pull](#pull): Pull signatures from remote
-- [push](#push): Push signature to remote
 - [sign](#sign): Signs artifacts
 - [verify](#verify): Verifies OCI Artifacts
 
@@ -33,14 +30,11 @@ AUTHOR:
    CNCF Notary Project
 
 COMMANDS:
-   cache              Manage signature cache
    certificate, cert  Manage certificates used for verification
    key                Manage keys used for signing
    list, ls           List signatures from remote
    login              Provide credentials for authenticated registry operations   
    plugin             Manage KMS plugins
-   pull               Pull signatures from remote
-   push               Push signature to remote
    sign               Signs artifacts
    verify             Verifies OCI Artifacts
    help, h            Shows a list of commands or help for one command
@@ -48,31 +42,6 @@ COMMANDS:
 GLOBAL OPTIONS:
    --help, -h     show help (default: false)
    --version, -v  print the version (default: false)
-```
-
-## cache
-
-```console
- notation cache --help
-NAME:
-   notation cache - Manage signature cache
-
-USAGE:
-   notation cache command [command options] [arguments...]
-
-COMMANDS:
-   list, ls    List signatures in cache
-   prune       Prune signature from cache
-   remove, rm  Remove signature from cache
-   help, h     Shows a list of commands or help for one command
-
-OPTIONS:
-   --username value, -u value    Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value    Password for registry operations [$NOTATION_PASSWORD]
-   --help, -h                    show help (default: false)
-
-GLOBAL ARGUMENTS
-   --plain-http                  Registry access via plain HTTP (default: false)
 ```
 
 ## certificate
@@ -187,47 +156,6 @@ OPTIONS:
    --help, -h  show help (default: false)
 ```
 
-## pull
-
-```console
-notation pull --help
-NAME:
-   notation pull - Pull signatures from remote
-
-USAGE:
-   notation pull [command options] <reference>
-
-OPTIONS:
-   --username value, -u value  Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value  Password for registry operations [$NOTATION_PASSWORD]
-   --strict                    Pull the signature without lookup the manifest (default: false)
-   --output value, -o value    Write signature to a specific path
-   --help, -h                  Show help (default: false)
-
-GLOBAL ARGUMENTS
-   --plain-http                Registry access via plain HTTP (default: false)
-```
-
-## push
-
-```console
-notation push --help
-NAME:
-   notation push - Push signature to remote
-
-USAGE:
-   notation push [command options] <reference>
-
-OPTIONS:
-   --username value, -u value             Username for registry operations [$NOTATION_USERNAME]
-   --password value, -p value             Password for registry operations [$NOTATION_PASSWORD]
-   --signature value, -s value, -f value  signature files  (accepts multiple inputs)
-   --help, -h                             show help (default: false)
-
-GLOBAL ARGUMENTS
-   --plain-http                           Registry access via plain HTTP (default: false)
-```
-
 ## sign
 
 ```console
@@ -246,9 +174,6 @@ OPTIONS:
    --expiry value, -e value     expire duration (default: 0s)
    --reference value, -r value  original reference
    --local, -l                  reference is a local file (default: false)
-   --output value, -o value     write signature to a specific path
-   --push                       push after successful signing (default: true)
-   --push-reference value       different remote to store signature
    --media-type value           specify the media type of the manifest read from file or stdin (default: "application/vnd.docker.distribution.manifest.v2+json")
    --username value, -u value   Username for registry operations [$NOTATION_USERNAME]
    --password value, -p value   Password for registry operations [$NOTATION_PASSWORD]
