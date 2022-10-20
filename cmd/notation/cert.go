@@ -40,7 +40,6 @@ type certGenerateTestOpts struct {
 	name      string
 	bits      int
 	trust     bool
-	host      string
 	isDefault bool
 }
 
@@ -154,13 +153,13 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 		opts = &certGenerateTestOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "generate-test [flags] <host>",
+		Use:   "generate-test [flags] <common_name>",
 		Short: "Generate a test RSA key and a corresponding self-signed certificate.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing certificate host")
+				return errors.New("missing certificate common_name")
 			}
-			opts.host = args[0]
+			opts.name = args[0]
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -168,7 +167,6 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 		},
 	}
 
-	command.Flags().StringVarP(&opts.name, "name", "n", "", "key and certificate name")
 	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
 	command.Flags().BoolVar(&opts.trust, "trust", false, "add the generated certificate to the trust store")
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)

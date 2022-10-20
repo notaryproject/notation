@@ -130,7 +130,6 @@ Flags:
   -b, --bits int      RSA key bits (default 2048)
   -d, --default       mark as default
   -h, --help          help for generate-test
-  -n, --name string   key and certificate name
       --trust         add the generated certificate to the trust store
 ```
 

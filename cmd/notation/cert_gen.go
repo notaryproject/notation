@@ -18,11 +18,7 @@ import (
 
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
-	host := opts.host
 	name := opts.name
-	if name == "" {
-		name = host
-	}
 
 	// generate RSA private key
 	bits := opts.bits
@@ -32,7 +28,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 
-	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, host)
+	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, name)
 	if err != nil {
 		return err
 	}
@@ -105,7 +101,7 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 }
 
 // generateTestCert generates a self-signed non-CA certificate
-func generateSelfSignedCert(privateKey *rsa.PrivateKey, host string) (testhelper.RSACertTuple, []byte, error) {
-	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, host)
+func generateSelfSignedCert(privateKey *rsa.PrivateKey, name string) (testhelper.RSACertTuple, []byte, error) {
+	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, name)
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
 }

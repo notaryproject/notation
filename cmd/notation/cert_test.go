@@ -118,14 +118,12 @@ func TestCertGenerateCommand(t *testing.T) {
 	opts := &certGenerateTestOpts{}
 	cmd := certGenerateTestCommand(opts)
 	expected := &certGenerateTestOpts{
-		host:      "host0",
-		name:      "name",
+		name:      "common_name",
 		bits:      2048,
 		isDefault: true,
 	}
 	if err := cmd.ParseFlags([]string{
-		"host0",
-		"-n", "name",
+		"common_name",
 		"--bits", fmt.Sprint(2048),
 		"--default"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
