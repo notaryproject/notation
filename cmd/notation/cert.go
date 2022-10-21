@@ -7,7 +7,8 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/internal/certificate"
+	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,7 @@ type certShowOpts struct {
 	cert       string
 }
 
-type certRemoveOpts struct {
+type certDeleteOpts struct {
 	storeType  string
 	namedStore string
 	cert       string
@@ -50,7 +51,7 @@ func certCommand() *cobra.Command {
 		Short:   "Manage certificates in trust store for signature verification.",
 	}
 
-	command.AddCommand(certAddCommand(nil), certListCommand(nil), certShowCommand(nil), certRemoveCommand(nil), certGenerateTestCommand(nil))
+	command.AddCommand(certAddCommand(nil), certListCommand(nil), certShowCommand(nil), certDeleteCommand(nil), certGenerateTestCommand(nil))
 	return command
 }
 
@@ -120,9 +121,9 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 	return command
 }
 
-func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
+func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 	if opts == nil {
-		opts = &certRemoveOpts{}
+		opts = &certDeleteOpts{}
 	}
 	command := &cobra.Command{
 		Use:     "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
@@ -130,7 +131,7 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 		Short:   "Delete certificates from the trust store.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if !opts.all && len(args) == 0 {
-				return errors.New("needs to specify certificate name or set --all flag")
+				return errors.New("delete requires either the certificate file name that needs to be deleted or --all flag to delete all certificates in the given named trust store")
 			}
 			if len(args) != 0 {
 				opts.cert = args[0]
@@ -138,12 +139,12 @@ func certRemoveCommand(opts *certRemoveOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeCerts(opts)
+			return deleteCerts(opts)
 		},
 	}
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
-	command.Flags().BoolVarP(&opts.all, "all", "a", false, "remove all certificates in the named store")
+	command.Flags().BoolVarP(&opts.all, "all", "a", false, "delete all certificates in the named store")
 	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")
 	return command
 }
@@ -178,6 +179,9 @@ func addCerts(opts *certAddOpts) error {
 	if storeType == "" {
 		return errors.New("store type cannot be empty or contain only whitespaces")
 	}
+	if !truststore.ValidateStoreType(storeType) {
+		return fmt.Errorf("unsupported store type: %s", storeType)
+	}
 	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
 		return errors.New("named store cannot be empty or contain only whitespaces")
@@ -186,7 +190,7 @@ func addCerts(opts *certAddOpts) error {
 	var failure []string
 	var errorSlice []error
 	for _, p := range opts.path {
-		err := certificate.AddCertCore(p, storeType, namedStore, false)
+		err := truststore.AddCertCore(p, storeType, namedStore, false)
 		if err != nil {
 			failure = append(failure, p)
 			errorSlice = append(errorSlice, err)
@@ -221,10 +225,10 @@ func listCerts(opts *certListOpts) error {
 	// no certificate yet
 	if namedStore == "" && storeType == "" {
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509")
-		if err := certificate.CheckError(err); err != nil {
+		if err := truststore.CheckError(err); err != nil {
 			return err
 		}
-		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+		if err := truststore.CheckError(truststore.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 		}
 
@@ -235,10 +239,10 @@ func listCerts(opts *certListOpts) error {
 	// display empty if there's no such certificate
 	if namedStore != "" && storeType != "" {
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
-		if err := certificate.CheckError(err); err != nil {
+		if err := truststore.CheckError(err); err != nil {
 			return err
 		}
-		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+		if err := truststore.CheckError(truststore.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
 
@@ -249,29 +253,23 @@ func listCerts(opts *certListOpts) error {
 	// there's no certificate yet
 	if storeType != "" {
 		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType)
-		if err := certificate.CheckError(err); err != nil {
+		if err := truststore.CheckError(err); err != nil {
 			return err
 		}
-		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
+		if err := truststore.CheckError(truststore.ListCertsCore(path)); err != nil {
 			return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
 	} else {
 		// List all certificates under named store namedStore, display empty if
 		// there's no such certificate
-		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", "ca", namedStore)
-		if err := certificate.CheckError(err); err != nil {
-			return err
-		}
-		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-			return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
-		}
-
-		path, err = dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", "signingAuthority", namedStore)
-		if err := certificate.CheckError(err); err != nil {
-			return err
-		}
-		if err := certificate.CheckError(certificate.ListCertsCore(path)); err != nil {
-			return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
+		for _, t := range verification.TrustStorePrefixes {
+			path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", string(t), namedStore)
+			if err := truststore.CheckError(err); err != nil {
+				return err
+			}
+			if err := truststore.CheckError(truststore.ListCertsCore(path)); err != nil {
+				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
+			}
 		}
 	}
 
@@ -282,6 +280,9 @@ func showCerts(opts *certShowOpts) error {
 	storeType := strings.TrimSpace(opts.storeType)
 	if storeType == "" {
 		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
+	if !truststore.ValidateStoreType(storeType) {
+		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
@@ -305,12 +306,12 @@ func showCerts(opts *certShowOpts) error {
 	}
 
 	//write out
-	certificate.ShowCertsCore(certs)
+	truststore.ShowCertsCore(certs)
 
 	return nil
 }
 
-func removeCerts(opts *certRemoveOpts) error {
+func deleteCerts(opts *certDeleteOpts) error {
 	namedStore := strings.TrimSpace(opts.namedStore)
 	if namedStore == "" {
 		return errors.New("named store cannot be empty or contain only whitespaces")
@@ -319,11 +320,14 @@ func removeCerts(opts *certRemoveOpts) error {
 	if storeType == "" {
 		return errors.New("store type cannot be empty or contain only whitespaces")
 	}
+	if !truststore.ValidateStoreType(storeType) {
+		return fmt.Errorf("unsupported store type: %s", storeType)
+	}
 	var errorSlice []error
 
 	if opts.all {
 		// Delete all certificates under storeType/namedStore
-		errorSlice = certificate.RemoveAllCerts(storeType, namedStore, opts.confirmed, errorSlice)
+		errorSlice = truststore.DeleteAllCerts(storeType, namedStore, opts.confirmed, errorSlice)
 
 		// write out on failure
 		if len(errorSlice) > 0 {
@@ -341,7 +345,7 @@ func removeCerts(opts *certRemoveOpts) error {
 	if cert == "" {
 		return errors.New("to delete a specific certificate, certificate fileName cannot be empty or contain only whitespaces")
 	}
-	errorSlice = certificate.RemoveCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
+	errorSlice = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
 	// write out on failure
 	if len(errorSlice) > 0 {
 		fmt.Println("Failed to delete following certificates:")

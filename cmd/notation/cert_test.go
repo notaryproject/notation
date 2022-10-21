@@ -85,9 +85,9 @@ func TestCertShowCommand_MissingArgs(t *testing.T) {
 }
 
 func TestCertRemoveCommand_BasicArgs(t *testing.T) {
-	opts := &certRemoveOpts{}
-	cmd := certRemoveCommand(opts)
-	expected := &certRemoveOpts{
+	opts := &certDeleteOpts{}
+	cmd := certDeleteCommand(opts)
+	expected := &certDeleteOpts{
 		storeType:  "ca",
 		namedStore: "test1",
 		all:        true,
@@ -105,7 +105,7 @@ func TestCertRemoveCommand_BasicArgs(t *testing.T) {
 }
 
 func TestCertRemoveCommand_MissingArgs(t *testing.T) {
-	cmd := certRemoveCommand(nil)
+	cmd := certDeleteCommand(nil)
 	if err := cmd.ParseFlags([]string{}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}

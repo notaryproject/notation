@@ -11,8 +11,8 @@ import (
 	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/internal/certificate"
 	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/internal/truststore"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
@@ -67,7 +67,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	trust := opts.trust
 	// Add to the trust store
 	if trust {
-		if err := certificate.AddCertCore(certPath, "ca", name, true); err != nil {
+		if err := truststore.AddCertCore(certPath, "ca", name, true); err != nil {
 			return err
 		}
 	}

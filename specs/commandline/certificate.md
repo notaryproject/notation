@@ -111,7 +111,7 @@ Aliases:
   delete, rm
 
 Flags:
-  -a, --all            remove all certificates in the named store
+  -a, --all            delete all certificates in the named store
   -h, --help           help for delete
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority

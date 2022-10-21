@@ -1,4 +1,4 @@
-package certificate
+package truststore
 
 import (
 	"crypto/sha1"
@@ -13,6 +13,7 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/verification"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/osutil"
 )
@@ -61,6 +62,9 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	storeType = strings.TrimSpace(storeType)
 	if storeType == "" {
 		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
+	if !ValidateStoreType(storeType) {
+		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	namedStore = strings.TrimSpace(namedStore)
 	if namedStore == "" {
@@ -140,9 +144,9 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("Thumbprints:", hex.EncodeToString(h[:]))
 }
 
-// RemoveAllCerts deletes all certificate files from the trust store
+// DeleteAllCerts deletes all certificate files from the trust store
 // under dir truststore/x509/storeType/namedStore
-func RemoveAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
+func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err == nil {
 		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under dir: %q?", path)
@@ -164,9 +168,9 @@ func RemoveAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 	return errorSlice
 }
 
-// RemoveCert deletes a specific certificate file from the
+// DeleteCert deletes a specific certificate file from the
 // trust store, namely truststore/x509/storeType/namedStore/cert
-func RemoveCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
+func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 	if err == nil {
 		prompt := fmt.Sprintf("Are you sure you want to delete: %q?", path)
@@ -199,4 +203,14 @@ func CheckError(err error) error {
 		return err
 	}
 	return nil
+}
+
+// ValidateStoreType checks if storeType is supported
+func ValidateStoreType(storeType string) bool {
+	for _, t := range verification.TrustStorePrefixes {
+		if storeType == string(t) {
+			return true
+		}
+	}
+	return false
 }
