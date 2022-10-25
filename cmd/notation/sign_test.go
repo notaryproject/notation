@@ -54,9 +54,8 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		reference: "ref",
 		RemoteFlagOpts: RemoteFlagOpts{
 			SecureFlagOpts: SecureFlagOpts{
-				Username:  "user",
-				Password:  "password",
-				PlainHTTP: true,
+				Username: "user",
+				Password: "password",
 			},
 			CommonFlagOpts: CommonFlagOpts{
 				MediaType: "mediaT",

@@ -10,9 +10,8 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 	expected := &listOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
-			Password:  "password",
-			PlainHTTP: true,
-			Username:  "user",
+			Password: "password",
+			Username: "user",
 		},
 	}
 	if err := cmd.ParseFlags([]string{
