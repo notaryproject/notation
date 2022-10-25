@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	notationRegistry "github.com/notaryproject/notation-go/registry"
+	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry"
 )
 
 type listOpts struct {
@@ -17,9 +20,10 @@ func listCommand(opts *listOpts) *cobra.Command {
 		opts = &listOpts{}
 	}
 	cmd := &cobra.Command{
-		Use:     "list [reference]",
+		Use:     "list [flags] <reference>",
 		Aliases: []string{"ls"},
 		Short:   "List signatures from remote",
+		Long:    "List all the signatures associated with signed artifact",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("no reference specified")
@@ -55,9 +59,26 @@ func runList(command *cobra.Command, opts *listOpts) error {
 	}
 
 	// write out
-	for _, sigManifest := range sigManifests {
-		fmt.Println(sigManifest.Blob.Digest)
+	return output(manifestDesc.Digest, sigManifests, reference)
+}
+
+func output(digest digest.Digest, sigManifests []notationRegistry.SignatureManifest, reference string) error {
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return err
 	}
 
+	sigCount := len(sigManifests)
+	if sigCount > 0 {
+		// print title
+		fmt.Printf("%s/%s@%s\n", ref.Registry, ref.Repository, digest)
+		fmt.Printf("└── %s\n", notationRegistry.ArtifactTypeNotation)
+
+		for _, sigManifest := range sigManifests[:sigCount-1] {
+			// print each signature digest
+			fmt.Printf("    ├── %s\n", sigManifest.Blob.Digest)
+		}
+		fmt.Printf("    └── %s\n", sigManifests[sigCount-1].Blob.Digest)
+	}
 	return nil
 }
