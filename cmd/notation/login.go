@@ -24,9 +24,9 @@ func loginCommand(opts *loginOpts) *cobra.Command {
 		opts = &loginOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "login [options] [server]",
+		Use:   "login [flags] <server>",
 		Short: "Provides credentials for authenticated registry operations",
-		Long: `notation login [options] [server]
+		Long: `Log in to an OCI registry
 
 Example - Login with provided username and password:
 	notation login -u <user> -p <password> registry.example.com
@@ -44,13 +44,18 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 			if err := readPassword(opts); err != nil {
 				return err
 			}
+
+			// check username
+			if opts.Username == "" {
+				return errors.New("username was not set.")
+			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runLogin(cmd, opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "Take the password from stdin")
+	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "take the password from stdin")
 	opts.ApplyFlags(command.Flags())
 	return command
 }
@@ -67,6 +72,7 @@ func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 	if err != nil {
 		return fmt.Errorf("could not get the credentials store: %v", err)
 	}
+
 	// init creds
 	creds := newCredentialFromInput(
 		opts.Username,
@@ -74,6 +80,10 @@ func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 	)
 	if err = nativeStore.Store(serverAddress, creds); err != nil {
 		return fmt.Errorf("failed to store credentials: %v", err)
+	}
+
+	if err == nil {
+		fmt.Println("Login Succeeded")
 	}
 	return nil
 }
