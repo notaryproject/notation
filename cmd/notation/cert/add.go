@@ -1,0 +1,88 @@
+package cert
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
+	"github.com/spf13/cobra"
+)
+
+type certAddOpts struct {
+	storeType  string
+	namedStore string
+	path       []string
+}
+
+func certAddCommand(opts *certAddOpts) *cobra.Command {
+	if opts == nil {
+		opts = &certAddOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "add --type <type> --store <name> [flags] <cert_path>...",
+		Short: "Add certificates to the trust store.",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate path")
+			}
+			opts.path = args
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// Enable the flag parsing
+			cmd.DisableFlagParsing = false
+			// Parse the flags
+			if err := cmd.ParseFlags(args); err != nil {
+				return err
+			}
+			return addCerts(opts)
+		},
+	}
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	return command
+}
+
+func addCerts(opts *certAddOpts) error {
+	storeType := strings.TrimSpace(opts.storeType)
+	if storeType == "" {
+		return errors.New("store type cannot be empty or contain only whitespaces")
+	}
+	if !truststore.ValidateStoreType(storeType) {
+		return fmt.Errorf("unsupported store type: %s", storeType)
+	}
+	namedStore := strings.TrimSpace(opts.namedStore)
+	if namedStore == "" {
+		return errors.New("named store cannot be empty or contain only whitespaces")
+	}
+	var success []string
+	var failure []string
+	var errorSlice []error
+	for _, p := range opts.path {
+		err := truststore.AddCert(p, storeType, namedStore, false)
+		if err != nil {
+			failure = append(failure, p)
+			errorSlice = append(errorSlice, err)
+		} else {
+			success = append(success, p)
+		}
+	}
+
+	//write out
+	if len(success) != 0 {
+		fmt.Printf("Successfully added following certificates to named store %s of type %s:\n", namedStore, storeType)
+		for _, p := range success {
+			fmt.Println(p)
+		}
+	}
+	if len(failure) != 0 {
+		fmt.Printf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
+
+		for ind := range failure {
+			fmt.Printf("%s, with error %q\n", failure[ind], errorSlice[ind])
+		}
+	}
+
+	return nil
+}

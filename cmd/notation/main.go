@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/notaryproject/notation/cmd/notation/cert"
 	"github.com/notaryproject/notation/internal/version"
 	"github.com/spf13/cobra"
 )
@@ -18,12 +19,11 @@ func main() {
 		signCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
-		certCommand(),
+		cert.Cmd(),
 		keyCommand(),
 		pluginCommand(),
 		loginCommand(nil),
 		logoutCommand(nil))
-	cmd.PersistentFlags().Bool(flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}

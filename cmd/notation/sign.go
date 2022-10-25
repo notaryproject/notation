@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/timestamp"
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/crypto/timestamp"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/spf13/cobra"

@@ -1,12 +1,12 @@
 module github.com/notaryproject/notation
 
-go 1.19
+go 1.18
 
 require (
 	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
 	github.com/docker/docker-credential-helpers v0.7.0
-	github.com/notaryproject/notation-core-go v0.1.0-alpha.4
-	github.com/notaryproject/notation-go v0.11.0-alpha.4
+	github.com/notaryproject/notation-core-go v0.1.0-alpha.4.0.20221017041709-56bd40a80d26
+	github.com/notaryproject/notation-go v0.11.0-alpha.4.0.20221025011337-7ad4eca1a568
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/spf13/cobra v1.6.0
 	github.com/spf13/pflag v1.0.5

@@ -31,15 +31,6 @@ var (
 		fs.StringVarP(p, flagPassword.Name, flagPassword.Shorthand, "", flagPassword.Usage)
 	}
 
-	flagPlainHTTP = &pflag.Flag{
-		Name:     "plain-http",
-		Usage:    "Registry access via plain HTTP",
-		DefValue: "false",
-	}
-	setFlagPlainHTTP = func(fs *pflag.FlagSet, p *bool) {
-		fs.BoolVar(p, flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
-	}
-
 	flagMediaType = &pflag.Flag{
 		Name:     "media-type",
 		Usage:    "specify the media type of the manifest read from file or stdin",
@@ -70,7 +61,6 @@ type SecureFlagOpts struct {
 func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setflagUsername(fs, &opts.Username)
 	setFlagPassword(fs, &opts.Password)
-	setFlagPlainHTTP(fs, &opts.PlainHTTP)
 	opts.Username = os.Getenv(defaultUsernameEnv)
 	opts.Password = os.Getenv(defaultPasswordEnv)
 }

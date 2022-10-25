@@ -14,7 +14,7 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verification"
-	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/osutil"
 )
 
@@ -51,9 +51,9 @@ var ExtKeyUsagesNameMap = map[x509.ExtKeyUsage]string{
 	x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "Microsoft Kernel Code Signing",
 }
 
-// AddCertCore adds a single cert file at path to the trust store
+// AddCert adds a single cert file at path to the trust store
 // under dir truststore/x509/storeType/namedStore
-func AddCertCore(path, storeType, namedStore string, display bool) error {
+func AddCert(path, storeType, namedStore string, display bool) error {
 	// initialize
 	certPath, err := filepath.Abs(path)
 	if err != nil {
@@ -79,7 +79,7 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	// core process
 	// get the trust store path
 	trustStorePath, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
-	if err := CheckError(err); err != nil {
+	if err := CheckNonErrNotExistError(err); err != nil {
 		return err
 	}
 	// check if certificate already in the trust store
@@ -87,7 +87,7 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 		return errors.New("certificate already exists in the Trust Store")
 	}
 	// add cert to trust store
-	_, err = osutil.Copy(certPath, trustStorePath)
+	_, err = osutil.CopyToDir(certPath, trustStorePath)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,8 @@ func AddCertCore(path, storeType, namedStore string, display bool) error {
 	return nil
 }
 
-// ListCertsCore walks through root and lists all x509 certificates in it
-func ListCertsCore(root string) error {
+// ListCerts walks through root and lists all x509 certificates in it
+func ListCerts(root string) error {
 	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -120,14 +120,14 @@ func ListCertsCore(root string) error {
 	})
 }
 
-// ShowCertsCore writes out details of certificates
-func ShowCertsCore(certs []*x509.Certificate) {
+// ShowCerts writes out details of certificates
+func ShowCerts(certs []*x509.Certificate) {
 	fmt.Println("Display certificate details. Starting from leaf certificate if it's a certificate chain.")
-	fmt.Println("-----------------------------------------------------------------------------------------")
+	fmt.Println("--------------------------------------------------------------------------------")
 	for ind, cert := range certs {
 		showCert(cert)
 		if ind != len(certs)-1 {
-			fmt.Println("-----------------------------------------------------------------------------------------")
+			fmt.Println("--------------------------------------------------------------------------------")
 		}
 	}
 }
@@ -149,8 +149,9 @@ func showCert(cert *x509.Certificate) {
 func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err == nil {
-		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under dir: %q?", path)
-		confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+		truststorePath := fmt.Sprintf("truststore/x509/%s%s", storeType, namedStore)
+		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under: %q?", truststorePath)
+		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {
 			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 			return errorSlice
@@ -159,8 +160,12 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 			return errorSlice
 		}
 
-		if err = osutil.CleanDir(path); err != nil {
+		if err = os.RemoveAll(path); err != nil {
 			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+		} else {
+			// write out on success
+			fmt.Printf("Successfully cleared %s\n", path)
+			return nil
 		}
 	} else {
 		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
@@ -173,8 +178,9 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 	if err == nil {
-		prompt := fmt.Sprintf("Are you sure you want to delete: %q?", path)
-		confirmed, err := ioutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+		truststorePath := fmt.Sprintf("truststore/x509/%s/%s/%s", storeType, namedStore, cert)
+		prompt := fmt.Sprintf("Are you sure you want to delete: %q?", truststorePath)
+		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {
 			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 			return errorSlice
@@ -188,7 +194,7 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice [
 		} else {
 			// write out on success
 			fmt.Printf("Successfully deleted %s\n", path)
-			return []error{}
+			return nil
 		}
 	} else {
 		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
@@ -197,8 +203,8 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice [
 	return errorSlice
 }
 
-// CheckError returns nil when no err or err is fs.ErrNotExist
-func CheckError(err error) error {
+// CheckNonErrNotExistError returns nil when no err or err is fs.ErrNotExist
+func CheckNonErrNotExistError(err error) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
