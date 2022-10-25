@@ -78,7 +78,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--key", expected.Key,
 		"--key-file", expected.KeyFile,
 		"--cert-file", expected.CertFile,
-		"--plain-http",
 		"--media-type", expected.MediaType,
 		"-l",
 		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,

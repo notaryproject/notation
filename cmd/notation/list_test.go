@@ -19,7 +19,7 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 		"--password", expected.Password,
 		expected.reference,
 		"-u", expected.Username,
-		"--plain-http"}); err != nil {
+	}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
