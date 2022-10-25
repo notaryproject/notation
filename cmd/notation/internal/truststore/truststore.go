@@ -100,11 +100,17 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	return nil
 }
 
-// ListCerts walks through root and lists all x509 certificates in it
-func ListCerts(root string) error {
+// ListCerts walks through root and lists all x509 certificates in it,
+// sub-dirs are ignored.
+func ListCerts(root string, depth int) error {
+	maxDepth := strings.Count(root, string(os.PathSeparator)) + depth
+
 	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
+		}
+		if d.IsDir() && strings.Count(path, string(os.PathSeparator)) > maxDepth {
+			return fs.SkipDir
 		}
 		info, err := d.Info()
 		if err != nil {
@@ -149,7 +155,7 @@ func showCert(cert *x509.Certificate) {
 func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err == nil {
-		truststorePath := fmt.Sprintf("truststore/x509/%s%s", storeType, namedStore)
+		truststorePath := fmt.Sprintf("truststore/x509/%s/%s", storeType, namedStore)
 		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under: %q?", truststorePath)
 		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {

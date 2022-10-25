@@ -30,12 +30,6 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Enable the flag parsing
-			cmd.DisableFlagParsing = false
-			// Parse the flags
-			if err := cmd.ParseFlags(args); err != nil {
-				return err
-			}
 			return addCerts(opts)
 		},
 	}

@@ -43,7 +43,7 @@ func listCerts(opts *certListOpts) error {
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
-		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path)); err != nil {
+		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 2)); err != nil {
 			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 		}
 
@@ -57,7 +57,7 @@ func listCerts(opts *certListOpts) error {
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
-		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path)); err != nil {
+		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0)); err != nil {
 			return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
 
@@ -71,7 +71,7 @@ func listCerts(opts *certListOpts) error {
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
-		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path)); err != nil {
+		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 1)); err != nil {
 			return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
 	} else {
@@ -82,7 +82,7 @@ func listCerts(opts *certListOpts) error {
 			if err := truststore.CheckNonErrNotExistError(err); err != nil {
 				return err
 			}
-			if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path)); err != nil {
+			if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0)); err != nil {
 				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 			}
 		}
