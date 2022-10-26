@@ -75,7 +75,7 @@ var (
 	PflagPluginConfig = &pflag.Flag{
 		Name:      "plugin-config",
 		Shorthand: "c",
-		Usage:     "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
+		Usage:     "{key}={value} pairs that are passed as is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values",
 	}
 	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, "", PflagPluginConfig.Usage)
