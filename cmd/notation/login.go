@@ -47,7 +47,7 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 
 			// check username
 			if opts.Username == "" {
-				return errors.New("username was not set.")
+				return errors.New("username is not set.")
 			}
 			return nil
 		},

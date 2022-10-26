@@ -10,7 +10,7 @@ Use `notation logout` to log out from an OCI registry.
 Log out from an OCI registry
 
 Usage:
-  notation logout [flags] [server]
+  notation logout [flags] <server>
 
 Flags:
   -h, --help          help for logout
