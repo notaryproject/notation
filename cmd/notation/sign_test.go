@@ -124,7 +124,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 		"--local",
 		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String(),
-		"--pluginConfig", expected.pluginConfig}); err != nil {
+		"--plugin-config", expected.pluginConfig}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
