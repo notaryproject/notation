@@ -12,20 +12,19 @@ Signs an OCI artifact that is stored in a registry. Upon successful signing, the
 Sign artifacts
 
 Usage:
-  notation sign <reference> [flags]
+  notation sign [flags] <reference>
 
 Flags:
       --cert-file string        Location of file containing a complete certificate chain for the signing key. Use this flag with '--key-file'.
+      --envelope-type string    signature envelope format, options: 'jws', 'cose' (default "jws")
   -e, --expiry duration         Optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m
   -h, --help                    Help for sign
   -k, --key string              Signing key name, for a key previously added to notation's key list.
       --key-file string         Location of file containing signing key file. Use this flag with '--cert-file'.
   -p, --password string         Password or identity token for registry operations (default to $NOTATION_PASSWORD if not specified)
+      --plain-http             Registry access via plain HTTP
       --plugin-config strings   List of {key}={value} pairs that are passed as is to a plugin, if the key (--key) is associated with a signing plugin, refer plugin documentation to set appropriate values
   -u, --username string         Username for registry operations (default to $NOTATION_USERNAME if not specified)
-
-Global Flags:
-      --plain-http   Registry access via plain HTTP
 ```
 
 ## Usage

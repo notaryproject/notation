@@ -15,7 +15,7 @@ import (
 
 type signOpts struct {
 	cmd.SignerFlagOpts
-	RemoteFlagOpts
+	SecureFlagOpts
 	timestamp       string
 	expiry          time.Duration
 	originReference string
@@ -28,9 +28,9 @@ func signCommand(opts *signOpts) *cobra.Command {
 		opts = &signOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "sign [reference]",
-		Short: "Sign OCI artifacts",
-		Long: `Sign OCI artifacts
+		Use:   "sign [flags] <reference>",
+		Short: "Sign artifacts",
+		Long: `Sign artifacts
 
 Prerequisite: a signing key needs to be configured using the command "notation key".
 
@@ -61,11 +61,8 @@ Example - Sign a container image using the image digest
 		},
 	}
 	opts.SignerFlagOpts.ApplyFlags(command.Flags())
-	opts.RemoteFlagOpts.ApplyFlags(command.Flags())
-
-	cmd.SetPflagTimestamp(command.Flags(), &opts.timestamp)
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagReference(command.Flags(), &opts.originReference)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 
 	return command
@@ -103,7 +100,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 }
 
 func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descriptor, notation.SignOptions, error) {
-	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.RemoteFlagOpts, opts.reference)
+	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
