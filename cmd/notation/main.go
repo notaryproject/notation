@@ -23,7 +23,6 @@ func main() {
 		pluginCommand(),
 		loginCommand(nil),
 		logoutCommand(nil))
-	cmd.PersistentFlags().Bool(flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
