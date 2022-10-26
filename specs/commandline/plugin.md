@@ -12,7 +12,7 @@ Use `notation plugin` to manage plugins. See notation [plugin documentation](htt
 Manage plugins
 
 Usage:
-  notation plugin <command>
+  notation plugin [command]
 
 Available Commands:
   list        List installed plugins
@@ -20,7 +20,7 @@ Available Commands:
 Flags:
   -h, --help          help for plugin
 
-RUN 'notation plugin <command> --help' for more information on a command.
+Use 'notation plugin [command] --help' for more information about a command.
 ```
 
 ### notation plugin list

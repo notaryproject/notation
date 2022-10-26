@@ -10,7 +10,7 @@ import (
 
 func pluginCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "plugin <command>",
+		Use:   "plugin [command]",
 		Short: "Manage plugins",
 	}
 	cmd.AddCommand(pluginListCommand())
