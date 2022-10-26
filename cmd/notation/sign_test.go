@@ -54,8 +54,9 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		reference: "ref",
 		RemoteFlagOpts: RemoteFlagOpts{
 			SecureFlagOpts: SecureFlagOpts{
-				Username: "user",
-				Password: "password",
+				Username:  "user",
+				Password:  "password",
+				PlainHTTP: true,
 			},
 			CommonFlagOpts: CommonFlagOpts{
 				MediaType: "mediaT",
@@ -77,6 +78,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--key", expected.Key,
 		"--key-file", expected.KeyFile,
 		"--cert-file", expected.CertFile,
+		"--plain-http",
 		"--media-type", expected.MediaType,
 		"-l",
 		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,

@@ -33,12 +33,15 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 	opts := &verifyOpts{}
 	command := verifyCommand(opts)
 	expected := &verifyOpts{
-		reference:      "ref",
-		SecureFlagOpts: SecureFlagOpts{},
-		pluginConfig:   "key1=val1,key2=val2",
+		reference: "ref",
+		SecureFlagOpts: SecureFlagOpts{
+			PlainHTTP: true,
+		},
+		pluginConfig: "key1=val1,key2=val2",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
+		"--plain-http",
 		"--plugin-config", expected.pluginConfig}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
