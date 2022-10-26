@@ -12,21 +12,9 @@ func getManifestDescriptorFromContext(ctx context.Context, opts *SecureFlagOpts,
 	if ref == "" {
 		return notation.Descriptor{}, errors.New("missing reference")
 	}
-	// return getManifestDescriptorFromContextWithReference(ctx, opts, ref)
+
 	return getManifestDescriptorFromReference(ctx, opts, ref)
 }
-
-// func getManifestDescriptorFromContextWithReference(ctx context.Context, opts *RemoteFlagOpts, ref string) (notation.Descriptor, error) {
-// 	if opts.Local {
-// 		mediaType := opts.MediaType
-// 		if ref == "-" {
-// 			return getManifestDescriptorFromReader(os.Stdin, mediaType)
-// 		}
-// 		return getManifestDescriptorFromFile(ref, mediaType)
-// 	}
-
-// 	return getManifestDescriptorFromReference(ctx, &opts.SecureFlagOpts, ref)
-// }
 
 func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string) (notation.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
@@ -39,6 +27,26 @@ func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpt
 	}
 	return repo.Resolve(ctx, ref.ReferenceOrDefault())
 }
+
+// func getManifestDescriptorFromContext(ctx context.Context, opts *RemoteFlagOpts, ref string) (notation.Descriptor, error) {
+// 	if ref == "" {
+// 		return notation.Descriptor{}, errors.New("missing reference")
+// 	}
+
+// 	return getManifestDescriptorFromContextWithReference(ctx, opts, ref)
+// }
+
+// func getManifestDescriptorFromContextWithReference(ctx context.Context, opts *RemoteFlagOpts, ref string) (notation.Descriptor, error) {
+// 	if opts.Local {
+// 		mediaType := opts.MediaType
+// 		if ref == "-" {
+// 			return getManifestDescriptorFromReader(os.Stdin, mediaType)
+// 		}
+// 		return getManifestDescriptorFromFile(ref, mediaType)
+// 	}
+
+// 	return getManifestDescriptorFromReference(ctx, &opts.SecureFlagOpts, ref)
+// }
 
 // func getManifestDescriptorFromFile(path, mediaType string) (notation.Descriptor, error) {
 // 	file, err := os.Open(path)
