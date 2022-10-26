@@ -34,8 +34,6 @@ type keyAddOpts struct {
 	id           string
 	pluginConfig string
 	isDefault    bool
-	// keyPath      string
-	// certPath     string
 }
 
 type keyUpdateOpts struct {
@@ -207,33 +205,6 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	}, nil
 }
 
-// func newX509KeyPair(opts *keyAddOpts, keyName string) (config.KeySuite, error) {
-// 	if opts.keyPath == "" {
-// 		return config.KeySuite{}, errors.New("missing key and certificate paths")
-// 	}
-// 	if opts.certPath == "" {
-// 		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
-// 	}
-
-// 	keyPath, err := filepath.Abs(opts.keyPath)
-// 	if err != nil {
-// 		return config.KeySuite{}, err
-// 	}
-// 	certPath, err := filepath.Abs(opts.certPath)
-// 	if err != nil {
-// 		return config.KeySuite{}, err
-// 	}
-
-// 	// check key / cert pair
-// 	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
-// 		return config.KeySuite{}, err
-// 	}
-// 	return config.KeySuite{
-// 		Name:        keyName,
-// 		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
-// 	}, nil
-// }
-
 func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
 	if slices.Contains(signingKeys.Keys, key.Name) {
 		return errors.New(key.Name + ": already exists")
@@ -316,3 +287,30 @@ func deleteKeys(opts *keyDeleteOpts) error {
 	}
 	return nil
 }
+
+// func newX509KeyPair(opts *keyAddOpts, keyName string) (config.KeySuite, error) {
+// 	if opts.keyPath == "" {
+// 		return config.KeySuite{}, errors.New("missing key and certificate paths")
+// 	}
+// 	if opts.certPath == "" {
+// 		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
+// 	}
+
+// 	keyPath, err := filepath.Abs(opts.keyPath)
+// 	if err != nil {
+// 		return config.KeySuite{}, err
+// 	}
+// 	certPath, err := filepath.Abs(opts.certPath)
+// 	if err != nil {
+// 		return config.KeySuite{}, err
+// 	}
+
+// 	// check key / cert pair
+// 	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
+// 		return config.KeySuite{}, err
+// 	}
+// 	return config.KeySuite{
+// 		Name:        keyName,
+// 		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
+// 	}, nil
+// }
