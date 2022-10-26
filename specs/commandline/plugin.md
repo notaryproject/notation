@@ -19,8 +19,6 @@ Available Commands:
 
 Flags:
   -h, --help          help for plugin
-
-Use 'notation plugin [command] --help' for more information about a command.
 ```
 
 ### notation plugin list
