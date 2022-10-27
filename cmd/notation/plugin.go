@@ -19,9 +19,9 @@ func pluginCommand() *cobra.Command {
 
 func pluginListCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:     "list",
+		Use:     "list [flags]",
 		Aliases: []string{"ls"},
-		Short:   "List registered plugins",
+		Short:   "List installed plugins",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listPlugins(cmd)
 		},
