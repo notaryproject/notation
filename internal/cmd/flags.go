@@ -15,7 +15,7 @@ var (
 	PflagKey = &pflag.Flag{
 		Name:      "key",
 		Shorthand: "k",
-		Usage:     "signing key name",
+		Usage:     "signing key name, for a key previously added to notation's key list.",
 	}
 	SetPflagKey = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
@@ -23,7 +23,7 @@ var (
 
 	PflagKeyFile = &pflag.Flag{
 		Name:  "key-file",
-		Usage: "signing key file",
+		Usage: "location of file containing signing key file. Use this flag with '--cert-file'.",
 	}
 	SetPflagKeyFile = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVar(p, PflagKeyFile.Name, "", PflagKeyFile.Usage)
@@ -31,7 +31,7 @@ var (
 
 	PflagCertFile = &pflag.Flag{
 		Name:  "cert-file",
-		Usage: "signing certificate file",
+		Usage: "location of file containing a complete certificate chain for the signing key. Use this flag with '--key-file'.",
 	}
 	SetPflagCertFile = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVar(p, PflagCertFile.Name, "", PflagCertFile.Usage)
@@ -57,7 +57,7 @@ var (
 	PflagExpiry = &pflag.Flag{
 		Name:      "expiry",
 		Shorthand: "e",
-		Usage:     "expire duration",
+		Usage:     "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m",
 	}
 	SetPflagExpiry = func(fs *pflag.FlagSet, p *time.Duration) {
 		fs.DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
