@@ -12,15 +12,13 @@ Use `notation plugin` to manage plugins. See notation [plugin documentation](htt
 Manage plugins
 
 Usage:
-  notation plugin <command>
+  notation plugin [command]
 
 Available Commands:
   list        List installed plugins
 
 Flags:
   -h, --help          help for plugin
-
-RUN 'notation plugin <command> --help' for more information on a command.
 ```
 
 ### notation plugin list
