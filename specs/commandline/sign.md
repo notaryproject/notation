@@ -16,7 +16,7 @@ Usage:
 
 Flags:
       --cert-file string        location of file containing a complete certificate chain for the signing key. Use this flag with '--key-file'.
-      --envelope-type string    signature envelope format, options: 'jws', 'cose' (default "jws")
+      --envelope-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
   -e, --expiry duration         optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m
   -h, --help                    help for sign
   -k, --key string              signing key name, for a key previously added to notation's key list.
