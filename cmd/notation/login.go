@@ -44,11 +44,6 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 			if err := readPassword(opts); err != nil {
 				return err
 			}
-
-			// check username
-			if opts.Username == "" {
-				return errors.New("username is not set.")
-			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -82,9 +77,7 @@ func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 		return fmt.Errorf("failed to store credentials: %v", err)
 	}
 
-	if err == nil {
-		fmt.Println("Login Succeeded")
-	}
+	fmt.Println("Login Succeeded")
 	return nil
 }
 
