@@ -4,6 +4,10 @@ GIT_TAG        = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/nul
 GIT_COMMIT     = $(shell git rev-parse HEAD)
 
 # if the commit was tagged, BuildMetadata is empty.
+ifndef BUILD_METADATA
+	BUILD_METADATA := unreleased
+endif
+
 ifneq ($(GIT_TAG),)
 	BUILD_METADATA := 
 endif
