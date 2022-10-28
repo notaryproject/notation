@@ -20,8 +20,6 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:          "key",
-			KeyFile:      "keyfile",
-			CertFile:     "certfile",
 			EnvelopeType: envelope.JWS,
 		},
 	}
@@ -29,9 +27,7 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 		expected.reference,
 		"-u", expected.Username,
 		"--password", expected.Password,
-		"--key", expected.Key,
-		"--key-file", expected.KeyFile,
-		"--cert-file", expected.CertFile}); err != nil {
+		"--key", expected.Key}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -54,8 +50,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:          "key",
-			KeyFile:      "keyfile",
-			CertFile:     "certfile",
 			EnvelopeType: envelope.COSE,
 		},
 		expiry: 24 * time.Hour,
@@ -65,8 +59,6 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"-u", expected.Username,
 		"-p", expected.Password,
 		"--key", expected.Key,
-		"--key-file", expected.KeyFile,
-		"--cert-file", expected.CertFile,
 		"--plain-http",
 		"--envelope-format", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String()}); err != nil {
@@ -87,8 +79,6 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 		reference: "ref",
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:          "key",
-			KeyFile:      "keyfile",
-			CertFile:     "certfile",
 			EnvelopeType: envelope.JWS,
 		},
 		expiry:       365 * 24 * time.Hour,
@@ -97,8 +87,6 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
-		"--key-file", expected.KeyFile,
-		"--cert-file", expected.CertFile,
 		"--envelope-format", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String(),
 		"--plugin-config", expected.pluginConfig}); err != nil {
