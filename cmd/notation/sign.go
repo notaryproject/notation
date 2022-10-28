@@ -38,7 +38,7 @@ Example - Sign a container image using the default signing key, with the default
   notation sign <registry>/<repository>:<tag>
 
 Example - Sign a container image using the default signing key, with the COSE envelope:
-  notation sign --envelope-format cose <registry>/<repository>:<tag> 
+  notation sign --signature-format cose <registry>/<repository>:<tag> 
 
 Example - Sign a container image using the specified key name
   notation sign --key <key_name> <registry>/<repository>:<tag>

@@ -60,7 +60,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"-p", expected.Password,
 		"--key", expected.Key,
 		"--plain-http",
-		"--envelope-format", expected.SignerFlagOpts.EnvelopeType,
+		"--signature-format", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
-		"--envelope-format", expected.SignerFlagOpts.EnvelopeType,
+		"--signature-format", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String(),
 		"--plugin-config", expected.pluginConfig}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)

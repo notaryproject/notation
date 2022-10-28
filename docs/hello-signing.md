@@ -98,7 +98,7 @@ To get things started quickly, the Notation cli supports self-generated signing 
   To sign with COSE envelope
 
   ```bash
-  notation sign --envelope-format cose $IMAGE
+  notation sign --envelope-type cose $IMAGE
   ```
 
 - List the image, and any associated signatures
