@@ -21,22 +21,6 @@ var (
 		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
 	}
 
-	PflagKeyFile = &pflag.Flag{
-		Name:  "key-file",
-		Usage: "location of file containing signing key file. Use this flag with '--cert-file'.",
-	}
-	SetPflagKeyFile = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagKeyFile.Name, "", PflagKeyFile.Usage)
-	}
-
-	PflagCertFile = &pflag.Flag{
-		Name:  "cert-file",
-		Usage: "location of file containing a complete certificate chain for the signing key. Use this flag with '--key-file'.",
-	}
-	SetPflagCertFile = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagCertFile.Name, "", PflagCertFile.Usage)
-	}
-
 	PflagEnvelopeType = &pflag.Flag{
 		Name:  "envelope-format",
 		Usage: "signature envelope format, options: 'jws', 'cose'",

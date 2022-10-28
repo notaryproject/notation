@@ -43,9 +43,6 @@ Example - Sign a container image using the default signing key, with the COSE en
 Example - Sign a container image using the specified key name
   notation sign --key <key_name> <registry>/<repository>:<tag>
 
-Example - Sign a container image using a local testing key and certificate file directly
-  notation sign --key-file <key_path> --cert-file <cert_path> <registry>/<repository>:<tag>
-
 Example - Sign a container image using the image digest
   notation sign <registry>/<repository>@<digest>
 `,
