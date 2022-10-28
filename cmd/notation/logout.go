@@ -18,7 +18,6 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 	return &cobra.Command{
 		Use:   "logout [flags] <server>",
 		Short: "Log out from the logged in registries",
-		Long:  "Log out from an OCI registry",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("no hostname specified")

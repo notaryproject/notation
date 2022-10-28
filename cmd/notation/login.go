@@ -25,7 +25,7 @@ func loginCommand(opts *loginOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "login [flags] <server>",
-		Short: "Provides credentials for authenticated registry operations",
+		Short: "Login to registry",
 		Long: `Log in to an OCI registry
 
 Example - Login with provided username and password:
