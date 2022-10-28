@@ -14,11 +14,13 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 			Username: "user",
 			Password: "password",
 		},
+		pluginConfig: []string{"key1=val1"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--username", expected.Username,
-		"--password", expected.Password}); err != nil {
+		"--password", expected.Password,
+		"--plugin-config", "key1=val1"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
