@@ -59,16 +59,14 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	if err != nil {
 		return err
 	}
-	storeType = strings.TrimSpace(storeType)
 	if storeType == "" {
-		return errors.New("store type cannot be empty or contain only whitespaces")
+		return errors.New("store type cannot be empty")
 	}
 	if !ValidateStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	namedStore = strings.TrimSpace(namedStore)
 	if namedStore == "" {
-		return errors.New("named store cannot be empty or contain only whitespaces")
+		return errors.New("named store cannot be empty")
 	}
 
 	// check if the target path is a cert (support PEM and DER formats)

@@ -3,7 +3,6 @@ package cert
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
@@ -46,13 +45,13 @@ func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 }
 
 func deleteCerts(opts *certDeleteOpts) error {
-	namedStore := strings.TrimSpace(opts.namedStore)
+	namedStore := opts.namedStore
 	if namedStore == "" {
-		return errors.New("named store cannot be empty or contain only whitespaces")
+		return errors.New("named store cannot be empty")
 	}
-	storeType := strings.TrimSpace(opts.storeType)
+	storeType := opts.storeType
 	if storeType == "" {
-		return errors.New("store type cannot be empty or contain only whitespaces")
+		return errors.New("store type cannot be empty")
 	}
 	if !truststore.ValidateStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
@@ -75,9 +74,9 @@ func deleteCerts(opts *certDeleteOpts) error {
 	}
 
 	// Delete a certain certificate with path storeType/namedStore/cert
-	cert := strings.TrimSpace(opts.cert)
+	cert := opts.cert
 	if cert == "" {
-		return errors.New("to delete a specific certificate, certificate fileName cannot be empty or contain only whitespaces")
+		return errors.New("to delete a specific certificate, certificate fileName cannot be empty")
 	}
 	errorSlice = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
 	// write out on failure

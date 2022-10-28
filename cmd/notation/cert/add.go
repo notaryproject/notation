@@ -3,7 +3,6 @@ package cert
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
@@ -39,16 +38,16 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 }
 
 func addCerts(opts *certAddOpts) error {
-	storeType := strings.TrimSpace(opts.storeType)
+	storeType := opts.storeType
 	if storeType == "" {
-		return errors.New("store type cannot be empty or contain only whitespaces")
+		return errors.New("store type cannot be empty")
 	}
 	if !truststore.ValidateStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	namedStore := strings.TrimSpace(opts.namedStore)
+	namedStore := opts.namedStore
 	if namedStore == "" {
-		return errors.New("named store cannot be empty or contain only whitespaces")
+		return errors.New("named store cannot be empty")
 	}
 	var success []string
 	var failure []string

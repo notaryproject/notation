@@ -7,7 +7,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
@@ -67,8 +66,8 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
 	name := opts.name
-	if strings.TrimSpace(name) == "" {
-		return errors.New("certificate common_name cannot be empty or contain only whitespaces")
+	if name == "" {
+		return errors.New("certificate common_name cannot be empty")
 	}
 
 	// generate RSA private key

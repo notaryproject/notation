@@ -2,7 +2,6 @@ package cert
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verification"
@@ -33,8 +32,8 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 }
 
 func listCerts(opts *certListOpts) error {
-	namedStore := strings.TrimSpace(opts.namedStore)
-	storeType := strings.TrimSpace(opts.storeType)
+	namedStore := opts.namedStore
+	storeType := opts.storeType
 
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
