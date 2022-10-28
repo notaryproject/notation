@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin/manager"
@@ -144,19 +143,18 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 		return err
 	}
 	var key config.KeySuite
-	name := strings.TrimSpace(opts.name)
+	name := opts.name
 	if name == "" {
-		return errors.New("key name cannot be empty or contain only whitespaces")
+		return errors.New("key name cannot be empty")
 	}
-	pluginName := strings.TrimSpace(opts.plugin)
+	pluginName := opts.plugin
 	if pluginName != "" {
 		key, err = addExternalKey(command.Context(), opts, pluginName, name)
 		if err != nil {
 			return err
 		}
 	} else {
-		//key, err = newX509KeyPair(opts, name)
-		return errors.New("plugin name cannot be empty or contain only whitespaces")
+		return errors.New("plugin name cannot be empty")
 	}
 
 	isDefault := opts.isDefault
@@ -287,30 +285,3 @@ func deleteKeys(opts *keyDeleteOpts) error {
 	}
 	return nil
 }
-
-// func newX509KeyPair(opts *keyAddOpts, keyName string) (config.KeySuite, error) {
-// 	if opts.keyPath == "" {
-// 		return config.KeySuite{}, errors.New("missing key and certificate paths")
-// 	}
-// 	if opts.certPath == "" {
-// 		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
-// 	}
-
-// 	keyPath, err := filepath.Abs(opts.keyPath)
-// 	if err != nil {
-// 		return config.KeySuite{}, err
-// 	}
-// 	certPath, err := filepath.Abs(opts.certPath)
-// 	if err != nil {
-// 		return config.KeySuite{}, err
-// 	}
-
-// 	// check key / cert pair
-// 	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
-// 		return config.KeySuite{}, err
-// 	}
-// 	return config.KeySuite{
-// 		Name:        keyName,
-// 		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
-// 	}, nil
-// }
