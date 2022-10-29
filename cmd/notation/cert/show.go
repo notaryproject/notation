@@ -25,7 +25,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 		Short: "Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing certificate path")
+				return errors.New("missing certificate file name")
 			}
 			if len(args) > 1 {
 				return errors.New("show only supports single certificate file")
@@ -47,7 +47,7 @@ func showCerts(opts *certShowOpts) error {
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
-	if !truststore.ValidateStoreType(storeType) {
+	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	namedStore := opts.namedStore
@@ -68,7 +68,7 @@ func showCerts(opts *certShowOpts) error {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
 	if len(certs) == 0 {
-		return fmt.Errorf("failed to show details of certificate %s, with error: no valid certificate presents", cert)
+		return fmt.Errorf("failed to show details of certificate %s, with error: certificate not found", cert)
 	}
 
 	//write out

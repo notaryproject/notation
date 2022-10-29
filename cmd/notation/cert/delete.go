@@ -53,7 +53,7 @@ func deleteCerts(opts *certDeleteOpts) error {
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
-	if !truststore.ValidateStoreType(storeType) {
+	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	var errorSlice []error
@@ -64,7 +64,7 @@ func deleteCerts(opts *certDeleteOpts) error {
 
 		// write out on failure
 		if len(errorSlice) > 0 {
-			fmt.Println("Failed to clear following named stores:")
+			fmt.Println("Failed to delete following named stores:")
 			for _, err := range errorSlice {
 				fmt.Println(err.Error())
 			}
@@ -81,7 +81,7 @@ func deleteCerts(opts *certDeleteOpts) error {
 	errorSlice = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
 	// write out on failure
 	if len(errorSlice) > 0 {
-		fmt.Println("Failed to delete following certificates:")
+		fmt.Println("Failed to delete following certificate:")
 		for _, err := range errorSlice {
 			fmt.Println(err.Error())
 		}

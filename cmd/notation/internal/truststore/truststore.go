@@ -18,39 +18,6 @@ import (
 	"github.com/notaryproject/notation/internal/osutil"
 )
 
-// KeyUsageNameMap is a map of x509.Certificate KeyUsage map used in
-// 'notation cert show' command
-var KeyUsageNameMap = map[x509.KeyUsage]string{
-	x509.KeyUsageDigitalSignature:  "Digital Signature",
-	x509.KeyUsageContentCommitment: "Non Repudiation",
-	x509.KeyUsageKeyEncipherment:   "Key Encipherment",
-	x509.KeyUsageDataEncipherment:  "Data Encipherment",
-	x509.KeyUsageKeyAgreement:      "Key Agreement",
-	x509.KeyUsageCertSign:          "Certificate Sign",
-	x509.KeyUsageCRLSign:           "CRL Sign",
-	x509.KeyUsageEncipherOnly:      "Encipher Only",
-	x509.KeyUsageDecipherOnly:      "Decipher Only",
-}
-
-// ExtKeyUsagesNameMap is a map of x509.Certificate ExtKeyUsages map used
-// in 'notation cert show' command
-var ExtKeyUsagesNameMap = map[x509.ExtKeyUsage]string{
-	x509.ExtKeyUsageAny:                            "Any",
-	x509.ExtKeyUsageServerAuth:                     "TLS Web Server Authentication",
-	x509.ExtKeyUsageClientAuth:                     "TLS Web Client Authentication",
-	x509.ExtKeyUsageCodeSigning:                    "Code Signing",
-	x509.ExtKeyUsageEmailProtection:                "E-mail Protection",
-	x509.ExtKeyUsageIPSECEndSystem:                 "IPSec End System",
-	x509.ExtKeyUsageIPSECTunnel:                    "IPSec Tunnel",
-	x509.ExtKeyUsageIPSECUser:                      "IPSec User",
-	x509.ExtKeyUsageTimeStamping:                   "Time Stamping",
-	x509.ExtKeyUsageOCSPSigning:                    "OCSP Signing",
-	x509.ExtKeyUsageMicrosoftServerGatedCrypto:     "Microsoft Server Gated Crypto",
-	x509.ExtKeyUsageNetscapeServerGatedCrypto:      "Netscape Server Gated Crypto",
-	x509.ExtKeyUsageMicrosoftCommercialCodeSigning: "Microsoft Commercial Code Signing",
-	x509.ExtKeyUsageMicrosoftKernelCodeSigning:     "Microsoft Kernel Code Signing",
-}
-
 // AddCert adds a single cert file at path to the trust store
 // under dir truststore/x509/storeType/namedStore
 func AddCert(path, storeType, namedStore string, display bool) error {
@@ -62,7 +29,7 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
-	if !ValidateStoreType(storeType) {
+	if !IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	if namedStore == "" {
@@ -126,7 +93,7 @@ func ListCerts(root string, depth int) error {
 
 // ShowCerts writes out details of certificates
 func ShowCerts(certs []*x509.Certificate) {
-	fmt.Println("Display certificate details. Starting from leaf certificate if it's a certificate chain.")
+	fmt.Println("Certificate details")
 	fmt.Println("--------------------------------------------------------------------------------")
 	for ind, cert := range certs {
 		showCert(cert)
@@ -145,7 +112,7 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("IsCA:", cert.IsCA)
 
 	h := sha1.Sum(cert.Raw)
-	fmt.Println("Thumbprints:", hex.EncodeToString(h[:]))
+	fmt.Println("SHA1 Thumbprint:", strings.ToLower(hex.EncodeToString(h[:])))
 }
 
 // DeleteAllCerts deletes all certificate files from the trust store
@@ -153,8 +120,7 @@ func showCert(cert *x509.Certificate) {
 func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err == nil {
-		truststorePath := fmt.Sprintf("truststore/x509/%s/%s", storeType, namedStore)
-		prompt := fmt.Sprintf("Are you sure you want to remove all certificate files under: %q?", truststorePath)
+		prompt := fmt.Sprintf("Are you sure you want to delete all certificate in %q of type %q?", namedStore, storeType)
 		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {
 			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
@@ -168,7 +134,7 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 		} else {
 			// write out on success
-			fmt.Printf("Successfully cleared %s\n", path)
+			fmt.Printf("Successfully deleted %s\n", path)
 			return nil
 		}
 	} else {
@@ -182,8 +148,7 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
 	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 	if err == nil {
-		truststorePath := fmt.Sprintf("truststore/x509/%s/%s/%s", storeType, namedStore, cert)
-		prompt := fmt.Sprintf("Are you sure you want to delete: %q?", truststorePath)
+		prompt := fmt.Sprintf("Are you sure you want to delete %q in %q of type %q?", cert, namedStore, storeType)
 		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 		if err != nil {
 			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
@@ -215,8 +180,8 @@ func CheckNonErrNotExistError(err error) error {
 	return nil
 }
 
-// ValidateStoreType checks if storeType is supported
-func ValidateStoreType(storeType string) bool {
+// IsValidStoreType checks if storeType is supported
+func IsValidStoreType(storeType string) bool {
 	for _, t := range verification.TrustStorePrefixes {
 		if storeType == string(t) {
 			return true

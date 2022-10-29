@@ -13,13 +13,11 @@ func TestCertGenerateCommand(t *testing.T) {
 		name:      "name",
 		bits:      2048,
 		isDefault: true,
-		trust:     true,
 	}
 	if err := cmd.ParseFlags([]string{
 		"name",
 		"--bits", fmt.Sprint(expected.bits),
-		"--default",
-		"--trust"}); err != nil {
+		"--default"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {

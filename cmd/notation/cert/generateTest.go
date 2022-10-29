@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
@@ -24,7 +25,7 @@ var (
 	keyDefaultFlag = &pflag.Flag{
 		Name:      "default",
 		Shorthand: "d",
-		Usage:     "mark as default",
+		Usage:     "mark as default signing key",
 	}
 	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
@@ -34,7 +35,6 @@ var (
 type certGenerateTestOpts struct {
 	name      string
 	bits      int
-	trust     bool
 	isDefault bool
 }
 
@@ -58,7 +58,6 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 	}
 
 	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
-	command.Flags().BoolVar(&opts.trust, "trust", false, "add the generated certificate to the trust store")
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 	return command
 }
@@ -114,13 +113,14 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	if err != nil {
 		return err
 	}
-	trust := opts.trust
+
 	// Add to the trust store
-	if trust {
-		if err := truststore.AddCert(certPath, "ca", name, true); err != nil {
-			return err
-		}
+	if err := truststore.AddCert(certPath, "ca", name, true); err != nil {
+		return err
 	}
+	fmt.Printf("%s: added to the trust store %s of type ca", filepath.Base(certPath), name)
+
+	// Save to the SigningKeys.json
 	if err := signingKeys.Save(); err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	// write out
 	fmt.Printf("%s: added to the key list\n", name)
 	if isDefault {
-		fmt.Printf("%s: marked as default\n", name)
+		fmt.Printf("%s: mark as default signing key\n", name)
 	}
 	return nil
 }

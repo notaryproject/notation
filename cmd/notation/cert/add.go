@@ -42,7 +42,7 @@ func addCerts(opts *certAddOpts) error {
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
-	if !truststore.ValidateStoreType(storeType) {
+	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	namedStore := opts.namedStore
