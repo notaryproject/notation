@@ -61,8 +61,8 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 		Use:   "add --plugin <plugin_name> [flags] <key_name>",
 		Short: "Add key to signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("missing key name")
+			if len(args) != 1 {
+				return errors.New("either missing key name or unnecessary parameters passed")
 			}
 			opts.name = args[0]
 			return nil

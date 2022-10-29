@@ -37,7 +37,7 @@ Flags:
   -h, --help                   help for add
       --id string              key id (required if --plugin is set)
   -p, --plugin string          signing plugin name
-      --plugin-config strings  {key}={value} pairs that are passed as is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+      --plugin-config strings  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
 ```
 
 ### notation key delete
