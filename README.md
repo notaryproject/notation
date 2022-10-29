@@ -30,7 +30,7 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 - Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support:
   
   ```bash
-  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc2
+  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc.2
   ```
 
 - Build, push, sign, verify the `net-monitor` software:
