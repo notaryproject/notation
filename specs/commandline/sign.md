@@ -15,13 +15,13 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-      --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
   -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
   -p, --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http               registry access via plain HTTP
-      --plugin-config strings    {key}={value} pairs that are passed as is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+      --plugin-config strings    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+      --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
   -u, --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
 ```
 

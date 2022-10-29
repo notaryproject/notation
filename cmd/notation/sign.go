@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/timestamp"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -16,11 +15,9 @@ import (
 type signOpts struct {
 	cmd.SignerFlagOpts
 	SecureFlagOpts
-	timestamp       string
-	expiry          time.Duration
-	originReference string
-	pluginConfig    string
-	reference       string
+	expiry       time.Duration
+	pluginConfig string
+	reference    string
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -101,24 +98,12 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descri
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
-	if identity := opts.originReference; identity != "" {
-		manifestDesc.Annotations = map[string]string{
-			"identity": identity,
-		}
-	}
-	var tsa timestamp.Timestamper
-	if endpoint := opts.timestamp; endpoint != "" {
-		if tsa, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
-			return notation.Descriptor{}, notation.SignOptions{}, err
-		}
-	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
 	}
 	return manifestDesc, notation.SignOptions{
 		Expiry:       cmd.GetExpiry(opts.expiry),
-		TSA:          tsa,
 		PluginConfig: pluginConfig,
 	}, nil
 }
