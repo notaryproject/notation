@@ -7,7 +7,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
@@ -118,7 +117,6 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	if err := truststore.AddCert(certPath, "ca", name, true); err != nil {
 		return err
 	}
-	fmt.Printf("%s: added to the trust store %s of type ca", filepath.Base(certPath), name)
 
 	// Save to the SigningKeys.json
 	if err := signingKeys.Save(); err != nil {
