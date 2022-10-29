@@ -68,7 +68,7 @@ func showCerts(opts *certShowOpts) error {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
 	if len(certs) == 0 {
-		return fmt.Errorf("failed to show details of certificate %s, with error: certificate not found", cert)
+		return fmt.Errorf("failed to show details of certificate %s, with error: no valid certificate found in the file", cert)
 	}
 
 	//write out
