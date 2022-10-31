@@ -2,7 +2,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -15,30 +14,14 @@ var (
 	PflagKey = &pflag.Flag{
 		Name:      "key",
 		Shorthand: "k",
-		Usage:     "signing key name",
+		Usage:     "signing key name, for a key previously added to notation's key list.",
 	}
 	SetPflagKey = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
 	}
 
-	PflagKeyFile = &pflag.Flag{
-		Name:  "key-file",
-		Usage: "signing key file",
-	}
-	SetPflagKeyFile = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagKeyFile.Name, "", PflagKeyFile.Usage)
-	}
-
-	PflagCertFile = &pflag.Flag{
-		Name:  "cert-file",
-		Usage: "signing certificate file",
-	}
-	SetPflagCertFile = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagCertFile.Name, "", PflagCertFile.Usage)
-	}
-
 	PflagEnvelopeType = &pflag.Flag{
-		Name:  "envelope-type",
+		Name:  "signature-format",
 		Usage: "signature envelope format, options: 'jws', 'cose'",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
@@ -57,7 +40,7 @@ var (
 	PflagExpiry = &pflag.Flag{
 		Name:      "expiry",
 		Shorthand: "e",
-		Usage:     "expire duration",
+		Usage:     "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m",
 	}
 	SetPflagExpiry = func(fs *pflag.FlagSet, p *time.Duration) {
 		fs.DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
@@ -73,12 +56,12 @@ var (
 	}
 
 	PflagPluginConfig = &pflag.Flag{
-		Name:      "pluginConfig",
+		Name:      "plugin-config",
 		Shorthand: "c",
-		Usage:     "list of comma-separated {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values",
+		Usage:     "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values",
 	}
-	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, "", PflagPluginConfig.Usage)
+	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *[]string) {
+		fs.StringArrayVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, nil, PflagPluginConfig.Usage)
 	}
 )
 
@@ -88,94 +71,14 @@ type KeyValueSlice interface {
 	String() string
 }
 
-func ParseFlagPluginConfig(config string) (map[string]string, error) {
-	pluginConfig, err := ParseKeyValueListFlag(config)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse %q as value for flag %s: %s", pluginConfig, PflagPluginConfig.Name, err)
+func ParseFlagPluginConfig(config []string) (map[string]string, error) {
+	pluginConfig := make(map[string]string, len(config))
+	for _, pair := range config {
+		key, val, found := strings.Cut(pair, "=")
+		if !found || key == "" || val == "" {
+			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", PflagPluginConfig.Name)
+		}
+		pluginConfig[key] = val
 	}
 	return pluginConfig, nil
-}
-
-func ParseKeyValueListFlag(val string) (map[string]string, error) {
-	if val == "" {
-		return nil, nil
-	}
-	flags, err := splitQuoted(val)
-	if err != nil {
-		return nil, err
-	}
-	m := make(map[string]string, len(flags))
-	for _, c := range flags {
-		c := strings.TrimSpace(c)
-		if c == "" {
-			return nil, fmt.Errorf("empty entry: %q", c)
-		}
-		if k, v, ok := strings.Cut(c, "="); ok {
-			k := strings.TrimSpace(k)
-			v := strings.TrimSpace(v)
-			if k == "" || v == "" {
-				return nil, errors.New("empty key value")
-			}
-			if _, exist := m[k]; exist {
-				return nil, fmt.Errorf("duplicated key: %q", k)
-			}
-			m[k] = v
-		} else {
-			return nil, fmt.Errorf("malformed entry: %q", c)
-		}
-	}
-	return m, nil
-}
-
-// splitQuoted splits the string s around each instance of one or more consecutive
-// comma characters while taking into account quotes and escaping, and
-// returns an array of substrings of s or an empty list if s is empty.
-// Single quotes and double quotes are recognized to prevent splitting within the
-// quoted region, and are removed from the resulting substrings. If a quote in s
-// isn't closed err will be set and r will have the unclosed argument as the
-// last element. The backslash is used for escaping.
-//
-// For example, the following string:
-//
-//	`a,b:"c,d",'e''f',,"g\""`
-//
-// Would be parsed as:
-//
-//	[]string{"a", "b:c,d", "ef", "", `g"`}
-func splitQuoted(s string) (r []string, err error) {
-	var args []string
-	arg := make([]rune, len(s))
-	escaped := false
-	quote := '\x00'
-	i := 0
-	for _, r := range s {
-		switch {
-		case escaped:
-			escaped = false
-		case r == '\\':
-			escaped = true
-			continue
-		case quote != 0:
-			if r == quote {
-				quote = 0
-				continue
-			}
-		case r == '"' || r == '\'':
-			quote = r
-			continue
-		case r == ',':
-			args = append(args, string(arg[:i]))
-			i = 0
-			continue
-		}
-		arg[i] = r
-		i++
-	}
-	args = append(args, string(arg[:i]))
-	if quote != 0 {
-		err = errors.New("unclosed quote")
-	} else if escaped {
-		err = errors.New("unfinished escaping")
-	}
-	return args, err
 }
