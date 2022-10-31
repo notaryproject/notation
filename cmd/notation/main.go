@@ -21,7 +21,6 @@ func main() {
 		pluginCommand(),
 		loginCommand(nil),
 		logoutCommand(nil))
-
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
