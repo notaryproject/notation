@@ -17,7 +17,7 @@ Git commit:  <long_hash>
 ## Outline
 
 ```text
-Print the notation version information
+Show the notation version information
 
 Usage:
   notation version [flags]

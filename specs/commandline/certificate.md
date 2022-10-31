@@ -111,7 +111,7 @@ Aliases:
   delete, rm
 
 Flags:
-  -a, --all            remove all certificates in the named store
+  -a, --all            delete all certificates in the named store
   -h, --help           help for delete
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
@@ -128,10 +128,8 @@ Usage:
 
 Flags:
   -b, --bits int      RSA key bits (default 2048)
-  -d, --default       mark as default
+  -d, --default       mark as default signing key
   -h, --help          help for generate-test
-  -n, --name string   key and certificate name
-      --trust         add the generated certificate to the trust store
 ```
 
 ## Usage
@@ -214,7 +212,7 @@ A prompt is showed asking user to confirm the deletion. Upon successful deletion
 ### Generate a local RSA key and a corresponding self-generated certificate for testing purpose and add the certificate into trust store
 
 ```bash
-notation certificate generate-test --trust "wabbit-networks.io"
+notation certificate generate-test "wabbit-networks.io"
 ```
 
-Upon successful execution, a local key file and certificate file named `wabbit-networks.io` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as certificate subject.CommonName. With `--trust` flag set, the certificate is added into a trust store named `wabbit-networks.io` of type `ca`.
+Upon successful execution, a local key file and certificate file named `wabbit-networks.io` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as certificate subject.CommonName.

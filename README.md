@@ -39,7 +39,7 @@ Notation is a CLI project to add signatures as standard items in the registry ec
   export IMAGE=localhost:5000/net-monitor:v1
   docker build -t $IMAGE https://github.com/wabbit-networks/net-monitor.git#main
   docker push $IMAGE
-  notation cert generate-test --default --trust "wabbit-networks-dev"
+  notation cert generate-test --default "wabbit-networks-dev"
   notation sign --plain-http $IMAGE
   notation list --plain-http $IMAGE
   notation verify --plain-http $IMAGE
