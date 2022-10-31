@@ -6,13 +6,13 @@ Use `notation list` to list all the signatures associated with signed artifact.
 
 `Tags` are mutable, but `Digests` uniquely and immutably identify an artifact. If a tag is used to identify a signed artifact, notation resolves the tag to the `digest` first.
 
-Upon successful execution, both the digest of the signed artifact and the digests of signatures associated with signed artifact are printed out as following:
+Upon successful execution, both the digest of the signed artifact and the digests of signatures manifest associated with signed artifact are printed out as following:
 
 ```shell
 <registry>/<repository>@<digest>
 └── application/vnd.cncf.notary.v2.signature
-    ├──<digest_of_signature>
-    └──<digest_of_signature>
+    ├──<digest_of_signature_manifest>
+    └──<digest_of_signature_manifest>
 ```
 
 ## Outline
