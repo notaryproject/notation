@@ -21,10 +21,6 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	if err != nil {
 		return nil, err
 	}
-	if keyPath := opts.KeyFile; keyPath != "" {
-		certPath := opts.CertFile
-		return signature.NewSignerFromFiles(keyPath, certPath, mediaType)
-	}
 	// Construct a signer from preconfigured key pair in config.json
 	// if key name is provided as the CLI argument
 	key, err := configutil.ResolveKey(opts.Key)
