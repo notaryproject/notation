@@ -15,7 +15,7 @@ The default location and file will be stored at: `~/.config/notation/config.json
 | Property                  | Type     | Value                                                                                                                                                     |
 | ------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `insecureRegistries`      | _array_  | a list of registries that may be used without https                                                                                                       |
-| `envelopeType`            | _string_ | `jws` is the default value, available type includes `jws` and `cose`                                                                                      |
+| `signatureFormat`            | _string_ | `jws` is the default value, available type includes `jws` and `cose`                                                                                      |
 
 ## Samples
 
@@ -26,7 +26,7 @@ The default location and file will be stored at: `~/.config/notation/config.json
     "insecureRegistries": [
         "registry.wabbit-networks.io"
     ],
-    "envelopeType": "jws"
+    "signatureFormat": "jws"
 }
 ```
 

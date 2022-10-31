@@ -14,7 +14,7 @@ import (
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	// Construct a signer from key and cert file if provided as CLI arguments
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.EnvelopeType)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignatureFormat)
 	if err != nil {
 		return nil, err
 	}

@@ -21,19 +21,19 @@ var (
 		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
 	}
 
-	PflagEnvelopeType = &pflag.Flag{
+	PflagSignatureFormat = &pflag.Flag{
 		Name:  "signature-format",
 		Usage: "signature envelope format, options: 'jws', 'cose'",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		defaultEnvelopeFormat := envelope.JWS
-		// load config to get envelopeType
+		defaultSignatureFormat := envelope.JWS
+		// load config to get signatureFormat
 		config, err := configutil.LoadConfigOnce()
-		if err == nil && config.EnvelopeType != "" {
-			defaultEnvelopeFormat = config.EnvelopeType
+		if err == nil && config.SignatureFormat != "" {
+			defaultSignatureFormat = config.SignatureFormat
 		}
 
-		fs.StringVar(p, PflagEnvelopeType.Name, defaultEnvelopeFormat, PflagEnvelopeType.Usage)
+		fs.StringVar(p, PflagSignatureFormat.Name, defaultSignatureFormat, PflagSignatureFormat.Usage)
 	}
 
 	PflagTimestamp = &pflag.Flag{

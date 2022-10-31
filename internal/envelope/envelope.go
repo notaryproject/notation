@@ -38,5 +38,5 @@ func GetEnvelopeMediaType(sigFormat string) (string, error) {
 	case COSE:
 		return cose.MediaTypeEnvelope, nil
 	}
-	return "", fmt.Errorf("signature format %s not supported", sigFormat)
+	return "", fmt.Errorf("signature format %q not supported", sigFormat)
 }

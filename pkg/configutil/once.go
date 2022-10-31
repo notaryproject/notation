@@ -27,9 +27,9 @@ func LoadConfigOnce() (*config.Config, error) {
 	configOnce.Do(func() {
 		configInfo, err = config.LoadConfig()
 		// set default value
-		configInfo.EnvelopeType = strings.ToLower(configInfo.EnvelopeType)
-		if configInfo.EnvelopeType == "" {
-			configInfo.EnvelopeType = envelope.JWS
+		configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
+		if configInfo.SignatureFormat == "" {
+			configInfo.SignatureFormat = envelope.JWS
 		}
 	})
 	return configInfo, err

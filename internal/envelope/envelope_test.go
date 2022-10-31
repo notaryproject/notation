@@ -68,7 +68,7 @@ func TestSpeculateSignatureEnvelopeFormat(t *testing.T) {
 				t.Fatalf("expected speculate signature envelope format err: %v, got: %v", tt.expectedErr, err)
 			}
 			if eType != tt.expectedType {
-				t.Fatalf("expected signature envelopeType: %v, got: %v", tt.expectedType, eType)
+				t.Fatalf("expected signatureFormat: %v, got: %v", tt.expectedType, eType)
 			}
 		})
 	}
