@@ -31,7 +31,7 @@ type keyAddOpts struct {
 	name         string
 	plugin       string
 	id           string
-	pluginConfig string
+	pluginConfig []string
 	isDefault    bool
 }
 
