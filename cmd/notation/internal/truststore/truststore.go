@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
@@ -188,4 +189,9 @@ func IsValidStoreType(storeType string) bool {
 		}
 	}
 	return false
+}
+
+// IsValidFileName checks if a file name is cross-platform compatible
+func IsValidFileName(fileName string) bool {
+	return regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`).MatchString(fileName)
 }
