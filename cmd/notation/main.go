@@ -10,7 +10,7 @@ import (
 func main() {
 	cmd := &cobra.Command{
 		Use:          "notation",
-		Short:        "Notation - Notary V2",
+		Short:        "Notation - Notary V2 - a tool to sign and verify artifacts",
 		SilenceUsage: true,
 	}
 	cmd.AddCommand(

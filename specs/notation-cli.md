@@ -28,12 +28,12 @@ Available Commands:
   certificate Manage certificates in trust store
   key         Manage keys used for signing
   list        List signatures of the signed artifact
-  login       Login to registries
+  login       Login to registry
   logout      Log out from the logged in registries
   plugin      Manage plugins
   sign        Sign artifacts
   verify      Verify artifacts
-  version     Print the version of notation CLI
+  version     Show the notation version information
 
 Flags:
   -h, --help         Help for notation
