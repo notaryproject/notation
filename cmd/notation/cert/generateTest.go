@@ -64,8 +64,8 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
 	name := opts.name
-	if name == "" {
-		return errors.New("certificate common_name cannot be empty")
+	if !truststore.IsValidFileName(name) {
+		return errors.New("name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
 
 	// generate RSA private key

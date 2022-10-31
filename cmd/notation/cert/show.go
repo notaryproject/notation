@@ -51,8 +51,8 @@ func showCerts(opts *certShowOpts) error {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
 	namedStore := opts.namedStore
-	if namedStore == "" {
-		return errors.New("named store cannot be empty")
+	if !truststore.IsValidFileName(namedStore) {
+		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
 	cert := opts.cert
 	if cert == "" {

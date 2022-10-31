@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/notaryproject/notation/cmd/notation/cert"
 	"github.com/spf13/cobra"
@@ -23,6 +23,6 @@ func main() {
 		loginCommand(nil),
 		logoutCommand(nil))
 	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }

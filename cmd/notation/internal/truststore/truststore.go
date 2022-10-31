@@ -33,8 +33,8 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	if !IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	if namedStore == "" {
-		return errors.New("named store cannot be empty")
+	if !IsValidFileName(namedStore) {
+		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
 
 	// check if the target path is a cert (support PEM and DER formats)

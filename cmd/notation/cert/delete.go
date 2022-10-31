@@ -46,8 +46,8 @@ func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 
 func deleteCerts(opts *certDeleteOpts) error {
 	namedStore := opts.namedStore
-	if namedStore == "" {
-		return errors.New("named store cannot be empty")
+	if !truststore.IsValidFileName(namedStore) {
+		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
 	storeType := opts.storeType
 	if storeType == "" {
