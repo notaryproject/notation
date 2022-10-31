@@ -50,6 +50,7 @@ func keyCommand() *cobra.Command {
 		Short: "Manage keys used for signing",
 	}
 	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyDeleteCommand(nil))
+
 	return command
 }
 
@@ -78,6 +79,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+
 	return command
 }
 
@@ -102,6 +104,7 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 	}
 
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+
 	return command
 }
 
@@ -120,6 +123,7 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 	if opts == nil {
 		opts = &keyDeleteOpts{}
 	}
+
 	return &cobra.Command{
 		Use:     "delete [flags] <key_name>...",
 		Aliases: []string{"rm"},
@@ -173,6 +177,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	} else {
 		fmt.Println(key.Name)
 	}
+
 	return nil
 }
 
@@ -193,6 +198,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	if err != nil {
 		return config.KeySuite{}, err
 	}
+
 	return config.KeySuite{
 		Name: keyName,
 		ExternalKey: &config.ExternalKey{
