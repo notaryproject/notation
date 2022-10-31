@@ -16,7 +16,7 @@ type signOpts struct {
 	cmd.SignerFlagOpts
 	SecureFlagOpts
 	expiry       time.Duration
-	pluginConfig string
+	pluginConfig []string
 	reference    string
 }
 

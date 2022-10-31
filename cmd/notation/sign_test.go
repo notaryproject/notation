@@ -23,7 +23,6 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:          "key",
 			EnvelopeType: envelope.JWS,
 		},
-		pluginConfig: []string{"key0=val0"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -54,8 +53,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			Key:          "key",
 			EnvelopeType: envelope.COSE,
 		},
-		expiry:       24 * time.Hour,
-		pluginConfig: []string{"key0=val0"},
+		expiry: 24 * time.Hour,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
