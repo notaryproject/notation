@@ -15,7 +15,7 @@ builds:
       - goos: windows
         goarch: arm64
     ldflags:
-      - -s -w -X {{.ModulePath}}/internal/version.Version={{.Version}} -X {{.ModulePath}}/internal/version.BuildMetadata=
+      - -s -w -X {{.ModulePath}}/internal/version.Version={{.Version}} -X {{.ModulePath}}/internal/version.GitCommit={{.FullCommit}} -X {{.ModulePath}}/internal/version.BuildMetadata=
 archives:
   - format: tar.gz
     format_overrides:

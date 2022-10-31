@@ -5,7 +5,14 @@ var (
 	Version = "v0.11.0-alpha.4"
 
 	// BuildMetadata stores the build metadata.
+	//
+	// When execute `make build` command, it will be overridden by
+	// environment variable `BUILD_METADATA`. If commit tag was set,
+	// BuildMetadata will be empty.
 	BuildMetadata = "unreleased"
+
+	// GitCommit stores the git HEAD commit id
+	GitCommit = ""
 )
 
 // GetVersion returns the version string in SemVer 2.
