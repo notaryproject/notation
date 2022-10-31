@@ -26,7 +26,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "list [flags] <reference>",
 		Aliases: []string{"ls"},
-		Short:   "List signatures from remote",
+		Short:   "List signatures of the signed artifact",
 		Long:    "List all the signatures associated with signed artifact",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
