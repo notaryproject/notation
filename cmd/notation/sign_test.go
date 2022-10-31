@@ -15,31 +15,20 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		RemoteFlagOpts: RemoteFlagOpts{
-			SecureFlagOpts: SecureFlagOpts{
-				Username: "user",
-				Password: "password",
-			},
-			CommonFlagOpts: CommonFlagOpts{
-				MediaType: defaultMediaType,
-			},
+		SecureFlagOpts: SecureFlagOpts{
+			Username: "user",
+			Password: "password",
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:          "key",
-			KeyFile:      "keyfile",
-			CertFile:     "certfile",
 			EnvelopeType: envelope.JWS,
 		},
-		pluginConfig: []string{"key0=val0"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"-u", expected.Username,
 		"--password", expected.Password,
-		"--key", expected.Key,
-		"--key-file", expected.KeyFile,
-		"--cert-file", expected.CertFile,
-		"--plugin-config", "key0=val0"}); err != nil {
+		"--key", expected.Key}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -55,39 +44,25 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		RemoteFlagOpts: RemoteFlagOpts{
-			SecureFlagOpts: SecureFlagOpts{
-				Username:  "user",
-				Password:  "password",
-				PlainHTTP: true,
-			},
-			CommonFlagOpts: CommonFlagOpts{
-				MediaType: "mediaT",
-				Local:     true,
-			},
+		SecureFlagOpts: SecureFlagOpts{
+			Username:  "user",
+			Password:  "password",
+			PlainHTTP: true,
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:          "key",
-			KeyFile:      "keyfile",
-			CertFile:     "certfile",
 			EnvelopeType: envelope.COSE,
 		},
-		expiry:       24 * time.Hour,
-		pluginConfig: []string{"key0=val0"},
+		expiry: 24 * time.Hour,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"-u", expected.Username,
 		"-p", expected.Password,
 		"--key", expected.Key,
-		"--key-file", expected.KeyFile,
-		"--cert-file", expected.CertFile,
 		"--plain-http",
-		"--media-type", expected.MediaType,
-		"-l",
-		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
-		"--expiry", expected.expiry.String(),
-		"--plugin-config", "key0=val0"}); err != nil {
+		"--signature-format", expected.SignerFlagOpts.EnvelopeType,
+		"--expiry", expected.expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -103,31 +78,17 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		RemoteFlagOpts: RemoteFlagOpts{
-			CommonFlagOpts: CommonFlagOpts{
-				MediaType: "mediaT",
-				Local:     true,
-			},
-		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:          "key",
-			KeyFile:      "keyfile",
-			CertFile:     "certfile",
 			EnvelopeType: envelope.JWS,
 		},
-		expiry:          365 * 24 * time.Hour,
-		pluginConfig:    []string{"key0=val0", "key1=val1"},
-		originReference: "originref",
+		expiry:       365 * 24 * time.Hour,
+		pluginConfig: []string{"key0=val0", "key1=val1"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
-		"--key-file", expected.KeyFile,
-		"--cert-file", expected.CertFile,
-		"--media-type", expected.MediaType,
-		"-r", expected.originReference,
-		"--local",
-		"--envelope-type", expected.SignerFlagOpts.EnvelopeType,
+		"--signature-format", expected.SignerFlagOpts.EnvelopeType,
 		"--expiry", expected.expiry.String(),
 		"--plugin-config", "key0=val0",
 		"--plugin-config", "key1=val1"}); err != nil {

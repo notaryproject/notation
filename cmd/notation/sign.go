@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/timestamp"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -15,12 +14,10 @@ import (
 
 type signOpts struct {
 	cmd.SignerFlagOpts
-	RemoteFlagOpts
-	timestamp       string
-	expiry          time.Duration
-	originReference string
-	pluginConfig    []string
-	reference       string
+	SecureFlagOpts
+	expiry       time.Duration
+	pluginConfig []string
+	reference    string
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -28,9 +25,9 @@ func signCommand(opts *signOpts) *cobra.Command {
 		opts = &signOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "sign [reference]",
-		Short: "Sign OCI artifacts",
-		Long: `Sign OCI artifacts
+		Use:   "sign [flags] <reference>",
+		Short: "Sign artifacts",
+		Long: `Sign artifacts
 
 Prerequisite: a signing key needs to be configured using the command "notation key".
 
@@ -38,13 +35,10 @@ Example - Sign a container image using the default signing key, with the default
   notation sign <registry>/<repository>:<tag>
 
 Example - Sign a container image using the default signing key, with the COSE envelope:
-  notation sign --envelope-type cose <registry>/<repository>:<tag> 
+  notation sign --signature-format cose <registry>/<repository>:<tag> 
 
 Example - Sign a container image using the specified key name
   notation sign --key <key_name> <registry>/<repository>:<tag>
-
-Example - Sign a container image using a local testing key and certificate file directly
-  notation sign --key-file <key_path> --cert-file <cert_path> <registry>/<repository>:<tag>
 
 Example - Sign a container image using the image digest
   notation sign <registry>/<repository>@<digest>
@@ -61,11 +55,8 @@ Example - Sign a container image using the image digest
 		},
 	}
 	opts.SignerFlagOpts.ApplyFlags(command.Flags())
-	opts.RemoteFlagOpts.ApplyFlags(command.Flags())
-
-	cmd.SetPflagTimestamp(command.Flags(), &opts.timestamp)
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagReference(command.Flags(), &opts.originReference)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 
 	return command
@@ -103,20 +94,9 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 }
 
 func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descriptor, notation.SignOptions, error) {
-	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.RemoteFlagOpts, opts.reference)
+	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return notation.Descriptor{}, notation.SignOptions{}, err
-	}
-	if identity := opts.originReference; identity != "" {
-		manifestDesc.Annotations = map[string]string{
-			"identity": identity,
-		}
-	}
-	var tsa timestamp.Timestamper
-	if endpoint := opts.timestamp; endpoint != "" {
-		if tsa, err = timestamp.NewHTTPTimestamper(nil, endpoint); err != nil {
-			return notation.Descriptor{}, notation.SignOptions{}, err
-		}
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
@@ -124,7 +104,6 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descri
 	}
 	return manifestDesc, notation.SignOptions{
 		Expiry:       cmd.GetExpiry(opts.expiry),
-		TSA:          tsa,
 		PluginConfig: pluginConfig,
 	}, nil
 }
