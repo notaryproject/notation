@@ -15,7 +15,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-  -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m
+  -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
   -p, --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)

@@ -40,7 +40,7 @@ var (
 	PflagExpiry = &pflag.Flag{
 		Name:      "expiry",
 		Shorthand: "e",
-		Usage:     "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m), hours(h) or days(d). For example: 30d, 12h, 30m, 1d3h20m",
+		Usage:     "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m",
 	}
 	SetPflagExpiry = func(fs *pflag.FlagSet, p *time.Duration) {
 		fs.DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
