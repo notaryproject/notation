@@ -21,7 +21,10 @@ func main() {
 		keyCommand(),
 		pluginCommand(),
 		loginCommand(nil),
-		logoutCommand(nil))
+		logoutCommand(nil),
+		versionCommand(),
+	)
+
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
