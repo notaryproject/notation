@@ -1,9 +1,11 @@
 package configutil
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation/internal/envelope"
 )
 
 var (
@@ -24,6 +26,11 @@ func LoadConfigOnce() (*config.Config, error) {
 	var err error
 	configOnce.Do(func() {
 		configInfo, err = config.LoadConfig()
+		// set default value
+		configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
+		if configInfo.SignatureFormat == "" {
+			configInfo.SignatureFormat = envelope.JWS
+		}
 	})
 	return configInfo, err
 }

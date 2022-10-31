@@ -20,8 +20,8 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Password: "password",
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
-			Key:          "key",
-			EnvelopeType: envelope.JWS,
+			Key:             "key",
+			SignatureFormat: envelope.JWS,
 		},
 	}
 	if err := command.ParseFlags([]string{
@@ -50,8 +50,8 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			PlainHTTP: true,
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
-			Key:          "key",
-			EnvelopeType: envelope.COSE,
+			Key:             "key",
+			SignatureFormat: envelope.COSE,
 		},
 		expiry: 24 * time.Hour,
 	}
@@ -61,7 +61,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"-p", expected.Password,
 		"--key", expected.Key,
 		"--plain-http",
-		"--signature-format", expected.SignerFlagOpts.EnvelopeType,
+		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
@@ -79,8 +79,8 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	expected := &signOpts{
 		reference: "ref",
 		SignerFlagOpts: cmd.SignerFlagOpts{
-			Key:          "key",
-			EnvelopeType: envelope.JWS,
+			Key:             "key",
+			SignatureFormat: envelope.JWS,
 		},
 		expiry:       365 * 24 * time.Hour,
 		pluginConfig: []string{"key0=val0", "key1=val1"},
@@ -88,7 +88,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
-		"--signature-format", expected.SignerFlagOpts.EnvelopeType,
+		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
 		"--plugin-config", "key0=val0",
 		"--plugin-config", "key1=val1"}); err != nil {
