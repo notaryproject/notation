@@ -2,11 +2,9 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin/manager"
@@ -35,8 +33,6 @@ type keyAddOpts struct {
 	id           string
 	pluginConfig []string
 	isDefault    bool
-	keyPath      string
-	certPath     string
 }
 
 type keyUpdateOpts struct {
@@ -44,7 +40,7 @@ type keyUpdateOpts struct {
 	isDefault bool
 }
 
-type keyRemoveOpts struct {
+type keyDeleteOpts struct {
 	names []string
 }
 
@@ -53,7 +49,8 @@ func keyCommand() *cobra.Command {
 		Use:   "key",
 		Short: "Manage keys used for signing",
 	}
-	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyRemoveCommand(nil))
+	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyDeleteCommand(nil))
+
 	return command
 }
 
@@ -62,27 +59,27 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 		opts = &keyAddOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "add [key_path cert_path]",
+		Use:   "add --plugin <plugin_name> [flags] <key_name>",
 		Short: "Add key to signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) >= 2 {
-				opts.keyPath = args[0]
-				opts.certPath = args[1]
+			if len(args) != 1 {
+				return errors.New("either missing key name or unnecessary parameters passed")
 			}
+			opts.name = args[0]
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addKey(cmd, opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.name, "name", "n", "", "key name")
-	command.MarkFlagRequired("name")
-
 	command.Flags().StringVarP(&opts.plugin, "plugin", "p", "", "signing plugin name")
+	command.MarkFlagRequired("plugin")
+
 	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
 
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+
 	return command
 }
 
@@ -91,7 +88,7 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 		opts = &keyUpdateOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "update [name]",
+		Use:     "update [flags] <key_name>",
 		Aliases: []string{"set"},
 		Short:   "Update key in signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -107,12 +104,13 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 	}
 
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+
 	return command
 }
 
 func keyListCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:     "list",
+		Use:     "list [flags]",
 		Aliases: []string{"ls"},
 		Short:   "List keys used for signing",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -121,14 +119,15 @@ func keyListCommand() *cobra.Command {
 	}
 }
 
-func keyRemoveCommand(opts *keyRemoveOpts) *cobra.Command {
+func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 	if opts == nil {
-		opts = &keyRemoveOpts{}
+		opts = &keyDeleteOpts{}
 	}
+
 	return &cobra.Command{
-		Use:     "remove [name]...",
+		Use:     "delete [flags] <key_name>...",
 		Aliases: []string{"rm"},
-		Short:   "Remove key from signing key list",
+		Short:   "Delete key from signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key names")
@@ -137,7 +136,7 @@ func keyRemoveCommand(opts *keyRemoveOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return removeKeys(opts)
+			return deleteKeys(opts)
 		},
 	}
 }
@@ -148,15 +147,18 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 		return err
 	}
 	var key config.KeySuite
-	pluginName := opts.plugin
 	name := opts.name
+	if name == "" {
+		return errors.New("key name cannot be empty")
+	}
+	pluginName := opts.plugin
 	if pluginName != "" {
 		key, err = addExternalKey(command.Context(), opts, pluginName, name)
+		if err != nil {
+			return err
+		}
 	} else {
-		key, err = newX509KeyPair(opts, name)
-	}
-	if err != nil {
-		return err
+		return errors.New("plugin name cannot be empty")
 	}
 
 	isDefault := opts.isDefault
@@ -175,6 +177,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	} else {
 		fmt.Println(key.Name)
 	}
+
 	return nil
 }
 
@@ -195,6 +198,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	if err != nil {
 		return config.KeySuite{}, err
 	}
+
 	return config.KeySuite{
 		Name: keyName,
 		ExternalKey: &config.ExternalKey{
@@ -202,33 +206,6 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 			PluginName:   pluginName,
 			PluginConfig: pluginConfig,
 		},
-	}, nil
-}
-
-func newX509KeyPair(opts *keyAddOpts, keyName string) (config.KeySuite, error) {
-	if opts.keyPath == "" {
-		return config.KeySuite{}, errors.New("missing key and certificate paths")
-	}
-	if opts.certPath == "" {
-		return config.KeySuite{}, errors.New("missing certificate path for the corresponding key")
-	}
-
-	keyPath, err := filepath.Abs(opts.keyPath)
-	if err != nil {
-		return config.KeySuite{}, err
-	}
-	certPath, err := filepath.Abs(opts.certPath)
-	if err != nil {
-		return config.KeySuite{}, err
-	}
-
-	// check key / cert pair
-	if _, err := tls.LoadX509KeyPair(certPath, keyPath); err != nil {
-		return config.KeySuite{}, err
-	}
-	return config.KeySuite{
-		Name:        keyName,
-		X509KeyPair: &config.X509KeyPair{KeyPath: keyPath, CertificatePath: certPath},
 	}, nil
 }
 
@@ -280,7 +257,7 @@ func listKeys() error {
 	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
 }
 
-func removeKeys(opts *keyRemoveOpts) error {
+func deleteKeys(opts *keyDeleteOpts) error {
 	// core process
 	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
@@ -288,14 +265,14 @@ func removeKeys(opts *keyRemoveOpts) error {
 	}
 
 	prevDefault := signingKeys.Default
-	var removedNames []string
+	var deletedNames []string
 	for _, name := range opts.names {
 		idx := slices.Index(signingKeys.Keys, name)
 		if idx < 0 {
 			return errors.New(name + ": not found")
 		}
 		signingKeys.Keys = slices.Delete(signingKeys.Keys, idx)
-		removedNames = append(removedNames, name)
+		deletedNames = append(deletedNames, name)
 		if prevDefault == name {
 			signingKeys.Default = ""
 		}
@@ -305,7 +282,7 @@ func removeKeys(opts *keyRemoveOpts) error {
 	}
 
 	// write out
-	for _, name := range removedNames {
+	for _, name := range deletedNames {
 		if prevDefault == name {
 			fmt.Printf("%s: unmarked as default\n", name)
 		} else {

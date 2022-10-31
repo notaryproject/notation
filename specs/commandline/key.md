@@ -16,8 +16,8 @@ Usage:
 
 Available Commands:
   add         Add key to signing key list
-  list        List keys used for signing
   delete      Delete key from signing key list
+  list        List keys used for signing
   update      Update key in signing key list
 
 Flags:
@@ -30,30 +30,14 @@ Flags:
 Add key to signing key list
 
 Usage:
-  notation key add [flags] <key_name>
+  notation key add --plugin <plugin_name> [flags] <key_name>
 
 Flags:
   -d, --default                mark as default
   -h, --help                   help for add
       --id string              key id (required if --plugin is set)
   -p, --plugin string          signing plugin name
-      --plugin-config strings  {key}={value} pairs that are passed as is to the plugin, refer plugin documentation to set appropriate values
-```
-
-### notation key list
-
-```text
-List keys used for signing
-
-Usage:
-  notation key [flags] list
-
-Aliases:
-  list, ls
-
-Flags:
-  -h, --help                   help for list
-
+      --plugin-config strings  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
 ```
 
 ### notation key delete
@@ -69,6 +53,22 @@ Aliases:
 
 Flags:
   -h, --help                   help for delete
+
+```
+
+### notation key list
+
+```text
+List keys used for signing
+
+Usage:
+  notation key list [flags]
+
+Aliases:
+  list, ls
+
+Flags:
+  -h, --help                   help for list
 
 ```
 
