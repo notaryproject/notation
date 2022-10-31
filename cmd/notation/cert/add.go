@@ -70,11 +70,12 @@ func addCerts(opts *certAddOpts) error {
 		}
 	}
 	if len(failure) != 0 {
-		fmt.Printf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
+		errStr := fmt.Sprintf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
 
 		for ind := range failure {
-			fmt.Printf("%s, with error %q\n", failure[ind], errorSlice[ind])
+			errStr = errStr + fmt.Sprintf("%s, with error %q\n", failure[ind], errorSlice[ind])
 		}
+		return errors.New(errStr)
 	}
 
 	return nil

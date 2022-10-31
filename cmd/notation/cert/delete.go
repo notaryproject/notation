@@ -64,10 +64,11 @@ func deleteCerts(opts *certDeleteOpts) error {
 
 		// write out on failure
 		if len(errorSlice) > 0 {
-			fmt.Println("Failed to delete following named stores:")
+			errStr := "Failed to delete following named stores:\n"
 			for _, err := range errorSlice {
-				fmt.Println(err.Error())
+				errStr = errStr + err.Error() + "\n"
 			}
+			return errors.New(errStr)
 		}
 
 		return nil
@@ -81,10 +82,11 @@ func deleteCerts(opts *certDeleteOpts) error {
 	errorSlice = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
 	// write out on failure
 	if len(errorSlice) > 0 {
-		fmt.Println("Failed to delete following certificate:")
+		errStr := "Failed to delete following certificate:\n"
 		for _, err := range errorSlice {
-			fmt.Println(err.Error())
+			errStr = errStr + err.Error() + "\n"
 		}
+		return errors.New(errStr)
 	}
 
 	return nil
