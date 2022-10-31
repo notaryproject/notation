@@ -14,9 +14,10 @@ Usage:
 
 Flags:
   -h, --help                    help for verify
-  -p, --password string         Password for registry operations (default to $NOTATION_PASSWORD if not specified)
-      --plugin-config strings   {key}={value} pairs that are passed as is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -u, --username string         Username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -p, --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
+      --plain-http              registry access via plain HTTP
+      --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+  -u, --username string         username for registry operations (default to $NOTATION_USERNAME if not specified)
 ```
 
 ## Usage

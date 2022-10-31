@@ -20,10 +20,8 @@ func main() {
 		keyCommand(),
 		pluginCommand(),
 		loginCommand(nil),
-		logoutCommand(nil),
-		versionCommand(),
-	)
-	cmd.PersistentFlags().Bool(flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
+		logoutCommand(nil))
+
 	if err := cmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
