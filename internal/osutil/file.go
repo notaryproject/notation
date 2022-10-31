@@ -56,7 +56,7 @@ func CopyToDir(src, dst string) (int64, error) {
 	}
 	defer source.Close()
 
-	if err := os.MkdirAll(dst, 0777); err != nil {
+	if err := os.MkdirAll(dst, 0755); err != nil {
 		return 0, err
 	}
 	certFile := filepath.Join(dst, filepath.Base(src))
@@ -65,5 +65,9 @@ func CopyToDir(src, dst string) (int64, error) {
 		return 0, err
 	}
 	defer destination.Close()
+	err = destination.Chmod(0644)
+	if err != nil {
+		return 0, err
+	}
 	return io.Copy(destination, source)
 }
