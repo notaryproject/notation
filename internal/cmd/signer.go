@@ -2,11 +2,8 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/signature/cose"
-	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation-go/signature"
@@ -17,7 +14,7 @@ import (
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	// Construct a signer from key and cert file if provided as CLI arguments
-	mediaType, err := GetEnvelopeMediaType(opts.EnvelopeType)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignatureFormat)
 	if err != nil {
 		return nil, err
 	}
@@ -49,14 +46,4 @@ func GetExpiry(expiry time.Duration) time.Time {
 		return time.Time{}
 	}
 	return time.Now().Add(expiry)
-}
-
-func GetEnvelopeMediaType(sigFormat string) (string, error) {
-	switch sigFormat {
-	case envelope.JWS:
-		return jws.MediaTypeEnvelope, nil
-	case envelope.COSE:
-		return cose.MediaTypeEnvelope, nil
-	}
-	return "", fmt.Errorf("signature format %s not supported", sigFormat)
 }

@@ -6,12 +6,12 @@ import (
 
 // SignerFlagOpts cmd opts for using cmd.GetSigner
 type SignerFlagOpts struct {
-	Key          string
-	EnvelopeType string
+	Key             string
+	SignatureFormat string
 }
 
 // ApplyFlags set flags and their default values for the FlagSet
 func (opts *SignerFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	SetPflagKey(fs, &opts.Key)
-	SetPflagSignatureFormat(fs, &opts.EnvelopeType)
+	SetPflagSignatureFormat(fs, &opts.SignatureFormat)
 }
