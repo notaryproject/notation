@@ -1,26 +1,71 @@
-package main
+package cert
 
 import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/internal/slices"
 	"github.com/notaryproject/notation/pkg/configutil"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
+
+var (
+	keyDefaultFlag = &pflag.Flag{
+		Name:      "default",
+		Shorthand: "d",
+		Usage:     "mark as default signing key",
+	}
+	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
+		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
+	}
+)
+
+type certGenerateTestOpts struct {
+	name      string
+	bits      int
+	isDefault bool
+}
+
+func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
+	if opts == nil {
+		opts = &certGenerateTestOpts{}
+	}
+	command := &cobra.Command{
+		Use:   "generate-test [flags] <common_name>",
+		Short: "Generate a test RSA key and a corresponding self-signed certificate.",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return errors.New("missing certificate common_name")
+			}
+			opts.name = args[0]
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return generateTestCert(opts)
+		},
+	}
+
+	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
+	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+	return command
+}
 
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
-	hosts := opts.hosts
 	name := opts.name
-	if name == "" {
-		name = hosts[0]
+	if !truststore.IsValidFileName(name) {
+		return errors.New("name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
 
 	// generate RSA private key
@@ -31,8 +76,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 
-	// generate self-signed certificate
-	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, hosts[0])
+	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, name)
 	if err != nil {
 		return err
 	}
@@ -56,10 +100,6 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	if err != nil {
 		return err
 	}
-	cfg, err := configutil.LoadConfigOnce()
-	if err != nil {
-		return err
-	}
 	isDefault := opts.isDefault
 	keySuite := config.KeySuite{
 		Name: name,
@@ -68,19 +108,17 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 			CertificatePath: certPath,
 		},
 	}
-	err = addKeyCore(signingKeys, keySuite, isDefault)
+	err = addKeyToSigningKeys(signingKeys, keySuite, isDefault)
 	if err != nil {
 		return err
 	}
-	trust := opts.trust
-	if trust {
-		if err := addCertCore(cfg, name, certPath); err != nil {
-			return err
-		}
-	}
-	if err := cfg.Save(); err != nil {
+
+	// Add to the trust store
+	if err := truststore.AddCert(certPath, "ca", name, true); err != nil {
 		return err
 	}
+
+	// Save to the SigningKeys.json
 	if err := signingKeys.Save(); err != nil {
 		return err
 	}
@@ -88,10 +126,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	// write out
 	fmt.Printf("%s: added to the key list\n", name)
 	if isDefault {
-		fmt.Printf("%s: marked as default\n", name)
-	}
-	if trust {
-		fmt.Printf("%s: added to the certificate list\n", name)
+		fmt.Printf("%s: mark as default signing key\n", name)
 	}
 	return nil
 }
@@ -114,7 +149,18 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 }
 
 // generateTestCert generates a self-signed non-CA certificate
-func generateSelfSignedCert(privateKey *rsa.PrivateKey, host string) (testhelper.RSACertTuple, []byte, error) {
-	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, host)
+func generateSelfSignedCert(privateKey *rsa.PrivateKey, name string) (testhelper.RSACertTuple, []byte, error) {
+	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, name)
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
+}
+
+func addKeyToSigningKeys(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
+	if slices.Contains(signingKeys.Keys, key.Name) {
+		return errors.New(key.Name + ": already exists")
+	}
+	signingKeys.Keys = append(signingKeys.Keys, key)
+	if markDefault {
+		signingKeys.Default = key.Name
+	}
+	return nil
 }
