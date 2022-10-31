@@ -77,7 +77,7 @@ var (
 		Usage:     "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values",
 	}
 	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *[]string) {
-		fs.StringArrayVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, []string{}, PflagPluginConfig.Usage)
+		fs.StringArrayVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, nil, PflagPluginConfig.Usage)
 	}
 )
 
@@ -90,11 +90,11 @@ type KeyValueSlice interface {
 func ParseFlagPluginConfig(config []string) (map[string]string, error) {
 	pluginConfig := make(map[string]string, len(config))
 	for _, pair := range config {
-		index := strings.Index(pair, "=")
-		if index <= 0 {
+		key, val, found := strings.Cut(pair, "=")
+		if !found || key == "" || val == "" {
 			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", PflagPluginConfig.Name)
 		}
-		pluginConfig[pair[:index]] = pair[index+1:]
+		pluginConfig[key] = val
 	}
 	return pluginConfig, nil
 }

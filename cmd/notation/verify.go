@@ -44,7 +44,7 @@ notation verify [--plugin-config <key>=<value>...] [--username <username>] [--pa
 		},
 	}
 	opts.ApplyFlags(command.Flags())
-	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", []string{}, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
+	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	return command
 }
 
