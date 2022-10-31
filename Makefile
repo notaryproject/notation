@@ -1,13 +1,22 @@
 MODULE         = github.com/notaryproject/notation
 COMMANDS       = notation
 GIT_TAG        = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
-BUILD_METADATA =
-ifeq ($(GIT_TAG),) # unreleased build
-    GIT_COMMIT     = $(shell git rev-parse HEAD)
-    GIT_STATUS     = $(shell test -n "`git status --porcelain`" && echo "dirty" || echo "unreleased")
-	BUILD_METADATA = $(GIT_COMMIT).$(GIT_STATUS)
+GIT_COMMIT     = $(shell git rev-parse HEAD)
+
+# if the commit was tagged, BuildMetadata is empty.
+ifndef BUILD_METADATA
+	BUILD_METADATA := unreleased
 endif
-LDFLAGS        = -X $(MODULE)/internal/version.BuildMetadata=$(BUILD_METADATA)
+
+ifneq ($(GIT_TAG),)
+	BUILD_METADATA := 
+endif
+
+# set flags
+LDFLAGS := -w \
+ -X $(MODULE)/internal/version.GitCommit=$(GIT_COMMIT) \
+ -X $(MODULE)/internal/version.BuildMetadata=$(BUILD_METADATA)
+
 GO_BUILD_FLAGS = --ldflags="$(LDFLAGS)"
 
 .PHONY: help

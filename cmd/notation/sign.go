@@ -19,7 +19,7 @@ type signOpts struct {
 	timestamp       string
 	expiry          time.Duration
 	originReference string
-	pluginConfig    string
+	pluginConfig    []string
 	reference       string
 }
 

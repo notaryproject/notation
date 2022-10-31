@@ -14,20 +14,20 @@ func TestKeyAddCommand_BasicArgs(t *testing.T) {
 		id:           "pluginid",
 		keyPath:      "keypath",
 		certPath:     "certpath",
-		pluginConfig: "pluginconfig",
+		pluginConfig: []string{"pluginconfig"},
 	}
 	if err := cmd.ParseFlags([]string{
 		"-n", expected.name,
 		"--plugin", expected.plugin,
 		"--id", expected.id,
-		"-c", expected.pluginConfig,
+		"-c", "pluginconfig",
 		expected.keyPath, expected.certPath}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if *expected != *opts {
+	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect key add opts: %v, got: %v", expected, opts)
 	}
 }
