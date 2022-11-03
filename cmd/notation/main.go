@@ -1,22 +1,23 @@
 package main
 
 import (
-	"log"
+	"os"
 
+	"github.com/notaryproject/notation/cmd/notation/cert"
 	"github.com/spf13/cobra"
 )
 
 func main() {
 	cmd := &cobra.Command{
 		Use:          "notation",
-		Short:        "Notation - Notary V2",
+		Short:        "Notation - Notary V2 - a tool to sign and verify artifacts",
 		SilenceUsage: true,
 	}
 	cmd.AddCommand(
 		signCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
-		certCommand(),
+		cert.Cmd(),
 		keyCommand(),
 		pluginCommand(),
 		loginCommand(nil),
@@ -24,6 +25,6 @@ func main() {
 		versionCommand(),
 	)
 	if err := cmd.Execute(); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }

@@ -1,6 +1,6 @@
 # Contributing
 
-Notary v2 is [Apache 2.0 licensed](https://github.com/notaryproject/nv2/blob/main/LICENSE) and
+Notary v2 is [Apache 2.0 licensed](https://github.com/notaryproject/notation/blob/main/LICENSE) and
 accepts contributions via GitHub pull requests. This document outlines
 some of the conventions on to make it easier to get your contribution
 accepted.

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
@@ -20,12 +21,19 @@ var (
 		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
 	}
 
-	PflagEnvelopeType = &pflag.Flag{
+	PflagSignatureFormat = &pflag.Flag{
 		Name:  "signature-format",
 		Usage: "signature envelope format, options: 'jws', 'cose'",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagEnvelopeType.Name, envelope.JWS, PflagEnvelopeType.Usage)
+		defaultSignatureFormat := envelope.JWS
+		// load config to get signatureFormat
+		config, err := configutil.LoadConfigOnce()
+		if err == nil && config.SignatureFormat != "" {
+			defaultSignatureFormat = config.SignatureFormat
+		}
+
+		fs.StringVar(p, PflagSignatureFormat.Name, defaultSignatureFormat, PflagSignatureFormat.Usage)
 	}
 
 	PflagTimestamp = &pflag.Flag{
