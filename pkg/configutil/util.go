@@ -34,9 +34,18 @@ func ResolveKey(name string) (config.KeySuite, error) {
 	if err != nil {
 		return config.KeySuite{}, err
 	}
+	
+	// if name is empty, look for default signing key
 	if name == "" {
 		name = signingKeys.Default
 	}
+
+	// if name is still empty, return error
+	if name == "" {
+		return config.KeySuite{}, errors.New("default signing key not set." +
+			" Please set default singing key or specify a key name")
+	}
+	
 	idx := slices.Index(signingKeys.Keys, name)
 	if idx < 0 {
 		return config.KeySuite{}, ErrKeyNotFound
