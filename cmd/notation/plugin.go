@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
@@ -29,7 +30,7 @@ func pluginListCommand() *cobra.Command {
 }
 
 func listPlugins(command *cobra.Command) error {
-	mgr := manager.New()
+	mgr := manager.New(dir.PluginFS())
 	plugins, err := mgr.List(command.Context())
 	if err != nil {
 		return err

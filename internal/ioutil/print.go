@@ -45,15 +45,6 @@ func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 	return tw.Flush()
 }
 
-func PrintCertificateMap(w io.Writer, v []config.CertificateReference) error {
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tPATH\t")
-	for _, cert := range v {
-		fmt.Fprintf(tw, "%s\t%s\t\n", cert.Name, cert.Path)
-	}
-	return tw.Flush()
-}
-
 func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string) error {
 	tw := newTabWriter(w)
 

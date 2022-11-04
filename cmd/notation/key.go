@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin/manager"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -186,7 +187,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
-	mgr := manager.New()
+	mgr := manager.New(dir.PluginFS())
 	p, err := mgr.Get(ctx, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
