@@ -44,7 +44,10 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 
 	// core process
 	// get the trust store path
-	trustStorePath := dir.X509TrustStoreDir(storeType, namedStore)
+	trustStorePath, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(storeType, namedStore))
+	if err := CheckNonErrNotExistError(err); err != nil {
+		return err
+	}
 	// check if certificate already in the trust store
 	if _, err := os.Stat(filepath.Join(trustStorePath, filepath.Base(certPath))); err == nil {
 		return errors.New("certificate already exists in the Trust Store")
@@ -116,23 +119,27 @@ func showCert(cert *x509.Certificate) {
 // DeleteAllCerts deletes all certificate files from the trust store
 // under dir truststore/x509/storeType/namedStore
 func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
-	path := dir.X509TrustStoreDir(storeType, namedStore)
-	prompt := fmt.Sprintf("Are you sure you want to delete all certificate in %q of type %q?", namedStore, storeType)
-	confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
-	if err != nil {
-		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
-		return errorSlice
-	}
-	if !confirmed {
-		return errorSlice
-	}
+	path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(storeType, namedStore))
+	if err == nil {
+		prompt := fmt.Sprintf("Are you sure you want to delete all certificate in %q of type %q?", namedStore, storeType)
+		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+		if err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+			return errorSlice
+		}
+		if !confirmed {
+			return errorSlice
+		}
 
-	if err = os.RemoveAll(path); err != nil {
-		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+		if err = os.RemoveAll(path); err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+		} else {
+			// write out on success
+			fmt.Printf("Successfully deleted %s\n", path)
+			return nil
+		}
 	} else {
-		// write out on success
-		fmt.Printf("Successfully deleted %s\n", path)
-		return nil
+		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 	}
 	return errorSlice
 }
@@ -140,25 +147,28 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 // DeleteCert deletes a specific certificate file from the
 // trust store, namely truststore/x509/storeType/namedStore/cert
 func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
-	path := dir.X509TrustStoreDir(storeType, namedStore, cert)
-	prompt := fmt.Sprintf("Are you sure you want to delete %q in %q of type %q?", cert, namedStore, storeType)
-	confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
-	if err != nil {
-		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
-		return errorSlice
-	}
-	if !confirmed {
-		return errorSlice
-	}
+	path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(storeType, namedStore), cert)
+	if err == nil {
+		prompt := fmt.Sprintf("Are you sure you want to delete %q in %q of type %q?", cert, namedStore, storeType)
+		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+		if err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+			return errorSlice
+		}
+		if !confirmed {
+			return errorSlice
+		}
 
-	if err = os.RemoveAll(path); err != nil {
-		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+		if err = os.RemoveAll(path); err != nil {
+			errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
+		} else {
+			// write out on success
+			fmt.Printf("Successfully deleted %s\n", path)
+			return nil
+		}
 	} else {
-		// write out on success
-		fmt.Printf("Successfully deleted %s\n", path)
-		return nil
+		errorSlice = append(errorSlice, fmt.Errorf("%s with error %q", path, err.Error()))
 	}
-
 	return errorSlice
 }
 

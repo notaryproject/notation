@@ -38,7 +38,10 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
 	if namedStore == "" && storeType == "" {
-		path := dir.X509TrustStoreDir()
+		path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir())
+		if err := truststore.CheckNonErrNotExistError(err); err != nil {
+			return err
+		}
 		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 2)); err != nil {
 			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 		}
@@ -49,7 +52,10 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509/storeType/namedStore,
 	// display empty if there's no such certificate
 	if namedStore != "" && storeType != "" {
-		path := dir.X509TrustStoreDir(storeType, namedStore)
+		path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(storeType, namedStore))
+		if err := truststore.CheckNonErrNotExistError(err); err != nil {
+			return err
+		}
 		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0)); err != nil {
 			return fmt.Errorf("failed to list certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
@@ -60,7 +66,10 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under x509/storeType, display empty if
 	// there's no certificate yet
 	if storeType != "" {
-		path := dir.X509TrustStoreDir(storeType)
+		path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(storeType))
+		if err := truststore.CheckNonErrNotExistError(err); err != nil {
+			return err
+		}
 		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 1)); err != nil {
 			return fmt.Errorf("failed to list certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
@@ -68,7 +77,10 @@ func listCerts(opts *certListOpts) error {
 		// List all certificates under named store namedStore, display empty if
 		// there's no such certificate
 		for _, t := range verification.TrustStorePrefixes {
-			path := dir.X509TrustStoreDir(string(t), namedStore)
+			path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(string(t), namedStore))
+			if err := truststore.CheckNonErrNotExistError(err); err != nil {
+				return err
+			}
 			if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0)); err != nil {
 				return fmt.Errorf("failed to list certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 			}

@@ -59,7 +59,10 @@ func showCerts(opts *certShowOpts) error {
 		return errors.New("certificate fileName cannot be empty")
 	}
 
-	path := dir.X509TrustStoreDir(storeType, namedStore, cert)
+	path, err := dir.ConfigFS().SysPath(dir.X509TrustStoreDir(storeType, namedStore), cert)
+	if err != nil {
+		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
+	}
 	certs, err := corex509.ReadCertificateFile(path)
 	if err != nil {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
