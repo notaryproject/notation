@@ -13,7 +13,7 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
-  -d, --debug                   print out debug output
+  -d, --debug                   enable verbose output
   -h, --help                    help for verify
   -p, --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http              registry access via plain HTTP
