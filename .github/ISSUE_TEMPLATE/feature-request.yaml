@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: 🚀Feature Request
+name: 🚀 Feature Request
 description: Suggest an idea for this project.
 labels: [enhancement, triage]
 body:
