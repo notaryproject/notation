@@ -30,28 +30,28 @@ body:
         - Notation-Core-Go Library
         - Notation-Go Library
   - type: textarea
-    id: verbatim
+    id: problem
     validations:
       required: true
     attributes:
       label: "Is your feature request related to a problem?"
       description: "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]"
   - type: textarea
-    id: verbatim
+    id: solution
     validations:
       required: true
     attributes:
       label: "What solution do you propose?"
       description: "A clear and concise description of what you want to happen."
   - type: textarea
-    id: verbatim
+    id: alternatives
     validations:
       required: true
     attributes:
       label: "What alternatives have you considered?"
       description: "A clear and concise description of any alternative solutions or features you've considered."
   - type: textarea
-    id: verbatim
+    id: context
     validations:
       required: true
     attributes:
