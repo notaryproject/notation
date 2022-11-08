@@ -18,7 +18,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        "Thank you for taking the time to fill out this issue report. 🛑 Please check existing issues first before continuing: https://github.com/notaryproject/notation/issues"
+        Thank you for taking the time to fill out this issue report. 🛑 Please check existing issues first before continuing: https://github.com/notaryproject/notation/issues
   - type: dropdown
     id: area
     validations:
@@ -67,5 +67,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        "This is absolutely not required, but we are happy to guide you in the contribution process
-        especially when you already have a good proposal or understanding of how to implement it. Join us at https://slack.cncf.io/ and choose #oras channel."
+        If you want to contribute to this projce, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to fix this issue. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
