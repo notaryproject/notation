@@ -4,7 +4,21 @@
 
 Use `notation sign` to sign artifacts.
 
-Signs an OCI artifact that is stored in a registry. Upon successful signing, the generated signature is pushed to the registry with the digest of the OCI artifact returned.
+Signs an OCI artifact that is stored in a registry. Always use a `digest` to identify an artifact. `Tags` are mutable, but `digests` uniquely and immutably identify artifacts. If a tag is used, notation resolves the tag to the `digest` before signing.
+
+Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
+
+```text
+Sign succeeded. Signature has been attached to <registry>/<repository>@<digest>.
+```
+
+If a `tag` is used to identify the OCI artifact, the output message is as following:
+
+```test
+Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
+Resolve tag "<tag>" to digest "<digest>"
+Sign succeeded. Signature has been attached to <registry>/<repository>@<digest>.
+```
 
 ## Outline
 
@@ -15,6 +29,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
+  -d, --debug                    print out debug output
   -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
@@ -27,23 +42,7 @@ Flags:
 
 ## Usage
 
-### Sign a container image
-
-```shell
-# Add a key which uses a local private key and certificate, and make it a default signing key
-notation key add --default --name <key_name> <key_path> <cert_path>
-
-# Or change the default signing key to an existing signing key
-notation key update --default <key_name>
-
-# Sign a container image using the default signing key
-notation sign <registry>/<repository>:<tag>
-
-# Or using container image digests instead of tags. A container image digest uniquely and immutably identifies a container image.
-notation sign <registry>/<repository>@<digest>
-```
-
-### Sign a container image using a remote key
+### Sign an OCI artifact stored in a registry using a remote key
 
 ```shell
 # Prerequisites: 
@@ -53,11 +52,28 @@ notation sign <registry>/<repository>@<digest>
 # Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it.
 notation key add --default --name <key_name> --plugin <plugin_name> --id <remote_key_id>
 
-# sign a container image using a remote key
-notation sign <registry>/<repository>:<tag>
+# sign an artifact stored in a registry using a remote key
+notation sign <registry>/<repository>@<digest>
 ```
 
-### Sign an OCI artifact using the default signing key
+An example for a successful signing:
+
+```shell
+$ notation sign localhost:5000/net-monitor@sha256:1111111111111111111111111111111111111111111111111111111111111111
+Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha2561111111111111111111111111111111111111111111111111111111111111111
+```
+
+### Sign an OCI artifact using COSE signature format
+
+```shell
+# Prerequisites: 
+# A default signing key is configured using CLI "notation key"
+
+# Use option "--signature-format" to set the signature format to COSE.
+notation sign --signature-format cose <registry>/<repository>@<digest>
+```
+
+### Sign an OCI artifact stored in a registry using the default signing key
 
 ```shell
 # Prerequisites: 
@@ -67,18 +83,51 @@ notation sign <registry>/<repository>:<tag>
 notation sign <registry>/<repository>@<digest>
 ```
 
-### Sign a container image and specify the signature expiry duration, for example 1 day
+### Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
 
 ```shell
-notation sign --expiry 1d <registry>/<repository>:<tag>
+notation sign --expiry 24h <registry>/<repository>@<digest>
 ```
 
-### Sign a container image using a specified signing key
+### Sign an OCI artifact stored in a registry using a specified signing key
 
 ```shell
 # List signing keys to get the key name
 notation key list
 
 # Sign a container image using the specified key name
-notation sign --key <key_name> <registry>/<repository>:<tag>
+notation sign --key <key_name> <registry>/<repository>@<digest>
+```
+
+### Sign an OCI artifact identified by a tag
+
+```shell
+# Prerequisites: 
+# A default signing key is configured using CLI "notation key"
+
+# Use a tag to identify a container image
+notation sign <registry>/<repository>:<tag>
+```
+
+An example for a successful signing:
+
+```shell
+$ notation sign localhost:5000/net-monitor:v1
+Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
+Resolve tag "v1" to digest "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:1111111111111111111111111111111111111111111111111111111111111111
+```
+
+### Sign an OCI artifact with debug option
+
+```shell
+notation sign --debug <registry>/<repository>@<digest>
+```
+
+An example for a successful signing:
+
+```shell
+$ notation sign --debug localhost:5000/net-monitor@sha256:1111111111111111111111111111111111111111111111111111111111111111
+Use signature format jws.
+Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha2561111111111111111111111111111111111111111111111111111111111111111
 ```
