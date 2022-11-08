@@ -13,6 +13,7 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
+  -d, --debug                   print out debug output
   -h, --help                    help for verify
   -p, --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http              registry access via plain HTTP
@@ -54,26 +55,28 @@ An example of `trustpolicy.json`:
 }
 ```
 
-In this example, only one policy is configured with the name `wabbit-networks-images`. With the value of property `registryScopes` set to `*`, this policy applies to all artifacts from any registry location. User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/main/trust-store-trust-policy-specification.md#trust-policy) for details.
+In this example, only one policy is configured with the name `wabbit-networks-images`. With the value of property `registryScopes` set to `*`, this policy applies to all artifacts from any registry location. User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/main/specs/trust-store-trust-policy.md#trust-policy) for details.
 
-### Verify signatures on a container image stored in a registry (Neither trust store nor trust policy is configured yet)
+### Verify signatures on an OCI artifact stored in a registry
+
+Configure trust store and trust policy properly before using `notation verify` command.
 
 ```shell
 
-# Prerequisites: Signatures are stored in a registry referencing the signed container image
+# Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
 
 # Configure trust store by adding a certificate file into trust store named "wabbit-network" of type "ca"
-notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
+$ notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
 # Configure trust policy by creating a JSON document named "trustpolicy.json" under directory "{NOTATION_CONFIG}"
 # Example on Linux
-cat <<EOF > $HOME/.config/notation/trustpolicy.json
+$ cat <<EOF > $HOME/.config/notation/trustpolicy.json
 {
     "version": "1.0",
     "trustPolicies": [
         {
             "name": "wabbit-networks-images",   // Name of the policy.
-            "registryScopes": [ "registry.wabbit-networks.io/software/net-monitor" ],          // The registry artifacts to which the policy applies.
+            "registryScopes": [ "localhost:5000/net-monitor" ],          // The registry artifacts to which the policy applies.
             "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
                 "level" : "strict" 
             },
@@ -86,15 +89,92 @@ cat <<EOF > $HOME/.config/notation/trustpolicy.json
 }
 EOF
 
-# Verify signatures on a container image 
-notation verify registry.wabbit-networks.io/software/net-monitor:v1
+# Verify signatures on the supplied OCI artifact identified by the digest
+$ notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Verify signatures on an OCI artifact stored in a registry (Trust store and trust policy are configured properly)
+An example of output messages for a successful verification:
+
+```text
+Verify succeeded for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify signatures on an OCI artifact identified by a tag
+
+A tag is resolved to a digest first before verification.
 
 ```shell
 # Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
 
-# Verify signatures on an OCI artifact identified by the digest
-notation verify registry.wabbit-networks.io/software/net-monitor@sha256:abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234
+# Verify signatures on an OCI artifact identified by the tag
+$ notation verify localhost:5000/net-monitor:v1
+```
+
+An example of output messages for a successful verification:
+
+```text
+Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
+
+Resolve tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9`
+Verify succeeded for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify succeeded using "--debug" flag
+
+```shell
+$ notation verify --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Use trust policy: <policy_name>
+Use certificate: <trust_store_type>/<trust_store_name>/<certificate_name>
+Signature verification level: [strict/permissive/audit/skip]
+
+Verify succeeded on signature ${signature-digest} for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify succeeded with conditions using "--debug" flag
+
+```shell
+$ notation verify --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Use trust policy: <policy_name>
+Use certificate: <trust_store_type>/<trust_store_name>/<certificate_name>
+Signature verification level: [strict/permissive/audit/skip]
+
+Error:
+signature verification failure
+${signature-digest}: ${error message}
+
+Warning:
+signature verification failure, but only logged the error
+${signature-digest}: ${error message}
+
+Verify succeeded on signature ${signature-digest} for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify failed for all signatures without using "--debug" flag
+
+Trust policy and trust store are configured properly.
+
+```shell
+$ notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Verify failed for all the 2 signature(s) associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify failed for all signatures using "--debug" flag
+
+Trust policy and trust store are configured properly.
+
+```shell
+$ notation verify --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Use trust policy: <policy_name>
+Use certificate: <trust_store_type>/<trust_store_name>/<certificate_name>
+Signature verification level: [strict/permissive/audit/skip]
+
+Error:
+signature verification failed
+${signature-digest}: ${error message}
+
+Error:
+signature verification failed
+${signature-digest}: ${error message}
+
+Verify failed for all the 2 signature(s) associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
