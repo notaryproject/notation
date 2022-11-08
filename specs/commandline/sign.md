@@ -59,8 +59,8 @@ notation sign <registry>/<repository>@<digest>
 An example for a successful signing:
 
 ```shell
-$ notation sign localhost:5000/net-monitor@sha256:1111111111111111111111111111111111111111111111111111111111111111
-Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha2561111111111111111111111111111111111111111111111111111111111111111
+$ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
 ### Sign an OCI artifact using COSE signature format
@@ -70,7 +70,7 @@ Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256
 # A default signing key is configured using CLI "notation key"
 
 # Use option "--signature-format" to set the signature format to COSE.
-notation sign --signature-format cose <registry>/<repository>@<digest>
+$ notation sign --signature-format cose <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact stored in a registry using the default signing key
@@ -80,7 +80,7 @@ notation sign --signature-format cose <registry>/<repository>@<digest>
 # A default signing key is configured using CLI "notation key"
 
 # Use a digest that uniquely and immutably identifies an OCI artifact.
-notation sign <registry>/<repository>@<digest>
+$ notation sign <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
@@ -93,10 +93,10 @@ notation sign --expiry 24h <registry>/<repository>@<digest>
 
 ```shell
 # List signing keys to get the key name
-notation key list
+$ notation key list
 
 # Sign a container image using the specified key name
-notation sign --key <key_name> <registry>/<repository>@<digest>
+$ notation sign --key <key_name> <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact identified by a tag
@@ -106,7 +106,7 @@ notation sign --key <key_name> <registry>/<repository>@<digest>
 # A default signing key is configured using CLI "notation key"
 
 # Use a tag to identify a container image
-notation sign <registry>/<repository>:<tag>
+$ notation sign <registry>/<repository>:<tag>
 ```
 
 An example for a successful signing:
@@ -114,8 +114,8 @@ An example for a successful signing:
 ```shell
 $ notation sign localhost:5000/net-monitor:v1
 Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
-Resolve tag "v1" to digest "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:1111111111111111111111111111111111111111111111111111111111111111
+Resolve tag "v1" to digest "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
+Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
 ### Sign an OCI artifact with debug option
@@ -127,7 +127,7 @@ notation sign --debug <registry>/<repository>@<digest>
 An example for a successful signing:
 
 ```shell
-$ notation sign --debug localhost:5000/net-monitor@sha256:1111111111111111111111111111111111111111111111111111111111111111
+$ notation sign --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Use signature format jws.
-Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha2561111111111111111111111111111111111111111111111111111111111111111
+Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
