@@ -29,7 +29,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-  -d, --debug                    print out debug output
+  -d, --debug                    enable verbose output
   -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
