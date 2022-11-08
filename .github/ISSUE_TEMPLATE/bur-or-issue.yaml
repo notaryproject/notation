@@ -67,4 +67,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        If you want to contribute to this projce, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to fix this issue. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
+        If you want to contribute to this project, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to fix this issue. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
