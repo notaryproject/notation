@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: \U0001F680Bug or Issue
+name: 🐛Bug or Issue
 description: Something is not working as expected or not working at all! Report it here!
 labels: [bug, triage]
 body:
