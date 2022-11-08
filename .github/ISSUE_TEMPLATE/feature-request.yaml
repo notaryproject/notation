@@ -1,0 +1,63 @@
+# Copyright The Notary Project Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: \U0001F680Feature Request
+description: Suggest an idea for this project.
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to suggest a useful feature for the project!
+  - type: dropdown
+    id: area
+    validations:
+      required: true
+    attributes:
+      label: "What is the areas you would like to add the new feature to?"
+      options: 
+        - Notation CLI
+        - Notation-Core-Go Library
+        - Notation-Go Library
+  - type: textarea
+    id: verbatim
+    validations:
+      required: true
+    attributes:
+      label: "Is your feature request related to a problem?"
+      description: "A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]"
+  - type: textarea
+    id: verbatim
+    validations:
+      required: true
+    attributes:
+      label: "What solution do you propose?"
+      description: "A clear and concise description of what you want to happen."
+  - type: textarea
+    id: verbatim
+    validations:
+      required: true
+    attributes:
+      label: "What alternatives have you considered?"
+      description: "A clear and concise description of any alternative solutions or features you've considered."
+  - type: textarea
+    id: verbatim
+    validations:
+      required: true
+    attributes:
+      label: "Any additional context?"
+      description: "Add any other context or screenshots about the feature request here."
+  - type: markdown
+    attributes:
+      value: |
+        If you want to contribute to this project, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to imrpove the functionality. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
