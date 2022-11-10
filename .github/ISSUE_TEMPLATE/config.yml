@@ -13,5 +13,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Ask a question
-    url: https://github.com/notaryproject/notation/discussions
-    about: Ask questions and discuss with other community members
+    url: https://slack.cncf.io/
+    about: Join #notary-v2 channel on CNCF Slack
