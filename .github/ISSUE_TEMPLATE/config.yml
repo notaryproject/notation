@@ -14,4 +14,4 @@ blank_issues_enabled: false
 contact_links:
   - name: Ask a question
     url: https://slack.cncf.io/
-    about: Join #notary-v2 channel on CNCF Slack
+    about: "Join #notary-v2 channel on CNCF Slack"
