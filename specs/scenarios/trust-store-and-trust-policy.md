@@ -110,7 +110,7 @@ $XDG_CONFIG_HOME/notation/trust-store
             /publicly-trusted-tsa
                 tsa-cert1.pem
 ```
-And here is how the policy should look like before deployint the Wabbit Networks Batch service:
+And here is how the policy should look like before deploying the Wabbit Networks Batch service:
 
 ```
 {
