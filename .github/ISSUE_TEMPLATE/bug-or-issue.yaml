@@ -1,0 +1,70 @@
+# Copyright The Notary Project Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: 🐛 Bug or Issue
+description: Something is not working as expected or not working at all! Report it here!
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to fill out this issue report. 🛑 Please check existing issues first before continuing: https://github.com/notaryproject/notation/issues
+  - type: dropdown
+    id: area
+    validations:
+      required: true
+    attributes:
+      label: "What is the areas you experience the issue in?"
+      options: 
+        - Notation CLI
+        - Notation-Core-Go Library
+        - Notation-Go Library
+  - type: textarea
+    id: verbatim
+    validations:
+      required: true
+    attributes:
+      label: "What is not working as expected?"
+      description: "In your own words, describe what the issue is."
+  - type: textarea
+    id: expect
+    validations:
+      required: true
+    attributes:
+      label: "What did you expect to happen?"
+      description: "A clear and concise description of what you expected to happen."
+  - type: textarea
+    id: reproduce
+    validations:
+      required: true
+    attributes:
+      label: "How can we reproduce it?"
+      description: "Detailed steps to reproduce the behavior. Commands and their outputs are always helpful. If the bug is in a library, code snippets work as well."
+  - type: textarea
+    id: environment
+    validations:
+      required: true
+    attributes:
+      label: Describe your environment 
+      description: "Notation installation method (e.g. wget, curl, brew, apt-get, yum, chocolate, MSI) if applicable / OS version / Shell type (e.g. zsh, bash, cmd.exe, Bash on Windows) / Golang version if applicable"
+  - type: textarea
+    id: version
+    validations:
+      required: true
+    attributes:
+      label: What is the version of your Notation CLI or Notation Library?
+      description: "For the CLI, you can use the command `notation version` to get it. For the libraries check the `go.mod` file."
+  - type: markdown
+    attributes:
+      value: |
+        If you want to contribute to this project, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to fix this issue. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
