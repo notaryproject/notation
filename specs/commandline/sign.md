@@ -9,15 +9,15 @@ Signs an OCI artifact that is stored in a registry. Always use a `digest` to ide
 Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
 
 ```text
-Sign succeeded. Signature has been attached to <registry>/<repository>@<digest>.
+Signing of artifact <reference> succeeded and the signature is attached to <registry>/<repository>@<digest>.
 ```
 
 If a `tag` is used to identify the OCI artifact, the output message is as following:
 
 ```test
-Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
-Resolve tag "<tag>" to digest "<digest>"
-Sign succeeded. Signature has been attached to <registry>/<repository>@<digest>.
+Warning: A tag is used to identify the artifact for signing. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
+Resolving artifact tag '<tag>' to digest '<digest>' before signing.
+Signing of artifact <reference> succeeded and the signature is attached to <registry>/<repository>@<digest>.
 ```
 
 ## Outline
@@ -60,7 +60,7 @@ An example for a successful signing:
 
 ```shell
 $ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
 ```
 
 ### Sign an OCI artifact using COSE signature format
@@ -113,9 +113,9 @@ An example for a successful signing:
 
 ```shell
 $ notation sign localhost:5000/net-monitor:v1
-Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
-Resolve tag "v1" to digest "sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
-Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Warning: A tag is used to identify the artifact for signing. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
+Resolving artifact tag 'v1' to digest 'sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9' before signing.
+Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
 ```
 
 ### Sign an OCI artifact with debug option
@@ -129,5 +129,5 @@ An example for a successful signing:
 ```shell
 $ notation sign --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Use signature format jws.
-Sign succeeded. Signature has been attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
 ```
