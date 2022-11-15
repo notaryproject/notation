@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 
@@ -64,14 +64,14 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// core verify process.
-	ctx := verification.WithPluginConfig(command.Context(), configs)
+	ctx := verifier.WithPluginConfig(command.Context(), configs)
 	outcomes, err := verifier.Verify(ctx, ref.String())
 
 	// write out.
 	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
 }
 
-func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifier, error) {
+func getVerifier(opts *verifyOpts, ref registry.Reference) (*verifier.Verifier, error) {
 	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifi
 
 	repo := notationregistry.NewRepositoryClient(authClient, ref, plainHTTP)
 
-	return verification.NewVerifier(repo)
+	return verifier.NewVerifier(repo)
 }
 
 func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/plugin/manager"
-	"github.com/notaryproject/notation-go/signature"
+	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/signer"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
@@ -25,17 +25,17 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 		return nil, err
 	}
 	if key.X509KeyPair != nil {
-		return signature.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath, mediaType)
+		return signer.NewSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath, mediaType)
 	}
 	// Construct a plugin signer if key name provided as the CLI argument
 	// corresponds to an external key
 	if key.ExternalKey != nil {
-		mgr := manager.New()
+		mgr := plugin.NewCLIManager(dir.PluginFS())
 		runner, err := mgr.Runner(key.PluginName)
 		if err != nil {
 			return nil, err
 		}
-		return signature.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig, mediaType)
+		return signer.NewSignerPlugin(runner, key.ExternalKey.ID, key.PluginConfig, mediaType)
 	}
 	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
 }

@@ -14,7 +14,7 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/osutil"
 )
@@ -183,7 +183,7 @@ func CheckNonErrNotExistError(err error) error {
 
 // IsValidStoreType checks if storeType is supported
 func IsValidStoreType(storeType string) bool {
-	for _, t := range verification.TrustStorePrefixes {
+	for _, t := range verifier.TrustStorePrefixes {
 		if storeType == string(t) {
 			return true
 		}

@@ -6,15 +6,15 @@ import (
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/plugin/manager"
-	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/verifier"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
 
-func PrintPlugins(w io.Writer, v []*manager.Plugin) error {
+func PrintPlugins(w io.Writer, v []*plugin.Plugin) error {
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
 	for _, p := range v {
@@ -54,7 +54,7 @@ func PrintCertificateMap(w io.Writer, v []config.CertificateReference) error {
 	return tw.Flush()
 }
 
-func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string) error {
+func PrintVerificationResults(w io.Writer, v []*verifier.SignatureVerificationOutcome, resultErr error, digest string) error {
 	tw := newTabWriter(w)
 
 	if resultErr == nil {
@@ -70,7 +70,7 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 	return resultErr
 }
 
-func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome, digest string) {
+func printOutcomes(tw *tabwriter.Writer, outcomes []*verifier.SignatureVerificationOutcome, digest string) {
 	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n\n", len(outcomes), digest)
 
 	// TODO[https://github.com/notaryproject/notation/issues/304]: print out detailed errors in debug mode.

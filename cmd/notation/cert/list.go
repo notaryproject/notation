@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
@@ -76,7 +76,7 @@ func listCerts(opts *certListOpts) error {
 	} else {
 		// List all certificates under named store namedStore, display empty if
 		// there's no such certificate
-		for _, t := range verification.TrustStorePrefixes {
+		for _, t := range verifier.TrustStorePrefixes {
 			path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", string(t), namedStore)
 			if err := truststore.CheckNonErrNotExistError(err); err != nil {
 				return err
