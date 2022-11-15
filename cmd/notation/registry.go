@@ -14,7 +14,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(opts *SecureFlagOpts, reference string) (*notationregistry.RepositoryClient, error) {
+func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
@@ -35,12 +35,18 @@ func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Regi
 	return reg, nil
 }
 
-func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (*notationregistry.RepositoryClient, error) {
+func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
 	authClient, plainHTTP, err := getAuthClient(opts, ref)
 	if err != nil {
 		return nil, err
 	}
-	return notationregistry.NewRepositoryClient(authClient, ref, plainHTTP), nil
+	repo := &remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: plainHTTP,
+	}
+
+	return notationregistry.NewRepository(repo), nil
 }
 
 func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {

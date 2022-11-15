@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 type verifyOpts struct {
@@ -52,10 +54,14 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// initialize verifier.
-	verifier, err := getVerifier(opts, ref)
-	if err != nil {
-		return err
+	verifier, _ := verifier.New()
+	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
+	remote_repo := remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: plainHTTP,
 	}
+	repo := notationregistry.NewRepository(&remote_repo)
 
 	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
@@ -64,22 +70,16 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// core verify process.
-	ctx := verifier.WithPluginConfig(command.Context(), configs)
-	outcomes, err := verifier.Verify(ctx, ref.String())
+	verifyOpts := notation.VerifyOptions{
+		ArtifactReference:    ref.String(),
+		SignatureMediaType:   "application/cose",
+		PluginConfig:         configs,
+		MaxSignatureAttempts: 50,
+	}
+	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
 
 	// write out.
 	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
-}
-
-func getVerifier(opts *verifyOpts, ref registry.Reference) (*verifier.Verifier, error) {
-	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	repo := notationregistry.NewRepositoryClient(authClient, ref, plainHTTP)
-
-	return verifier.NewVerifier(repo)
 }
 
 func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
