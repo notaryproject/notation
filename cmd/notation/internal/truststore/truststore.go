@@ -14,7 +14,7 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/verifier"
+	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/osutil"
 )
@@ -44,7 +44,7 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 
 	// core process
 	// get the trust store path
-	trustStorePath, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
+	trustStorePath, err := dir.ConfigFS().SysPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err := CheckNonErrNotExistError(err); err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func showCert(cert *x509.Certificate) {
 // DeleteAllCerts deletes all certificate files from the trust store
 // under dir truststore/x509/storeType/namedStore
 func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []error) []error {
-	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
+	path, err := dir.ConfigFS().SysPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 	if err == nil {
 		prompt := fmt.Sprintf("Are you sure you want to delete all certificate in %q of type %q?", namedStore, storeType)
 		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
@@ -147,7 +147,7 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool, errorSlice []e
 // DeleteCert deletes a specific certificate file from the
 // trust store, namely truststore/x509/storeType/namedStore/cert
 func DeleteCert(storeType, namedStore, cert string, confirmed bool, errorSlice []error) []error {
-	path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
+	path, err := dir.ConfigFS().SysPath(dir.TrustStoreDir, "x509", storeType, namedStore, cert)
 	if err == nil {
 		prompt := fmt.Sprintf("Are you sure you want to delete %q in %q of type %q?", cert, namedStore, storeType)
 		confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
@@ -183,7 +183,7 @@ func CheckNonErrNotExistError(err error) error {
 
 // IsValidStoreType checks if storeType is supported
 func IsValidStoreType(storeType string) bool {
-	for _, t := range verifier.TrustStorePrefixes {
+	for _, t := range truststore.Types {
 		if storeType == string(t) {
 			return true
 		}

@@ -9,7 +9,6 @@ require (
 	github.com/notaryproject/notation-go v0.12.0-beta.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc2
-	github.com/oras-project/artifacts-spec v1.0.0-rc.2
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/veraison/go-cose v1.0.0-rc.1.0.20220824135457-9d2fab636b83

@@ -75,21 +75,16 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sig, _, err := signer.Sign(command.Context(), desc, opts)
+	sigRepo, err := getSignatureRepository(&cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	if err != nil {
+		return err
+	}
+	_, err = notation.Sign(command.Context(), signer, sigRepo, opts)
 	if err != nil {
 		return err
 	}
 
 	// write out
-	ref := cmdOpts.reference
-	if _, err := pushSignature(command.Context(), &cmdOpts.SecureFlagOpts, ref, sig); err != nil {
-		return fmt.Errorf("fail to push signature to %q: %v: %v",
-			ref,
-			desc.Digest,
-			err,
-		)
-	}
-
 	fmt.Println(desc.Digest)
 	return nil
 }
@@ -99,39 +94,18 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descrip
 	if err != nil {
 		return ocispec.Descriptor{}, notation.SignOptions{}, err
 	}
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	if err != nil {
+		return ocispec.Descriptor{}, notation.SignOptions{}, err
+	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return ocispec.Descriptor{}, notation.SignOptions{}, err
 	}
 	return manifestDesc, notation.SignOptions{
 		ArtifactReference:  opts.reference,
-		SignatureMediaType: opts.SignerFlagOpts.SignatureFormat,
+		SignatureMediaType: mediaType,
 		Expiry:             cmd.GetExpiry(opts.expiry),
 		PluginConfig:       pluginConfig,
 	}, nil
-}
-
-func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []byte) (ocispec.Descriptor, error) {
-	// initialize
-	sigRepo, err := getSignatureRepository(opts, ref)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, opts, ref)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-
-	// core process
-	// pass in nonempty annotations if needed
-	sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, sigMediaType, manifestDesc, make(map[string]string))
-	if err != nil {
-		return ocispec.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
-	}
-
-	return sigDesc, nil
 }

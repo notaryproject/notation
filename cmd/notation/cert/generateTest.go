@@ -83,7 +83,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Println("generated certificate expiring on", rsaCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
-	keyPath, certPath := dir.Path.Localkey(name)
+	keyPath, certPath := dir.LocalKeyPath(name)
 	if err := osutil.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
