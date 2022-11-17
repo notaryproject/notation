@@ -18,7 +18,7 @@ func newTabWriter(w io.Writer) *tabwriter.Writer {
 
 func PrintPlugins(ctx context.Context, w io.Writer, v []plugin.Plugin) error {
 	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
+	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\t")
 	for _, p := range v {
 		req := &proto.GetMetadataRequest{}
 		metadata, err := p.GetMetadata(ctx, req)

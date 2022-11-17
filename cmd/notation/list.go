@@ -61,9 +61,6 @@ func runList(command *cobra.Command, opts *listOpts) error {
 
 // printSignatureManifestDigests returns the signature manifest digests of
 // the subject manifest.
-//
-// TODO: this is a temporary function and will be replaced after
-// notation-go refactor.
 func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Digest, sigRepo notationRegistry.Repository, reference string) error {
 	// prepare title
 	ref, err := registry.ParseReference(reference)
