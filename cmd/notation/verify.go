@@ -9,6 +9,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 
 	"github.com/spf13/cobra"
@@ -18,8 +19,9 @@ import (
 
 type verifyOpts struct {
 	SecureFlagOpts
-	reference    string
-	pluginConfig []string
+	reference       string
+	pluginConfig    []string
+	signatureFormat string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -43,6 +45,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	}
 	opts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
+	cmd.SetPflagSignatureFormat(command.Flags(), &opts.signatureFormat)
 	return command
 }
 
@@ -70,9 +73,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// core verify process.
+	signatureMediaType, err := envelope.GetEnvelopeMediaType(opts.signatureFormat)
+	if err != nil {
+		return err
+	}
 	verifyOpts := notation.VerifyOptions{
 		ArtifactReference:    ref.String(),
-		SignatureMediaType:   "application/cose",
+		SignatureMediaType:   signatureMediaType,
 		PluginConfig:         configs,
 		MaxSignatureAttempts: 50,
 	}
