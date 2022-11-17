@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	notationRegistry "github.com/notaryproject/notation-go/registry"
-	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -65,7 +64,7 @@ func runList(command *cobra.Command, opts *listOpts) error {
 //
 // TODO: this is a temporary function and will be replaced after
 // notation-go refactor.
-func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Digest, sigRepo notationregistry.Repository, reference string) error {
+func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Digest, sigRepo notationRegistry.Repository, reference string) error {
 	// prepare title
 	ref, err := registry.ParseReference(reference)
 	if err != nil {

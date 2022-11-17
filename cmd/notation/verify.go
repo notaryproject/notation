@@ -54,7 +54,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// initialize verifier.
-	verifier, _ := verifier.New()
+	verifier, _ := verifier.NewFromConfig()
 	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
 	remote_repo := remote.Repository{
 		Client:    authClient,
