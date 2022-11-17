@@ -16,17 +16,17 @@ func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
 
-func PrintPlugins(ctx context.Context, w io.Writer, v []plugin.Plugin) error {
+func PrintPlugins(ctx context.Context, w io.Writer, v []plugin.Plugin, errors []error) error {
 	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\t")
-	for _, p := range v {
+	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
+	for ind, p := range v {
 		req := &proto.GetMetadataRequest{}
 		metadata, err := p.GetMetadata(ctx, req)
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(tw, "%s\t%s\t%v\t%v\t\n",
-			metadata.Name, metadata.Description, metadata.Version, metadata.Capabilities)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
+			metadata.Name, metadata.Description, metadata.Version, metadata.Capabilities, errors[ind])
 	}
 	return tw.Flush()
 }

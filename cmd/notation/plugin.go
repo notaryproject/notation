@@ -36,12 +36,11 @@ func listPlugins(command *cobra.Command) error {
 		return err
 	}
 	var plugins []plugin.Plugin
+	var errors []error
 	for _, n := range pluginNames {
 		pl, err := mgr.Get(command.Context(), n)
-		if err != nil {
-			return err
-		}
+		errors = append(errors, err)
 		plugins = append(plugins, pl)
 	}
-	return ioutil.PrintPlugins(command.Context(), os.Stdout, plugins)
+	return ioutil.PrintPlugins(command.Context(), os.Stdout, plugins, errors)
 }
