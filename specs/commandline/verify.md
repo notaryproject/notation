@@ -4,6 +4,20 @@
 
 Use `notation verify` command to verify signatures on an artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. The digest of the supplied artifact is returned upon successful verification. It is recommended that this digest reference be used to pull the artifact subsequently, as registry tags may be mutable, and a tag reference can point to a different artifact that what was verified.
 
+Upon successful verifying, the output message is printed out as following:
+
+```text
+Verify succeeded for <registry>/<repository>@<digest>.
+```
+
+If a `tag` is used to identify the OCI artifact, the output message is as following:
+
+```text
+Warning: A tag is used to identify the artifact for verifying. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
+Resolving artifact tag '<tag>' to digest '<digest>' before verifying.
+Verify succeeded for <registry>/<repository>@<digest>.
+```
+
 ## Outline
 
 ```text
@@ -13,7 +27,6 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
-  -d, --debug                   enable verbose output
   -h, --help                    help for verify
   -p, --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http              registry access via plain HTTP
@@ -113,68 +126,7 @@ $ notation verify localhost:5000/net-monitor:v1
 An example of output messages for a successful verification:
 
 ```text
-Warning: Tag is used. Always use digest to identify the reference uniquely and immutably.
-
-Resolve tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9`
+Warning: A tag is used to identify the artifact for verifying. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
+Resolving artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verifying.
 Verify succeeded for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-```
-
-### Verify succeeded using "--debug" flag
-
-```shell
-$ notation verify --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Use trust policy: <policy_name>
-Use certificate: <trust_store_type>/<trust_store_name>/<certificate_name>
-Signature verification level: [strict/permissive/audit/skip]
-
-Verify succeeded on signature ${signature-digest} for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-```
-
-### Verify succeeded with conditions using "--debug" flag
-
-```shell
-$ notation verify --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Use trust policy: <policy_name>
-Use certificate: <trust_store_type>/<trust_store_name>/<certificate_name>
-Signature verification level: [strict/permissive/audit/skip]
-
-Error:
-signature verification failure
-${signature-digest}: ${error message}
-
-Warning:
-signature verification failure, but only logged the error
-${signature-digest}: ${error message}
-
-Verify succeeded on signature ${signature-digest} for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-```
-
-### Verify failed for all signatures without using "--debug" flag
-
-Trust policy and trust store are configured properly.
-
-```shell
-$ notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Verify failed for all the 2 signature(s) associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-```
-
-### Verify failed for all signatures using "--debug" flag
-
-Trust policy and trust store are configured properly.
-
-```shell
-$ notation verify --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Use trust policy: <policy_name>
-Use certificate: <trust_store_type>/<trust_store_name>/<certificate_name>
-Signature verification level: [strict/permissive/audit/skip]
-
-Error:
-signature verification failed
-${signature-digest}: ${error message}
-
-Error:
-signature verification failed
-${signature-digest}: ${error message}
-
-Verify failed for all the 2 signature(s) associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
