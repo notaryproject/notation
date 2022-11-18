@@ -29,7 +29,6 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-  -d, --debug                    enable verbose output
   -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
@@ -118,16 +117,3 @@ Resolving artifact tag 'v1' to digest 'sha256:b94d27b9934d3e08a52e52d7da7dabfac4
 Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
 ```
 
-### Sign an OCI artifact with debug option
-
-```shell
-notation sign --debug <registry>/<repository>@<digest>
-```
-
-An example for a successful signing:
-
-```shell
-$ notation sign --debug localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Use signature format jws.
-Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
-```
