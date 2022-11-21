@@ -2,20 +2,20 @@
 
 ## Description
 
-Use `notation verify` command to verify signatures on an artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. The digest of the supplied artifact is returned upon successful verification. It is recommended that this digest reference be used to pull the artifact subsequently, as registry tags may be mutable, and a tag reference can point to a different artifact that what was verified.
+Use `notation verify` command to verify signatures associated with the artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Always verify the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than that was verified.
 
 Upon successful verifying, the output message is printed out as following:
 
 ```text
-Verify succeeded for <registry>/<repository>@<digest>.
+Successfully verified for <registry>/<repository>@<digest>
 ```
 
 If a `tag` is used to identify the OCI artifact, the output message is as following:
 
 ```text
-Warning: A tag is used to identify the artifact for verifying. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
-Resolving artifact tag '<tag>' to digest '<digest>' before verifying.
-Verify succeeded for <registry>/<repository>@<digest>.
+Warning: Always verify artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one verified.
+Resolved artifact tag '<tag>' to digest '<digest>' before verification.
+Successfully verified for <registry>/<repository>@<digest>
 ```
 
 ## Outline
@@ -109,7 +109,7 @@ $ notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7d
 An example of output messages for a successful verification:
 
 ```text
-Verify succeeded for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Successfully verified for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
 ### Verify signatures on an OCI artifact identified by a tag
@@ -126,7 +126,7 @@ $ notation verify localhost:5000/net-monitor:v1
 An example of output messages for a successful verification:
 
 ```text
-Warning: A tag is used to identify the artifact for verifying. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
-Resolving artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verifying.
-Verify succeeded for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Warning: Always verify artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one verified.
+Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
+Successfully verified for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
