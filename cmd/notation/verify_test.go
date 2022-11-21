@@ -14,14 +14,12 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 			Username: "user",
 			Password: "password",
 		},
-		signatureFormat: "cose",
-		pluginConfig:    []string{"key1=val1"},
+		pluginConfig: []string{"key1=val1"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--username", expected.Username,
 		"--password", expected.Password,
-		"--signature-format", "cose",
 		"--plugin-config", "key1=val1"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
@@ -41,8 +39,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 		SecureFlagOpts: SecureFlagOpts{
 			PlainHTTP: true,
 		},
-		signatureFormat: "jws",
-		pluginConfig:    []string{"key1=val1", "key2=val2"},
+		pluginConfig: []string{"key1=val1", "key2=val2"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,

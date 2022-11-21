@@ -188,6 +188,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 		return config.KeySuite{}, errors.New("missing key id")
 	}
 	mgr := plugin.NewCLIManager(dir.PluginFS())
+	// Check existence of plugin with name pluginName
 	_, err := mgr.Get(ctx, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
