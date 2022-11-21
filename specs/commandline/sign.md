@@ -4,20 +4,20 @@
 
 Use `notation sign` to sign artifacts.
 
-Signs an OCI artifact that is stored in a registry. Always use a `digest` to identify an artifact. `Tags` are mutable, but `digests` uniquely and immutably identify artifacts. If a tag is used, notation resolves the tag to the `digest` before signing.
+Signs an OCI artifact stored in the registry. Always sign artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
 
 Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
 
 ```text
-Signing of artifact <reference> succeeded and the signature is attached to <registry>/<repository>@<digest>.
+Successfully signed <registry>/<repository>@<digest>.
 ```
 
 If a `tag` is used to identify the OCI artifact, the output message is as following:
 
 ```test
-Warning: A tag is used to identify the artifact for signing. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
+Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Resolving artifact tag '<tag>' to digest '<digest>' before signing.
-Signing of artifact <reference> succeeded and the signature is attached to <registry>/<repository>@<digest>.
+Successfully signed <registry>/<repository>@<digest>
 ```
 
 ## Outline
@@ -41,17 +41,17 @@ Flags:
 
 ## Usage
 
-### Sign an OCI artifact stored in a registry using a remote key
+### Sign an OCI artifact
 
 ```shell
 # Prerequisites: 
-# - A compliant signing plugin is installed in notation. See notation plugin documentation (https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details.
-# - User creates keys and certificates in a 3rd party key provider (e.g. key vault, key management service). The signing plugin installed in previous step must support generating signatures using this key provider.
+# - A signing plugin is installed. See plugin documentation (https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details.
+# - Configure the signing plugin as instructed by plugin vendor.
 
-# Add a default signing key referencing the key identifier for the remote key, and the plugin associated with it.
+# Add a default signing key referencing the remote key identifier, and the plugin associated with it.
 notation key add --default --name <key_name> --plugin <plugin_name> --id <remote_key_id>
 
-# sign an artifact stored in a registry using a remote key
+# sign an artifact stored in a registry
 notation sign <registry>/<repository>@<digest>
 ```
 
@@ -59,7 +59,7 @@ An example for a successful signing:
 
 ```shell
 $ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
+Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
 ```
 
 ### Sign an OCI artifact using COSE signature format
@@ -112,8 +112,7 @@ An example for a successful signing:
 
 ```shell
 $ notation sign localhost:5000/net-monitor:v1
-Warning: A tag is used to identify the artifact for signing. Artifact tags are mutable. Use digests to uniquely identify artifacts and avoid mutability.
+Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Resolving artifact tag 'v1' to digest 'sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9' before signing.
-Signing of artifact <reference> succeeded and the signature is attached to localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
+Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
-
