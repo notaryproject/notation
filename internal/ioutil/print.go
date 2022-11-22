@@ -20,14 +20,17 @@ func PrintPlugins(ctx context.Context, w io.Writer, v []plugin.Plugin, errors []
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
 	for ind, p := range v {
-		req := &proto.GetMetadataRequest{}
-		metadata, err := p.GetMetadata(ctx, req)
-		if err != nil {
-			fmt.Println(err.Error())
-			return err
+		metaData := proto.GetMetadataResponse{}
+		if p != nil {
+			req := &proto.GetMetadataRequest{}
+			metadata, err := p.GetMetadata(ctx, req)
+			if err == nil {
+				metaData = *metadata
+			}
+			errors[ind] = err
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			metadata.Name, metadata.Description, metadata.Version, metadata.Capabilities, errors[ind])
+			metaData.Name, metaData.Description, metaData.Version, metaData.Capabilities, errors[ind])
 	}
 	return tw.Flush()
 }
