@@ -23,6 +23,7 @@ func PrintPlugins(ctx context.Context, w io.Writer, v []plugin.Plugin, errors []
 		req := &proto.GetMetadataRequest{}
 		metadata, err := p.GetMetadata(ctx, req)
 		if err != nil {
+			fmt.Println(err.Error())
 			return err
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
@@ -62,17 +63,8 @@ func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, re
 	}
 
 	fmt.Fprintf(tw, "ERROR: %s\n\n", resultErr.Error())
-	printOutcomes(tw, v, digest)
+	fmt.Printf("Signature verification failed for all the signatures associated with digest: %s\n", digest)
 	tw.Flush()
 
 	return resultErr
-}
-
-func printOutcomes(tw *tabwriter.Writer, outcomes []*notation.VerificationOutcome, digest string) {
-	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n\n", len(outcomes), digest)
-
-	// TODO[https://github.com/notaryproject/notation/issues/304]: print out detailed errors in debug mode.
-	for idx, outcome := range outcomes {
-		fmt.Printf("Signature #%d : %s\n", idx+1, outcome.Error.Error())
-	}
 }

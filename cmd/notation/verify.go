@@ -70,9 +70,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	verifyOpts := notation.VerifyOptions{
-		ArtifactReference:    ref.String(),
-		PluginConfig:         configs,
-		MaxSignatureAttempts: 50,
+		ArtifactReference: ref.String(),
+		PluginConfig:      configs,
 	}
 
 	// core verify process.
