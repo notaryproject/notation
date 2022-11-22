@@ -60,7 +60,7 @@ func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, re
 	tw := newTabWriter(w)
 
 	if resultErr == nil {
-		fmt.Fprintf(tw, "Signature verification succeeded for %s\n", digest)
+		fmt.Fprintf(tw, "Successfully verified for %s\n", digest)
 		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
