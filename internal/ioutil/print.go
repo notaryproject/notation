@@ -54,7 +54,12 @@ func PrintCertificateMap(w io.Writer, v []config.CertificateReference) error {
 	return tw.Flush()
 }
 
-func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string) error {
+func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string, isTag bool, tag string) error {
+	if isTag {
+		fmt.Println("Warning: Always verify artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one verified.")
+		fmt.Printf("Resolved artifact tag %q to digest %q before verification.\n", tag, digest)
+	}
+
 	tw := newTabWriter(w)
 
 	if resultErr == nil {

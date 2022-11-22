@@ -12,6 +12,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type tagReference struct {
+	isTag bool
+	tag   string
+}
+
 type signOpts struct {
 	cmd.SignerFlagOpts
 	SecureFlagOpts
@@ -70,7 +75,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// core process
-	desc, opts, err := prepareSigningContent(command.Context(), cmdOpts)
+	desc, opts, tagReference, err := prepareSigningContent(command.Context(), cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -89,23 +94,35 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		)
 	}
 
-	fmt.Println(desc.Digest)
+	if tagReference.isTag {
+		fmt.Println("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.")
+		fmt.Printf("Resolving artifact tag %q to digest %q before signing.\n", tagReference.tag, desc.Digest)
+	}
+	fmt.Println("Successfully signed", desc.Digest)
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descriptor, notation.SignOptions, error) {
-	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
+func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descriptor, notation.SignOptions, tagReference, error) {
+	var tagRef tagReference
+	isTag := !isDigestReference(opts.reference)
+	manifestDesc, ref, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return notation.Descriptor{}, notation.SignOptions{}, err
+		return notation.Descriptor{}, notation.SignOptions{}, tagReference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return notation.Descriptor{}, notation.SignOptions{}, err
+		return notation.Descriptor{}, notation.SignOptions{}, tagReference{}, err
+	}
+	if isTag {
+		tagRef = tagReference{
+			isTag: isTag,
+			tag:   ref.Reference, // ref.Reference is a tag reference
+		}
 	}
 	return manifestDesc, notation.SignOptions{
 		Expiry:       cmd.GetExpiry(opts.expiry),
 		PluginConfig: pluginConfig,
-	}, nil
+	}, tagRef, nil
 }
 
 func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []byte) (notation.Descriptor, error) {
@@ -114,7 +131,7 @@ func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []
 	if err != nil {
 		return notation.Descriptor{}, err
 	}
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, opts, ref)
+	manifestDesc, _, err := getManifestDescriptorFromReference(ctx, opts, ref)
 	if err != nil {
 		return notation.Descriptor{}, err
 	}

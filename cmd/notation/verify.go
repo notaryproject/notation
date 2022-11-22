@@ -46,7 +46,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// resolve the given reference and set the digest.
-	ref, err := resolveReference(command, opts)
+	ref, tagRef, err := resolveReference(command, opts)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	outcomes, err := verifier.Verify(ctx, ref.String())
 
 	// write out.
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
+	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference, tagRef.isTag, tagRef.tag)
 }
 
 func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifier, error) {
@@ -82,24 +82,27 @@ func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifi
 	return verification.NewVerifier(repo)
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
+func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, tagReference, error) {
 	ref, err := registry.ParseReference(opts.reference)
 	if err != nil {
-		return registry.Reference{}, err
+		return registry.Reference{}, tagReference{}, err
 	}
 
 	if isDigestReference(opts.reference) {
-		return ref, nil
+		return ref, tagReference{}, nil
 	}
 
 	// Resolve tag reference to digest reference.
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	manifestDesc, tagRef, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return registry.Reference{}, err
+		return registry.Reference{}, tagReference{}, err
 	}
 
 	ref.Reference = manifestDesc.Digest.String()
-	return ref, nil
+	return ref, tagReference{
+		isTag: true,
+		tag:   tagRef.Reference,
+	}, nil
 }
 
 func isDigestReference(reference string) bool {
