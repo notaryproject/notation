@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"math"
 	"os"
 	"strings"
 
@@ -72,6 +73,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	verifyOpts := notation.VerifyOptions{
 		ArtifactReference: ref.String(),
 		PluginConfig:      configs,
+		// TODO: need to change MaxSignatureAttempts as a user input flag or
+		// a field in config.json
+		MaxSignatureAttempts: math.MaxInt64,
 	}
 
 	// core verify process.
