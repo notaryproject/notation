@@ -88,8 +88,8 @@ Example values on trust policy properties:
 | signatureVerification | "level": "skip" | The skip level does not fetch signatures for artifacts and does not perform any signature verification. |
 | trustStores | "ca:wabbit-networks" | Verify signatures using certificates stored in one trust store. The type of trust store is `ca` and the name is `wabbit-networks`, which are configured using `notation certificate add` command.|
 | trustStores | "ca:wabbit-networks", "ca:rocket-networks" | Verify signatures using certificates stored in two trust stores. |
-| trustedIdentities | "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder" | Use only trusts the identity with specific subject. User can use `notation certificate show` command to get the subject info. |
-| trustedIdentities | "*" | User trusts any identity (signing certificate) issued by the CA(s) in trustStore. |
+| trustedIdentities | "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder" | User only trusts the identity with specific subject. User can use `notation certificate show` command to get the `subject` info. |
+| trustedIdentities | "*" | User trusts any identity (signing certificate) issued by the CA(s) in trust stores. |
 
 User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/main/specs/trust-store-trust-policy.md#trust-policy) for details.
 
