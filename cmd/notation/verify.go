@@ -55,7 +55,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// initialize verifier.
-	verifier, _ := verifier.NewFromConfig()
+	verifier, err := verifier.NewFromConfig()
+	if err != nil {
+		return err
+	}
 	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
 	remote_repo := remote.Repository{
 		Client:    authClient,
@@ -71,8 +74,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	verifyOpts := notation.VerifyOptions{
-		ArtifactReference: ref.String(),
-		PluginConfig:      configs,
+		ArtifactReference:  ref.String(),
+		SignatureMediaType: "application/cose",
+		PluginConfig:       configs,
 		// TODO: need to change MaxSignatureAttempts as a user input flag or
 		// a field in config.json
 		MaxSignatureAttempts: math.MaxInt64,
