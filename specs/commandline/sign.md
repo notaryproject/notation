@@ -16,7 +16,7 @@ If a `tag` is used to identify the OCI artifact, the output message is as follow
 
 ```test
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
-Resolving artifact tag '<tag>' to digest '<digest>' before signing.
+Resolved artifact tag '<tag>' to digest '<digest>' before signing.
 Successfully signed <registry>/<repository>@<digest>
 ```
 
@@ -113,6 +113,6 @@ An example for a successful signing:
 ```shell
 $ notation sign localhost:5000/net-monitor:v1
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
-Resolving artifact tag 'v1' to digest 'sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9' before signing.
+Resolved artifact tag 'v1' to digest 'sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9' before signing.
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
