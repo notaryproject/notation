@@ -14,7 +14,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationregistry.SignatureRepository, error) {
+func getSignatureRepository(opts *SecureFlagOpts, reference string) (*notationregistry.RepositoryClient, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err

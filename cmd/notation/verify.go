@@ -1,31 +1,23 @@
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"os"
+	"strings"
 
-	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/signature"
+	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation-go/verification"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/internal/slices"
-	"github.com/notaryproject/notation/pkg/cache"
-	"github.com/notaryproject/notation/pkg/configutil"
-	"github.com/opencontainers/go-digest"
+	"github.com/notaryproject/notation/internal/ioutil"
 
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry"
 )
 
 type verifyOpts struct {
-	RemoteFlagOpts
-	signatures []string
-	certs      []string
-	certFiles  []string
-	pull       bool
-	reference  string
+	SecureFlagOpts
+	reference    string
+	pluginConfig []string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -37,16 +29,13 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 		Short: "Verify OCI artifacts",
 		Long: `Verify OCI artifacts
 
-Prerequisite: a trusted certificate needs to be generated or added using the command "notation cert". 
+Prerequisite: added a certificate into trust store and created a trust policy. 
 
-Example - Verify a signature using the trusted certificate:
+Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
   notation verify <registry>/<repository>:<tag>
 
-Example - Verify a signature associated with an OCI artifact identified by the digest:
+Example - Verify a signature on an OCI artifact identified by a digest:
   notation verify <registry>/<repository>@<digest>
-
-Example - Verify a signature using a trusted certificate in a specified path:
-  notation verify --cert-file <cert_path> <registry>/<repository>:<tag>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -59,119 +48,75 @@ Example - Verify a signature using a trusted certificate in a specified path:
 			return runVerify(cmd, opts)
 		},
 	}
-	setFlagSignature(command.Flags(), &opts.signatures)
-	command.Flags().StringSliceVarP(&opts.certs, "cert", "c", []string{}, "certificate names for verification")
-	command.Flags().StringSliceVar(&opts.certFiles, cmd.PflagCertFile.Name, []string{}, "certificate files for verification")
-	command.Flags().BoolVar(&opts.pull, "pull", true, "pull remote signatures before verification")
 	opts.ApplyFlags(command.Flags())
+	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	return command
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
-	// initialize
-	verifier, err := getVerifier(opts)
-	if err != nil {
-		return err
-	}
-	manifestDesc, err := getManifestDescriptorFromContext(command.Context(), &opts.RemoteFlagOpts, opts.reference)
+	// resolve the given reference and set the digest.
+	ref, err := resolveReference(command, opts)
 	if err != nil {
 		return err
 	}
 
-	sigPaths := opts.signatures
-	if len(sigPaths) == 0 {
-		if !opts.Local && opts.pull {
-			if err := pullSignatures(command, opts.reference, &opts.SecureFlagOpts, digest.Digest(manifestDesc.Digest)); err != nil {
-				return err
-			}
-		}
-		manifestDigest := digest.Digest(manifestDesc.Digest)
-		sigDigests, err := cache.SignatureDigests(manifestDigest)
-		if err != nil {
-			return err
-		}
-		for _, sigDigest := range sigDigests {
-			sigPaths = append(sigPaths, dir.Path.CachedSignature(manifestDigest, sigDigest))
-		}
-	}
-
-	// core process
-	if err := verifySignatures(command.Context(), verifier, manifestDesc, sigPaths); err != nil {
+	// initialize verifier.
+	verifier, err := getVerifier(opts, ref)
+	if err != nil {
 		return err
 	}
 
-	// write out
-	fmt.Println(manifestDesc.Digest)
-	return nil
-}
-
-func verifySignatures(ctx context.Context, verifier notation.Verifier, manifestDesc notation.Descriptor, sigPaths []string) error {
-	if len(sigPaths) == 0 {
-		return errors.New("verification failure: no signatures found")
+	// set up verification plugin config.
+	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	if err != nil {
+		return err
 	}
 
-	var lastErr error
-	for _, path := range sigPaths {
-		sig, err := os.ReadFile(path)
-		if err != nil {
-			lastErr = fmt.Errorf("verification failure: %v", err)
-			continue
-		}
-		// pass in nonempty annotations if needed
-		sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
-		if err != nil {
-			lastErr = fmt.Errorf("verification failure: %v", err)
-			continue
-		}
-		opts := notation.VerifyOptions{
-			SignatureMediaType: sigMediaType,
-		}
-		desc, err := verifier.Verify(ctx, sig, opts)
-		if err != nil {
-			lastErr = fmt.Errorf("verification failure: %v", err)
-			continue
-		}
+	// core verify process.
+	ctx := verification.WithPluginConfig(command.Context(), configs)
+	outcomes, err := verifier.Verify(ctx, ref.String())
 
-		if !desc.Equal(manifestDesc) {
-			lastErr = fmt.Errorf("verification failure: %s", manifestDesc.Digest)
-			continue
-		}
-		return nil
-	}
-	return lastErr
+	// write out.
+	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
 }
 
-func getVerifier(opts *verifyOpts) (notation.Verifier, error) {
-	certPaths, err := appendCertPathFromName(opts.certFiles, opts.certs)
+func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifier, error) {
+	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
 	if err != nil {
 		return nil, err
 	}
-	if len(certPaths) == 0 {
-		cfg, err := configutil.LoadConfigOnce()
-		if err != nil {
-			return nil, err
-		}
-		if len(cfg.VerificationCertificates.Certificates) == 0 {
-			return nil, errors.New("trust certificate not specified")
-		}
-		for _, ref := range cfg.VerificationCertificates.Certificates {
-			certPaths = append(certPaths, ref.Path)
-		}
-	}
-	return signature.NewVerifierFromFiles(certPaths)
+
+	repo := notationregistry.NewRepositoryClient(authClient, ref, plainHTTP)
+
+	return verification.NewVerifier(repo)
 }
 
-func appendCertPathFromName(paths, names []string) ([]string, error) {
-	for _, name := range names {
-		cfg, err := configutil.LoadConfigOnce()
-		if err != nil {
-			return nil, err
-		}
-		idx := slices.Index(cfg.VerificationCertificates.Certificates, name)
-		if idx < 0 {
-			return nil, errors.New("verification certificate not found: " + name)
-		}
-		paths = append(paths, cfg.VerificationCertificates.Certificates[idx].Path)
+func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
+	ref, err := registry.ParseReference(opts.reference)
+	if err != nil {
+		return registry.Reference{}, err
 	}
-	return paths, nil
+
+	if isDigestReference(opts.reference) {
+		return ref, nil
+	}
+
+	// Resolve tag reference to digest reference.
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	if err != nil {
+		return registry.Reference{}, err
+	}
+
+	ref.Reference = manifestDesc.Digest.String()
+	return ref, nil
+}
+
+func isDigestReference(reference string) bool {
+	parts := strings.SplitN(reference, "/", 2)
+	if len(parts) == 1 {
+		return false
+	}
+
+	index := strings.Index(parts[1], "@")
+	return index != -1
 }

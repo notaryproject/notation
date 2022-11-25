@@ -8,45 +8,18 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 
 ## Table of Contents
 
-- [Notation Quick Start](#notation-quick-start)
-- [Contributing](#contributing)
-- [Core Documents](#core-documents)
-- [Community](#community)
-- [Release Management](#release-management)
-- [Support](#support)
-- [Code of Conduct](#code-of-conduct)
-- [License](#license)
-
-## Notation Quick Start
-
-- Install the Notation CLI from [Notation Releases][notation-releases]:
-    ```bash
-    curl -Lo notation.tar.gz https://github.com/notaryproject/notation/releases/download/v0.10.0-alpha.3/notation_0.10.0-alpha.3_linux_amd64.tar.gz
-    tar xvzf notation.tar.gz -C ~/bin notation
-    ```
-- Run a local instance of the [CNCF Distribution Registry][cncf-distribution], with [ORAS Artifacts][artifact-manifest] support:
-  ```bash
-  docker run -d -p 5000:5000 ghcr.io/oras-project/registry:v1.0.0-rc
-  ```
-
-- Build, push, sign, verify the `net-monitor` software:
-
-  ```bash
-  export IMAGE=localhost:5000/net-monitor:v1
-  docker build -t $IMAGE https://github.com/wabbit-networks/net-monitor.git#main
-  docker push $IMAGE
-  notation cert generate-test --default --trust "wabbit-networks-dev"
-  notation sign --plain-http $IMAGE
-  notation list --plain-http $IMAGE
-  notation verify --plain-http $IMAGE
-  ```
-
-> Note: Signatures are persisted as [ORAS Artifacts manifests][artifact-manifest].
-
+  - [Documents](#documents)
+  - [Community](#community)
+    - [Development and Contributing](#development-and-contributing)
+    - [Notary v2 Community Meeting](#notary-v2-community-meeting)
+  - [Release Management](#release-management)
+  - [Support](#support)
+  - [Code of Conduct](#code-of-conduct)
+  - [License](#license)
 
 ## Documents
 
-- [Hello World for Notation: Local signing and verification](docs/hello-signing.md)
+- [Quick start: Sign and validate a container image](https://notaryproject.dev/docs/quickstart/)
 - [Build, sign, and verify container images using Notary and Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push)
 
 ## Community
