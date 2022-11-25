@@ -73,10 +73,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
-	verifyOpts := notation.VerifyOptions{
-		ArtifactReference:  ref.String(),
-		SignatureMediaType: "application/cose",
-		PluginConfig:       configs,
+	verifyOpts := notation.RemoteVerifyOptions{
+		ArtifactReference: ref.String(),
+		PluginConfig:      configs,
 		// TODO: need to change MaxSignatureAttempts as a user input flag or
 		// a field in config.json
 		MaxSignatureAttempts: math.MaxInt64,
