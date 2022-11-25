@@ -40,9 +40,6 @@ Example - Sign an OCI artifact using the default signing key, with the COSE enve
 Example - Sign an OCI artifact using a specified key
   notation sign --key <key_name> <registry>/<repository>@<digest>
 
-Example - Sign an OCI artifact using a local key and certificate file directly
-  notation sign --key-file <key_path> --cert-file <cert_path> <registry>/<repository>@<digest>
-
 Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to digest)
   notation sign <registry>/<repository>:<tag>
 
