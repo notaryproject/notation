@@ -12,22 +12,19 @@ func TestKeyAddCommand_BasicArgs(t *testing.T) {
 		name:         "name",
 		plugin:       "pluginname",
 		id:           "pluginid",
-		keyPath:      "keypath",
-		certPath:     "certpath",
-		pluginConfig: "pluginconfig",
+		pluginConfig: []string{"pluginconfig"},
 	}
 	if err := cmd.ParseFlags([]string{
-		"-n", expected.name,
 		"--plugin", expected.plugin,
 		"--id", expected.id,
-		"-c", expected.pluginConfig,
-		expected.keyPath, expected.certPath}); err != nil {
+		"-c", "pluginconfig",
+		expected.name}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if *expected != *opts {
+	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect key add opts: %v, got: %v", expected, opts)
 	}
 }
@@ -63,9 +60,9 @@ func TestKeyUpdateCommand_MissingArgs(t *testing.T) {
 }
 
 func TestKeyRemoveCommand_BasicArgs(t *testing.T) {
-	opts := &keyRemoveOpts{}
-	cmd := keyRemoveCommand(opts)
-	expected := &keyRemoveOpts{
+	opts := &keyDeleteOpts{}
+	cmd := keyDeleteCommand(opts)
+	expected := &keyDeleteOpts{
 		names: []string{"key0", "key1", "key2"},
 	}
 	if err := cmd.ParseFlags(expected.names); err != nil {
@@ -80,7 +77,7 @@ func TestKeyRemoveCommand_BasicArgs(t *testing.T) {
 }
 
 func TestKeyRemoveCommand_MissingArgs(t *testing.T) {
-	cmd := keyRemoveCommand(nil)
+	cmd := keyDeleteCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}

@@ -38,20 +38,20 @@ func certCommand() *cobra.Command {
 		Short:   "Manage certificates used for verification",
 		Long: `Manage certificates used for verification
 
-Example - Generate a self-signed test certificate and add it to the verification list:
-  notation cert generate-test -n localcert --trust
+Example - Generate a test RSA key and a corresponding self-signed certificate:
+  notation certificate generate-test [flags] <common_name>
 
-Example - Add the certificate to the trusted certificate list:
-  notation cert add --name <key_name> <cert_path>
+Example - Add the certificate to the trust store:
+  notation cert add --type <type> --store <name> [flags] <cert_path>...
 
-Example - Generate a self-signed test certificate and set it to default:
-  notation cert generate-test -d <key_name>
+Example - List certificates in the trust store:
+  notation cert ls [flags]
 
-Example - List trusted certificates:
-  notation cert ls
+Example - Show certificate details given trust store type, trust store name, and certificate file name:
+  notation cert show --type <type> --store <name> [flags] <cert_fileName>
 
-Example - Remove the certificate from the trusted certificate list:
-  notation cert rm <key_name>
+Example - Delete the certificate from the trust store:
+  notation certificate delete --type <type> --store <name> [flags] (--all | <cert_fileName>)
 `,
 	}
 
