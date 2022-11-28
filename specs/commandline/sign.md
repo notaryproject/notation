@@ -4,7 +4,7 @@
 
 Use `notation sign` to sign artifacts.
 
-Signs an OCI artifact stored in the registry. Always sign artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
+Signs an OCI artifact stored in the registry. Always sign artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
 
 Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
 
@@ -15,7 +15,7 @@ Successfully signed <registry>/<repository>@<digest>.
 If a `tag` is used to identify the OCI artifact, the output message is as following:
 
 ```test
-Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
+Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Resolved artifact tag '<tag>' to digest '<digest>' before signing.
 Successfully signed <registry>/<repository>@<digest>
 ```
@@ -57,7 +57,7 @@ notation sign <registry>/<repository>@<digest>
 
 An example for a successful signing:
 
-```shell
+```console
 $ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
 ```
@@ -69,7 +69,7 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 # A default signing key is configured using CLI "notation key"
 
 # Use option "--signature-format" to set the signature format to COSE.
-$ notation sign --signature-format cose <registry>/<repository>@<digest>
+notation sign --signature-format cose <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact stored in a registry using the default signing key
@@ -79,7 +79,7 @@ $ notation sign --signature-format cose <registry>/<repository>@<digest>
 # A default signing key is configured using CLI "notation key"
 
 # Use a digest that uniquely and immutably identifies an OCI artifact.
-$ notation sign <registry>/<repository>@<digest>
+notation sign <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
@@ -92,10 +92,10 @@ notation sign --expiry 24h <registry>/<repository>@<digest>
 
 ```shell
 # List signing keys to get the key name
-$ notation key list
+notation key list
 
 # Sign a container image using the specified key name
-$ notation sign --key <key_name> <registry>/<repository>@<digest>
+notation sign --key <key_name> <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact identified by a tag
@@ -105,14 +105,14 @@ $ notation sign --key <key_name> <registry>/<repository>@<digest>
 # A default signing key is configured using CLI "notation key"
 
 # Use a tag to identify a container image
-$ notation sign <registry>/<repository>:<tag>
+notation sign <registry>/<repository>:<tag>
 ```
 
 An example for a successful signing:
 
-```shell
+```console
 $ notation sign localhost:5000/net-monitor:v1
-Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
+Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Resolved artifact tag 'v1' to digest 'sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9' before signing.
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
