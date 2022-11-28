@@ -70,7 +70,7 @@ For a Linux user, store file `trustpolicy.json` under directory `${HOME}/.config
 
 For a MacOS user, store file `trustpolicy.json` under directory `${HOME}/Library/Application Support/notation/`.
 
-For a Window user, store file `trustpolicy.json` under directory `%USERPROFILE%\AppData\Roaming\notation\`.
+For a Windows user, store file `trustpolicy.json` under directory `%USERPROFILE%\AppData\Roaming\notation\`.
 
 Example values on trust policy properties:
 
