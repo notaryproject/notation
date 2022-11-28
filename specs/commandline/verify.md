@@ -74,7 +74,7 @@ For a Window user, store file `trustpolicy.json` under directory `%USERPROFILE%\
 
 Example values on trust policy properties:
 
-| Property name | Value | Meaning |
+| Property name         | Value                                                                                      | Meaning                                                                                                                                                            |
 | ----------------------|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | name                  | "wabbit-networks-images"                                                                   | The name of the policy is "wabbit-networks-images".                                                                                                                |
 | registryScopes        | "localhost:5000/net-monitor"                                                               | The policy only applies to artifacts stored in repository `localhost:5000/net-monitor`.                                                                            |
