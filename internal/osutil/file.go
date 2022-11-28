@@ -10,15 +10,15 @@ import (
 
 // WriteFile writes to a path with all parent directories created.
 func WriteFile(path string, data []byte) error {
-	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
-	return os.WriteFile(path, data, 0666)
+	return os.WriteFile(path, data, 0600)
 }
 
 // WriteFileWithPermission writes to a path with all parent directories created.
 func WriteFileWithPermission(path string, data []byte, perm fs.FileMode, overwrite bool) error {
-	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
 	flag := os.O_WRONLY | os.O_CREATE
@@ -56,7 +56,7 @@ func CopyToDir(src, dst string) (int64, error) {
 	}
 	defer source.Close()
 
-	if err := os.MkdirAll(dst, 0755); err != nil {
+	if err := os.MkdirAll(dst, 0700); err != nil {
 		return 0, err
 	}
 	certFile := filepath.Join(dst, filepath.Base(src))
@@ -65,7 +65,7 @@ func CopyToDir(src, dst string) (int64, error) {
 		return 0, err
 	}
 	defer destination.Close()
-	err = destination.Chmod(0644)
+	err = destination.Chmod(0600)
 	if err != nil {
 		return 0, err
 	}
