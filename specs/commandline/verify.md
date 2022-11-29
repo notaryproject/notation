@@ -5,7 +5,7 @@
 Use `notation verify` command to verify signatures associated with the artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
 
 ```text
-Successfully verified for <registry>/<repository>@<digest>
+Successfully verified signature for <registry>/<repository>@<digest>
 ```
 
 Tags are mutable and a tag reference can point to a different artifact than that was signed referred by the same tag. If a `tag` is used to identify the OCI artifact, the output message is as follows:
@@ -13,7 +13,7 @@ Tags are mutable and a tag reference can point to a different artifact than that
 ```text
 Resolved artifact tag '<tag>' to digest '<digest>' before verification.
 Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
-Successfully verified for <registry>/<repository>@<digest>
+Successfully verified signature for <registry>/<repository>@<digest>
 ```
 
 ## Outline
@@ -110,7 +110,7 @@ notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dab
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
 ### Verify signatures on an OCI artifact identified by a tag
@@ -129,5 +129,5 @@ An example of output messages for a successful verification:
 ```text
 Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
 Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
-Successfully verified for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
