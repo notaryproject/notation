@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/http"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/configutil"
@@ -91,6 +93,9 @@ func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, 
 		},
 		Cache:    auth.NewCache(),
 		ClientID: "notation",
+		Client: &http.Client{
+			Transport: trace.NewTransport(http.DefaultTransport),
+		},
 	}
 	authClient.SetUserAgent("notation/" + version.GetVersion())
 

@@ -14,6 +14,7 @@ import (
 )
 
 type signOpts struct {
+	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
 	SecureFlagOpts
 	expiry       time.Duration
@@ -58,15 +59,18 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 			return runSign(cmd, opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SignerFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-
 	return command
 }
 
 func runSign(command *cobra.Command, cmdOpts *signOpts) error {
+	// set log level
+	ctx, _ := cmdOpts.LoggingFlagOpts.SetLoggerLevel()
+
 	// initialize
 	signer, err := cmd.GetSigner(&cmdOpts.SignerFlagOpts)
 	if err != nil {
@@ -82,7 +86,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	_, err = notation.Sign(command.Context(), signer, sigRepo, opts)
+	_, err = notation.Sign(ctx, signer, sigRepo, opts)
 	if err != nil {
 		return err
 	}

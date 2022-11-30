@@ -18,6 +18,7 @@ import (
 )
 
 type verifyOpts struct {
+	cmd.LoggingFlagOpts
 	SecureFlagOpts
 	reference    string
 	pluginConfig []string
@@ -51,12 +52,16 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 			return runVerify(cmd, opts)
 		},
 	}
-	opts.ApplyFlags(command.Flags())
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	return command
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
+	// set log level
+	ctx, _ := opts.LoggingFlagOpts.SetLoggerLevel()
+
 	// resolve the given reference and set the digest.
 	ref, err := resolveReference(command, opts)
 	if err != nil {
@@ -91,7 +96,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// core verify process.
-	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
+	_, outcomes, err := notation.Verify(ctx, verifier, repo, verifyOpts)
 
 	// write out.
 	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
