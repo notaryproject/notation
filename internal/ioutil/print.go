@@ -1,25 +1,36 @@
 package ioutil
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"text/tabwriter"
 
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/plugin/manager"
-	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/proto"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
 
-func PrintPlugins(w io.Writer, v []*manager.Plugin) error {
+func PrintPlugins(ctx context.Context, w io.Writer, v []plugin.Plugin, errors []error) error {
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
-	for _, p := range v {
+	for ind, p := range v {
+		metaData := proto.GetMetadataResponse{}
+		if p != nil {
+			req := &proto.GetMetadataRequest{}
+			metadata, err := p.GetMetadata(ctx, req)
+			if err == nil {
+				metaData = *metadata
+			}
+			errors[ind] = err
+		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			p.Name, p.Description, p.Version, p.Capabilities, p.Err)
+			metaData.Name, metaData.Description, metaData.Version, metaData.Capabilities, errors[ind])
 	}
 	return tw.Flush()
 }
@@ -45,16 +56,7 @@ func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 	return tw.Flush()
 }
 
-func PrintCertificateMap(w io.Writer, v []config.CertificateReference) error {
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tPATH\t")
-	for _, cert := range v {
-		fmt.Fprintf(tw, "%s\t%s\t\n", cert.Name, cert.Path)
-	}
-	return tw.Flush()
-}
-
-func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificationOutcome, resultErr error, digest string, isTag bool, tag string) error {
+func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, digest string, isTag bool, tag string) error {
 	if isTag {
 		fmt.Println("Warning: Always verify artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one verified.")
 		fmt.Printf("Resolved artifact tag %q to digest %q before verification.\n", tag, digest)
@@ -67,19 +69,8 @@ func PrintVerificationResults(w io.Writer, v []*verification.SignatureVerificati
 		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
-
-	fmt.Fprintf(tw, "ERROR: %s\n\n", resultErr.Error())
-	printOutcomes(tw, v, digest)
+	fmt.Printf("Signature verification failed for all the signatures associated with digest: %s\n", digest)
 	tw.Flush()
 
 	return resultErr
-}
-
-func printOutcomes(tw *tabwriter.Writer, outcomes []*verification.SignatureVerificationOutcome, digest string) {
-	fmt.Printf("Signature verification failed for all the %d signatures associated with digest: %s\n\n", len(outcomes), digest)
-
-	// TODO[https://github.com/notaryproject/notation/issues/304]: print out detailed errors in debug mode.
-	for idx, outcome := range outcomes {
-		fmt.Printf("Signature #%d : %s\n", idx+1, outcome.Error.Error())
-	}
 }

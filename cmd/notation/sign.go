@@ -9,6 +9,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -79,21 +80,16 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sig, err := signer.Sign(command.Context(), desc, opts)
+	sigRepo, err := getSignatureRepository(&cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	if err != nil {
+		return err
+	}
+	_, err = notation.Sign(command.Context(), signer, sigRepo, opts)
 	if err != nil {
 		return err
 	}
 
 	// write out
-	ref := cmdOpts.reference
-	if _, err := pushSignature(command.Context(), &cmdOpts.SecureFlagOpts, ref, sig); err != nil {
-		return fmt.Errorf("fail to push signature to %q: %v: %v",
-			ref,
-			desc.Digest,
-			err,
-		)
-	}
-
 	if tagReference.isTag {
 		fmt.Println("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one signed.")
 		fmt.Printf("Resolving artifact tag %q to digest %q before signing.\n", tagReference.tag, desc.Digest)
@@ -102,16 +98,20 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descriptor, notation.SignOptions, tagReference, error) {
+func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, tagReference, error) {
 	var tagRef tagReference
 	isTag := !isDigestReference(opts.reference)
 	manifestDesc, ref, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return notation.Descriptor{}, notation.SignOptions{}, tagReference{}, err
+		return ocispec.Descriptor{}, notation.SignOptions{}, tagReference{}, err
+	}
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	if err != nil {
+		return ocispec.Descriptor{}, notation.SignOptions{}, tagReference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return notation.Descriptor{}, notation.SignOptions{}, tagReference{}, err
+		return ocispec.Descriptor{}, notation.SignOptions{}, tagReference{}, err
 	}
 	if isTag {
 		tagRef = tagReference{
@@ -120,32 +120,9 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descri
 		}
 	}
 	return manifestDesc, notation.SignOptions{
-		Expiry:       cmd.GetExpiry(opts.expiry),
-		PluginConfig: pluginConfig,
+		ArtifactReference:  opts.reference,
+		SignatureMediaType: mediaType,
+		Expiry:             cmd.GetExpiry(opts.expiry),
+		PluginConfig:       pluginConfig,
 	}, tagRef, nil
-}
-
-func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []byte) (notation.Descriptor, error) {
-	// initialize
-	sigRepo, err := getSignatureRepository(opts, ref)
-	if err != nil {
-		return notation.Descriptor{}, err
-	}
-	manifestDesc, _, err := getManifestDescriptorFromReference(ctx, opts, ref)
-	if err != nil {
-		return notation.Descriptor{}, err
-	}
-
-	// core process
-	// pass in nonempty annotations if needed
-	sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
-	if err != nil {
-		return notation.Descriptor{}, err
-	}
-	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, sigMediaType, manifestDesc, make(map[string]string))
-	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
-	}
-
-	return sigDesc, nil
 }
