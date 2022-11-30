@@ -65,12 +65,12 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
-	remote_repo := remote.Repository{
+	remoteRepo := remote.Repository{
 		Client:    authClient,
 		Reference: ref,
 		PlainHTTP: plainHTTP,
 	}
-	repo := notationRegistry.NewRepository(&remote_repo)
+	repo := notationRegistry.NewRepository(&remoteRepo)
 
 	// set up verification plugin config
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
