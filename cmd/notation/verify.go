@@ -17,6 +17,11 @@ import (
 	"oras.land/oras-go/v2/registry/remote"
 )
 
+type tagReference struct {
+	isTag bool
+	tag   string
+}
+
 type verifyOpts struct {
 	SecureFlagOpts
 	reference    string
@@ -48,13 +53,13 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
-	// resolve the given reference and set the digest.
+	// resolve the given reference and set the digest
 	ref, tagRef, err := resolveReference(command, opts)
 	if err != nil {
 		return err
 	}
 
-	// initialize verifier.
+	// initialize verifier
 	verifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
@@ -67,7 +72,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 	repo := notationRegistry.NewRepository(&remote_repo)
 
-	// set up verification plugin config.
+	// set up verification plugin config
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return err
@@ -81,11 +86,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		MaxSignatureAttempts: math.MaxInt64,
 	}
 
-	// core verify process.
+	// core verify process
 	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
 
-	// write out.
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference, tagRef.isTag, tagRef.tag)
+	// write out
+	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref, tagRef.isTag, tagRef.tag)
 }
 
 func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, tagReference, error) {
@@ -103,11 +108,13 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 	if err != nil {
 		return registry.Reference{}, tagReference{}, err
 	}
-
 	ref.Reference = manifestDesc.Digest.String()
+
+	// At this point, ref.Reference holds the resolved digest, while
+	// tagReference holds the original tag.
 	return ref, tagReference{
 		isTag: true,
-		tag:   tagRef.Reference,
+		tag:   tagRef.ReferenceOrDefault(),
 	}, nil
 }
 
@@ -117,6 +124,6 @@ func isDigestReference(reference string) bool {
 		return false
 	}
 
-	index := strings.Index(parts[1], "@")
-	return index != -1
+	_, _, found := strings.Cut(parts[1], "@")
+	return found
 }

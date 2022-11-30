@@ -10,6 +10,7 @@ import (
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	"oras.land/oras-go/v2/registry"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
@@ -56,16 +57,17 @@ func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 	return tw.Flush()
 }
 
-func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, digest string, isTag bool, tag string) error {
+func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, ref registry.Reference, isTag bool, tag string) error {
+	digest := ref.Reference
 	if isTag {
-		fmt.Println("Warning: Always verify artifact using digest(`@sha256:...`) rather than a tag(`:latest`) because tags are mutable and a tag reference can point to a different artifact than the one verified.")
 		fmt.Printf("Resolved artifact tag %q to digest %q before verification.\n", tag, digest)
+		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
 	}
 
 	tw := newTabWriter(w)
 
 	if resultErr == nil {
-		fmt.Fprintf(tw, "Successfully verified for %s\n", digest)
+		fmt.Fprintf(tw, "Successfully verified signature for %s/%s@%s\n", ref.Registry, ref.Repository, digest)
 		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
