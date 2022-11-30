@@ -2,16 +2,19 @@ package main
 
 import (
 	"errors"
+	"math"
 	"os"
 	"strings"
 
+	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation-go/verification"
+	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 type verifyOpts struct {
@@ -52,10 +55,17 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// initialize verifier.
-	verifier, err := getVerifier(opts, ref)
+	verifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
 	}
+	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
+	remote_repo := remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: plainHTTP,
+	}
+	repo := notationregistry.NewRepository(&remote_repo)
 
 	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
@@ -63,23 +73,19 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
+	verifyOpts := notation.RemoteVerifyOptions{
+		ArtifactReference: ref.String(),
+		PluginConfig:      configs,
+		// TODO: need to change MaxSignatureAttempts as a user input flag or
+		// a field in config.json
+		MaxSignatureAttempts: math.MaxInt64,
+	}
+
 	// core verify process.
-	ctx := verification.WithPluginConfig(command.Context(), configs)
-	outcomes, err := verifier.Verify(ctx, ref.String())
+	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
 
 	// write out.
 	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
-}
-
-func getVerifier(opts *verifyOpts, ref registry.Reference) (*verification.Verifier, error) {
-	authClient, plainHTTP, err := getAuthClient(&opts.SecureFlagOpts, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	repo := notationregistry.NewRepositoryClient(authClient, ref, plainHTTP)
-
-	return verification.NewVerifier(repo)
 }
 
 func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
