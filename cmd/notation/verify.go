@@ -17,11 +17,6 @@ import (
 	"oras.land/oras-go/v2/registry/remote"
 )
 
-type tagReference struct {
-	isTag bool
-	tag   string
-}
-
 type verifyOpts struct {
 	SecureFlagOpts
 	reference    string
@@ -54,7 +49,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// resolve the given reference and set the digest
-	ref, tagRef, err := resolveReference(command, opts)
+	ref, err := resolveReference(command, opts)
 	if err != nil {
 		return err
 	}
@@ -90,32 +85,27 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
 
 	// write out
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref, tagRef.isTag, tagRef.tag)
+	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref)
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, tagReference, error) {
+func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
 	ref, err := registry.ParseReference(opts.reference)
 	if err != nil {
-		return registry.Reference{}, tagReference{}, err
+		return registry.Reference{}, err
 	}
 
 	if isDigestReference(opts.reference) {
-		return ref, tagReference{}, nil
+		return ref, nil
 	}
 
 	// Resolve tag reference to digest reference.
-	manifestDesc, tagRef, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	manifestDesc, _, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return registry.Reference{}, tagReference{}, err
+		return registry.Reference{}, err
 	}
 	ref.Reference = manifestDesc.Digest.String()
 
-	// At this point, ref.Reference holds the resolved digest, while
-	// tagReference holds the original tag.
-	return ref, tagReference{
-		isTag: true,
-		tag:   tagRef.ReferenceOrDefault(),
-	}, nil
+	return ref, nil
 }
 
 func isDigestReference(reference string) bool {

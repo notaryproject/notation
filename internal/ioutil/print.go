@@ -57,21 +57,14 @@ func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 	return tw.Flush()
 }
 
-func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, ref registry.Reference, isTag bool, tag string) error {
-	digest := ref.Reference
-	if isTag {
-		fmt.Printf("Resolved artifact tag %q to digest %q before verification.\n", tag, digest)
-		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
-	}
-
+func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, ref registry.Reference) error {
 	tw := newTabWriter(w)
-
 	if resultErr == nil {
-		fmt.Fprintf(tw, "Successfully verified signature for %s/%s@%s\n", ref.Registry, ref.Repository, digest)
+		fmt.Fprintf(tw, "Successfully verified signature for %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
 		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
-	fmt.Printf("Signature verification failed for all the signatures associated with digest: %s\n", digest)
+	fmt.Printf("Signature verification failed for all the signatures associated with %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
 	tw.Flush()
 
 	return resultErr

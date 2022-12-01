@@ -72,7 +72,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// core process
-	desc, opts, tagReference, ref, err := prepareSigningContent(command.Context(), cmdOpts)
+	desc, opts, ref, err := prepareSigningContent(command.Context(), cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -86,40 +86,28 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	if tagReference.isTag {
-		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", tagReference.tag)
-		fmt.Printf("Resolved artifact tag %q to digest %q before signing.\n", tagReference.tag, desc.Digest)
-	}
-
 	fmt.Printf("Successfully signed %s/%s@%s", ref.Registry, ref.Repository, desc.Digest)
+
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, tagReference, registry.Reference, error) {
-	var tagRef tagReference
-	isTag := !isDigestReference(opts.reference)
+func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, registry.Reference, error) {
 	manifestDesc, ref, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, tagReference{}, registry.Reference{}, err
+		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
 	}
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, tagReference{}, registry.Reference{}, err
+		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, tagReference{}, registry.Reference{}, err
-	}
-	if isTag {
-		tagRef = tagReference{
-			isTag: isTag,
-			tag:   ref.ReferenceOrDefault(),
-		}
+		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
 	}
 	return manifestDesc, notation.SignOptions{
 		ArtifactReference:  opts.reference,
 		SignatureMediaType: mediaType,
 		Expiry:             cmd.GetExpiry(opts.expiry),
 		PluginConfig:       pluginConfig,
-	}, tagRef, ref, nil
+	}, ref, nil
 }
