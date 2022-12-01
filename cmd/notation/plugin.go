@@ -34,6 +34,8 @@ func pluginListCommand() *cobra.Command {
 func listPlugins(command *cobra.Command) error {
 	var err error
 	var pl plugin.Plugin
+	var resp *proto.GetMetadataResponse
+
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	pluginNames, err := mgr.List(command.Context())
 	if err != nil {
@@ -47,7 +49,6 @@ func listPlugins(command *cobra.Command) error {
 		metaData := &proto.GetMetadataResponse{}
 		if pl != nil {
 			req := &proto.GetMetadataRequest{}
-			var resp *proto.GetMetadataResponse
 			resp, err = pl.GetMetadata(command.Context(), req)
 			if err == nil {
 				metaData = resp
