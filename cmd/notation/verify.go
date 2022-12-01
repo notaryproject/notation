@@ -60,7 +60,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
-	ctx, _ := opts.LoggingFlagOpts.SetLoggerLevel()
+	ctx, _ := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
 	// resolve the given reference and set the digest.
 	ref, err := resolveReference(command, opts)
