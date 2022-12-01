@@ -47,7 +47,8 @@ func listPlugins(command *cobra.Command) error {
 		metaData := &proto.GetMetadataResponse{}
 		if pl != nil {
 			req := &proto.GetMetadataRequest{}
-			resp, err := pl.GetMetadata(command.Context(), req)
+			var resp *proto.GetMetadataResponse
+			resp, err = pl.GetMetadata(command.Context(), req)
 			if err == nil {
 				metaData = resp
 			}
