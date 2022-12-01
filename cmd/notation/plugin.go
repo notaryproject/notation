@@ -42,5 +42,5 @@ func listPlugins(command *cobra.Command) error {
 		errors = append(errors, err)
 		plugins = append(plugins, pl)
 	}
-	return ioutil.PrintPlugins(command.Context(), os.Stdout, plugins, errors)
+	return ioutil.PrintPlugins(command.Context(), os.Stdout, pluginNames, plugins, errors)
 }
