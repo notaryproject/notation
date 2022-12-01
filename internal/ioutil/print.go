@@ -42,7 +42,6 @@ func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, re
 		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
 		return nil
 	}
-	fmt.Printf("Signature verification failed for all the signatures associated with digest: %s\n", digest)
 	tw.Flush()
 
 	return resultErr
