@@ -1,38 +1,16 @@
 package ioutil
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/plugin/proto"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
-}
-
-func PrintPlugins(ctx context.Context, w io.Writer, pluginNames []string, v []plugin.Plugin, errors []error) error {
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
-	for ind, p := range v {
-		metaData := &proto.GetMetadataResponse{}
-		if p != nil {
-			req := &proto.GetMetadataRequest{}
-			resp, err := p.GetMetadata(ctx, req)
-			if err == nil {
-				metaData = resp
-			}
-			errors[ind] = err
-		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			pluginNames[ind], metaData.Description, metaData.Version, metaData.Capabilities, errors[ind])
-	}
-	return tw.Flush()
 }
 
 func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
