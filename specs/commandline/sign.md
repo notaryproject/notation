@@ -9,13 +9,13 @@ Signs an OCI artifact stored in the registry. Always sign artifact using digest(
 Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
 
 ```text
-Successfully signed <registry>/<repository>@<digest>.
+Successfully signed <registry>/<repository>@<digest>
 ```
 
 If a `tag` is used to identify the OCI artifact, the output message is as following:
 
 ```test
-Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
+Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:<tag>`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Resolved artifact tag '<tag>' to digest '<digest>' before signing.
 Successfully signed <registry>/<repository>@<digest>
 ```
@@ -59,7 +59,7 @@ An example for a successful signing:
 
 ```console
 $ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9.
+Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
 ### Sign an OCI artifact using COSE signature format
