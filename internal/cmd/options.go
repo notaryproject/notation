@@ -33,11 +33,9 @@ func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 
 // SetLoggerLevel sets up the logger based on common options.
 func (opts *LoggingFlagOpts) SetLoggerLevel() (context.Context, log.Logger) {
-	var logLevel logrus.Level
+	var logLevel = logrus.InfoLevel
 	if opts.Debug {
 		logLevel = logrus.DebugLevel
-	} else {
-		logLevel = logrus.WarnLevel
 	}
 	return trace.WithLoggerLevel(context.Background(), logLevel)
 }

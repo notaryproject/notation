@@ -26,11 +26,20 @@ import (
 
 // WithLoggerLevel returns a context with logrus log entry.
 func WithLoggerLevel(ctx context.Context, level logrus.Level) (context.Context, log.Logger) {
+	// set formatter
+	var formatter logrus.TextFormatter
+	if level == logrus.DebugLevel {
+		formatter.FullTimestamp = true
+	} else {
+		formatter.DisableTimestamp = true
+	}
+
+	// create logger
 	logger := logrus.New()
-	logger.SetFormatter(&logrus.TextFormatter{
-		DisableTimestamp: true,
-	})
+	logger.SetFormatter(&formatter)
 	logger.SetLevel(level)
 	entry := logger.WithContext(ctx)
+
+	// save logger to context
 	return log.WithLogger(ctx, entry), entry
 }
