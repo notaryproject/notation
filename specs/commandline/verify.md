@@ -11,7 +11,7 @@ Successfully verified signature for <registry>/<repository>@<digest>
 Tags are mutable and a tag reference can point to a different artifact than that was signed referred by the same tag. If a `tag` is used to identify the OCI artifact, the output message is as follows:
 
 ```text
-Resolved artifact tag '<tag>' to digest '<digest>' before verification.
+Resolved artifact tag `<tag>` to digest `<digest>` before verification.
 Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
 Successfully verified signature for <registry>/<repository>@<digest>
 ```
