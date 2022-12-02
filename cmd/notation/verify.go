@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"strings"
 
 	"github.com/notaryproject/notation-go"
 	notationRegistry "github.com/notaryproject/notation-go/registry"
@@ -122,7 +121,8 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 		return registry.Reference{}, err
 	}
 
-	if isDigestReference(opts.reference) {
+	// reference is a digest reference
+	if ref.ValidateReferenceAsDigest() == nil {
 		return ref, nil
 	}
 
@@ -134,14 +134,4 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 	ref.Reference = manifestDesc.Digest.String()
 
 	return ref, nil
-}
-
-func isDigestReference(reference string) bool {
-	parts := strings.SplitN(reference, "/", 2)
-	if len(parts) == 1 {
-		return false
-	}
-
-	_, _, found := strings.Cut(parts[1], "@")
-	return found
 }
