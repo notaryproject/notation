@@ -106,11 +106,8 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descrip
 	signOpts := notation.SignOptions{
 		ArtifactReference:  opts.reference,
 		SignatureMediaType: mediaType,
+		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
-	}
-
-	if opts.expiry != 0 {
-		signOpts.ExpiryDuration = &opts.expiry
 	}
 
 	return manifestDesc, signOpts, nil
