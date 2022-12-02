@@ -94,11 +94,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// write out
 	// on failure
 	if err != nil || len(outcomes) == 0 {
-		if err == nil {
-			err = errors.New("verification outcomes is empty")
-		}
-		fmt.Printf("Signature verification failed for all the signatures associated with %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
-		return err
+		return fmt.Errorf("signature verification failed for all the signatures associated with %s/%s@%s", ref.Registry, ref.Repository, ref.Reference)
 	}
 
 	// on success
