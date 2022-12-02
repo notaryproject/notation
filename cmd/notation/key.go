@@ -56,14 +56,11 @@ Example - Add a key to signing key list:
 Example - List keys used for signing:
   notation key ls
 
-Example - Update key in signing key list:
-  notation key set [flags] <key_name>
-
 Example - Update the default signing key:
-  notation key update --default <key_name>
+  notation key set --default <key_name>
 
 Example - Delete the key from signing key list:
-  notation key delete [flags] <key_name>...
+  notation key rm <key_name>...
 `,
 	}
 	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyDeleteCommand(nil))

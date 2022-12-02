@@ -25,7 +25,7 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 		Long: `List certificates in trust store
 
 Example - List all certificate files stored in the trust store
-  notation certificate ls
+  notation cert ls
 
 Example - List all certificate files of trust store "acme-rockets"
   notation cert ls --store "acme-rockets"

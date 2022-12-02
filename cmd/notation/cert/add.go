@@ -30,11 +30,11 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 		},
 		Long: `Manage certificates in trust store
 
-Example - Add certificates with type "ca" to the trust store "acme-rockets":
-  notation cert add --type ca --store "acme-rockets" $XDG_CONFIG_HOME/notation/truststore/x509/ca/acme-rockets/
+Example - Add a certificate to the "ca" type of a named store "acme-rockets":
+  notation cert add --type ca --store acme-rockets ./acme-rockets.crt
 
-Example - Add certificates with type "signingAuthority" to the trust store "wabbit-networks":
-  notation cert add --type ca --store "wabbit-networks" $XDG_CONFIG_HOME/notation/truststore/x509/signingAuthority/wabbit-networks/
+Example - Add a certificate to the "signingAuthority" type of a named store "wabbit-networks":
+  notation cert add --type signingAuthority --store "wabbit-networks" ./acme-rockets.crt
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addCerts(opts)
