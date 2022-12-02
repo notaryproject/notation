@@ -32,7 +32,6 @@ func pluginListCommand() *cobra.Command {
 }
 
 func listPlugins(command *cobra.Command) error {
-	var err error
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	pluginNames, err := mgr.List(command.Context())
 	if err != nil {
