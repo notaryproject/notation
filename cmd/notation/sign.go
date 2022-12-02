@@ -89,7 +89,12 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	fmt.Printf("Successfully signed %s/%s@%s\n", ref.Registry, ref.Repository, desc.Digest)
+	if ref.ValidateReferenceAsDigest() != nil {
+		// reference is not a digest reference
+		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, desc.Digest.String())
+	}
+	fmt.Println("Successfully signed", ref.String())
 
 	return nil
 }
@@ -107,9 +112,12 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descrip
 	if err != nil {
 		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
 	}
+	digestRef := ref
 
+	// always pass digest reference to SignOptions
+	digestRef.Reference = manifestDesc.Digest.String()
 	signOpts := notation.SignOptions{
-		ArtifactReference:  opts.reference,
+		ArtifactReference:  digestRef.String(),
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,

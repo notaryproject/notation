@@ -9,6 +9,7 @@ import (
 	notationRegistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -56,9 +57,15 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// resolve the given reference and set the digest
-	ref, err := resolveReference(command, opts)
+	desc, ref, isTag, err := resolveReference(command, opts)
 	if err != nil {
 		return err
+	}
+
+	digestRef := ref
+	if isTag {
+		// Resolve tag to digest reference
+		digestRef.Reference = desc.Digest.String()
 	}
 
 	// initialize verifier
@@ -66,10 +73,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
+	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, digestRef)
 	remoteRepo := remote.Repository{
 		Client:    authClient,
-		Reference: ref,
+		Reference: digestRef,
 		PlainHTTP: plainHTTP,
 	}
 	repo := notationRegistry.NewRepository(&remoteRepo)
@@ -80,8 +87,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
+	// always pass digest reference to RemoteVerifyOptions
 	verifyOpts := notation.RemoteVerifyOptions{
-		ArtifactReference: ref.String(),
+		ArtifactReference: digestRef.String(),
 		PluginConfig:      configs,
 		// TODO: need to change MaxSignatureAttempts as a user input flag or
 		// a field in config.json
@@ -107,27 +115,30 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 			fmt.Printf("warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
 		}
 	}
-	fmt.Printf("Successfully verified signature for %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
+	if isTag {
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, desc.Digest.String())
+		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable")
+	}
+	fmt.Println("Successfully verified signature for", ref.String())
 	return nil
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
+func resolveReference(command *cobra.Command, opts *verifyOpts) (ocispec.Descriptor, registry.Reference, bool, error) {
 	ref, err := registry.ParseReference(opts.reference)
 	if err != nil {
-		return registry.Reference{}, err
+		return ocispec.Descriptor{}, registry.Reference{}, false, err
 	}
 
 	// reference is a digest reference
 	if ref.ValidateReferenceAsDigest() == nil {
-		return ref, nil
+		return ocispec.Descriptor{}, ref, false, nil
 	}
 
-	// Resolve tag reference to digest reference.
+	// get manifest descriptor
 	manifestDesc, _, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return registry.Reference{}, err
+		return ocispec.Descriptor{}, registry.Reference{}, true, err
 	}
-	ref.Reference = manifestDesc.Digest.String()
 
-	return ref, nil
+	return manifestDesc, ref, true, nil
 }
