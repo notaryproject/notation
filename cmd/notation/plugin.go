@@ -47,7 +47,7 @@ func listPlugins(command *cobra.Command) error {
 	for _, n := range pluginNames {
 		pl, err = mgr.Get(command.Context(), n)
 		metaData := &proto.GetMetadataResponse{}
-		if pl != nil {
+		if err == nil {
 			req := &proto.GetMetadataRequest{}
 			resp, err = pl.GetMetadata(command.Context(), req)
 			if err == nil {
