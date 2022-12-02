@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go"
-	notationregistry "github.com/notaryproject/notation-go/registry"
+	notationRegistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -77,7 +77,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 	setHttpDebugLog(remoteRepo, opts.Debug)
-	repo := notationregistry.NewRepository(remoteRepo)
+	repo := notationRegistry.NewRepository(remoteRepo)
 	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {

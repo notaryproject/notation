@@ -63,20 +63,6 @@ func getRegistryClient(opts *SecureFlagOpts, serverAddress string, debug bool) (
 	return reg, nil
 }
 
-// func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference, debug bool) (notationregistry.Repository, error) {
-// 	authClient, plainHTTP, err := getAuthClient(opts, ref, debug)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	repo := &remote.Repository{
-// 		Client:    authClient,
-// 		Reference: ref,
-// 		PlainHTTP: plainHTTP,
-// 	}
-
-// 	return notationregistry.NewRepository(repo), nil
-// }
-
 func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
 	var plainHTTP bool
 
