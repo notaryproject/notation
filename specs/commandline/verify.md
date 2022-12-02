@@ -2,7 +2,19 @@
 
 ## Description
 
-Use `notation verify` command to verify signatures on an artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. The digest of the supplied artifact is returned upon successful verification. It is recommended that this digest reference be used to pull the artifact subsequently, as registry tags may be mutable, and a tag reference can point to a different artifact that what was verified.
+Use `notation verify` command to verify signatures associated with the artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
+
+```text
+Successfully verified signature for <registry>/<repository>@<digest>
+```
+
+Tags are mutable and a tag reference can point to a different artifact than that was signed referred by the same tag. If a `tag` is used to identify the OCI artifact, the output message is as follows:
+
+```text
+Resolved artifact tag `<tag>` to digest `<digest>` before verification.
+Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
+Successfully verified signature for <registry>/<repository>@<digest>
+```
 
 ## Outline
 
@@ -30,7 +42,7 @@ Use `notation certificate` command to configure trust stores.
 
 ### Configure Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://github.com/notaryproject/notation/blob/main/specs/directory.md) for `{NOTATION_CONFIG}`.
+Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/tutorials/directory-structure/) for `{NOTATION_CONFIG}`.
 
 An example of `trustpolicy.json`:
 
@@ -40,13 +52,13 @@ An example of `trustpolicy.json`:
     "trustPolicies": [
         {
             // Policy for all artifacts, from any registry location.
-            "name": "wabbit-networks-images",  // Name of the policy.
-            "registryScopes": [ "*" ],         // The registry artifacts to which the policy applies.
-            "signatureVerification": {         // The level of verification - strict, permissive, audit, skip.
+            "name": "wabbit-networks-images",                         // Name of the policy.
+            "registryScopes": [ "localhost:5000/net-monitor" ],       // The registry artifacts to which the policy applies.
+            "signatureVerification": {                                // The level of verification - strict, permissive, audit, skip.
                 "level": "strict"
             },
-            "trustStores": [ "ca:wabbit-networks" ], // The trust stores that contains the X.509 trusted roots.
-            "trustedIdentities": [                   // Identities that are trusted to sign the artifact.
+            "trustStores": [ "ca:wabbit-networks" ],                  // The trust stores that contains the X.509 trusted roots.
+            "trustedIdentities": [                                    // Identities that are trusted to sign the artifact.
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
             ]
         }
@@ -54,47 +66,68 @@ An example of `trustpolicy.json`:
 }
 ```
 
-In this example, only one policy is configured with the name `wabbit-networks-images`. With the value of property `registryScopes` set to `*`, this policy applies to all artifacts from any registry location. User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/main/trust-store-trust-policy-specification.md#trust-policy) for details.
+For a Linux user, store file `trustpolicy.json` under directory `${HOME}/.config/notation/`.
 
-### Verify signatures on a container image stored in a registry (Neither trust store nor trust policy is configured yet)
+For a MacOS user, store file `trustpolicy.json` under directory `${HOME}/Library/Application Support/notation/`.
+
+For a Windows user, store file `trustpolicy.json` under directory `%USERPROFILE%\AppData\Roaming\notation\`.
+
+Example values on trust policy properties:
+
+| Property name         | Value                                                                                      | Meaning                                                                                                                                                            |
+| ----------------------|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| name                  | "wabbit-networks-images"                                                                   | The name of the policy is "wabbit-networks-images".                                                                                                                |
+| registryScopes        | "localhost:5000/net-monitor"                                                               | The policy only applies to artifacts stored in repository `localhost:5000/net-monitor`.                                                                            |
+| registryScopes        | "localhost:5000/net-monitor", "localhost:5000/nginx"                                       | The policy applies to artifacts stored in two repositories: `localhost:5000/net-monitor` and `localhost:5000/nginx`.                                               |
+| registryScopes        | "*"                                                                                        | The policy applies to all the artifacts stored in any repositories.                                                                                                |
+| signatureVerification | "level": "strict"                                                                          | Signature verification is performed at strict level, which enforces all validations: `integrity`, `authenticity`, `authentic timestamp`, `expiry` and `revocation`.|
+| signatureVerification | "level": "permissive"                                                                      | The permissive level enforces most validations, but will only logs failures for `revocation` and `expiry`.                                                         |
+| signatureVerification | "level": "audit"                                                                           | The audit level only enforces signature `integrity` if a signature is present. Failure of all other validations are only logged.                                   |
+| signatureVerification | "level": "skip"                                                                            | The skip level does not fetch signatures for artifacts and does not perform any signature verification.                                                            |
+| trustStores           | "ca:wabbit-networks"                                                                       | Specify the trust store that uses the format {trust-store-type}:{named-store}. The trust store is added using `notation certificate add` command.                  |
+| trustStores           | "ca:wabbit-networks", "ca:rocket-networks"                                                 | Specify two trust stores, each of which contains the trusted roots against which signatures are verified.                                                          |
+| trustedIdentities     | "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder" | User only trusts the identity with specific subject. User can use `notation certificate show` command to get the `subject` info.                                   |
+| trustedIdentities     | "*"                                                                                        | User trusts any identity (signing certificate) issued by the CA(s) in trust stores.                                                                                |
+
+User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/main/specs/trust-store-trust-policy.md#trust-policy) for details.
+
+### Verify signatures on an OCI artifact stored in a registry
+
+Configure trust store and trust policy properly before using `notation verify` command.
 
 ```shell
 
-# Prerequisites: Signatures are stored in a registry referencing the signed container image
-
+# Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
 # Configure trust store by adding a certificate file into trust store named "wabbit-network" of type "ca"
 notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
-# Configure trust policy by creating a JSON document named "trustpolicy.json" under directory "{NOTATION_CONFIG}"
-# Example on Linux
-cat <<EOF > $HOME/.config/notation/trustpolicy.json
-{
-    "version": "1.0",
-    "trustPolicies": [
-        {
-            "name": "wabbit-networks-images",   // Name of the policy.
-            "registryScopes": [ "registry.wabbit-networks.io/software/net-monitor" ],          // The registry artifacts to which the policy applies.
-            "signatureVerification": {          // The level of verification - strict, permissive, audit, skip.
-                "level" : "strict" 
-            },
-            "trustStores": [ "ca:wabbit-networks" ], // The trust stores that contains the X.509 trusted roots.
-            "trustedIdentities": [                   // Identities that are trusted to sign the artifact.
-                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
-            ]
-        }
-    ]
-}
-EOF
+# Create a JSON file named "trustpolicy.json" under directory "{NOTATION_CONFIG}".
 
-# Verify signatures on a container image 
-notation verify registry.wabbit-networks.io/software/net-monitor:v1
+# Verify signatures on the supplied OCI artifact identified by the digest
+notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Verify signatures on an OCI artifact stored in a registry (Trust store and trust policy are configured properly)
+An example of output messages for a successful verification:
+
+```text
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify signatures on an OCI artifact identified by a tag
+
+A tag is resolved to a digest first before verification.
 
 ```shell
 # Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
 
-# Verify signatures on an OCI artifact identified by the digest
-notation verify registry.wabbit-networks.io/software/net-monitor@sha256:abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234
+# Verify signatures on an OCI artifact identified by the tag
+notation verify localhost:5000/net-monitor:v1
+```
+
+An example of output messages for a successful verification:
+
+```text
+Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
+Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
