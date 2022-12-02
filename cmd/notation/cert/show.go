@@ -36,10 +36,10 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 		Long: `Show details of a certain certificate file
 
 Example - Show details of certificate "cert1.pem" with type "ca" from trust store "acme-rockets":
-  notation cert show --type ca --store "acme-rockets" cert1.pem
+  notation cert show --type ca --store acme-rockets cert1.pem
 
 Example - Show details of certificate "cert2.pem" with type "signingAuthority" from trust store "wabbit-networks":
-  notation cert show --type ca --store "wabbit-networks" cert2.pem
+  notation cert show --type signingAuthority --store wabbit-networks cert2.pem
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return showCerts(opts)
