@@ -9,7 +9,6 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 )
@@ -75,7 +74,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// core process
-	desc, opts, ref, err := prepareSigningContent(command.Context(), cmdOpts)
+	opts, ref, err := prepareSigningContent(command.Context(), cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -89,39 +88,39 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	if ref.ValidateReferenceAsDigest() != nil {
-		// reference is not a digest reference
-		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
-		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, desc.Digest.String())
-	}
 	fmt.Println("Successfully signed", ref.String())
 
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, registry.Reference, error) {
+func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOptions, registry.Reference, error) {
 	manifestDesc, ref, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, registry.Reference{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
-	digestRef := ref
+	if ref.ValidateReferenceAsDigest() != nil {
+		// reference is not a digest reference
+		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
 
-	// always pass digest reference to SignOptions
-	digestRef.Reference = manifestDesc.Digest.String()
+		// resolve tag to digest reference
+		ref.Reference = manifestDesc.Digest.String()
+	}
+
 	signOpts := notation.SignOptions{
-		ArtifactReference:  digestRef.String(),
+		ArtifactReference:  ref.String(),
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
 	}
 
-	return manifestDesc, signOpts, ref, nil
+	return signOpts, ref, nil
 }
