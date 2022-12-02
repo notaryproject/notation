@@ -210,7 +210,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 
 func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
 	if slices.Contains(signingKeys.Keys, key.Name) {
-		return errors.New(key.Name + ": already exists")
+		return fmt.Errorf("signing key with name %q already exists", key.Name)
 	}
 	signingKeys.Keys = append(signingKeys.Keys, key)
 	if markDefault {
