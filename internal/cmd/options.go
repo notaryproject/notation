@@ -23,19 +23,22 @@ func (opts *SignerFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 
 // LoggingFlagOpts option struct.
 type LoggingFlagOpts struct {
-	Debug bool
+	Debug   bool
+	Verbose bool
 }
 
 // ApplyFlags applies flags to a command flag set.
 func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&opts.Debug, "debug", "d", false, "debug mode")
+	fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose mode")
 }
 
 // SetLoggerLevel sets up the logger based on common options.
 func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) (context.Context, log.Logger) {
-	logLevel := logrus.InfoLevel
 	if opts.Debug {
-		logLevel = logrus.DebugLevel
+		return trace.WithLoggerLevel(ctx, logrus.DebugLevel)
+	} else if opts.Verbose {
+		return trace.WithLoggerLevel(ctx, logrus.InfoLevel)
 	}
-	return trace.WithLoggerLevel(ctx, logLevel)
+	return ctx, log.Discard
 }

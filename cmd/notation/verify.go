@@ -73,7 +73,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
+	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref, opts.Debug)
 	remoteRepo := remote.Repository{
 		Client:    authClient,
 		Reference: ref,
@@ -113,7 +113,7 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 	}
 
 	// Resolve tag reference to digest reference.
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference, opts.Debug)
 	if err != nil {
 		return registry.Reference{}, err
 	}

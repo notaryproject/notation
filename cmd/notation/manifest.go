@@ -8,20 +8,20 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
-func getManifestDescriptorFromContext(ctx context.Context, opts *SecureFlagOpts, ref string) (ocispec.Descriptor, error) {
+func getManifestDescriptorFromContext(ctx context.Context, opts *SecureFlagOpts, ref string, debug bool) (ocispec.Descriptor, error) {
 	if ref == "" {
 		return ocispec.Descriptor{}, errors.New("missing reference")
 	}
 
-	return getManifestDescriptorFromReference(ctx, opts, ref)
+	return getManifestDescriptorFromReference(ctx, opts, ref, debug)
 }
 
-func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string) (ocispec.Descriptor, error) {
+func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string, debug bool) (ocispec.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	repo, err := getRepositoryClient(opts, ref)
+	repo, err := getRepositoryClient(opts, ref, debug)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}

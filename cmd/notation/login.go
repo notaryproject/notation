@@ -82,7 +82,7 @@ func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 }
 
 func validateAuthConfig(ctx context.Context, opts *loginOpts, serverAddress string) error {
-	registry, err := getRegistryClient(&opts.SecureFlagOpts, serverAddress)
+	registry, err := getRegistryClient(&opts.SecureFlagOpts, serverAddress, false)
 	if err != nil {
 		return err
 	}

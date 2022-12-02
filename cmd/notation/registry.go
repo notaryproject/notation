@@ -16,29 +16,29 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
+func getSignatureRepository(opts *SecureFlagOpts, reference string, debug bool) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
-	return getRepositoryClient(opts, ref)
+	return getRepositoryClient(opts, ref, debug)
 }
 
-func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
+func getRegistryClient(opts *SecureFlagOpts, serverAddress string, debug bool) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	reg.Client, reg.PlainHTTP, err = getAuthClient(opts, reg.Reference)
+	reg.Client, reg.PlainHTTP, err = getAuthClient(opts, reg.Reference, debug)
 	if err != nil {
 		return nil, err
 	}
 	return reg, nil
 }
 
-func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(opts, ref)
+func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference, debug bool) (notationregistry.Repository, error) {
+	authClient, plainHTTP, err := getAuthClient(opts, ref, debug)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notation
 	return notationregistry.NewRepository(repo), nil
 }
 
-func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
+func getAuthClient(opts *SecureFlagOpts, ref registry.Reference, debug bool) (*auth.Client, bool, error) {
 	var plainHTTP bool
 
 	if opts.PlainHTTP {
@@ -93,9 +93,11 @@ func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, 
 		},
 		Cache:    auth.NewCache(),
 		ClientID: "notation",
-		Client: &http.Client{
+	}
+	if debug {
+		authClient.Client = &http.Client{
 			Transport: trace.NewTransport(http.DefaultTransport),
-		},
+		}
 	}
 	authClient.SetUserAgent("notation/" + version.GetVersion())
 

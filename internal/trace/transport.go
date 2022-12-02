@@ -1,3 +1,4 @@
+// Copied and adapted from oras (https://github.com/oras-project/oras)
 /*
 Copyright The ORAS Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
