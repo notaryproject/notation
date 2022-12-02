@@ -2,15 +2,14 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math"
-	"os"
 	"strings"
 
 	"github.com/notaryproject/notation-go"
 	notationRegistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -85,7 +84,27 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
 
 	// write out
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref)
+	// on failure
+	if err != nil || len(outcomes) == 0 {
+		if err == nil {
+			err = errors.New("verification outcomes is empty")
+		}
+		fmt.Printf("Signature verification failed for all the signatures associated with %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
+		return err
+	}
+
+	// on success
+	outcome := outcomes[0]
+	// print out warning for any failed result with logged verification action
+	for _, result := range outcome.VerificationResults {
+		if result.Error != nil {
+			// at this point, the verification action has to be logged and
+			// it's failed
+			fmt.Printf("warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
+		}
+	}
+	fmt.Printf("Successfully verified signature for %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
+	return nil
 }
 
 func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {

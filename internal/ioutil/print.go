@@ -6,11 +6,9 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
-	"oras.land/oras-go/v2/registry"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
@@ -55,17 +53,4 @@ func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
 	}
 	return tw.Flush()
-}
-
-func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, ref registry.Reference) error {
-	tw := newTabWriter(w)
-	if resultErr == nil {
-		fmt.Fprintf(tw, "Successfully verified signature for %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
-		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
-		return nil
-	}
-	fmt.Printf("Signature verification failed for all the signatures associated with %s/%s@%s\n", ref.Registry, ref.Repository, ref.Reference)
-	tw.Flush()
-
-	return resultErr
 }
