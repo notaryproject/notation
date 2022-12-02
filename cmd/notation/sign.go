@@ -32,17 +32,20 @@ func signCommand(opts *signOpts) *cobra.Command {
 
 Prerequisite: a signing key needs to be configured using the command "notation key".
 
-Example - Sign a container image using the default signing key, with the default JWS envelope:
+Example - Sign an OCI artifact using the default signing key, with the default JWS envelope:
+  notation sign <registry>/<repository>@<digest>
+
+Example - Sign an OCI artifact using the default signing key, with the COSE envelope:
+  notation sign --signature-format cose <registry>/<repository>@<digest> 
+
+Example - Sign an OCI artifact using a specified key
+  notation sign --key <key_name> <registry>/<repository>@<digest>
+
+Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to digest)
   notation sign <registry>/<repository>:<tag>
 
-Example - Sign a container image using the default signing key, with the COSE envelope:
-  notation sign --signature-format cose <registry>/<repository>:<tag> 
-
-Example - Sign a container image using the specified key name
-  notation sign --key <key_name> <registry>/<repository>:<tag>
-
-Example - Sign a container image using the image digest
-  notation sign <registry>/<repository>@<digest>
+Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
+  notation sign --expiry 24h <registry>/<repository>@<digest>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
