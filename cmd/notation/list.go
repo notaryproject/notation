@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	notationRegistry "github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -44,10 +45,11 @@ func listCommand(opts *listOpts) *cobra.Command {
 func runList(command *cobra.Command, opts *listOpts) error {
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getSignatureRepository(&opts.SecureFlagOpts, reference, false)
+	remoteRepo, err := getSignatureRepositoryClient(&opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}
+	sigRepo := notationregistry.NewRepository(remoteRepo)
 
 	// core process
 	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference, false)

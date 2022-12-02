@@ -14,7 +14,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
-	"oras.land/oras-go/v2/registry/remote"
 )
 
 type verifyOpts struct {
@@ -62,25 +61,23 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
 	ctx, _ := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
-	// resolve the given reference and set the digest.
-	ref, err := resolveReference(command, opts)
-	if err != nil {
-		return err
-	}
-
 	// initialize verifier.
 	verifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
 	}
-	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref, opts.Debug)
-	remoteRepo := remote.Repository{
-		Client:    authClient,
-		Reference: ref,
-		PlainHTTP: plainHTTP,
-	}
-	repo := notationregistry.NewRepository(&remoteRepo)
 
+	// resolve the given reference and set the digest.
+	ref, err := resolveReference(command, opts)
+	if err != nil {
+		return err
+	}
+	remoteRepo, err := getRepositoryClient(&opts.SecureFlagOpts, ref)
+	if err != nil {
+		return err
+	}
+	setHttpDebugLog(remoteRepo, opts.Debug)
+	repo := notationregistry.NewRepository(remoteRepo)
 	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
