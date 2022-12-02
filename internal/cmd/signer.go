@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
@@ -34,12 +33,4 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 		return signer.NewFromPlugin(plugin, key.ExternalKey.ID, key.PluginConfig)
 	}
 	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
-}
-
-// GetExpiry returns the signature expiry according to the CLI context.
-func GetExpiry(expiry time.Duration) time.Time {
-	if expiry == 0 {
-		return time.Time{}
-	}
-	return time.Now().Add(expiry)
 }
