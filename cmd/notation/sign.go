@@ -79,7 +79,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// core process
-	desc, opts, err := prepareSigningContent(command.Context(), cmdOpts)
+	desc, opts, err := prepareSigningContent(ctx, cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 }
 
 func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, error) {
-	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference, opts.Debug)
+	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return ocispec.Descriptor{}, notation.SignOptions{}, err
 	}

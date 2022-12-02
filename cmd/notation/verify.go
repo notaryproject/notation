@@ -110,7 +110,7 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 	}
 
 	// Resolve tag reference to digest reference.
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference, opts.Debug)
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return registry.Reference{}, err
 	}

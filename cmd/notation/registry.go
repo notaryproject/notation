@@ -50,7 +50,7 @@ func setHttpDebugLog(repo *remote.Repository, debug bool) {
 	}
 }
 
-func getRegistryClient(opts *SecureFlagOpts, serverAddress string, debug bool) (*remote.Registry, error) {
+func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err

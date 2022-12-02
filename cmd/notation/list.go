@@ -51,7 +51,7 @@ func runList(command *cobra.Command, opts *listOpts) error {
 	sigRepo := notationRegistry.NewRepository(remoteRepo)
 
 	// core process
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference, false)
+	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}
