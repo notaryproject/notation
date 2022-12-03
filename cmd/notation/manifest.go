@@ -25,7 +25,8 @@ func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpt
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
-	manifestDesc, err := repo.Resolve(ctx, ref.ReferenceOrDefault())
+	ref.Reference = ref.ReferenceOrDefault()
+	manifestDesc, err := repo.Resolve(ctx, ref.Reference)
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}

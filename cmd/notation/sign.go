@@ -88,7 +88,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	fmt.Println("Successfully signed", ref.String())
+	fmt.Println("Successfully signed", ref)
 
 	return nil
 }

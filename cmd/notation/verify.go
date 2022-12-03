@@ -6,7 +6,7 @@ import (
 	"math"
 
 	"github.com/notaryproject/notation-go"
-	notationRegistry "github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
 
@@ -72,7 +72,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		Reference: ref,
 		PlainHTTP: plainHTTP,
 	}
-	repo := notationRegistry.NewRepository(&remoteRepo)
+	repo := notationregistry.NewRepository(&remoteRepo)
 
 	// set up verification plugin config
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
@@ -104,7 +104,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			fmt.Printf("warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
+			fmt.Printf("Warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
 		}
 	}
 	fmt.Println("Successfully verified signature for", ref.String())
@@ -123,7 +123,7 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 	}
 
 	// resolve tag to digest reference
-	manifestDesc, _, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
+	manifestDesc, ref, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return registry.Reference{}, err
 	}

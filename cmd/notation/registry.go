@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net"
 
-	notationRegistry "github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/configutil"
@@ -14,7 +14,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationRegistry.Repository, error) {
+func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Regi
 	return reg, nil
 }
 
-func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notationRegistry.Repository, error) {
+func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
 	authClient, plainHTTP, err := getAuthClient(opts, ref)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notation
 		PlainHTTP: plainHTTP,
 	}
 
-	return notationRegistry.NewRepository(repo), nil
+	return notationregistry.NewRepository(repo), nil
 }
 
 func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
