@@ -7,7 +7,8 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/plugin/manager"
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/slices"
@@ -186,13 +187,11 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	if id == "" {
 		return config.KeySuite{}, errors.New("missing key id")
 	}
-	mgr := manager.New()
-	p, err := mgr.Get(ctx, pluginName)
+	mgr := plugin.NewCLIManager(dir.PluginFS())
+	// Check existence of plugin with name pluginName
+	_, err := mgr.Get(ctx, pluginName)
 	if err != nil {
 		return config.KeySuite{}, err
-	}
-	if p.Err != nil {
-		return config.KeySuite{}, fmt.Errorf("invalid plugin: %w", p.Err)
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
@@ -211,7 +210,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 
 func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
 	if slices.Contains(signingKeys.Keys, key.Name) {
-		return errors.New(key.Name + ": already exists")
+		return fmt.Errorf("signing key with name %q already exists", key.Name)
 	}
 	signingKeys.Keys = append(signingKeys.Keys, key)
 	if markDefault {

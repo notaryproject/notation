@@ -9,6 +9,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -77,61 +78,40 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sig, err := signer.Sign(command.Context(), desc, opts)
+	sigRepo, err := getSignatureRepository(&cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	if err != nil {
+		return err
+	}
+	_, err = notation.Sign(command.Context(), signer, sigRepo, opts)
 	if err != nil {
 		return err
 	}
 
 	// write out
-	ref := cmdOpts.reference
-	if _, err := pushSignature(command.Context(), &cmdOpts.SecureFlagOpts, ref, sig); err != nil {
-		return fmt.Errorf("fail to push signature to %q: %v: %v",
-			ref,
-			desc.Digest,
-			err,
-		)
-	}
-
 	fmt.Println(desc.Digest)
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.Descriptor, notation.SignOptions, error) {
+func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, error) {
 	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
-		return notation.Descriptor{}, notation.SignOptions{}, err
+		return ocispec.Descriptor{}, notation.SignOptions{}, err
+	}
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	if err != nil {
+		return ocispec.Descriptor{}, notation.SignOptions{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return notation.Descriptor{}, notation.SignOptions{}, err
-	}
-	return manifestDesc, notation.SignOptions{
-		Expiry:       cmd.GetExpiry(opts.expiry),
-		PluginConfig: pluginConfig,
-	}, nil
-}
-
-func pushSignature(ctx context.Context, opts *SecureFlagOpts, ref string, sig []byte) (notation.Descriptor, error) {
-	// initialize
-	sigRepo, err := getSignatureRepository(opts, ref)
-	if err != nil {
-		return notation.Descriptor{}, err
-	}
-	manifestDesc, err := getManifestDescriptorFromReference(ctx, opts, ref)
-	if err != nil {
-		return notation.Descriptor{}, err
+		return ocispec.Descriptor{}, notation.SignOptions{}, err
 	}
 
-	// core process
-	// pass in nonempty annotations if needed
-	sigMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(sig)
-	if err != nil {
-		return notation.Descriptor{}, err
-	}
-	sigDesc, _, err := sigRepo.PutSignatureManifest(ctx, sig, sigMediaType, manifestDesc, make(map[string]string))
-	if err != nil {
-		return notation.Descriptor{}, fmt.Errorf("put signature manifest failure: %v", err)
+	signOpts := notation.SignOptions{
+		ArtifactReference:  opts.reference,
+		SignatureMediaType: mediaType,
+		ExpiryDuration:     opts.expiry,
+		PluginConfig:       pluginConfig,
 	}
 
-	return sigDesc, nil
+	return manifestDesc, signOpts, nil
 }

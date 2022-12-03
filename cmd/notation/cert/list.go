@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/verification"
+	notationgoTruststore "github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
@@ -34,11 +34,12 @@ func certListCommand(opts *certListOpts) *cobra.Command {
 func listCerts(opts *certListOpts) error {
 	namedStore := opts.namedStore
 	storeType := opts.storeType
+	configFS := dir.ConfigFS()
 
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
 	if namedStore == "" && storeType == "" {
-		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509")
+		path, err := configFS.SysPath(dir.TrustStoreDir, "x509")
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
@@ -52,7 +53,7 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under truststore/x509/storeType/namedStore,
 	// display empty if there's no such certificate
 	if namedStore != "" && storeType != "" {
-		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType, namedStore)
+		path, err := configFS.SysPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
@@ -66,7 +67,7 @@ func listCerts(opts *certListOpts) error {
 	// List all certificates under x509/storeType, display empty if
 	// there's no certificate yet
 	if storeType != "" {
-		path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", storeType)
+		path, err := configFS.SysPath(dir.TrustStoreDir, "x509", storeType)
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
@@ -76,8 +77,8 @@ func listCerts(opts *certListOpts) error {
 	} else {
 		// List all certificates under named store namedStore, display empty if
 		// there's no such certificate
-		for _, t := range verification.TrustStorePrefixes {
-			path, err := dir.Path.UserConfigFS.GetPath(dir.TrustStoreDir, "x509", string(t), namedStore)
+		for _, t := range notationgoTruststore.Types {
+			path, err := configFS.SysPath(dir.TrustStoreDir, "x509", string(t), namedStore)
 			if err := truststore.CheckNonErrNotExistError(err); err != nil {
 				return err
 			}

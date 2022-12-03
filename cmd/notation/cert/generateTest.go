@@ -83,7 +83,16 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Println("generated certificate expiring on", rsaCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
-	keyPath, certPath := dir.Path.Localkey(name)
+	relativeKeyPath, relativeCertPath := dir.LocalKeyPath(name)
+	configFS := dir.ConfigFS()
+	keyPath, err := configFS.SysPath(relativeKeyPath)
+	if err != nil {
+		return err
+	}
+	certPath, err := configFS.SysPath(relativeCertPath)
+	if err != nil {
+		return err
+	}
 	if err := osutil.WriteFileWithPermission(keyPath, keyBytes, 0600, false); err != nil {
 		return fmt.Errorf("failed to write key file: %v", err)
 	}
@@ -156,7 +165,7 @@ func generateSelfSignedCert(privateKey *rsa.PrivateKey, name string) (testhelper
 
 func addKeyToSigningKeys(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
 	if slices.Contains(signingKeys.Keys, key.Name) {
-		return errors.New(key.Name + ": already exists")
+		return fmt.Errorf("signing key with name %q already exists", key.Name)
 	}
 	signingKeys.Keys = append(signingKeys.Keys, key)
 	if markDefault {

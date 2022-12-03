@@ -1,10 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"text/tabwriter"
 
-	"github.com/notaryproject/notation-go/plugin/manager"
-	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/spf13/cobra"
 )
 
@@ -29,10 +32,28 @@ func pluginListCommand() *cobra.Command {
 }
 
 func listPlugins(command *cobra.Command) error {
-	mgr := manager.New()
-	plugins, err := mgr.List(command.Context())
+	mgr := plugin.NewCLIManager(dir.PluginFS())
+	pluginNames, err := mgr.List(command.Context())
 	if err != nil {
 		return err
 	}
-	return ioutil.PrintPlugins(os.Stdout, plugins)
+
+	tw := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+	fmt.Fprintln(tw, "NAME\tDESCRIPTION\tVERSION\tCAPABILITIES\tERROR\t")
+
+	var pl plugin.Plugin
+	var resp *proto.GetMetadataResponse
+	for _, n := range pluginNames {
+		pl, err = mgr.Get(command.Context(), n)
+		metaData := &proto.GetMetadataResponse{}
+		if err == nil {
+			resp, err = pl.GetMetadata(command.Context(), &proto.GetMetadataRequest{})
+			if err == nil {
+				metaData = resp
+			}
+		}
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
+			n, metaData.Description, metaData.Version, metaData.Capabilities, err)
+	}
+	return tw.Flush()
 }
