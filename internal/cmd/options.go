@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 
-	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -34,11 +33,11 @@ func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 }
 
 // SetLoggerLevel sets up the logger based on common options.
-func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) (context.Context, log.Logger) {
+func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) context.Context {
 	if opts.Debug {
 		return trace.WithLoggerLevel(ctx, logrus.DebugLevel)
 	} else if opts.Verbose {
 		return trace.WithLoggerLevel(ctx, logrus.InfoLevel)
 	}
-	return ctx, log.Discard
+	return ctx
 }

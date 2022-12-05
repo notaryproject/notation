@@ -70,7 +70,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 
 func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	// set log level
-	ctx, _ := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	ctx := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
 	// initialize
 	signer, err := cmd.GetSigner(&cmdOpts.SignerFlagOpts)

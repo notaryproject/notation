@@ -58,7 +58,7 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
 }
 
-func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
+func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err

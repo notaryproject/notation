@@ -24,7 +24,7 @@ import (
 )
 
 // WithLoggerLevel returns a context with logrus log entry.
-func WithLoggerLevel(ctx context.Context, level logrus.Level) (context.Context, log.Logger) {
+func WithLoggerLevel(ctx context.Context, level logrus.Level) context.Context {
 	// set formatter
 	var formatter logrus.TextFormatter
 	if level == logrus.DebugLevel {
@@ -39,5 +39,5 @@ func WithLoggerLevel(ctx context.Context, level logrus.Level) (context.Context, 
 	logger.SetLevel(level)
 
 	// save logger to context
-	return log.WithLogger(ctx, logger), logger
+	return log.WithLogger(ctx, logger)
 }
