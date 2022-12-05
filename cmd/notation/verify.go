@@ -71,11 +71,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-	repo, err := getRepositoryClient(&opts.SecureFlagOpts, ref)
+	repo, err := getRepositoryClient(&opts.SecureFlagOpts, ref, HttpDebugLog(opts.Debug))
 	if err != nil {
 		return err
 	}
-	repo.SetHttpDebugLog(opts.Debug)
 	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
