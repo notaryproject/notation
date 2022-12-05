@@ -9,6 +9,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
 )
@@ -94,10 +95,14 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 }
 
 func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOptions, registry.Reference, error) {
-	manifestDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, opts.reference)
+	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
+	})
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
 	}
+
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
@@ -105,14 +110,6 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOp
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
-	}
-	if err := ref.ValidateReferenceAsDigest(); err != nil {
-		// reference is not a digest reference
-		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
-		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
-
-		// resolve tag to digest reference
-		ref.Reference = manifestDesc.Digest.String()
 	}
 
 	signOpts := notation.SignOptions{

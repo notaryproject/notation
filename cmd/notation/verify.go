@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -9,6 +10,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -56,7 +58,10 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// resolve the given reference and set the digest
-	ref, err := resolveReference(command, opts)
+	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
+		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
+	})
 	if err != nil {
 		return err
 	}
@@ -111,8 +116,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	return nil
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
-	manifestDesc, ref, err := getManifestDescriptor(command.Context(), &opts.SecureFlagOpts, opts.reference)
+func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
+	manifestDesc, ref, err := getManifestDescriptor(ctx, opts, reference)
 	if err != nil {
 		return registry.Reference{}, err
 	}
@@ -123,8 +128,7 @@ func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Refere
 	}
 
 	// reference is a tag reference
-	fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
-	fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
+	fn(ref, manifestDesc)
 	// resolve tag to digest reference
 	ref.Reference = manifestDesc.Digest.String()
 
