@@ -16,7 +16,7 @@ Usage:
 
 Available Commands:
   add         Add key to signing key list
-  delete      Delete key from signing key list
+  remove      Remove key from signing key list
   list        List keys used for signing
   update      Update key in signing key list
 
@@ -40,19 +40,19 @@ Flags:
       --plugin-config strings  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
 ```
 
-### notation key delete
+### notation key remove
 
 ```text
-Delete key from signing key list
+Remove key from signing key list
 
 Usage:
-  notation key delete [flags] <key_name>...
+  notation key remove [flags] <key_name>...
 
 Aliases:
-  delete, rm
+  remove, rm
 
 Flags:
-  -h, --help                   help for delete
+  -h, --help                   help for remove
 
 ```
 
@@ -118,7 +118,7 @@ Upon successful execution, a list of keys is printed out with information of nam
 ### Delete two keys from signing key list
 
 ```shell
-notation key delete <key_name_1> <key_name_2>
+notation key remove <key_name_1> <key_name_2>
 ```
 
-Upon successful execution, the names of deleted signing keys are printed out. Please be noted if default signing key is deleted, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+Upon successful execution, the names of removed signing keys are printed out. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
