@@ -29,13 +29,10 @@ func getSignatureRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref
 }
 
 func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(opts, ref)
+	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
 	if err != nil {
 		return nil, err
 	}
-
-	// update authClient
-	setHttpDebugLog(ctx, authClient)
 
 	remoteRepo := &remote.Repository{
 		Client:    authClient,
@@ -64,14 +61,14 @@ func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress 
 		return nil, err
 	}
 
-	reg.Client, reg.PlainHTTP, err = getAuthClient(opts, reg.Reference)
+	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, opts, reg.Reference)
 	if err != nil {
 		return nil, err
 	}
 	return reg, nil
 }
 
-func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
+func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
 	var plainHTTP bool
 
 	if opts.PlainHTTP {
@@ -115,6 +112,9 @@ func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, 
 		ClientID: "notation",
 	}
 	authClient.SetUserAgent("notation/" + version.GetVersion())
+
+	// update authClient
+	setHttpDebugLog(ctx, authClient)
 
 	return authClient, plainHTTP, nil
 }
