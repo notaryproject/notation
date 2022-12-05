@@ -33,28 +33,29 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 	if err != nil {
 		return nil, err
 	}
+
+	// update authClient
+	setHttpDebugLog(ctx, authClient)
+
 	remoteRepo := &remote.Repository{
 		Client:    authClient,
 		Reference: ref,
 		PlainHTTP: plainHTTP,
 	}
-	setHttpDebugLog(ctx, remoteRepo)
 	return notationregistry.NewRepository(remoteRepo), nil
 }
 
-func setHttpDebugLog(ctx context.Context, remoteRepo *remote.Repository) {
+func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
 		return
 	}
-	if authClient, ok := remoteRepo.Client.(*auth.Client); ok {
-		if authClient.Client == nil {
-			authClient.Client = http.DefaultClient
-		}
-		if authClient.Client.Transport == nil {
-			authClient.Client.Transport = http.DefaultTransport
-		}
-		authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
+	if authClient.Client == nil {
+		authClient.Client = http.DefaultClient
 	}
+	if authClient.Client.Transport == nil {
+		authClient.Client.Transport = http.DefaultTransport
+	}
+	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
 }
 
 func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
