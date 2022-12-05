@@ -112,23 +112,20 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 }
 
 func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
-	ref, err := registry.ParseReference(opts.reference)
+	manifestDesc, ref, err := getManifestDescriptor(command.Context(), &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return registry.Reference{}, err
 	}
 
 	// reference is a digest reference
-	if ref.ValidateReferenceAsDigest() == nil {
+	if err := ref.ValidateReferenceAsDigest(); err == nil {
 		return ref, nil
 	}
 
-	// resolve tag to digest reference
-	manifestDesc, ref, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
-	if err != nil {
-		return registry.Reference{}, err
-	}
+	// reference is a tag reference
 	fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
 	fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
+	// resolve tag to digest reference
 	ref.Reference = manifestDesc.Digest.String()
 
 	return ref, nil

@@ -50,7 +50,7 @@ func runList(command *cobra.Command, opts *listOpts) error {
 	}
 
 	// core process
-	manifestDesc, _, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference)
+	manifestDesc, _, err := getManifestDescriptor(command.Context(), &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}

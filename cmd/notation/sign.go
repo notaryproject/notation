@@ -94,7 +94,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 }
 
 func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOptions, registry.Reference, error) {
-	manifestDesc, ref, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
+	manifestDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, opts.reference)
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
 	}
@@ -106,7 +106,7 @@ func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOp
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
 	}
-	if ref.ValidateReferenceAsDigest() != nil {
+	if err := ref.ValidateReferenceAsDigest(); err != nil {
 		// reference is not a digest reference
 		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
 		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())

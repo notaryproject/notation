@@ -8,15 +8,12 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
-func getManifestDescriptorFromContext(ctx context.Context, opts *SecureFlagOpts, ref string) (ocispec.Descriptor, registry.Reference, error) {
-	if ref == "" {
+// getManifestDescriptor returns target artifact manifest descriptor and
+// registry.Reference given user input reference.
+func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference string) (ocispec.Descriptor, registry.Reference, error) {
+	if reference == "" {
 		return ocispec.Descriptor{}, registry.Reference{}, errors.New("missing reference")
 	}
-
-	return getManifestDescriptorFromReference(ctx, opts, ref)
-}
-
-func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string) (ocispec.Descriptor, registry.Reference, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
@@ -33,5 +30,5 @@ func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpt
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
-	return manifestDesc, ref, err
+	return manifestDesc, ref, nil
 }
