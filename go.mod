@@ -3,7 +3,6 @@ module github.com/notaryproject/notation
 go 1.19
 
 require (
-	github.com/distribution/distribution/v3 v3.0.0-20220729163034-26163d82560f
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/notaryproject/notation-core-go v0.2.0-beta.1.0.20221123104522-9b5de089a023
 	github.com/notaryproject/notation-go v0.12.0-beta.1.0.20221205052202-e9545a718368
