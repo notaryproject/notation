@@ -4,52 +4,71 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/http"
 
+	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/configutil"
+	"github.com/sirupsen/logrus"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
+func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
-	return getRepositoryClient(opts, ref)
+
+	// generate notation repository
+	return getRepositoryClient(ctx, opts, ref)
 }
 
-func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
+func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err
 	}
 
-	reg.Client, reg.PlainHTTP, err = getAuthClient(opts, reg.Reference)
+	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, opts, reg.Reference)
 	if err != nil {
 		return nil, err
 	}
 	return reg, nil
 }
 
-func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(opts, ref)
+func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
+	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
 	if err != nil {
 		return nil, err
 	}
-	repo := &remote.Repository{
+
+	remoteRepo := &remote.Repository{
 		Client:    authClient,
 		Reference: ref,
 		PlainHTTP: plainHTTP,
 	}
-
-	return notationregistry.NewRepository(repo), nil
+	return notationregistry.NewRepository(remoteRepo), nil
 }
 
-func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
+func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
+	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
+		return
+	}
+	if authClient.Client == nil {
+		authClient.Client = http.DefaultClient
+	}
+	if authClient.Client.Transport == nil {
+		authClient.Client.Transport = http.DefaultTransport
+	}
+	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
+}
+
+func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
 	var plainHTTP bool
 
 	if opts.PlainHTTP {
@@ -93,6 +112,9 @@ func getAuthClient(opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, 
 		ClientID: "notation",
 	}
 	authClient.SetUserAgent("notation/" + version.GetVersion())
+
+	// update authClient
+	setHttpDebugLog(ctx, authClient)
 
 	return authClient, plainHTTP, nil
 }
