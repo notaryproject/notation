@@ -21,11 +21,14 @@ func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpt
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
+	if ref.Reference == "" {
+		return ocispec.Descriptor{}, registry.Reference{}, errors.New("reference is missing digest or tag")
+	}
 	repo, err := getRepositoryClient(opts, ref)
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
-	ref.Reference = ref.ReferenceOrDefault()
+
 	manifestDesc, err := repo.Resolve(ctx, ref.Reference)
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
