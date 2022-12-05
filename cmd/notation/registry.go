@@ -6,46 +6,29 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/configutil"
+	"github.com/sirupsen/logrus"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-type Option func(*remote.Repository)
-
-func HttpDebugLog(debug bool) Option {
-	return func(remoteRepo *remote.Repository) {
-		if !debug {
-			return
-		}
-		if authClient, ok := remoteRepo.Client.(*auth.Client); ok {
-			if authClient.Client == nil {
-				authClient.Client = http.DefaultClient
-			}
-			if authClient.Client.Transport == nil {
-				authClient.Client.Transport = http.DefaultTransport
-			}
-			authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
-		}
-	}
-}
-
-func getSignatureRepositoryClient(opts *SecureFlagOpts, reference string, options ...Option) (notationregistry.Repository, error) {
+func getSignatureRepositoryClient(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
 
 	// generate notation repository
-	return getRepositoryClient(opts, ref, options...)
+	return getRepositoryClient(ctx, opts, ref)
 }
 
-func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference, options ...Option) (notationregistry.Repository, error) {
+func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
 	authClient, plainHTTP, err := getAuthClient(opts, ref)
 	if err != nil {
 		return nil, err
@@ -55,11 +38,23 @@ func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference, options .
 		Reference: ref,
 		PlainHTTP: plainHTTP,
 	}
-	// apply options
-	for _, option := range options {
-		option(remoteRepo)
-	}
+	setHttpDebugLog(ctx, remoteRepo)
 	return notationregistry.NewRepository(remoteRepo), nil
+}
+
+func setHttpDebugLog(ctx context.Context, remoteRepo *remote.Repository) {
+	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
+		return
+	}
+	if authClient, ok := remoteRepo.Client.(*auth.Client); ok {
+		if authClient.Client == nil {
+			authClient.Client = http.DefaultClient
+		}
+		if authClient.Client.Transport == nil {
+			authClient.Client.Transport = http.DefaultTransport
+		}
+		authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
+	}
 }
 
 func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {

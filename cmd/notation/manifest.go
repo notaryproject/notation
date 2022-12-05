@@ -21,7 +21,7 @@ func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference 
 	if ref.Reference == "" {
 		return ocispec.Descriptor{}, registry.Reference{}, errors.New("reference is missing digest or tag")
 	}
-	repo, err := getRepositoryClient(opts, ref)
+	repo, err := getRepositoryClient(ctx, opts, ref)
 	if err != nil {
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}

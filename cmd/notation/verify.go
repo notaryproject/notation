@@ -75,7 +75,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
-	repo, err := getRepositoryClient(&opts.SecureFlagOpts, ref, HttpDebugLog(opts.Debug))
+	repo, err := getRepositoryClient(ctx, &opts.SecureFlagOpts, ref)
 	if err != nil {
 		return err
 	}
