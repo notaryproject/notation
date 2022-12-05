@@ -1,16 +1,16 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"math"
-	"os"
-	"strings"
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -57,13 +57,16 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
-	// resolve the given reference and set the digest.
-	ref, err := resolveReference(command, opts)
+	// resolve the given reference and set the digest
+	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
+		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
+	})
 	if err != nil {
 		return err
 	}
 
-	// initialize verifier.
+	// initialize verifier
 	verifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
@@ -76,7 +79,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 	repo := notationregistry.NewRepository(&remoteRepo)
 
-	// set up verification plugin config.
+	// set up verification plugin config
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return err
@@ -90,39 +93,44 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		MaxSignatureAttempts: math.MaxInt64,
 	}
 
-	// core verify process.
+	// core verify process
 	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
 
-	// write out.
-	return ioutil.PrintVerificationResults(os.Stdout, outcomes, err, ref.Reference)
+	// write out
+	// on failure
+	if err != nil || len(outcomes) == 0 {
+		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
+	}
+
+	// on success
+	outcome := outcomes[0]
+	// print out warning for any failed result with logged verification action
+	for _, result := range outcome.VerificationResults {
+		if result.Error != nil {
+			// at this point, the verification action has to be logged and
+			// it's failed
+			fmt.Printf("Warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
+		}
+	}
+	fmt.Println("Successfully verified signature for", ref.String())
+	return nil
 }
 
-func resolveReference(command *cobra.Command, opts *verifyOpts) (registry.Reference, error) {
-	ref, err := registry.ParseReference(opts.reference)
+func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
+	manifestDesc, ref, err := getManifestDescriptor(ctx, opts, reference)
 	if err != nil {
 		return registry.Reference{}, err
 	}
 
-	if isDigestReference(opts.reference) {
+	// reference is a digest reference
+	if err := ref.ValidateReferenceAsDigest(); err == nil {
 		return ref, nil
 	}
 
-	// Resolve tag reference to digest reference.
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, opts.reference)
-	if err != nil {
-		return registry.Reference{}, err
-	}
-
+	// reference is a tag reference
+	fn(ref, manifestDesc)
+	// resolve tag to digest reference
 	ref.Reference = manifestDesc.Digest.String()
+
 	return ref, nil
-}
-
-func isDigestReference(reference string) bool {
-	parts := strings.SplitN(reference, "/", 2)
-	if len(parts) == 1 {
-		return false
-	}
-
-	index := strings.Index(parts[1], "@")
-	return index != -1
 }
