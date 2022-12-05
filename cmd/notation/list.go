@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	notationRegistry "github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -50,7 +50,7 @@ func runList(command *cobra.Command, opts *listOpts) error {
 	}
 
 	// core process
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference)
+	manifestDesc, _, err := getManifestDescriptor(command.Context(), &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func runList(command *cobra.Command, opts *listOpts) error {
 
 // printSignatureManifestDigests returns the signature manifest digests of
 // the subject manifest.
-func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Digest, sigRepo notationRegistry.Repository, reference string) error {
+func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Digest, sigRepo notationregistry.Repository, reference string) error {
 	// prepare title
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
@@ -72,7 +72,7 @@ func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Di
 	printTitle := func() {
 		if !titlePrinted {
 			fmt.Println(ref)
-			fmt.Printf("└── %s\n", notationRegistry.ArtifactTypeNotation)
+			fmt.Printf("└── %s\n", notationregistry.ArtifactTypeNotation)
 			titlePrinted = true
 		}
 	}

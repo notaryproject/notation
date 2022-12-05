@@ -11,6 +11,7 @@ import (
 	"github.com/notaryproject/notation/internal/envelope"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry"
 )
 
 type signOpts struct {
@@ -74,7 +75,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// core process
-	desc, opts, err := prepareSigningContent(command.Context(), cmdOpts)
+	opts, ref, err := prepareSigningContent(command.Context(), cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -88,30 +89,34 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 
 	// write out
-	fmt.Println(desc.Digest)
+	fmt.Println("Successfully signed", ref)
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, error) {
-	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
+func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOptions, registry.Reference, error) {
+	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
+	})
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
+
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
 
 	signOpts := notation.SignOptions{
-		ArtifactReference:  opts.reference,
+		ArtifactReference:  ref.String(),
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
 	}
 
-	return manifestDesc, signOpts, nil
+	return signOpts, ref, nil
 }
