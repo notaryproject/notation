@@ -59,7 +59,7 @@ Example - List keys used for signing:
 Example - Update the default signing key:
   notation key set --default <key_name>
 
-Example - Delete the key from signing key list:
+Example - Remove the key from signing key list:
   notation key rm <key_name>...
 `,
 	}
