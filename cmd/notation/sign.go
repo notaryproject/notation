@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
-	notationRegistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -83,13 +82,12 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	remoteRepo, err := getSignatureRepositoryClient(&cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	sigRepo, err := getSignatureRepositoryClient(&cmdOpts.SecureFlagOpts, cmdOpts.reference)
 	if err != nil {
 		return err
 	}
-	setHttpDebugLog(remoteRepo, cmdOpts.Debug)
-	repo := notationRegistry.NewRepository(remoteRepo)
-	_, err = notation.Sign(ctx, signer, repo, opts)
+	sigRepo.SetHttpDebugLog(cmdOpts.Debug)
+	_, err = notation.Sign(ctx, signer, sigRepo, opts)
 	if err != nil {
 		return err
 	}

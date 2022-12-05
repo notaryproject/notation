@@ -44,11 +44,10 @@ func listCommand(opts *listOpts) *cobra.Command {
 func runList(command *cobra.Command, opts *listOpts) error {
 	// initialize
 	reference := opts.reference
-	remoteRepo, err := getSignatureRepositoryClient(&opts.SecureFlagOpts, reference)
+	sigRepo, err := getSignatureRepositoryClient(&opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}
-	sigRepo := notationRegistry.NewRepository(remoteRepo)
 
 	// core process
 	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference)

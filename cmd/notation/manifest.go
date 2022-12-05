@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	notationRegistry "github.com/notaryproject/notation-go/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"
 )
@@ -22,9 +21,9 @@ func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpt
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	repository, err := getRepositoryClient(opts, ref)
+	repo, err := getRepositoryClient(opts, ref)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	return notationRegistry.NewRepository(repository).Resolve(ctx, ref.ReferenceOrDefault())
+	return repo.Resolve(ctx, ref.ReferenceOrDefault())
 }

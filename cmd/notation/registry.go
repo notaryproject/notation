@@ -6,40 +6,27 @@ import (
 	"net"
 	"net/http"
 
+	notationRegistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
+
 	"github.com/notaryproject/notation/pkg/configutil"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepositoryClient(opts *SecureFlagOpts, reference string) (*remote.Repository, error) {
-	ref, err := registry.ParseReference(reference)
-	if err != nil {
-		return nil, err
-	}
-	return getRepositoryClient(opts, ref)
+type repository struct {
+	notationRegistry.Repository
+	remoteRepo *remote.Repository
 }
 
-func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(opts, ref)
-	if err != nil {
-		return nil, err
-	}
-	return &remote.Repository{
-		Client:    authClient,
-		Reference: ref,
-		PlainHTTP: plainHTTP,
-	}, nil
-}
-
-func setHttpDebugLog(repo *remote.Repository, debug bool) {
+func (r *repository) SetHttpDebugLog(debug bool) {
 	if !debug {
 		return
 	}
-	if authClient, ok := repo.Client.(*auth.Client); ok {
+	if authClient, ok := r.remoteRepo.Client.(*auth.Client); ok {
 		if authClient.Client == nil {
 			authClient.Client = http.DefaultClient
 		}
@@ -48,6 +35,33 @@ func setHttpDebugLog(repo *remote.Repository, debug bool) {
 		}
 		authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
 	}
+}
+
+func NewNotationRepository(remoteRepo *remote.Repository) *repository {
+	return &repository{
+		Repository: notationRegistry.NewRepository(remoteRepo),
+		remoteRepo: remoteRepo,
+	}
+}
+
+func getSignatureRepositoryClient(opts *SecureFlagOpts, reference string) (*repository, error) {
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return nil, err
+	}
+	return getRepositoryClient(opts, ref)
+}
+
+func getRepositoryClient(opts *SecureFlagOpts, ref registry.Reference) (*repository, error) {
+	authClient, plainHTTP, err := getAuthClient(opts, ref)
+	if err != nil {
+		return nil, err
+	}
+	return NewNotationRepository(&remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: plainHTTP,
+	}), nil
 }
 
 func getRegistryClient(opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {

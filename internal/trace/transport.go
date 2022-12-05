@@ -12,8 +12,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Copied and adapted from oras (https://github.com/oras-project/oras)
 */
 
 package trace
@@ -40,9 +38,8 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	ctx := req.Context()
 	e := log.GetLogger(ctx)
 
-	e.Debugf(" Request URL: %q", req.URL)
-	e.Debugf(" Request method: %q", req.Method)
-	e.Debugf(" Request headers:")
+	e.Debugf("> Request: %q %q", req.Method, req.URL)
+	e.Debugf("> Request headers:")
 	logHeader(req.Header, e)
 
 	resp, err = t.RoundTripper.RoundTrip(req)
@@ -51,8 +48,8 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	} else if resp == nil {
 		e.Errorf("No response obtained for request %s %q", req.Method, req.URL)
 	} else {
-		e.Debugf(" Response Status: %q", resp.Status)
-		e.Debugf(" Response headers:")
+		e.Debugf("< Response status: %q", resp.Status)
+		e.Debugf("< Response headers:")
 		logHeader(resp.Header, e)
 	}
 	return resp, err
