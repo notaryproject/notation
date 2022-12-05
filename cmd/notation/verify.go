@@ -7,17 +7,16 @@ import (
 	"math"
 
 	"github.com/notaryproject/notation-go"
-	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
-	"oras.land/oras-go/v2/registry/remote"
 )
 
 type verifyOpts struct {
+	cmd.LoggingFlagOpts
 	SecureFlagOpts
 	reference    string
 	pluginConfig []string
@@ -51,12 +50,16 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 			return runVerify(cmd, opts)
 		},
 	}
-	opts.ApplyFlags(command.Flags())
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	return command
 }
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
+	// set log level
+	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+
 	// resolve the given reference and set the digest
 	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
 		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
@@ -71,15 +74,12 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-	authClient, plainHTTP, _ := getAuthClient(&opts.SecureFlagOpts, ref)
-	remoteRepo := remote.Repository{
-		Client:    authClient,
-		Reference: ref,
-		PlainHTTP: plainHTTP,
-	}
-	repo := notationregistry.NewRepository(&remoteRepo)
 
-	// set up verification plugin config
+	repo, err := getRepositoryClient(ctx, &opts.SecureFlagOpts, ref)
+	if err != nil {
+		return err
+	}
+	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
 		return err
@@ -93,8 +93,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		MaxSignatureAttempts: math.MaxInt64,
 	}
 
-	// core verify process
-	_, outcomes, err := notation.Verify(command.Context(), verifier, repo, verifyOpts)
+	// core verify process.
+	_, outcomes, err := notation.Verify(ctx, verifier, repo, verifyOpts)
 
 	// write out
 	// on failure
