@@ -83,7 +83,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getSignatureRepositoryClient(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	sigRepo, err := getSignatureRepository(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference)
 	if err != nil {
 		return err
 	}

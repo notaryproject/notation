@@ -18,7 +18,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepositoryClient(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
+func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
@@ -26,6 +26,19 @@ func getSignatureRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref
 
 	// generate notation repository
 	return getRepositoryClient(ctx, opts, ref)
+}
+
+func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
+	reg, err := remote.NewRegistry(serverAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, opts, reg.Reference)
+	if err != nil {
+		return nil, err
+	}
+	return reg, nil
 }
 
 func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
@@ -53,19 +66,6 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 		authClient.Client.Transport = http.DefaultTransport
 	}
 	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
-}
-
-func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
-	reg, err := remote.NewRegistry(serverAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, opts, reg.Reference)
-	if err != nil {
-		return nil, err
-	}
-	return reg, nil
 }
 
 func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
