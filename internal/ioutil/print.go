@@ -5,7 +5,6 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/config"
 )
 
@@ -32,17 +31,4 @@ func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
 	}
 	return tw.Flush()
-}
-
-func PrintVerificationResults(w io.Writer, v []*notation.VerificationOutcome, resultErr error, digest string) error {
-	tw := newTabWriter(w)
-
-	if resultErr == nil {
-		fmt.Fprintf(tw, "Successfully verified for %s\n", digest)
-		// TODO[https://github.com/notaryproject/notation/issues/304]: print out failed validations as warnings.
-		return nil
-	}
-	tw.Flush()
-
-	return resultErr
 }

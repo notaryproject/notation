@@ -8,22 +8,27 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
-func getManifestDescriptorFromContext(ctx context.Context, opts *SecureFlagOpts, ref string) (ocispec.Descriptor, error) {
-	if ref == "" {
-		return ocispec.Descriptor{}, errors.New("missing reference")
+// getManifestDescriptor returns target artifact manifest descriptor and
+// registry.Reference given user input reference.
+func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference string) (ocispec.Descriptor, registry.Reference, error) {
+	if reference == "" {
+		return ocispec.Descriptor{}, registry.Reference{}, errors.New("missing reference")
 	}
-
-	return getManifestDescriptorFromReference(ctx, opts, ref)
-}
-
-func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string) (ocispec.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return ocispec.Descriptor{}, registry.Reference{}, err
+	}
+	if ref.Reference == "" {
+		return ocispec.Descriptor{}, registry.Reference{}, errors.New("reference is missing digest or tag")
 	}
 	repo, err := getRepositoryClient(opts, ref)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
-	return repo.Resolve(ctx, ref.ReferenceOrDefault())
+
+	manifestDesc, err := repo.Resolve(ctx, ref.Reference)
+	if err != nil {
+		return ocispec.Descriptor{}, registry.Reference{}, err
+	}
+	return manifestDesc, ref, nil
 }
