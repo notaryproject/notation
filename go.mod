@@ -8,7 +8,7 @@ require (
 	github.com/notaryproject/notation-go v0.12.0-beta.1.0.20221205052202-e9545a718368
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc2
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/veraison/go-cose v1.0.0-rc.2
