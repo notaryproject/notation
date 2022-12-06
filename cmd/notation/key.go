@@ -59,8 +59,8 @@ Example - List keys used for signing:
 Example - Update the default signing key:
   notation key set --default <key_name>
 
-Example - Remove the key from signing key list:
-  notation key rm <key_name>...
+Example - Delete the key from signing key list:
+  notation key delete <key_name>...
 `,
 	}
 	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyDeleteCommand(nil))
