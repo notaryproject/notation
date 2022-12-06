@@ -140,9 +140,8 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 	}
 
 	return &cobra.Command{
-		Use:     "delete [flags] <key_name>...",
-		Aliases: []string{"rm"},
-		Short:   "Delete key from signing key list",
+		Use:   "delete [flags] <key_name>...",
+		Short: "Delete key from signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key names")

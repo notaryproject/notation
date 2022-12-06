@@ -107,9 +107,6 @@ Delete certificates from the trust store.
 Usage:
   notation certificate delete --type <type> --store <name> [flags] (--all | <cert_fileName>)
 
-Aliases:
-  delete, rm
-
 Flags:
   -a, --all            delete all certificates in the named store
   -h, --help           help for delete
