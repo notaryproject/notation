@@ -106,10 +106,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// on success
 	outcome := outcomes[0]
-	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
-		return nil
-	}
 	// print out warning for any failed result with logged verification action
 	for _, result := range outcome.VerificationResults {
 		if result.Error != nil {
@@ -118,7 +114,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 			fmt.Printf("Warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
 		}
 	}
-	fmt.Println("Successfully verified signature for", ref.String())
+	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
+		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
+	} else {
+		fmt.Println("Successfully verified signature for", ref.String())
+	}
 	return nil
 }
 
