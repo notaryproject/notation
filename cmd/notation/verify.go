@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
+	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
@@ -104,7 +106,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// on success
 	outcome := outcomes[0]
-	if outcome.VerificationLevel.Name == "skip" {
+	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
 		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
 		return nil
 	}
