@@ -21,9 +21,8 @@ func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 		opts = &certDeleteOpts{}
 	}
 	command := &cobra.Command{
-		Use:     "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
-		Aliases: []string{"rm"},
-		Short:   "Delete certificates from the trust store.",
+		Use:   "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
+		Short: "Delete certificates from the trust store.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if !opts.all && len(args) == 0 {
 				return errors.New("delete requires either the certificate file name that needs to be deleted or --all flag to delete all certificates in the given named trust store")

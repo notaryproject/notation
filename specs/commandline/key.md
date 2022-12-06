@@ -48,9 +48,6 @@ Delete key from signing key list
 Usage:
   notation key delete [flags] <key_name>...
 
-Aliases:
-  delete, rm
-
 Flags:
   -h, --help                   help for delete
 
