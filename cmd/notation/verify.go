@@ -104,6 +104,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// on success
 	outcome := outcomes[0]
+	if outcome.VerificationLevel.Name == "skip" {
+		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
+		return nil
+	}
 	// print out warning for any failed result with logged verification action
 	for _, result := range outcome.VerificationResults {
 		if result.Error != nil {
