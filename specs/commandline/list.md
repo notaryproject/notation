@@ -10,7 +10,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
 
 ```shell
 <registry>/<repository>@<digest>
-└── application/vnd.cncf.notary.v2.signature
+└── application/vnd.cncf.notary.signature
     ├──<digest_of_signature_manifest>
     └──<digest_of_signature_manifest>
 ```
@@ -45,7 +45,7 @@ An example output:
 
 ```shell
 localhost:5000/net-monitor:v1
-└── application/vnd.cncf.notary.v2.signature
+└── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 ```

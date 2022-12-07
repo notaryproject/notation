@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
+	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
@@ -109,10 +111,14 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			fmt.Printf("Warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
+			fmt.Printf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 		}
 	}
-	fmt.Println("Successfully verified signature for", ref.String())
+	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
+		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
+	} else {
+		fmt.Println("Successfully verified signature for", ref.String())
+	}
 	return nil
 }
 
