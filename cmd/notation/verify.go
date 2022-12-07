@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -61,6 +62,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	logger := log.GetLogger(ctx)
 
 	// resolve the given reference and set the digest
 	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
@@ -97,9 +99,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// core verify process.
 	_, outcomes, err := notation.Verify(ctx, verifier, repo, verifyOpts)
-
-	// write out
-	// on failure
+	if err != nil {
+		logger.Error(err)
+	}
+	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
 	}
