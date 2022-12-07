@@ -111,7 +111,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			fmt.Printf("Warning: %v was set to \"logged\" and failed with error: %v\n", result.Type, result.Error)
+			fmt.Printf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 		}
 	}
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
