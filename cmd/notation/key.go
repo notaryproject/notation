@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -19,9 +20,8 @@ import (
 
 var (
 	keyDefaultFlag = &pflag.Flag{
-		Name:      "default",
-		Shorthand: "d",
-		Usage:     "mark as default",
+		Name:  "default",
+		Usage: "mark as default",
 	}
 	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
@@ -29,6 +29,7 @@ var (
 )
 
 type keyAddOpts struct {
+	cmd.LoggingFlagOpts
 	name         string
 	plugin       string
 	id           string
@@ -87,6 +88,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 			return addKey(cmd, opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringVarP(&opts.plugin, "plugin", "p", "", "signing plugin name")
 	command.MarkFlagRequired("plugin")
 
@@ -156,6 +158,10 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 }
 
 func addKey(command *cobra.Command, opts *keyAddOpts) error {
+	// set log level
+	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	logger := log.GetLogger(ctx)
+
 	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
 		return err
@@ -167,6 +173,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	}
 	pluginName := opts.plugin
 	if pluginName != "" {
+		logger.Debug("Adding external key...")
 		key, err = addExternalKey(command.Context(), opts, pluginName, name)
 		if err != nil {
 			return err
@@ -186,6 +193,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	}
 
 	// write out
+	logger.Debugf("Added external key: {Name: %s, ExternalKey: %+v}", key.Name, key.ExternalKey)
 	if isDefault {
 		fmt.Printf("%s: marked as default\n", key.Name)
 	} else {
