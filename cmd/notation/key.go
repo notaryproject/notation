@@ -180,7 +180,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	pluginName := opts.plugin
 	if pluginName != "" {
 		logger.Debug("Adding external key...")
-		key, err = addExternalKey(command.Context(), opts, pluginName, name)
+		key, err = addExternalKey(ctx, opts, pluginName, name)
 		if err != nil {
 			return err
 		}
