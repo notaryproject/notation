@@ -1,0 +1,86 @@
+# Copyright The NOTATION Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: ecosystem
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request:
+    branches:
+      - main
+      - release-*
+jobs:
+  zot:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Setup
+        run: |
+          # upload images, zot can serve OCI image layouts directly like so
+          mkdir /tmp/zot
+          skopeo copy --format=oci docker://busybox:latest oci:/tmp/zot/busybox:latest
+          # start zot
+          docker pull ghcr.io/project-zot/zot-minimal-linux-amd64:latest
+          docker run -d --name zot -v /tmp/zot:/var/lib/registry -p 8000:5000 ghcr.io/project-zot/zot-minimal-linux-amd64:latest
+          # wait until service is up
+          while true; do x=0; curl -f http://$NOTATION_REGISTRY_HOST/v2/ || x=1; if [ $x -eq 0 ]; then break; fi; sleep 1; done
+        env:
+          NOTATION_REGISTRY_HOST: localhost:8000
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+          check-latest: true
+      - name: Build CLI
+        run: make build
+      - name: Check Version
+        run: bin/notation version
+      - name: Run Compatibility Tests
+        run: |
+          mkdir -p ${HOME}/.config/notation
+          cat << EOF > ${HOME}/.config/notation/trustpolicy.json
+          {
+            "version": "1.0",
+            "trustPolicies": [
+              {
+                "name": "wabbit-networks-images",
+                "registryScopes": [ "*" ],
+                "signatureVerification": {
+                  "level" : "strict"
+                  },
+                "trustStores": [ "ca:wabbit-networks.io" ],
+                "trustedIdentities": [
+                  "*"
+                  ]
+                }
+            ]
+          }
+          EOF
+          cd $GITHUB_WORKSPACE/
+          $NOTATION_PATH cert generate-test --default "wabbit-networks.io"
+          $NOTATION_PATH key ls
+          $NOTATION_PATH cert ls
+          $NOTATION_PATH sign --plain-http $NOTATION_REGISTRY_HOST/busybox:latest
+          $NOTATION_PATH sign --plain-http --signature-format cose $NOTATION_REGISTRY_HOST/busybox:latest
+          $NOTATION_PATH ls --plain-http $NOTATION_REGISTRY_HOST/busybox:latest
+          $NOTATION_PATH verify --plain-http $NOTATION_REGISTRY_HOST/busybox:latest
+          docker kill zot || true
+        env:
+          NOTATION_PATH: bin/notation
+          NOTATION_REGISTRY_HOST: localhost:8000
