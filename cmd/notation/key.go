@@ -38,11 +38,13 @@ type keyAddOpts struct {
 }
 
 type keyUpdateOpts struct {
+	cmd.LoggingFlagOpts
 	name      string
 	isDefault bool
 }
 
 type keyDeleteOpts struct {
+	cmd.LoggingFlagOpts
 	names []string
 }
 
@@ -116,10 +118,11 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return updateKey(opts)
+			return updateKey(cmd, opts)
 		},
 	}
 
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -141,7 +144,7 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 		opts = &keyDeleteOpts{}
 	}
 
-	return &cobra.Command{
+	command := &cobra.Command{
 		Use:   "delete [flags] <key_name>...",
 		Short: "Delete key from signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -152,9 +155,12 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return deleteKeys(opts)
+			return deleteKeys(cmd, opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+
+	return command
 }
 
 func addKey(command *cobra.Command, opts *keyAddOpts) error {
@@ -240,7 +246,11 @@ func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefaul
 	return nil
 }
 
-func updateKey(opts *keyUpdateOpts) error {
+func updateKey(command *cobra.Command, opts *keyUpdateOpts) error {
+	// set log level
+	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	logger := log.GetLogger(ctx)
+
 	// initialize
 	name := opts.name
 	// core process
@@ -252,6 +262,7 @@ func updateKey(opts *keyUpdateOpts) error {
 		return errors.New(name + ": not found")
 	}
 	if !opts.isDefault {
+		logger.Warn("--default flag is not set, command did not take effect")
 		return nil
 	}
 	if signingKeys.Default != name {
@@ -277,7 +288,11 @@ func listKeys() error {
 	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
 }
 
-func deleteKeys(opts *keyDeleteOpts) error {
+func deleteKeys(command *cobra.Command, opts *keyDeleteOpts) error {
+	// set log level
+	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	logger := log.GetLogger(ctx)
+
 	// core process
 	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
@@ -289,6 +304,7 @@ func deleteKeys(opts *keyDeleteOpts) error {
 	for _, name := range opts.names {
 		idx := slices.Index(signingKeys.Keys, name)
 		if idx < 0 {
+			logger.Warnf("Key %s not found, command did not take effect", name)
 			return errors.New(name + ": not found")
 		}
 		signingKeys.Keys = slices.Delete(signingKeys.Keys, idx)
