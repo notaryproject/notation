@@ -80,9 +80,11 @@ Aliases:
   list, ls
 
 Flags:
+  -d, --debug          debug mode
   -h, --help           help for list
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
+  -v, --verbose        verbose mode
 ```
 
 ### notation certificate show
@@ -94,9 +96,11 @@ Usage:
   notation certificate show --type <type> --store <name> [flags] <cert_fileName>
 
 Flags:
+  -d, --debug          debug mode
   -h, --help           help for show
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
+  -v, --verbose        verbose mode
 ```
 
 ### notation certificate delete
@@ -124,9 +128,9 @@ Usage:
   notation certificate generate-test [flags] <common_name>
 
 Flags:
-  -b, --bits int      RSA key bits (default 2048)
-  -d, --default       mark as default signing key
-  -h, --help          help for generate-test
+  -b, --bits int   RSA key bits (default 2048)
+      --default    mark as default signing key
+  -h, --help       help for generate-test
 ```
 
 ## Usage

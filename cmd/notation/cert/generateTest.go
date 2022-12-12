@@ -50,7 +50,7 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 			opts.name = args[0]
 			return nil
 		},
-		Long: `Manage certificates in trust store
+		Long: `Generate a test RSA key and a corresponding self-signed certificate
 
 Example - Generate a test RSA key and a corresponding self-signed certificate named "wabbit-networks.io":
   notation cert generate-test "wabbit-networks.io"
