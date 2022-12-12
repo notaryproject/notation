@@ -22,9 +22,8 @@ import (
 
 var (
 	keyDefaultFlag = &pflag.Flag{
-		Name:      "default",
-		Shorthand: "d",
-		Usage:     "mark as default signing key",
+		Name:  "default",
+		Usage: "mark as default signing key",
 	}
 	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)

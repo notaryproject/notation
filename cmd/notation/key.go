@@ -87,7 +87,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addKey(cmd, opts)
+			return addKey(cmd.Context(), opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
@@ -118,7 +118,7 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return updateKey(cmd, opts)
+			return updateKey(cmd.Context(), opts)
 		},
 	}
 
@@ -155,7 +155,7 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return deleteKeys(cmd, opts)
+			return deleteKeys(cmd.Context(), opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
@@ -163,9 +163,9 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 	return command
 }
 
-func addKey(command *cobra.Command, opts *keyAddOpts) error {
+func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
 	logger := log.GetLogger(ctx)
 
 	signingKeys, err := configutil.LoadSigningkeysOnce()
@@ -246,9 +246,9 @@ func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefaul
 	return nil
 }
 
-func updateKey(command *cobra.Command, opts *keyUpdateOpts) error {
+func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
 	logger := log.GetLogger(ctx)
 
 	// initialize
@@ -288,9 +288,9 @@ func listKeys() error {
 	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
 }
 
-func deleteKeys(command *cobra.Command, opts *keyDeleteOpts) error {
+func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
 	logger := log.GetLogger(ctx)
 
 	// core process
