@@ -2,20 +2,7 @@ package envelope
 
 import (
 	"testing"
-
-	gcose "github.com/veraison/go-cose"
 )
-
-var validCoseSignatureEnvelope []byte
-
-func init() {
-	msg := gcose.Sign1Message{
-		Headers:   gcose.NewSign1Message().Headers,
-		Payload:   []byte("valid"),
-		Signature: []byte("valid"),
-	}
-	validCoseSignatureEnvelope, _ = msg.MarshalCBOR()
-}
 
 func TestGetEnvelopeMediaType(t *testing.T) {
 	type args struct {
