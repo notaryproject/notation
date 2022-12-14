@@ -85,7 +85,7 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 		return fmt.Errorf("failed to store credentials: %v", err)
 	}
 
-	logger.Infoln("Logged into", serverAddress)
+	logger.Infoln("Logged in to", serverAddress)
 	fmt.Println("Login Succeeded")
 	return nil
 }
