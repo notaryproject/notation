@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -168,7 +169,7 @@ func TestNativeStore_GetCredentialsStore_LoadConfigFailed(t *testing.T) {
 	loadConfig = func() (*config.Config, error) {
 		return nil, fmt.Errorf("loadConfig err")
 	}
-	_, err := GetCredentialsStore(validServerAddress)
+	_, err := GetCredentialsStore(context.Background(), validServerAddress)
 	if err == nil {
 		t.Fatalf("expect error, got nil")
 	}
@@ -178,7 +179,7 @@ func TestNativeStore_GetCredentialsStore_NoHelperSet(t *testing.T) {
 	loadConfig = func() (*config.Config, error) {
 		return &config.Config{}, nil
 	}
-	_, err := GetCredentialsStore(validServerAddress)
+	_, err := GetCredentialsStore(context.Background(), validServerAddress)
 	if err == nil || err.Error() != "could not get the configured credentials store for registry: "+validServerAddress {
 		t.Fatalf("Didn't get the expected error, but got: %v", err)
 	}
@@ -192,7 +193,7 @@ func TestNativeStore_GetCredentialsStore_HelperSet(t *testing.T) {
 			},
 		}, nil
 	}
-	_, err := GetCredentialsStore(validServerAddress)
+	_, err := GetCredentialsStore(context.Background(), validServerAddress)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

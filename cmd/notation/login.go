@@ -8,12 +8,15 @@ import (
 	"os"
 	"strings"
 
+	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/auth"
 	"github.com/spf13/cobra"
 	orasauth "oras.land/oras-go/v2/registry/remote/auth"
 )
 
 type loginOpts struct {
+	cmd.LoggingFlagOpts
 	SecureFlagOpts
 	passwordStdin bool
 	server        string
@@ -47,23 +50,28 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLogin(cmd, opts)
+			return runLogin(cmd.Context(), opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "take the password from stdin")
-	opts.ApplyFlags(command.Flags())
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	return command
 }
 
-func runLogin(cmd *cobra.Command, opts *loginOpts) error {
+func runLogin(ctx context.Context, opts *loginOpts) error {
+	// set log level
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	logger := log.GetLogger(ctx)
+
 	// initialize
 	serverAddress := opts.server
 
-	if err := validateAuthConfig(cmd.Context(), opts, serverAddress); err != nil {
+	if err := validateAuthConfig(ctx, opts, serverAddress); err != nil {
 		return err
 	}
 
-	nativeStore, err := auth.GetCredentialsStore(serverAddress)
+	nativeStore, err := auth.GetCredentialsStore(ctx, serverAddress)
 	if err != nil {
 		return fmt.Errorf("could not get the credentials store: %v", err)
 	}
@@ -77,6 +85,7 @@ func runLogin(cmd *cobra.Command, opts *loginOpts) error {
 		return fmt.Errorf("failed to store credentials: %v", err)
 	}
 
+	logger.Infoln("Logged into", serverAddress)
 	fmt.Println("Login Succeeded")
 	return nil
 }
