@@ -97,8 +97,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// core verify process.
 	_, outcomes, err := notation.Verify(ctx, verifier, repo, verifyOpts)
-	if err != nil {
-		// print out verification error
+	if err != nil && !errors.Is(err, notation.ErrorVerificationFailed{}) {
+		// print out the error if it's not the general ErrorVerificationFailed
 		fmt.Println("Verification error:", err)
 	}
 	// write out on failure
