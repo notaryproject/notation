@@ -44,7 +44,7 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 		return err
 	}
 	if len(certs) == 0 {
-		return errors.New("no valid certificate found in the file")
+		return errors.New("no valid certificate found in the empty file")
 	}
 
 	// core process
