@@ -44,7 +44,7 @@ func GetCredentialsStore(ctx context.Context, registryHostname string) (Credenti
 func newNativeAuthStore(ctx context.Context, helperSuffix string) CredentialStore {
 	logger := log.GetLogger(ctx)
 	name := remoteCredentialsPrefix + helperSuffix
-	logger.Infoln("Remote credential helper program to execute:", name)
+	logger.Infoln("Executing remote credential helper program :", name)
 	return &nativeAuthStore{
 		programFunc: client.NewShellProgramFunc(name),
 	}

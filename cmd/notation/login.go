@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/auth"
 	"github.com/spf13/cobra"
@@ -62,7 +61,6 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 func runLogin(ctx context.Context, opts *loginOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
-	logger := log.GetLogger(ctx)
 
 	// initialize
 	serverAddress := opts.server
@@ -85,7 +83,6 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 		return fmt.Errorf("failed to store credentials: %v", err)
 	}
 
-	logger.Infoln("Logged in to", serverAddress)
 	fmt.Println("Login Succeeded")
 	return nil
 }
