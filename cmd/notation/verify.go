@@ -102,14 +102,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// core verify process.
 	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
 	// write out on failure
-	if err != nil {
-		var errorVerificationFailed *notation.ErrorVerificationFailed
-		if !errors.As(err, &errorVerificationFailed) {
-			return fmt.Errorf("signature verification failed with error: %w", err)
+	if err != nil || len(outcomes) == 0 {
+		if err != nil {
+			var errorVerificationFailed *notation.ErrorVerificationFailed
+			if !errors.As(err, &errorVerificationFailed) {
+				return fmt.Errorf("signature verification failed due to: %w", err)
+			}
 		}
-		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
-	}
-	if len(outcomes) == 0 {
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
 	}
 
