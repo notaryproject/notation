@@ -31,6 +31,6 @@ func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference 
 		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
 
-	logger.Infof("Reference resolved to manifest descriptor: {MediaType:%v, Digest:%v, Size:%v}", manifestDesc.MediaType, manifestDesc.Digest, manifestDesc.Size)
+	logger.Infof("Reference %s resolved to manifest descriptor: %+v", ref.Reference, manifestDesc)
 	return manifestDesc, ref, nil
 }
