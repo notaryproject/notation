@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -77,16 +78,16 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-
-	// core process
-	opts, ref, err := prepareSigningContent(ctx, cmdOpts)
-	if err != nil {
-		return err
-	}
 	sigRepo, err := getSignatureRepository(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference)
 	if err != nil {
 		return err
 	}
+	opts, ref, err := prepareSigningContent(ctx, cmdOpts, sigRepo)
+	if err != nil {
+		return err
+	}
+
+	// core process
 	_, err = notation.Sign(ctx, signer, sigRepo, opts)
 	if err != nil {
 		return err
@@ -97,8 +98,8 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (notation.SignOptions, registry.Reference, error) {
-	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, registry.Reference, error) {
+	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
 		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
 		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
 	})
