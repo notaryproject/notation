@@ -35,7 +35,7 @@ jobs:
           git tag -af $TAG_VERSION -m "For weekly build"
           git push origin $TAG_VERSION
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@v4
         with:
           distribution: goreleaser
           version: latest
