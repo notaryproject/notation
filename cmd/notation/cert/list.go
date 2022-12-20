@@ -68,7 +68,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 		}
 		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 2)); err != nil {
 			logger.Debugln("Failed to complete list at path:", path)
-			return fmt.Errorf("failed to complete listing all certificates in the trust store, with error: %s", err.Error())
+			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
 		}
 
 		return nil
@@ -83,7 +83,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 		}
 		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0)); err != nil {
 			logger.Debugln("Failed to complete list at path:", path)
-			return fmt.Errorf("failed to complete listing certificates in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
+			return fmt.Errorf("failed to list all certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
 
 		return nil
@@ -98,7 +98,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 		}
 		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 1)); err != nil {
 			logger.Debugln("Failed to complete list at path:", path)
-			return fmt.Errorf("failed to complete listing certificates of type %s, with error: %s", storeType, err.Error())
+			return fmt.Errorf("failed to list all certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
 	} else {
 		// List all certificates under named store namedStore, display empty if
@@ -110,7 +110,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			}
 			if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0)); err != nil {
 				logger.Debugln("Failed to complete list at path:", path)
-				return fmt.Errorf("failed to complete listing certificates in the named store %s, with error: %s", namedStore, err.Error())
+				return fmt.Errorf("failed to list all certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 			}
 		}
 	}
