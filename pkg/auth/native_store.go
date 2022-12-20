@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
 	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation-go/log"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -25,13 +27,13 @@ type nativeAuthStore struct {
 
 // GetCredentialsStore returns a new credentials store from the settings in the
 // configuration file
-func GetCredentialsStore(registryHostname string) (CredentialStore, error) {
+func GetCredentialsStore(ctx context.Context, registryHostname string) (CredentialStore, error) {
 	configFile, err := loadConfig()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config file, error: %w", err)
 	}
 	if helper := getConfiguredCredentialStore(configFile, registryHostname); helper != "" {
-		return newNativeAuthStore(helper), nil
+		return newNativeAuthStore(ctx, helper), nil
 	}
 	return nil, fmt.Errorf("could not get the configured credentials store for registry: %s", registryHostname)
 }
@@ -39,8 +41,10 @@ func GetCredentialsStore(registryHostname string) (CredentialStore, error) {
 // newNativeAuthStore creates a new native store that uses a remote helper
 // program to manage credentials. Note: it's different from the nativeStore in
 // docker-cli which may fall back to plain text store
-func newNativeAuthStore(helperSuffix string) CredentialStore {
+func newNativeAuthStore(ctx context.Context, helperSuffix string) CredentialStore {
+	logger := log.GetLogger(ctx)
 	name := remoteCredentialsPrefix + helperSuffix
+	logger.Infoln("Executing remote credential helper program:", name)
 	return &nativeAuthStore{
 		programFunc: client.NewShellProgramFunc(name),
 	}
