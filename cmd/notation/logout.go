@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/auth"
 	"github.com/spf13/cobra"
 )
 
 type logoutOpts struct {
+	cmd.LoggingFlagOpts
 	server string
 }
 
@@ -15,7 +19,7 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 	if opts == nil {
 		opts = &logoutOpts{}
 	}
-	return &cobra.Command{
+	command := &cobra.Command{
 		Use:   "logout [flags] <server>",
 		Short: "Log out from the logged in registries",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -26,17 +30,28 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLogout(cmd, opts)
+			return runLogout(cmd.Context(), opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	return command
 }
 
-func runLogout(cmd *cobra.Command, opts *logoutOpts) error {
+func runLogout(ctx context.Context, opts *logoutOpts) error {
+	// set log level
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+
 	// initialize
 	serverAddress := opts.server
-	nativeStore, err := auth.GetCredentialsStore(serverAddress)
+	nativeStore, err := auth.GetCredentialsStore(ctx, serverAddress)
 	if err != nil {
 		return err
 	}
-	return nativeStore.Erase(serverAddress)
+	err = nativeStore.Erase(serverAddress)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Logout Succeeded")
+	return nil
 }

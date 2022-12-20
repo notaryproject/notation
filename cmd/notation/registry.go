@@ -92,7 +92,7 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 	}
 	if cred == auth.EmptyCredential {
 		var err error
-		cred, err = getSavedCreds(ref.Registry)
+		cred, err = getSavedCreds(ctx, ref.Registry)
 		// local registry may not need credentials
 		if err != nil && !errors.Is(err, loginauth.ErrCredentialsConfigNotSet) {
 			return nil, false, err
@@ -119,8 +119,8 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 	return authClient, plainHTTP, nil
 }
 
-func getSavedCreds(serverAddress string) (auth.Credential, error) {
-	nativeStore, err := loginauth.GetCredentialsStore(serverAddress)
+func getSavedCreds(ctx context.Context, serverAddress string) (auth.Credential, error) {
+	nativeStore, err := loginauth.GetCredentialsStore(ctx, serverAddress)
 	if err != nil {
 		return auth.EmptyCredential, err
 	}
