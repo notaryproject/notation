@@ -37,9 +37,14 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
 
-	// check if the target path is a cert (support PEM and DER formats)
-	if _, err := corex509.ReadCertificateFile(certPath); err != nil {
+	// check if the target path is a x509 certificate
+	// (support PEM and DER formats)
+	certs, err := corex509.ReadCertificateFile(certPath)
+	if err != nil {
 		return err
+	}
+	if len(certs) == 0 {
+		return errors.New("no valid certificate found in the file")
 	}
 
 	// core process
@@ -48,6 +53,7 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	if err := CheckNonErrNotExistError(err); err != nil {
 		return err
 	}
+
 	// check if certificate already in the trust store
 	if _, err := os.Stat(filepath.Join(trustStorePath, filepath.Base(certPath))); err == nil {
 		return errors.New("certificate already exists in the Trust Store")
@@ -83,10 +89,13 @@ func ListCerts(root string, depth int) error {
 			return err
 		}
 		if info.Mode().IsRegular() {
-			if _, err := corex509.ReadCertificateFile(path); err != nil {
+			certs, err := corex509.ReadCertificateFile(path)
+			if err != nil {
 				return err
 			}
-			fmt.Println(path)
+			if len(certs) != 0 {
+				fmt.Println(path)
+			}
 		}
 		return nil
 	})
