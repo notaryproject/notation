@@ -179,7 +179,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	}
 	pluginName := opts.plugin
 	if pluginName != "" {
-		logger.Debug("Adding external key...")
+		logger.Debugf("Adding key with name %v and plugin name %v", name, pluginName)
 		key, err = addExternalKey(ctx, opts, pluginName, name)
 		if err != nil {
 			return err
@@ -199,7 +199,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	}
 
 	// write out
-	logger.Debugf("Added external key: {Name: %s, ExternalKey: %+v}", key.Name, key.ExternalKey)
+	logger.Debugf("Added key with name %s - {%+v}", key.Name, key.ExternalKey)
 	if isDefault {
 		fmt.Printf("%s: marked as default\n", key.Name)
 	} else {

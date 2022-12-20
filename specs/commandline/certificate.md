@@ -90,7 +90,7 @@ Flags:
 ### notation certificate show
 
 ```text
-Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.
+Show certificate details of given trust store name, trust store type, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.
 
 Usage:
   notation certificate show --type <type> --store <name> [flags] <cert_fileName>

@@ -37,7 +37,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 			opts.cert = args[0]
 			return nil
 		},
-		Long: `Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed
+		Long: `Show certificate details of given trust store name, trust store type, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed
 
 Example - Show details of certificate "cert1.pem" with type "ca" from trust store "acme-rockets":
   notation cert show --type ca --store acme-rockets cert1.pem
@@ -80,7 +80,7 @@ func showCerts(ctx context.Context, opts *certShowOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
 	}
-	logger.Debugln("Trying to show details of certificate:", path)
+	logger.Debugln("Showing details of certificate:", path)
 	certs, err := corex509.ReadCertificateFile(path)
 	if err != nil {
 		return fmt.Errorf("failed to show details of certificate %s, with error: %s", cert, err.Error())
