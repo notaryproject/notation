@@ -28,7 +28,7 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 			opts.path = args
 			return nil
 		},
-		Long: `Manage certificates in trust store
+		Long: `Add certificates to the trust store
 
 Example - Add a certificate to the "ca" type of a named store "acme-rockets":
   notation cert add --type ca --store acme-rockets acme-rockets.crt
