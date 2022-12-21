@@ -5,188 +5,210 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"time"
 
-	. "github.com/onsi/ginkgo/v2"
+	"github.com/notaryproject/notation/test/e2e/internal/utils/match"
+	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
+const (
+	DefaultTimeout = 10 * time.Second
+	// If the command hasn't exited yet, ginkgo session ExitCode is -1
+	notResponding = -1
+)
+
 // ExecOpts is an option used to execute a command.
 type ExecOpts struct {
-	Stdin  io.Reader
-	Stdout io.Writer
-	Stderr io.Writer
-	// Env is the environment variables used by the command.
-	Env map[string]string
+	binPath string
+	args    []string
+	workDir string
+	timeout time.Duration
+
+	stdin    io.Reader
+	stdout   []match.Matcher
+	stderr   []match.Matcher
+	exitCode int
+
+	text string
+
+	// env is the environment variables used by the command.
+	env map[string]string
 }
 
-// CommandOpts is an option used by CommandGroup to execute a batch of commands.
-// TODO: how to read data in a container in a convenient way
-type CommandOpts struct {
-	ExecOpts
-	Description string
-	// Binary is an executable file. The default value will be notation binary if not provided.
-	Binary string
-	// Args is arguments to execute the binary.
-	Args       []string
-	ShouldFail bool
-	// Checker is an user-provided function used to validate the result of a Command.
-	Checker func(CommandOpts, *gexec.Session)
-}
-
-// CommandGroup contains a batch of e2e notation command to be executed.
-type CommandGroup []CommandOpts
-
-// CommandGroupOpts is option used to create a CommandGroup.
-type CommandGroupOpts func(g CommandGroup)
-
-// WithAuth sets up auth info for the CommandGroup.
-func WithAuth(username, password string) CommandGroupOpts {
-	return func(g CommandGroup) {
-		for i, c := range g {
-			g[i].ExecOpts = c.WithAuth(username, password)
-		}
+// Binary returns default execution option for customized binary.
+func Binary(binPath string, args ...string) *ExecOpts {
+	return &ExecOpts{
+		binPath:  binPath,
+		args:     args,
+		timeout:  DefaultTimeout,
+		exitCode: 0,
+		env:      make(map[string]string),
 	}
 }
 
-// WithUserDir sets up user config and cache directory for the CommandGroup.
-func WithUserDir(dir string) CommandGroupOpts {
-	return func(g CommandGroup) {
-		for i, c := range g {
-			g[i].ExecOpts = c.WithUserDir(dir)
-		}
-	}
-}
-
-// NewCommandGroup creates a CommandsGroup from base.
-func NewCommandGroup(base CommandGroup, opts ...CommandGroupOpts) CommandGroup {
-	for _, opt := range opts {
-		opt(base)
-	}
-	return base
-}
-
-// WithAuth creates an ExecOpts with auth info setted.(By setting $NOTATION_USERNAME and $NOTATION_PASSWORD)
-func (opts ExecOpts) WithAuth(username, password string) ExecOpts {
-	if opts.Env == nil {
-		opts.Env = make(map[string]string)
-	}
-	opts.Env["NOTATION_USERNAME"] = username
-	opts.Env["NOTATION_PASSWORD"] = password
+// ExpectFailure sets failure exit code checking for the execution.
+func (opts *ExecOpts) ExpectFailure() *ExecOpts {
+	// set to 1 but only check if it's positive
+	opts.exitCode = 1
 	return opts
 }
 
-// WithUserDir creates an ExecOpts with user config and cache directory setted(By setting $XDG_CONFIG_HOME and $XDG_CACHE_HOME).
-func (opts ExecOpts) WithUserDir(dir string) ExecOpts {
-	if opts.Env == nil {
-		opts.Env = make(map[string]string)
-	}
-	configDir, cacheDir := filepath.Join(dir, "config"), filepath.Join(dir, "cache")
-	os.MkdirAll(configDir, os.ModePerm)
-	os.MkdirAll(cacheDir, os.ModePerm)
-	opts.Env["XDG_CONFIG_HOME"] = configDir
-	opts.Env["XDG_CACHE_HOME"] = cacheDir
+// ExpectBlocking consistently check if the execution is blocked.
+func (opts *ExecOpts) ExpectBlocking() *ExecOpts {
+	opts.exitCode = notResponding
 	return opts
 }
 
-// Exec execuates a binary with args and opts.
-func Exec(binary string, opts ExecOpts, args ...string) (*gexec.Session, error) {
-	cmd := exec.Command(binary, args...)
+// WithTimeOut sets timeout for the execution.
+func (opts *ExecOpts) WithTimeOut(timeout time.Duration) *ExecOpts {
+	opts.timeout = timeout
+	return opts
+}
+
+// WithDescription sets description text for the execution.
+func (opts *ExecOpts) WithDescription(text string) *ExecOpts {
+	opts.text = text
+	return opts
+}
+
+// WithWorkDir sets working directory for the execution.
+func (opts *ExecOpts) WithWorkDir(path string) *ExecOpts {
+	opts.workDir = path
+	return opts
+}
+
+// WithInput redirects stdin to r for the execution.
+func (opts *ExecOpts) WithInput(r io.Reader) *ExecOpts {
+	opts.stdin = r
+	return opts
+}
+
+// MatchKeyWords adds keywords matching to stdout.
+func (opts *ExecOpts) MatchKeyWords(keywords ...string) *ExecOpts {
+	opts.stdout = append(opts.stdout, match.NewKeywordMatcher(keywords))
+	return opts
+}
+
+// MatchErrKeyWords adds keywords matching to stderr.
+func (opts *ExecOpts) MatchErrKeyWords(keywords ...string) *ExecOpts {
+	opts.stderr = append(opts.stderr, match.NewKeywordMatcher(keywords))
+	return opts
+}
+
+// MatchContent adds full content matching to the execution.
+func (opts *ExecOpts) MatchContent(content string) *ExecOpts {
+	if opts.exitCode == 0 {
+		opts.stdout = append(opts.stdout, match.NewContentMatcher(content, false))
+	} else {
+		opts.stderr = append(opts.stderr, match.NewContentMatcher(content, false))
+	}
+	return opts
+}
+
+// MatchTrimedContent adds trimmed content matching to the execution.
+func (opts *ExecOpts) MatchTrimmedContent(content string) *ExecOpts {
+	if opts.exitCode == 0 {
+		opts.stdout = append(opts.stdout, match.NewContentMatcher(content, true))
+	} else {
+		opts.stderr = append(opts.stderr, match.NewContentMatcher(content, true))
+	}
+	return opts
+}
+
+// Clear clears the ExecOpts to ready for the next execution.
+func (opts *ExecOpts) Clear() {
+	opts.args = nil
+	opts.exitCode = 0
+	opts.timeout = DefaultTimeout
+	opts.workDir = ""
+	opts.stdin = nil
+	opts.stdout = nil
+	opts.stderr = nil
+	opts.text = ""
+}
+
+// WithEnv update the environment variables.
+func (opts *ExecOpts) WithEnv(env map[string]string) *ExecOpts {
+	if env == nil {
+		return opts
+	}
+	if opts.env == nil {
+		opts.env = make(map[string]string)
+	}
+	for key, value := range env {
+		opts.env[key] = value
+	}
+	return opts
+}
+
+// Exec run the execution based on opts.
+func (opts *ExecOpts) Exec(args ...string) *gexec.Session {
+	if opts == nil {
+		// this should be a code error but can only be caught during runtime
+		panic("Nil option for command execution")
+	}
+
+	if opts.text == "" {
+		// set default description text
+		switch opts.exitCode {
+		case notResponding:
+			opts.text = "block"
+		case 0:
+			opts.text = "pass"
+		default:
+			opts.text = "fail"
+		}
+	}
+	description := fmt.Sprintf("\n>> should %s: %s %s >>", opts.text, opts.binPath, strings.Join(opts.args, " "))
+	ginkgo.By(description)
+
+	// overwrite the args
+	if len(args) == 0 {
+		args = opts.args
+	}
+
+	var cmd *exec.Cmd
+	cmd = exec.Command(opts.binPath, args...)
+
+	// set environment variables
 	cmd.Env = append(cmd.Env, os.Environ()...)
-	for key, val := range opts.Env {
+	for key, val := range opts.env {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%v=%v", key, val))
 	}
-	if opts.Stdin != nil {
-		cmd.Stdin = opts.Stdin
-	}
-	session, err := gexec.Start(cmd, opts.Stdout, opts.Stderr)
-	if err != nil {
-		return nil, err
-	}
-	session = session.Wait("30s")
-	return session, nil
-}
 
-func description(text string, binary string, args []string) string {
-	return fmt.Sprintf("%s: %s %s", text, binary, strings.Join(args, " "))
-}
-
-// batchExec executes a batch of notation commands. If containerID is provided, it will execute all commands in a container.
-func batchExec(text string, commands *CommandGroup, containerID string) {
-	for _, command := range *commands {
-		if command.ExecOpts.Stdout == nil {
-			command.ExecOpts.Stdout = GinkgoWriter
-		}
-		if command.ExecOpts.Stderr == nil {
-			command.ExecOpts.Stderr = GinkgoWriter
-		}
-
-		name := command.Binary
-		args := command.Args
-		if containerID != "" {
-			name = "docker"
-			binary := command.Binary
-			// by default call notation
-			if command.Binary == "" {
-				binary = "notation"
-			}
-			args = append([]string{"exec", containerID, binary}, command.Args...)
-		} else {
-			// by default call notation
-			if command.Binary == "" {
-				name = NotationBinaryPath
-			}
-		}
-
-		By(description(text, name, args))
-
-		session, err := Exec(name, command.ExecOpts, args...)
+	// set stdin
+	cmd.Stdin = opts.stdin
+	if opts.workDir != "" {
+		// switch working directory
+		wd, err := os.Getwd()
 		Expect(err).ShouldNot(HaveOccurred())
-		var exitCode int
-		if command.ShouldFail {
-			Expect(session.ExitCode()).NotTo(Equal(exitCode))
-		} else {
-			Expect(session.ExitCode()).To(Equal(exitCode))
-		}
-		if command.Checker != nil {
-			command.Checker(command, session)
-		}
+		Expect(os.Chdir(opts.workDir)).ShouldNot(HaveOccurred())
+		defer os.Chdir(wd)
 	}
-}
+	fmt.Println(description)
+	session, err := gexec.Start(cmd, os.Stdout, os.Stderr)
+	Expect(err).ShouldNot(HaveOccurred())
+	if opts.exitCode == notResponding {
+		Consistently(session.ExitCode).WithTimeout(opts.timeout).Should(Equal(notResponding))
+		session.Kill()
+	} else {
+		exitCode := session.Wait(opts.timeout).ExitCode()
+		Expect(opts.exitCode == 0).To(Equal(exitCode == 0))
+	}
 
-// ExecCommandGroup executes every notation command in a single spec on the host machine.
-// If binary is not provided in a single command, command will execuate notation with args.
-// Otherwise command will execute the given binary with args.
-func ExecCommandGroup(text string, commands *CommandGroup) {
-	It(fmt.Sprintf("[%s]", text), func() {
-		batchExec(text, commands, "")
-	})
-}
+	// matching result
+	for _, s := range opts.stdout {
+		s.Match(session.Out)
+	}
+	for _, s := range opts.stderr {
+		s.Match(session.Err)
+	}
 
-// ExecCommandGroupWithUserEnv executes commands in a clean user directory
-// while sharing the same system config with the host machine.
-func ExecCommandGroupInUserEnv(text string, commands *CommandGroup) {
-	It(fmt.Sprintf("[%s]", text), func() {
-		dir, _, err := SetUpUserDir()
-		Expect(err).ShouldNot(HaveOccurred())
-		nCommands := NewCommandGroup(*commands, WithUserDir(dir))
-		batchExec(text, &nCommands, "")
-	})
-}
+	// clear ExecOpts state
+	opts.Clear()
 
-// ExecCommandGroupWithSysEnv executes notation commands in a container.
-// User and system config/cache will be isolated from the host machine.
-// This function is typically used to test system level config.
-// Environment variables won't be set in this case.
-// It will first create a container.
-// If binary is not provided in a single command, command will execuate notation with args.
-// Otherwise command will execute the given binary with args.
-func ExecCommandGroupInContainer(text string, commands *CommandGroup) {
-	It(fmt.Sprintf("[%s]", text), func() {
-		containerID, _, err := SetUpContainer()
-		Expect(err).ShouldNot(HaveOccurred())
-		batchExec(text, commands, containerID)
-	})
+	return session
 }
