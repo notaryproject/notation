@@ -6,3 +6,4 @@ bin/
 vendor/
 coverage.txt
 dist/
+cache.db
