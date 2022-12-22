@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"errors"
 	"path/filepath"
+
+	"github.com/onsi/ginkgo/v2"
 )
 
 // VirtualHost is a virtualized host machine isolated by environment variable.
@@ -10,7 +11,6 @@ type VirtualHost struct {
 	Executor *ExecOpts
 
 	userDir string
-	cleaner func() error
 	env     map[string]string
 }
 
@@ -23,7 +23,7 @@ func NewVirtualHost(binPath string, options ...HostOption) (*VirtualHost, error)
 
 	var err error
 	// setup a temp user directory
-	vhost.userDir, vhost.cleaner, err = TempUserDir()
+	vhost.userDir = ginkgo.GinkgoT().TempDir()
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +46,6 @@ func (h *VirtualHost) UserPath(elem ...string) string {
 	userElem := []string{h.userDir}
 	userElem = append(userElem, elem...)
 	return filepath.Join(userElem...)
-}
-
-// CleanUserDir cleans the user directory for the VirtualHost.
-func (h *VirtualHost) CleanUserDir() error {
-	if h.cleaner != nil {
-		return h.cleaner()
-	}
-	return errors.New("cleaner is not set")
 }
 
 // UpdateEnv updates the environment variables for the VirtualHost.

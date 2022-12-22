@@ -28,11 +28,6 @@ func Host(options []utils.HostOption, fn func(notation *utils.ExecOpts, artifact
 	// run the main logic
 	fn(vhost.Executor, artifact, vhost)
 
-	// clean temporary user directory
-	if err := vhost.CleanUserDir(); err != nil {
-		panic(err)
-	}
-
 	// remove the generated repository and artifact
 	if err := artifact.Remove(); err != nil {
 		panic(err)
