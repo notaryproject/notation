@@ -41,13 +41,14 @@ build: $(addprefix bin/,$(COMMANDS)) ## builds binaries
 
 .PHONY: test
 test: vendor check-line-endings ## run unit tests
-	go test -race -v -coverprofile=coverage.txt -covermode=atomic $(shell go list ./... | grep -v test/e2e/)
+	go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
 
-NOTATION_BIN_PATH = $(shell echo `pwd`/bin/$(COMMANDS))
 
 .PHONY: e2e
 e2e: build ## build notation cli and run e2e test
-	cd ./test/e2e; ./run.sh $(NOTATION_BIN_PATH)
+	NOTATION_BIN_PATH=`pwd`/bin/$(COMMANDS); \
+	cd ./test/e2e; \
+	./run.sh $$NOTATION_BIN_PATH
 
 .PHONY: clean
 clean:
