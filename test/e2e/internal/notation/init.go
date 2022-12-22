@@ -48,19 +48,7 @@ func init() {
 
 func setUpNotationBinary() {
 	// set Notation binary path
-	p := os.Getenv(envNotationBinPath)
-	var err error
-	if p != "" && filepath.IsAbs(p) {
-		NotationBinPath = p
-		fmt.Printf("Testing based on pre-built binary locates in %v\n", p)
-	} else if workspacePath := os.Getenv(envGithubWorkSpace); workspacePath != "" && !filepath.IsAbs(p) {
-		NotationBinPath = filepath.Join(workspacePath, p)
-		NotationBinPath, err = filepath.Abs(NotationBinPath)
-		if err != nil {
-			panic(fmt.Sprintf("E2E setup failed:%v", err))
-		}
-		fmt.Printf("Testing based on pre-built binary(github action) locates in %v\n", p)
-	}
+	setPathValue(envNotationBinPath, &NotationBinPath)
 
 	// set Notation key and cert path
 	setPathValue(envNotationE2EKeyPath, &NotationE2EKeyPath)
