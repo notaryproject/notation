@@ -6,6 +6,10 @@ if [ ! -f "$NOTATION_E2E_BINARY_PATH" ];then
     exit 1
 fi
 
+# install dependent
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
+
+# set environment variable for E2E testing
 REG_HOST=localhost
 REG_PORT=5000
 ZOT_CONTAINER_NAME=zot
