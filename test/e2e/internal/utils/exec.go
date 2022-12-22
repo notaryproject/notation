@@ -38,7 +38,6 @@ const (
 // ExecOpts is an option used to execute a command.
 type ExecOpts struct {
 	binPath string
-	args    []string
 	workDir string
 	timeout time.Duration
 
@@ -54,10 +53,9 @@ type ExecOpts struct {
 }
 
 // Binary returns default execution option for customized binary.
-func Binary(binPath string, args ...string) *ExecOpts {
+func Binary(binPath string) *ExecOpts {
 	return &ExecOpts{
 		binPath:  binPath,
-		args:     args,
 		timeout:  DefaultTimeout,
 		exitCode: 0,
 		env:      make(map[string]string),
@@ -165,13 +163,8 @@ func (opts *ExecOpts) Exec(args ...string) *gexec.Session {
 			opts.text = "fail"
 		}
 	}
-	description := fmt.Sprintf("\n>> should %s: %s %s >>", opts.text, opts.binPath, strings.Join(opts.args, " "))
+	description := fmt.Sprintf("\n>> should %s: %s %s >>", opts.text, opts.binPath, strings.Join(args, " "))
 	ginkgo.By(description)
-
-	// overwrite the args
-	if len(args) == 0 {
-		args = opts.args
-	}
 
 	var cmd *exec.Cmd
 	cmd = exec.Command(opts.binPath, args...)
@@ -218,7 +211,6 @@ func (opts *ExecOpts) Exec(args ...string) *gexec.Session {
 
 // Clear clears the ExecOpts to get ready for the next execution.
 func (opts *ExecOpts) Clear() {
-	opts.args = nil
 	opts.exitCode = 0
 	opts.timeout = DefaultTimeout
 	opts.workDir = ""

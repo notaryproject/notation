@@ -14,25 +14,26 @@ import (
 // fn is the callback function containing the testing logic.
 func Host(options []utils.HostOption, fn func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)) {
 	opts := []utils.HostOption{CreateNotationDirOption()}
-	if options != nil {
-		opts = append(opts, options...)
-	}
+	opts = append(opts, options...)
 
 	// create a vhost
 	vhost, err := utils.NewVirtualHost(NotationBinPath, opts...)
 	if err != nil {
 		panic(err)
 	}
-	// generate a repo with an artifact
+
+	// generate a repository with an artifact
 	artifact := GenArtifact()
 
+	// run the main logic
 	fn(vhost.Executor, artifact, vhost)
 
-	//
+	// clean temporary user directory
 	if err := vhost.CleanUserDir(); err != nil {
 		panic(err)
 	}
 
+	// remove the generated repository and artifact
 	if err := artifact.Remove(); err != nil {
 		panic(err)
 	}
