@@ -6,7 +6,7 @@ if [ ! -f "$NOTATION_E2E_BINARY_PATH" ];then
     exit 1
 fi
 
-# install dependent
+# install dependency
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
 
 # set environment variable for E2E testing

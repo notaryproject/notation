@@ -87,6 +87,7 @@ func setPathValue(envKey string, value *string) {
 		panic(fmt.Sprintf("env %s=%q is not a absolute path", envKey, *value))
 	}
 }
+
 func setValue(envKey string, value *string) {
 	*value = os.Getenv(envKey)
 	if *value == "" {
