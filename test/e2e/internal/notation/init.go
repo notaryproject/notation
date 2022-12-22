@@ -24,7 +24,6 @@ const (
 	envTestRepo            = "NOTATION_E2E_TEST_REPO"
 	envTestTag             = "NOTATION_E2E_TEST_TAG"
 	envRegistryStoragePath = "REGISTRY_STORAGE_PATH"
-	envGithubWorkSpace     = "GITHUB_WORKSPACE"
 )
 
 var (
@@ -43,10 +42,31 @@ var (
 func init() {
 	RegisterFailHandler(Fail)
 	setUpRegistry()
-	setUpNotationBinary()
+	setUpNotationValues()
 }
 
-func setUpNotationBinary() {
+func setUpRegistry() {
+	setValue(envRegistryHost, &TestRegistry.Host)
+	fmt.Printf("Testing using registry host: %s\n", TestRegistry.Host)
+
+	setValue(envRegistryUsername, &TestRegistry.Username)
+	fmt.Printf("Testing using registry username: %s\n", TestRegistry.Username)
+
+	setValue(envRegistryPassword, &TestRegistry.Password)
+	fmt.Printf("Testing using registry password: %s\n", TestRegistry.Password)
+
+	testImage := &Artifact{
+		Registry: &TestRegistry,
+		Repo:     testRepo,
+		Tag:      testTag,
+	}
+
+	if err := testImage.Validate(); err != nil {
+		panic(fmt.Sprintf("E2E setup failed: %v", err))
+	}
+}
+
+func setUpNotationValues() {
 	// set Notation binary path
 	setPathValue(envNotationBinPath, &NotationBinPath)
 
@@ -71,26 +91,5 @@ func setValue(envKey string, value *string) {
 	*value = os.Getenv(envKey)
 	if *value == "" {
 		panic(fmt.Sprintf("env %s is empty", envKey))
-	}
-}
-
-func setUpRegistry() {
-	setValue(envRegistryHost, &TestRegistry.Host)
-	fmt.Printf("Testing using registry host: %s\n", TestRegistry.Host)
-
-	setValue(envRegistryUsername, &TestRegistry.Username)
-	fmt.Printf("Testing using registry username: %s\n", TestRegistry.Username)
-
-	setValue(envRegistryPassword, &TestRegistry.Password)
-	fmt.Printf("Testing using registry password: %s\n", TestRegistry.Password)
-
-	testImage := &Artifact{
-		Registry: &TestRegistry,
-		Repo:     testRepo,
-		Tag:      testTag,
-	}
-
-	if err := testImage.Validate(); err != nil {
-		panic(fmt.Sprintf("E2E setup failed: %v", err))
 	}
 }
