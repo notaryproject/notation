@@ -23,7 +23,7 @@ func Host(options []utils.HostOption, fn func(notation *utils.ExecOpts, artifact
 	}
 
 	// generate a repository with an artifact
-	artifact := GenArtifact()
+	artifact := GenerateArtifact()
 
 	// run the main logic
 	fn(vhost.Executor, artifact, vhost)
@@ -97,9 +97,9 @@ func AddTestTrustStoreOption() utils.HostOption {
 // AddTestTrustPolicyOption added a valid trust policy for testing
 func AddTestTrustPolicyOption() utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return saveJson(
-			genTestTrustPolicy(),
-			filepath.Join(vhost.UserPath(notationDirName), trustPolicyName),
+		return copyFile(
+			filepath.Join(NotationE2ETrustPolicyDir, "trustpolicy.json"),
+			vhost.UserPath(notationDirName, notationTrustPolicyName),
 		)
 	}
 }

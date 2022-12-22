@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	notationDirName = "notation"
+	notationDirName         = "notation"
+	notationTrustPolicyName = "trustpolicy.json"
 )
 
 const (
@@ -20,6 +21,7 @@ const (
 	envNotationBinPath     = "NOTATION_E2E_BINARY_PATH"
 	envNotationE2EKeyPath  = "NOTATION_E2E_KEY_PATH"
 	envNotationE2ECertPath = "NOTATION_E2E_CERT_PATH"
+	envNotationConfigPath  = "NOTATION_E2E_CONFIG_PATH"
 	envOCILayoutPath       = "NOTATION_E2E_OCI_LAYOUT_PATH"
 	envTestRepo            = "NOTATION_E2E_TEST_REPO"
 	envTestTag             = "NOTATION_E2E_TEST_TAG"
@@ -27,9 +29,11 @@ const (
 )
 
 var (
-	NotationBinPath     string
-	NotationE2EKeyPath  string
-	NotationE2ECertPath string
+	NotationBinPath           string
+	NotationE2EKeyPath        string
+	NotationE2ECertPath       string
+	NotationE2EConfigPath     string
+	NotationE2ETrustPolicyDir string
 )
 
 var (
@@ -70,9 +74,11 @@ func setUpNotationValues() {
 	// set Notation binary path
 	setPathValue(envNotationBinPath, &NotationBinPath)
 
-	// set Notation key and cert path
+	// set Notation configuration paths
 	setPathValue(envNotationE2EKeyPath, &NotationE2EKeyPath)
 	setPathValue(envNotationE2ECertPath, &NotationE2ECertPath)
+	setPathValue(envNotationConfigPath, &NotationE2EConfigPath)
+	NotationE2ETrustPolicyDir = filepath.Join(NotationE2EConfigPath, "trustpolicys")
 
 	// set registry values
 	setPathValue(envRegistryStoragePath, &RegistryStoragePath)

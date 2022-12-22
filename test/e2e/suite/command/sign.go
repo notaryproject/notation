@@ -12,12 +12,12 @@ var _ = Describe("notation sign", func() {
 			notation.
 				WithDescription("sign with JWS").
 				MatchKeyWords("Successfully signed").
-				Exec("sign", artifact.GUN(), "--signature-format", "jws")
+				Exec("sign", artifact.Reference(), "--signature-format", "jws")
 
 			notation.
 				WithDescription("verify JWS signature").
 				MatchKeyWords("Successfully verified").
-				Exec("verify", artifact.GUN())
+				Exec("verify", artifact.Reference())
 		})
 	})
 
@@ -26,12 +26,12 @@ var _ = Describe("notation sign", func() {
 			notation.
 				WithDescription("sign with COSE").
 				MatchKeyWords("Successfully signed").
-				Exec("sign", artifact.GUN(), "--signature-format", "cose")
+				Exec("sign", artifact.Reference(), "--signature-format", "cose")
 
 			notation.
 				WithDescription("verify COSE signature").
 				MatchKeyWords("Successfully verified").
-				Exec("verify", artifact.GUN())
+				Exec("verify", artifact.Reference())
 		})
 	})
 })

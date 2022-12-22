@@ -10,7 +10,7 @@ import (
 
 // copyDir copies the source directory to the destination directory
 func copyDir(src, dst string) error {
-	if err := filepath.WalkDir(src, func(srcPath string, d fs.DirEntry, err error) error {
+	return filepath.WalkDir(src, func(srcPath string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -22,20 +22,10 @@ func copyDir(src, dst string) error {
 		dstPath := filepath.Join(dst, relPath)
 
 		if d.IsDir() {
-			if err := os.MkdirAll(dstPath, os.ModePerm); err != nil {
-				return err
-			}
-		} else {
-			if err := copyFile(srcPath, dstPath); err != nil {
-				return err
-			}
+			return os.MkdirAll(dstPath, os.ModePerm)
 		}
-		return nil
-	}); err != nil {
-		return err
-	}
-
-	return nil
+		return copyFile(srcPath, dstPath)
+	})
 }
 
 // copyFile copies the source file to the destination file
@@ -60,26 +50,19 @@ func copyFile(src, dst string) error {
 		return err
 	}
 
-	si, err := os.Stat(src)
+	si, err := in.Stat()
 	if err != nil {
 		return err
 	}
-	return os.Chmod(dst, si.Mode())
+	return out.Chmod(si.Mode())
 }
 
-// saveJson marshals the data and save to the given path.
-func saveJson(data any, path string) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
+// saveJSON marshals the data and save to the given path.
+func saveJSON(data any, path string) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	_, err = f.Write(b)
-	return err
+	return os.WriteFile(path, b, 0644)
 }

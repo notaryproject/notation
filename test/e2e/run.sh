@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-export NOTATION_E2E_BINARY_PATH=$1
+export NOTATION_E2E_BINARY_PATH=$(realpath $1)
 if [ ! -f "$NOTATION_E2E_BINARY_PATH" ];then
     echo "run.sh <notation-binary-path>"
     exit 1
@@ -19,6 +19,7 @@ export NOTATION_E2E_REGISTRY_USERNAME=testuser
 export NOTATION_E2E_REGISTRY_PASSWORD=testpassword
 export NOTATION_E2E_KEY_PATH=`pwd`/testdata/config/localkeys/e2e.key
 export NOTATION_E2E_CERT_PATH=`pwd`/testdata/config/localkeys/e2e.crt
+export NOTATION_E2E_CONFIG_PATH=`pwd`/testdata/config
 export NOTATION_E2E_OCI_LAYOUT_PATH=`pwd`/testdata/registry/oci_layout
 export NOTATION_E2E_TEST_REPO=e2e
 export NOTATION_E2E_TEST_TAG=v1

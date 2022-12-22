@@ -32,7 +32,7 @@ type SigningKeys struct {
 // with e2e.key and e2e.crt
 func AddTestKeyPairs(dir string) error {
 	// create signingkeys.json files
-	if err := saveJson(
+	if err := saveJSON(
 		genTestSigningKey(dir),
 		filepath.Join(dir, signingKeysName)); err != nil {
 		return err
@@ -41,9 +41,10 @@ func AddTestKeyPairs(dir string) error {
 	// create localkeys directory
 	localKeysDir := filepath.Join(dir, localkeysDirName)
 	os.MkdirAll(localKeysDir, os.ModePerm)
-	copyFile(NotationE2EKeyPath, filepath.Join(localKeysDir, "e2e.key"))
-	copyFile(NotationE2ECertPath, filepath.Join(localKeysDir, "e2e.crt"))
-	return nil
+	if err := copyFile(NotationE2EKeyPath, filepath.Join(localKeysDir, "e2e.key")); err != nil {
+		return err
+	}
+	return copyFile(NotationE2ECertPath, filepath.Join(localKeysDir, "e2e.crt"))
 }
 
 func genTestSigningKey(dir string) *SigningKeys {

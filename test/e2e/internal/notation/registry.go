@@ -5,14 +5,13 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sync"
+	"sync/atomic"
 
 	oregistry "oras.land/oras-go/v2/registry"
 )
 
 var (
-	repoId   = 0
-	repoIdMu = sync.Mutex{}
+	repoId int64 = 0
 )
 
 const (
@@ -34,15 +33,15 @@ type Artifact struct {
 	Tag  string
 }
 
-// GenArtifact generates a new image with a new repository.
-func GenArtifact() *Artifact {
+// GenerateArtifact generates a new image with a new repository.
+func GenerateArtifact() *Artifact {
 	// generate new newRepo
 	newRepo := fmt.Sprintf("%s-%d", testRepo, genRepoId())
 
 	// copy oci layout to the new repo
-	copyDir(
-		filepath.Join(OCILayoutPath, testRepo),
-		filepath.Join(RegistryStoragePath, newRepo))
+	if err := copyDir(filepath.Join(OCILayoutPath, testRepo), filepath.Join(RegistryStoragePath, newRepo)); err != nil {
+		panic(err)
+	}
 
 	image := &Artifact{
 		Registry: &Registry{
@@ -64,7 +63,7 @@ func (r *Artifact) Validate() error {
 	if _, err := url.ParseRequestURI(r.Host); err != nil {
 		return err
 	}
-	ref, err := oregistry.ParseReference(r.GUN())
+	ref, err := oregistry.ParseReference(r.Reference())
 	if err != nil {
 		return err
 	}
@@ -74,14 +73,9 @@ func (r *Artifact) Validate() error {
 	return nil
 }
 
-// GUN returns the <registryHost>/<Repository>/<Tag>
-func (r *Artifact) GUN() string {
-	return fmt.Sprintf("%s/%s", r.Host, r.Reference())
-}
-
-// Reference return the <Repository>/<tag>
+// Reference returns the <registryHost>/<Repository>:<Tag>
 func (r *Artifact) Reference() string {
-	return fmt.Sprintf("%s:%s", r.Repo, r.Tag)
+	return fmt.Sprintf("%s/%s:%s", r.Host, r.Repo, r.Tag)
 }
 
 // Reference removes the the repository of the artifact.
@@ -90,13 +84,6 @@ func (r *Artifact) Remove() error {
 }
 
 // genRepoId returns a new repoId
-func genRepoId() int {
-	var id int
-
-	repoIdMu.Lock()
-	id = repoId
-	repoId++
-	repoIdMu.Unlock()
-
-	return id
+func genRepoId() int64 {
+	return atomic.AddInt64(&repoId, 1)
 }
