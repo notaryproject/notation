@@ -10,6 +10,10 @@ import (
 )
 
 const (
+	notationDirName = "notation"
+)
+
+const (
 	envRegistryHost        = "NOTATION_E2E_REGISTRY_HOST"
 	envRegistryUsername    = "NOTATION_E2E_REGISTRY_USERNAME"
 	envRegistryPassword    = "NOTATION_E2E_REGISTRY_PASSWORD"

@@ -1,6 +1,7 @@
 package notation
 
 import (
+	"encoding/json"
 	"io"
 	"io/fs"
 	"os"
@@ -51,13 +52,11 @@ func copyFile(src, dst string) error {
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, in)
-	if err != nil {
+	if _, err := io.Copy(out, in); err != nil {
 		return err
 	}
 
-	err = out.Sync()
-	if err != nil {
+	if err := out.Sync(); err != nil {
 		return err
 	}
 
@@ -65,10 +64,22 @@ func copyFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	err = os.Chmod(dst, si.Mode())
+	return os.Chmod(dst, si.Mode())
+}
+
+// saveJson marshals the data and save to the given path.
+func saveJson(data any, path string) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	b, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	_, err = f.Write(b)
+	return err
 }

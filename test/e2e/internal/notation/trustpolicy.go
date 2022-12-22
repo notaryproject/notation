@@ -1,5 +1,7 @@
 package notation
 
+const trustPolicyName = "trustpolicy.json"
+
 // ValidationType is an enum for signature verification types such as Integrity,
 // Authenticity, etc.
 type ValidationType string
@@ -129,4 +131,21 @@ type TrustPolicy struct {
 type SignatureVerification struct {
 	VerificationLevel string                              `json:"level"`
 	Override          map[ValidationType]ValidationAction `json:"override,omitempty"`
+}
+
+func genTestTrustPolicy() *Document {
+	return &Document{
+		Version: "1.0",
+		TrustPolicies: []TrustPolicy{
+			{
+				Name:           "e2e-image",
+				RegistryScopes: []string{"*"},
+				SignatureVerification: SignatureVerification{
+					VerificationLevel: "strict",
+				},
+				TrustStores:       []string{"ca:e2e"},
+				TrustedIdentities: []string{"*"},
+			},
+		},
+	}
 }

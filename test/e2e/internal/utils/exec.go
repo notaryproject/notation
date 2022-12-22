@@ -1,3 +1,18 @@
+// copied and adopted from https://github.com/oras-project/oras with
+// modification
+/*
+Copyright The ORAS Authors.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package utils
 
 import (
@@ -118,18 +133,6 @@ func (opts *ExecOpts) MatchTrimmedContent(content string) *ExecOpts {
 	return opts
 }
 
-// Clear clears the ExecOpts to ready for the next execution.
-func (opts *ExecOpts) Clear() {
-	opts.args = nil
-	opts.exitCode = 0
-	opts.timeout = DefaultTimeout
-	opts.workDir = ""
-	opts.stdin = nil
-	opts.stdout = nil
-	opts.stderr = nil
-	opts.text = ""
-}
-
 // WithEnv update the environment variables.
 func (opts *ExecOpts) WithEnv(env map[string]string) *ExecOpts {
 	if env == nil {
@@ -211,4 +214,16 @@ func (opts *ExecOpts) Exec(args ...string) *gexec.Session {
 	opts.Clear()
 
 	return session
+}
+
+// Clear clears the ExecOpts to get ready for the next execution.
+func (opts *ExecOpts) Clear() {
+	opts.args = nil
+	opts.exitCode = 0
+	opts.timeout = DefaultTimeout
+	opts.workDir = ""
+	opts.stdin = nil
+	opts.stdout = nil
+	opts.stderr = nil
+	opts.text = ""
 }

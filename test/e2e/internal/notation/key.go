@@ -1,7 +1,6 @@
 package notation
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 )
@@ -33,16 +32,11 @@ type SigningKeys struct {
 // with e2e.key and e2e.crt
 func AddTestKeyPairs(dir string) error {
 	// create signingkeys.json files
-	f, err := os.Create(filepath.Join(dir, signingKeysName))
-	if err != nil {
+	if err := saveJson(
+		genTestSigningKey(dir),
+		filepath.Join(dir, signingKeysName)); err != nil {
 		return err
 	}
-	sk, err := json.Marshal(signingKey(dir))
-	if err != nil {
-		return err
-	}
-	f.Write(sk)
-	f.Close()
 
 	// create localkeys directory
 	localKeysDir := filepath.Join(dir, localkeysDirName)
@@ -52,7 +46,7 @@ func AddTestKeyPairs(dir string) error {
 	return nil
 }
 
-func signingKey(dir string) *SigningKeys {
+func genTestSigningKey(dir string) *SigningKeys {
 	return &SigningKeys{
 		Default: "e2e",
 		Keys: []KeySuite{

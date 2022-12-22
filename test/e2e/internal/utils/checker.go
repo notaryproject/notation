@@ -18,5 +18,3 @@ func CheckFileNotExist(f string) {
 	Expect(err).Should(HaveOccurred())
 	Expect(os.IsNotExist(err)).To(BeTrue())
 }
-
-// TODO: match command line output

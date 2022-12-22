@@ -1,0 +1,1 @@
+{"version":"1.0","trustPolicies":[{"name":"e2e-image","registryScopes":["*"],"signatureVerification":{"level":"strict"},"trustStores":["ca:e2e"],"trustedIdentities":["*"]}]}
