@@ -1,6 +1,8 @@
 package scenario_test
 
 import (
+	"fmt"
+
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 	. "github.com/onsi/ginkgo/v2"
@@ -28,8 +30,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 	})
 
 	It("list the signatures associated with the container image", func() {
-		notation.
-			Exec("ls", artifact.Reference()).
+		notation.Exec("ls", artifact.ReferenceWithTag()).
 			MatchContent("")
 	})
 
@@ -39,12 +40,32 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 				"Successfully added wabbit-networks.io.crt",
 				"wabbit-networks.io: added to the key list",
 				"wabbit-networks.io: mark as default signing key")
+
 		notation.Exec("key", "ls").
 			MatchKeyWords(
 				"notation/localkeys/wabbit-networks.io.key",
 				"notation/localkeys/wabbit-networks.io.crt",
 			)
 
+		notation.Exec("cert", "ls").
+			MatchKeyWords("notation/truststore/x509/ca/wabbit-networks.io/wabbit-networks.io.crt")
 	})
 
+	It("sign the container image", func() {
+		notation.Exec("sign", artifact.ReferenceWithDigest()).
+			MatchContent(fmt.Sprintf("Successfully signed %s\n", artifact.ReferenceWithDigest()))
+
+		notation.Exec("ls", artifact.ReferenceWithDigest()).
+			MatchKeyWords(fmt.Sprintf("%s\n└── application/vnd.cncf.notary.signature\n    └── sha256:", artifact.ReferenceWithDigest()))
+	})
+
+	It("Create a trust policy", func() {
+		vhost.SetOption(AddTrustPolicyOption("quickstart_trustpolicy.json"))
+		utils.CheckFileExist(vhost.UserPath(NotationDirName, NotationTrustPolicyName))
+	})
+
+	It("Verify the container image", func() {
+		notation.Exec("verify", artifact.ReferenceWithDigest()).
+			MatchContent(fmt.Sprintf("Successfully verified signature for %s\n", artifact.ReferenceWithDigest()))
+	})
 })

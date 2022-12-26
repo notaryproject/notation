@@ -46,14 +46,14 @@ func BaseOptions() []utils.HostOption {
 		AuthOption("", ""),
 		AddTestKeyOption(),
 		AddTestTrustStoreOption(),
-		AddTestTrustPolicyOption(),
+		AddTrustPolicyOption("trustpolicy.json"),
 	)
 }
 
 // CreateNotationDirOption creates the notation directory in temp user dir.
 func CreateNotationDirOption() utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return os.MkdirAll(vhost.UserPath(notationDirName), os.ModePerm)
+		return os.MkdirAll(vhost.UserPath(NotationDirName), os.ModePerm)
 	}
 }
 
@@ -75,7 +75,7 @@ func AuthOption(username, password string) utils.HostOption {
 // the notation directory.
 func AddTestKeyOption() utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return AddTestKeyPairs(vhost.UserPath(notationDirName))
+		return AddTestKeyPairs(vhost.UserPath(NotationDirName))
 	}
 }
 
@@ -89,12 +89,12 @@ func AddTestTrustStoreOption() utils.HostOption {
 	}
 }
 
-// AddTestTrustPolicyOption added a valid trust policy for testing
-func AddTestTrustPolicyOption() utils.HostOption {
+// AddTrustPolicyOption added a valid trust policy for testing
+func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
 		return copyFile(
-			filepath.Join(NotationE2ETrustPolicyDir, "trustpolicy.json"),
-			vhost.UserPath(notationDirName, notationTrustPolicyName),
+			filepath.Join(NotationE2ETrustPolicyDir, trustpolicyName),
+			vhost.UserPath(NotationDirName, NotationTrustPolicyName),
 		)
 	}
 }

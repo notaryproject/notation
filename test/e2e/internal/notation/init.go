@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	notationDirName         = "notation"
-	notationTrustPolicyName = "trustpolicy.json"
+	NotationDirName         = "notation"
+	NotationTrustPolicyName = "trustpolicy.json"
 )
 
 const (

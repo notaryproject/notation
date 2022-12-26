@@ -1,13 +1,16 @@
 package notation
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"sync/atomic"
 
-	oregistry "oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry/remote"
+	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 var (
@@ -29,8 +32,9 @@ var TestRegistry = Registry{}
 
 type Artifact struct {
 	*Registry
-	Repo string
-	Tag  string
+	Repo   string
+	Tag    string
+	Digest string
 }
 
 // GenerateArtifact generates a new image with a new repository.
@@ -43,7 +47,7 @@ func GenerateArtifact() *Artifact {
 		panic(err)
 	}
 
-	image := &Artifact{
+	artifact := &Artifact{
 		Registry: &Registry{
 			Host:     TestRegistry.Host,
 			Username: TestRegistry.Username,
@@ -52,10 +56,16 @@ func GenerateArtifact() *Artifact {
 		Repo: newRepo,
 		Tag:  "v1",
 	}
-	if err := image.Validate(); err != nil {
+
+	if err := artifact.Validate(); err != nil {
 		panic(err)
 	}
-	return image
+
+	if err := artifact.fetchDigest(); err != nil {
+		panic(err)
+	}
+
+	return artifact
 }
 
 // Validate validates the registry and artifact is valid.
@@ -63,7 +73,7 @@ func (r *Artifact) Validate() error {
 	if _, err := url.ParseRequestURI(r.Host); err != nil {
 		return err
 	}
-	ref, err := oregistry.ParseReference(r.Reference())
+	ref, err := registry.ParseReference(r.ReferenceWithTag())
 	if err != nil {
 		return err
 	}
@@ -73,9 +83,53 @@ func (r *Artifact) Validate() error {
 	return nil
 }
 
-// Reference returns the <registryHost>/<Repository>:<Tag>
-func (r *Artifact) Reference() string {
+func (r *Artifact) fetchDigest() error {
+	// create repository
+	ref, err := registry.ParseReference(r.ReferenceWithTag())
+	if err != nil {
+		return err
+
+	}
+	authClient := &auth.Client{
+		Credential: func(ctx context.Context, registry string) (auth.Credential, error) {
+			switch registry {
+			case ref.Host():
+				return auth.Credential{
+					Username: TestRegistry.Username,
+					Password: TestRegistry.Password,
+				}, nil
+			default:
+				return auth.EmptyCredential, nil
+			}
+		},
+		Cache:    auth.NewCache(),
+		ClientID: "notation",
+	}
+	repo := &remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: true,
+	}
+
+	// resolve descriptor
+	descriptor, err := repo.Resolve(context.Background(), r.ReferenceWithTag())
+	if err != nil {
+		return err
+	}
+
+	// set digest
+	r.Digest = descriptor.Digest.String()
+	return nil
+}
+
+// ReferenceWithTag returns the <registryHost>/<Repository>:<Tag>
+func (r *Artifact) ReferenceWithTag() string {
 	return fmt.Sprintf("%s/%s:%s", r.Host, r.Repo, r.Tag)
+}
+
+// ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
+func (r *Artifact) ReferenceWithDigest() string {
+	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
 }
 
 // Reference removes the the repository of the artifact.

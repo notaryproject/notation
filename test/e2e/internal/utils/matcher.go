@@ -8,12 +8,14 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+// Matcher contains the execution result for matching.
 type Matcher struct {
 	Session *gexec.Session
 	stdout  string
 	stderr  string
 }
 
+// NewMatcher returns a new Matcher.
 func NewMatcher(session *gexec.Session) *Matcher {
 	return &Matcher{
 		Session: session,
@@ -22,21 +24,25 @@ func NewMatcher(session *gexec.Session) *Matcher {
 	}
 }
 
+// MatchContent matches the content with the stdout.
 func (m *Matcher) MatchContent(content string) *Matcher {
 	Expect(m.stdout).Should(Equal(content))
 	return m
 }
 
+// MatchErrContent matches the content with stderr.
 func (m *Matcher) MatchErrContent(content string) *Matcher {
 	Expect(m.stderr).Should(Equal(content))
 	return m
 }
 
+// MatchKeyWords matches given keywords with the stdout.
 func (m *Matcher) MatchKeyWords(keywords ...string) *Matcher {
 	matchKeyWords(m.stdout, keywords)
 	return m
 }
 
+// MatchErrKeyWords matches given keywords with the stderr.
 func matchKeyWords(content string, keywords []string) {
 	var missed []string
 	lowered := strings.ToLower(content)
