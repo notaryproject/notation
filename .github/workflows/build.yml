@@ -36,10 +36,6 @@ jobs:
         run: make test
       - name: Run e2e tests
         run:  | 
-          NOTATION_CWD=`pwd`
-          NOTATION_BIN=$NOTATION_CWD/bin/notation
-          cd ./test/e2e
-          ./run.sh $NOTATION_BIN
-          cd $NOTATION_CWD
+          make e2e
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v3
