@@ -13,14 +13,14 @@ import (
 // options is the required testing environment options
 // fn is the callback function containing the testing logic.
 func Host(options []utils.HostOption, fn func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)) {
-	opts := []utils.HostOption{CreateNotationDirOption()}
-	opts = append(opts, options...)
-
 	// create a vhost
-	vhost, err := utils.NewVirtualHost(NotationBinPath, opts...)
+	vhost, err := utils.NewVirtualHost(NotationBinPath, CreateNotationDirOption())
 	if err != nil {
 		panic(err)
 	}
+
+	// set additional options
+	vhost.SetOption(options...)
 
 	// generate a repository with an artifact
 	artifact := GenerateArtifact()
@@ -83,8 +83,8 @@ func AddTestKeyOption() utils.HostOption {
 func AddTestTrustStoreOption() utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
 		vhost.Executor.
-			MatchKeyWords("Successfully added following certificates").
-			Exec("cert", "add", "--type", "ca", "--store", "e2e", NotationE2ECertPath)
+			Exec("cert", "add", "--type", "ca", "--store", "e2e", NotationE2ECertPath).
+			MatchKeyWords("Successfully added following certificates")
 		return nil
 	}
 }

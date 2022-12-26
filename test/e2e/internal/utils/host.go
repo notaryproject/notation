@@ -32,11 +32,7 @@ func NewVirtualHost(binPath string, options ...HostOption) (*VirtualHost, error)
 	vhost.UpdateEnv(UserConfigEnv(vhost.userDir))
 
 	// set options
-	for _, option := range options {
-		if err := option(vhost); err != nil {
-			panic(err)
-		}
-	}
+	vhost.SetOption(options...)
 	return vhost, nil
 }
 
@@ -61,6 +57,15 @@ func (h *VirtualHost) UpdateEnv(env map[string]string) {
 	}
 	// update ExecOpts.env
 	h.Executor.WithEnv(h.env)
+}
+
+// SetOption sets the options for the host.
+func (h *VirtualHost) SetOption(options ...HostOption) {
+	for _, option := range options {
+		if err := option(h); err != nil {
+			panic(err)
+		}
+	}
 }
 
 // HostOption is a function to set the host configuration.

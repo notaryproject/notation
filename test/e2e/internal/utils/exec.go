@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/notaryproject/notation/test/e2e/internal/utils/match"
 	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -42,8 +41,6 @@ type ExecOpts struct {
 	timeout time.Duration
 
 	stdin    io.Reader
-	stdout   []match.Matcher
-	stderr   []match.Matcher
 	exitCode int
 
 	text string
@@ -99,38 +96,6 @@ func (opts *ExecOpts) WithInput(r io.Reader) *ExecOpts {
 	return opts
 }
 
-// MatchKeyWords adds keywords matching to stdout.
-func (opts *ExecOpts) MatchKeyWords(keywords ...string) *ExecOpts {
-	opts.stdout = append(opts.stdout, match.NewKeywordMatcher(keywords))
-	return opts
-}
-
-// MatchErrKeyWords adds keywords matching to stderr.
-func (opts *ExecOpts) MatchErrKeyWords(keywords ...string) *ExecOpts {
-	opts.stderr = append(opts.stderr, match.NewKeywordMatcher(keywords))
-	return opts
-}
-
-// MatchContent adds full content matching to the execution.
-func (opts *ExecOpts) MatchContent(content string) *ExecOpts {
-	if opts.exitCode == 0 {
-		opts.stdout = append(opts.stdout, match.NewContentMatcher(content, false))
-	} else {
-		opts.stderr = append(opts.stderr, match.NewContentMatcher(content, false))
-	}
-	return opts
-}
-
-// MatchTrimedContent adds trimmed content matching to the execution.
-func (opts *ExecOpts) MatchTrimmedContent(content string) *ExecOpts {
-	if opts.exitCode == 0 {
-		opts.stdout = append(opts.stdout, match.NewContentMatcher(content, true))
-	} else {
-		opts.stderr = append(opts.stderr, match.NewContentMatcher(content, true))
-	}
-	return opts
-}
-
 // WithEnv update the environment variables.
 func (opts *ExecOpts) WithEnv(env map[string]string) *ExecOpts {
 	if env == nil {
@@ -146,7 +111,7 @@ func (opts *ExecOpts) WithEnv(env map[string]string) *ExecOpts {
 }
 
 // Exec run the execution based on opts.
-func (opts *ExecOpts) Exec(args ...string) *gexec.Session {
+func (opts *ExecOpts) Exec(args ...string) *Matcher {
 	if opts == nil {
 		// this should be a code error but can only be caught during runtime
 		panic("Nil option for command execution")
@@ -195,18 +160,10 @@ func (opts *ExecOpts) Exec(args ...string) *gexec.Session {
 		Expect(opts.exitCode == 0).To(Equal(exitCode == 0))
 	}
 
-	// matching result
-	for _, s := range opts.stdout {
-		s.Match(session.Out)
-	}
-	for _, s := range opts.stderr {
-		s.Match(session.Err)
-	}
-
 	// clear ExecOpts state
 	opts.Clear()
 
-	return session
+	return NewMatcher(session)
 }
 
 // Clear clears the ExecOpts to get ready for the next execution.
@@ -215,7 +172,5 @@ func (opts *ExecOpts) Clear() {
 	opts.timeout = DefaultTimeout
 	opts.workDir = ""
 	opts.stdin = nil
-	opts.stdout = nil
-	opts.stderr = nil
 	opts.text = ""
 }

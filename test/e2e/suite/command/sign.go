@@ -9,29 +9,25 @@ import (
 var _ = Describe("notation sign", func() {
 	It("sign in JWS signature format", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.
-				WithDescription("sign with JWS").
-				MatchKeyWords("Successfully signed").
-				Exec("sign", artifact.Reference(), "--signature-format", "jws")
+			notation.WithDescription("sign with JWS").
+				Exec("sign", artifact.Reference(), "--signature-format", "jws").
+				MatchKeyWords("Successfully signed")
 
-			notation.
-				WithDescription("verify JWS signature").
-				MatchKeyWords("Successfully verified").
-				Exec("verify", artifact.Reference())
+			notation.WithDescription("verify JWS signature").
+				Exec("verify", artifact.Reference()).
+				MatchKeyWords("Successfully verified")
 		})
 	})
 
 	It("sign in COSE signature format", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.
-				WithDescription("sign with COSE").
-				MatchKeyWords("Successfully signed").
-				Exec("sign", artifact.Reference(), "--signature-format", "cose")
+			notation.WithDescription("sign with COSE").
+				Exec("sign", artifact.Reference(), "--signature-format", "cose").
+				MatchKeyWords("Successfully signed")
 
-			notation.
-				WithDescription("verify COSE signature").
-				MatchKeyWords("Successfully verified").
-				Exec("verify", artifact.Reference())
+			notation.WithDescription("verify COSE signature").
+				Exec("verify", artifact.Reference()).
+				MatchKeyWords("Successfully verified")
 		})
 	})
 })
