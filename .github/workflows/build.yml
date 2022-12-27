@@ -35,7 +35,6 @@ jobs:
       - name: Run unit tests
         run: make test
       - name: Run e2e tests
-        run:  | 
-          make e2e
+        run:  make e2e
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v3

@@ -28,7 +28,7 @@ type Registry struct {
 	Password string
 }
 
-var TestRegistry = Registry{}
+var TestRegistry Registry
 
 type Artifact struct {
 	*Registry
