@@ -16,6 +16,15 @@ Warning: The resolved digest may not point to the same signed artifact, since ta
 Successfully verified signature for <registry>/<repository>@<digest>
 ```
 
+The signed descriptor may have user defined metadata attached. If the signature for the OCI artifact contains any metadata, the output message is as follows:
+
+```text
+Successfully verified signature for <registry>/<repository>@<digest>
+
+User Metadata:
+- <key> : <value>
+```
+
 ## Outline
 
 ```text
@@ -25,11 +34,13 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
-  -h, --help                    help for verify
-  -p, --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
-      --plain-http              registry access via plain HTTP
-      --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -u, --username string         username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -h,  --help                    help for verify
+  -o,  --output string           output format, options: 'plaintext', 'json' (default: 'plaintext')
+  -p,  --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
+       --plain-http              registry access via plain HTTP
+       --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+  -u,  --username string         username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -um, --user-metadata strings   {key}={value} pairs that must be present in the signature for successful verification if provided
 ```
 
 ## Usage
@@ -130,4 +141,43 @@ An example of output messages for a successful verification:
 Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
 Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
 Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify signatures on an OCI artifact with user metadata
+
+Use the `--user-metadata` flag to verify that provided key-value pairs are present in the payload of the valid signature.
+
+```shell
+# Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
+# Verify signatures on an OCI artifact identified by the tag and verify that io.wabbit-networks.data=foo is present in the signed payload
+notation verify localhost:5000/net-monitor:v1 --user-metadata io.wabbit-networks.data=foo
+```
+
+An example of output messages for a successful verification:
+
+```text
+Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
+Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+
+User Metadata:
+- io.wabbit-networks.data : foo
+```
+
+### Verify signatures on an OCI artifact and format output as json
+
+Use the `--output` flag to configure the format of signature information returned on successful verification.
+
+```shell
+# Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
+# Verify signatures on an OCI artifact identified by the tag
+notation verify localhost:5000/net-monitor:v1 --output json
+```
+
+An example of output messages for a successful verification:
+
+```text
+Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
+Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
+{"reference":"localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9","outcome":"Success","signatures":[{"digest":"sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333","userMetadata":{"io.wabbit-networks.data":"foo"}}]}
 ```
