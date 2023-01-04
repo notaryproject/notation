@@ -21,12 +21,8 @@ func NewVirtualHost(binPath string, options ...HostOption) (*VirtualHost, error)
 		Executor: Binary(binPath),
 	}
 
-	var err error
 	// setup a temp user directory
 	vhost.userDir = ginkgo.GinkgoT().TempDir()
-	if err != nil {
-		return nil, err
-	}
 
 	// set user dir environment variables
 	vhost.UpdateEnv(UserConfigEnv(vhost.userDir))
@@ -36,9 +32,9 @@ func NewVirtualHost(binPath string, options ...HostOption) (*VirtualHost, error)
 	return vhost, nil
 }
 
-// UserPath returns the path of the absolute path for the given path
+// AbsolutePath returns the path of the absolute path for the given path
 // elements that are relative to the user directory.
-func (h *VirtualHost) UserPath(elem ...string) string {
+func (h *VirtualHost) AbsolutePath(elem ...string) string {
 	userElem := []string{h.userDir}
 	userElem = append(userElem, elem...)
 	return filepath.Join(userElem...)
@@ -46,9 +42,6 @@ func (h *VirtualHost) UserPath(elem ...string) string {
 
 // UpdateEnv updates the environment variables for the VirtualHost.
 func (h *VirtualHost) UpdateEnv(env map[string]string) {
-	if env == nil {
-		return
-	}
 	if h.env == nil {
 		h.env = make(map[string]string)
 	}
@@ -75,7 +68,7 @@ type HostOption func(vhost *VirtualHost) error
 // user config dir (By setting $XDG_CONFIG_HOME).
 func UserConfigEnv(dir string) map[string]string {
 	// create and set user dir for linux
-	env := make(map[string]string)
-	env["XDG_CONFIG_HOME"] = dir
-	return env
+	return map[string]string{
+		"XDG_CONFIG_HOME": dir,
+	}
 }

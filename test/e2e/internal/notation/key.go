@@ -6,14 +6,14 @@ import (
 )
 
 const (
-	signingKeysName  = "signingkeys.json"
-	localkeysDirName = "localkeys"
+	SigningKeysFileName = "signingkeys.json"
+	LocalKeysDirName    = "localkeys"
 )
 
 // X509KeyPair contains the paths of a public/private key pair files.
 type X509KeyPair struct {
-	KeyPath         string `json:"keyPath,omitempty"`
-	CertificatePath string `json:"certPath,omitempty"`
+	KeyPath         string `json:"keyPath"`
+	CertificatePath string `json:"certPath"`
 }
 
 // KeySuite is a named key suite.
@@ -30,23 +30,23 @@ type SigningKeys struct {
 
 // AddTestKeyPairs creates the signingkeys.json file and the localkeys directory
 // with e2e.key and e2e.crt
-func AddTestKeyPairs(dir string) error {
+func AddTestKeyPairs(dir, keyName, certName string) error {
 	// create signingkeys.json files
 	if err := saveJSON(
 		genTestSigningKey(dir),
-		filepath.Join(dir, signingKeysName)); err != nil {
+		filepath.Join(dir, SigningKeysFileName)); err != nil {
 		return err
 	}
 
 	// create localkeys directory
-	localKeysDir := filepath.Join(dir, localkeysDirName)
-	if err := os.MkdirAll(localKeysDir, os.ModePerm); err != nil {
+	localKeysDir := filepath.Join(dir, LocalKeysDirName)
+	os.MkdirAll(localKeysDir, 0731)
+
+	// copy key and cert files
+	if err := copyFile(filepath.Join(NotationE2ELocalKeysDir, keyName), filepath.Join(localKeysDir, "e2e.key")); err != nil {
 		return err
 	}
-	if err := copyFile(NotationE2EKeyPath, filepath.Join(localKeysDir, "e2e.key")); err != nil {
-		return err
-	}
-	return copyFile(NotationE2ECertPath, filepath.Join(localKeysDir, "e2e.crt"))
+	return copyFile(filepath.Join(NotationE2ELocalKeysDir, certName), filepath.Join(localKeysDir, "e2e.crt"))
 }
 
 func genTestSigningKey(dir string) *SigningKeys {

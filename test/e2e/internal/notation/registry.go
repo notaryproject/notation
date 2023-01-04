@@ -3,23 +3,18 @@ package notation
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
-	"sync/atomic"
+	"time"
 
+	"oras.land/oras-go/v2"
+	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
-)
-
-var (
-	repoId int64 = 0
-)
-
-const (
-	testRepo = "e2e"
-	testTag  = "v1"
 )
 
 type Registry struct {
@@ -28,7 +23,45 @@ type Registry struct {
 	Password string
 }
 
-var TestRegistry Registry
+// CreateArtifact copies a local OCI layout to the a registry to create
+// a new artifact with a new repository.
+//
+// srcRepoName is the repo name in ./testdata/registry/oci_layout folder.
+// destRepoName is the repo name to be created in the registry.
+func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, error) {
+	ctx := context.Background()
+	// create a local store from OCI layout directory.
+	srcStore, err := oci.NewFromFS(ctx, os.DirFS(filepath.Join(OCILayoutPath, srcRepoName)))
+	if err != nil {
+		return nil, err
+	}
+
+	// create the artifact struct
+	artifact := &Artifact{
+		Registry: r,
+		Repo:     destRepoName,
+		Tag:      TestTag,
+	}
+	if err := artifact.Validate(); err != nil {
+		panic(err)
+	}
+
+	// create the remote.repository
+	destRepo, err := newRepository(artifact.ReferenceWithTag())
+	if err != nil {
+		return nil, err
+	}
+
+	// copy data
+	desc, err := oras.ExtendedCopy(ctx, srcStore, artifact.Tag, destRepo, "", oras.DefaultExtendedCopyOptions)
+	if err != nil {
+		return nil, err
+	}
+	artifact.Digest = desc.Digest.String()
+	return artifact, err
+}
+
+var TestRegistry = Registry{}
 
 type Artifact struct {
 	*Registry
@@ -37,34 +70,22 @@ type Artifact struct {
 	Digest string
 }
 
-// GenerateArtifact generates a new image with a new repository.
-func GenerateArtifact() *Artifact {
-	// generate new newRepo
-	newRepo := fmt.Sprintf("%s-%d", testRepo, genRepoId())
+// GenerateArtifact generates a new artifact with a new repository by copying
+// the source repository in the OCILayoutPath to be a new repository.
+func GenerateArtifact(srcRepo, newRepo string) *Artifact {
+	if srcRepo == "" {
+		srcRepo = TestRepoUri
+	}
 
-	// copy oci layout to the new repo
-	if err := copyDir(filepath.Join(OCILayoutPath, testRepo), filepath.Join(RegistryStoragePath, newRepo)); err != nil {
+	if newRepo == "" {
+		// generate new repo
+		newRepo = newRepoName()
+	}
+
+	artifact, err := TestRegistry.CreateArtifact(srcRepo, newRepo)
+	if err != nil {
 		panic(err)
 	}
-
-	artifact := &Artifact{
-		Registry: &Registry{
-			Host:     TestRegistry.Host,
-			Username: TestRegistry.Username,
-			Password: TestRegistry.Password,
-		},
-		Repo: newRepo,
-		Tag:  "v1",
-	}
-
-	if err := artifact.Validate(); err != nil {
-		panic(err)
-	}
-
-	if err := artifact.fetchDigest(); err != nil {
-		panic(err)
-	}
-
 	return artifact
 }
 
@@ -83,14 +104,50 @@ func (r *Artifact) Validate() error {
 	return nil
 }
 
-func (r *Artifact) fetchDigest() error {
-	// create repository
-	ref, err := registry.ParseReference(r.ReferenceWithTag())
-	if err != nil {
-		return err
+// ReferenceWithTag returns the <registryHost>/<Repository>:<Tag>
+func (r *Artifact) ReferenceWithTag() string {
+	return fmt.Sprintf("%s/%s:%s", r.Host, r.Repo, r.Tag)
+}
 
+// ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
+func (r *Artifact) ReferenceWithDigest() string {
+	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
+}
+
+func newRepoName() string {
+	var newRepo string
+	for {
+		// set the seed with nanosecond precision.
+		rand.Seed(time.Now().UnixNano())
+		newRepo = fmt.Sprintf("%s-%d", TestRepoUri, rand.Intn(math.MaxInt32))
+
+		_, err := os.Stat(filepath.Join(RegistryStoragePath, newRepo))
+		if err != nil {
+			if os.IsNotExist(err) {
+				// newRepo doesn't exist.
+				break
+			}
+			panic(err)
+		}
 	}
-	authClient := &auth.Client{
+	return newRepo
+}
+
+func newRepository(reference string) (*remote.Repository, error) {
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return nil, err
+	}
+
+	return &remote.Repository{
+		Client:    authClient(ref),
+		Reference: ref,
+		PlainHTTP: true,
+	}, nil
+}
+
+func authClient(ref registry.Reference) *auth.Client {
+	return &auth.Client{
 		Credential: func(ctx context.Context, registry string) (auth.Credential, error) {
 			switch registry {
 			case ref.Host():
@@ -105,39 +162,4 @@ func (r *Artifact) fetchDigest() error {
 		Cache:    auth.NewCache(),
 		ClientID: "notation",
 	}
-	repo := &remote.Repository{
-		Client:    authClient,
-		Reference: ref,
-		PlainHTTP: true,
-	}
-
-	// resolve descriptor
-	descriptor, err := repo.Resolve(context.Background(), r.ReferenceWithTag())
-	if err != nil {
-		return err
-	}
-
-	// set digest
-	r.Digest = descriptor.Digest.String()
-	return nil
-}
-
-// ReferenceWithTag returns the <registryHost>/<Repository>:<Tag>
-func (r *Artifact) ReferenceWithTag() string {
-	return fmt.Sprintf("%s/%s:%s", r.Host, r.Repo, r.Tag)
-}
-
-// ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
-func (r *Artifact) ReferenceWithDigest() string {
-	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
-}
-
-// Reference removes the the repository of the artifact.
-func (r *Artifact) Remove() error {
-	return os.RemoveAll(filepath.Join(OCILayoutPath, r.Repo))
-}
-
-// genRepoId returns a new repoId
-func genRepoId() int64 {
-	return atomic.AddInt64(&repoId, 1)
 }

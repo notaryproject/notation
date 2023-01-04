@@ -48,7 +48,7 @@ test: vendor check-line-endings ## run unit tests
 e2e: build ## build notation cli and run e2e test
 	NOTATION_BIN_PATH=`pwd`/bin/$(COMMANDS); \
 	cd ./test/e2e; \
-	./run.sh $$NOTATION_BIN_PATH
+	./run.sh zot $$NOTATION_BIN_PATH
 
 .PHONY: clean
 clean:

@@ -22,7 +22,7 @@ func copyDir(src, dst string) error {
 		dstPath := filepath.Join(dst, relPath)
 
 		if d.IsDir() {
-			return os.MkdirAll(dstPath, os.ModePerm)
+			return os.MkdirAll(dstPath, 0731)
 		}
 		return copyFile(srcPath, dstPath)
 	})
@@ -35,6 +35,11 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	defer in.Close()
+
+	si, err := in.Stat()
+	if err != nil {
+		return err
+	}
 
 	out, err := os.Create(dst)
 	if err != nil {
@@ -49,20 +54,14 @@ func copyFile(src, dst string) error {
 	if err := out.Sync(); err != nil {
 		return err
 	}
-
-	si, err := in.Stat()
-	if err != nil {
-		return err
-	}
 	return out.Chmod(si.Mode())
 }
 
 // saveJSON marshals the data and save to the given path.
 func saveJSON(data any, path string) error {
-	b, err := json.Marshal(data)
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
-
-	return os.WriteFile(path, b, 0644)
+	return json.NewEncoder(f).Encode(data)
 }
