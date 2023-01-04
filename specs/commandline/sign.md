@@ -40,11 +40,6 @@ Flags:
   -um, --user-metadata strings    {key}={value} pairs that are added to the signature
 ```
 
-### User Metadata Restrictions
-- `notation sign` must fail if metadata keys or values are not strings
-- `notation sign` must fail if duplicate metadata keys are provided
-- `notation sign` must fail if metadata keys conflict with reserved Notary or OCI keys
-
 ## Usage
 
 ### Sign an OCI artifact
