@@ -21,6 +21,7 @@ type signOpts struct {
 	SecureFlagOpts
 	expiry       time.Duration
 	pluginConfig []string
+	userMetadata []string
 	reference    string
 }
 
@@ -66,6 +67,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	return command
 }
 
@@ -111,7 +113,11 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	if err != nil {
+		return notation.SignOptions{}, registry.Reference{}, err
+	}
+	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
 	}
@@ -121,6 +127,7 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
+		UserMetadata: userMetadata,
 	}
 
 	return signOpts, ref, nil

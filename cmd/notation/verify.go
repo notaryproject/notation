@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
+	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -23,6 +25,7 @@ type verifyOpts struct {
 	SecureFlagOpts
 	reference    string
 	pluginConfig []string
+	userMetadata []string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -56,6 +59,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
+	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
 	return command
 }
 
@@ -86,7 +90,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// set up verification plugin config.
-	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	if err != nil {
+		return err
+	}
+
+	// set up user metadata
+	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
 		return err
 	}
@@ -97,6 +107,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		// TODO: need to change MaxSignatureAttempts as a user input flag or
 		// a field in config.json
 		MaxSignatureAttempts: math.MaxInt64,
+		UserMetadata: userMetadata,
 	}
 
 	// core verify process
@@ -126,6 +137,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
 	} else {
 		fmt.Println("Successfully verified signature for", ref.String())
+		printMetadataIfPresent(outcome)
 	}
 	return nil
 }
@@ -147,4 +159,21 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 	ref.Reference = manifestDesc.Digest.String()
 
 	return ref, nil
+}
+
+func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
+	// ignoring error, getting metadata for a successful outcome
+	metadata, _ := outcome.GetUserMetadata()
+
+	if len(metadata) > 0 {
+		fmt.Println("\nThe artifact was signed with the following user metadata.")
+		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
+		fmt.Fprintln(tw, "\nKEY\tVALUE\t")
+
+		for k, v := range metadata {
+			fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
+		}
+
+		tw.Flush()
+	}
 }

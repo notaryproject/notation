@@ -220,7 +220,7 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	if err != nil {
 		return config.KeySuite{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return config.KeySuite{}, err
 	}

@@ -71,6 +71,18 @@ var (
 	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *[]string) {
 		fs.StringArrayVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, nil, PflagPluginConfig.Usage)
 	}
+
+	PflagUserMetadata = &pflag.Flag{
+		Name:      "user-metadata",
+		Shorthand: "m",
+	}
+
+	PflagUserMetadataSignUsage = "example sign usage"
+	PflagUserMetadataVerifyUsage = "example verify usage"
+
+	SetPflagUserMetadata = func(fs *pflag.FlagSet, p *[]string, usage string) {
+		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
+	}
 )
 
 // KeyValueSlice is a flag with type int
@@ -79,14 +91,14 @@ type KeyValueSlice interface {
 	String() string
 }
 
-func ParseFlagPluginConfig(config []string) (map[string]string, error) {
-	pluginConfig := make(map[string]string, len(config))
-	for _, pair := range config {
+func ParseFlagMap(c []string, flagName string) (map[string]string, error) {
+	m := make(map[string]string, len(c))
+	for _, pair := range c {
 		key, val, found := strings.Cut(pair, "=")
 		if !found || key == "" || val == "" {
-			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", PflagPluginConfig.Name)
+			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", flagName)
 		}
-		pluginConfig[key] = val
+		m[key] = val
 	}
-	return pluginConfig, nil
+	return m, nil
 }
