@@ -37,7 +37,7 @@ Flags:
        --plugin-config strings    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
   -u,  --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -um, --user-metadata strings    {key}={value} pairs that are added to the signature
+  -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
 ```
 
 ## Usage
@@ -90,7 +90,10 @@ notation sign <registry>/<repository>@<digest>
 # A default signing key is configured using CLI "notation key"
 
 # sign an artifact stored in a registry and add user-metadata io.wabbit-networks.buildId=123 to the payload
-notation sign <registry>/<repository>@<digest> --user-metadata io.wabbit-networks.buildId=123
+notation sign --user-metadata io.wabbit-networks.buildId=123 <registry>/<repository>@<digest>
+
+# sign an artifact stored in a registry and add user-metadata io.wabbit-networks.buildId=123 and io.wabbit-networks.buildTime=1672944615 to the payload
+notation sign --user-metadata io.wabbit-networks.buildId=123 --user-metadata io.wabbit-networks.buildTime=1672944615 <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
