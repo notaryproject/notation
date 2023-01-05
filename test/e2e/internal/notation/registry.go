@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"net/url"
+	"net"
 	"os"
 	"path/filepath"
 	"time"
@@ -23,7 +23,7 @@ type Registry struct {
 	Password string
 }
 
-// CreateArtifact copies a local OCI layout to the a registry to create
+// CreateArtifact copies a local OCI layout to the registry to create
 // a new artifact with a new repository.
 //
 // srcRepoName is the repo name in ./testdata/registry/oci_layout folder.
@@ -41,9 +41,6 @@ func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, 
 		Registry: r,
 		Repo:     destRepoName,
 		Tag:      TestTag,
-	}
-	if err := artifact.Validate(); err != nil {
-		panic(err)
 	}
 
 	// create the remote.repository
@@ -63,10 +60,14 @@ func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, 
 
 var TestRegistry = Registry{}
 
+// Artifact describes an artifact in a repository.
 type Artifact struct {
 	*Registry
-	Repo   string
-	Tag    string
+	// Repo is the repository name.
+	Repo string
+	// Tag is the tag of the artifact.
+	Tag string
+	// Digest is the digest of the artifact.
 	Digest string
 }
 
@@ -87,21 +88,6 @@ func GenerateArtifact(srcRepo, newRepo string) *Artifact {
 		panic(err)
 	}
 	return artifact
-}
-
-// Validate validates the registry and artifact is valid.
-func (r *Artifact) Validate() error {
-	if _, err := url.ParseRequestURI(r.Host); err != nil {
-		return err
-	}
-	ref, err := registry.ParseReference(r.ReferenceWithTag())
-	if err != nil {
-		return err
-	}
-	if ref.Registry != r.Host {
-		return fmt.Errorf("registry host %q mismatch base image %q", r.Host, r.Repo)
-	}
-	return nil
 }
 
 // ReferenceWithTag returns the <registryHost>/<Repository>:<Tag>
@@ -139,11 +125,16 @@ func newRepository(reference string) (*remote.Repository, error) {
 		return nil, err
 	}
 
-	return &remote.Repository{
+	repo := &remote.Repository{
 		Client:    authClient(ref),
 		Reference: ref,
-		PlainHTTP: true,
-	}, nil
+		PlainHTTP: false,
+	}
+	if host, _, _ := net.SplitHostPort(ref.Host()); host == "localhost" {
+		repo.PlainHTTP = true
+	}
+
+	return repo, nil
 }
 
 func authClient(ref registry.Reference) *auth.Client {

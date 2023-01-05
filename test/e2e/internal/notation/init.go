@@ -60,16 +60,6 @@ func setUpRegistry() {
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)
-
-	testImage := &Artifact{
-		Registry: &TestRegistry,
-		Repo:     TestRepoUri,
-		Tag:      TestTag,
-	}
-
-	if err := testImage.Validate(); err != nil {
-		panic(fmt.Sprintf("registry setup failed: %v", err))
-	}
 }
 
 func setUpNotationValues() {

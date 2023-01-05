@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-SUPPORTED_REGISTRY=("zot")
+SUPPORTED_REGISTRY=("zot" "dockerhub")
 
 function help {
     echo "Usage"
@@ -63,6 +63,10 @@ case $REGISTRY_NAME in
 
     "zot")
         source ./scripts/zot.sh
+        ;;
+
+    "dockerhub")
+        source ./scripts/dockerhub.sh
         ;;
 
     *)
