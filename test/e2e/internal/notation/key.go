@@ -40,7 +40,7 @@ func AddTestKeyPairs(dir, keyName, certName string) error {
 
 	// create localkeys directory
 	localKeysDir := filepath.Join(dir, LocalKeysDirName)
-	os.MkdirAll(localKeysDir, 0731)
+	os.MkdirAll(localKeysDir, 0700)
 
 	// copy key and cert files
 	if err := copyFile(filepath.Join(NotationE2ELocalKeysDir, keyName), filepath.Join(localKeysDir, "e2e.key")); err != nil {

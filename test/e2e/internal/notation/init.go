@@ -71,7 +71,6 @@ func setUpNotationValues() {
 	setPathValue(envKeyNotationConfigPath, &NotationE2EConfigPath)
 	NotationE2ETrustPolicyDir = filepath.Join(NotationE2EConfigPath, "trustpolicys")
 	NotationE2ELocalKeysDir = filepath.Join(NotationE2EConfigPath, LocalKeysDirName)
-
 }
 
 func setPathValue(envKey string, value *string) {

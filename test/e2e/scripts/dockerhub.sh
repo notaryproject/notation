@@ -4,10 +4,13 @@
 # DockerHub has image pulling limit and request rate limit. Please improve your
 # subscription level if you confronts those issues.
 #
-# Please export $DOCKER_USERNAME and $DOCKER_PASSWORD to use this script.
+# Usage
+#   export DOCKER_USERNAME=xxx
+#   export DOCKER_PASSOWRD=xxx
+#   ./run.sh dockerhub <notation-binary-path> [old-notation-binary-path]
 
 # check required environment variable
-if [ -z "$DOCKER_USERNAME" ] | [ -z "$DOCKER_PASSWORD" ]; then
+if [ -z "$DOCKER_USERNAME" ] || [ -z "$DOCKER_PASSWORD" ]; then
     echo "\$DOCKER_USERNAME or \$DOCKER_PASSWORD is not set"
     exit 1
 fi
@@ -43,14 +46,13 @@ function cleanup_registry {
         e2eRepos=(`echo $resp | jq -r '.results|.[]|.name' | grep 'e2e-'`)
         echo "repositories: ${e2eRepos[@]}"
 
-        for repoName in "${e2eRepos[@]}"
-        do
+        for repoName in "${e2eRepos[@]}"; do
             # run delete
             curl -X DELETE \
                 -H "Accept: application/json" \
                 -H "Authorization: JWT $HUB_TOKEN" \
                 https://hub.docker.com/v2/repositories/$DOCKER_USERNAME/$repoName/ && \
-                echo "$repoName deleted."
+                echo "$NOTATION_E2E_REGISTRY_HOST/$repoName deleted."
         done
     done
 }

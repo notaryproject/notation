@@ -1,5 +1,8 @@
 #!/bin/bash -e
 # this script called by ../run.sh
+#
+# Usage
+#   ./run.sh zot <notation-binary-path> [old-notation-binary-path]
 
 REG_HOST=localhost
 REG_PORT=5000

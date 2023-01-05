@@ -3,43 +3,21 @@ package notation
 import (
 	"encoding/json"
 	"io"
-	"io/fs"
 	"os"
-	"path/filepath"
 )
-
-// copyDir copies the source directory to the destination directory
-func copyDir(src, dst string) error {
-	return filepath.WalkDir(src, func(srcPath string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		// generate the dst path
-		relPath, err := filepath.Rel(src, srcPath)
-		if err != nil {
-			return err
-		}
-		dstPath := filepath.Join(dst, relPath)
-
-		if d.IsDir() {
-			return os.MkdirAll(dstPath, 0731)
-		}
-		return copyFile(srcPath, dstPath)
-	})
-}
 
 // copyFile copies the source file to the destination file
 func copyFile(src, dst string) error {
+	si, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
-
-	si, err := in.Stat()
-	if err != nil {
-		return err
-	}
 
 	out, err := os.Create(dst)
 	if err != nil {
@@ -59,7 +37,7 @@ func copyFile(src, dst string) error {
 
 // saveJSON marshals the data and save to the given path.
 func saveJSON(data any, path string) error {
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0600)
 	if err != nil {
 		return err
 	}

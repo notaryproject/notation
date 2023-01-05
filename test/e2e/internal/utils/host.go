@@ -32,7 +32,7 @@ func NewVirtualHost(binPath string, options ...HostOption) (*VirtualHost, error)
 	return vhost, nil
 }
 
-// AbsolutePath returns the path of the absolute path for the given path
+// AbsolutePath returns the absolute path for the given path
 // elements that are relative to the user directory.
 func (h *VirtualHost) AbsolutePath(elem ...string) string {
 	userElem := []string{h.userDir}
