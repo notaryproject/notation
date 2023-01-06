@@ -148,6 +148,7 @@ io.wabbit-networks.buildId  123
 An example of output messages for an unsuccessful verification:
 
 ```text
+Error: unable to find specified metadata in any signatures associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Error: signature verification failed for all the signatures associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
@@ -158,6 +159,7 @@ INFO Checking whether signature verification should be skipped or not
 INFO Check over. Trust policy is not configured to skip signature verification
 INFO Processing signature with digest: sha256:dbb22c0686b714ccbb53e4579771ee0f9ab9d37cd77cadb767549322742979f3
 INFO User Metadata flag is present. Checking signature metadata for specified values.
+Error: unable to find specified metadata in any signatures associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Error: signature verification failed for all the signatures associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
@@ -169,6 +171,7 @@ INFO User Metadata flag is present. Checking signature metadata for specified va
 DEBU[2023-01-05T11:35:07-08:00] Verifying that metadata { "io.wabbit-networks.buildId":"123" } is present in signature metadata.
 DEBU[2023-01-05T11:35:07-08:00] Signature metadata: { "io.wabbit-networks.buildId":"321" }
 DEBU[2023-01-05T11:35:07-08:00] Error: specified metadata is not present in the signature.
+Error: unable to find specified metadata in any signatures associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Error: signature verification failed for all the signatures associated with localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
