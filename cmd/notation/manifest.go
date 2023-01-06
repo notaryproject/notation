@@ -4,26 +4,33 @@ import (
 	"context"
 	"errors"
 
+	"github.com/notaryproject/notation-go/log"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"
 )
 
-func getManifestDescriptorFromContext(ctx context.Context, opts *SecureFlagOpts, ref string) (ocispec.Descriptor, error) {
-	if ref == "" {
-		return ocispec.Descriptor{}, errors.New("missing reference")
+// getManifestDescriptor returns target artifact manifest descriptor and
+// registry.Reference given user input reference.
+func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, registry.Reference, error) {
+	logger := log.GetLogger(ctx)
+
+	if reference == "" {
+		return ocispec.Descriptor{}, registry.Reference{}, errors.New("missing reference")
 	}
-
-	return getManifestDescriptorFromReference(ctx, opts, ref)
-}
-
-func getManifestDescriptorFromReference(ctx context.Context, opts *SecureFlagOpts, reference string) (ocispec.Descriptor, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
-	repo, err := getRepositoryClient(opts, ref)
+	if ref.Reference == "" {
+		return ocispec.Descriptor{}, registry.Reference{}, errors.New("reference is missing digest or tag")
+	}
+
+	manifestDesc, err := sigRepo.Resolve(ctx, ref.Reference)
 	if err != nil {
-		return ocispec.Descriptor{}, err
+		return ocispec.Descriptor{}, registry.Reference{}, err
 	}
-	return repo.Resolve(ctx, ref.ReferenceOrDefault())
+
+	logger.Infof("Reference %s resolved to manifest descriptor: %+v", ref.Reference, manifestDesc)
+	return manifestDesc, ref, nil
 }

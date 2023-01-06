@@ -8,6 +8,7 @@ import (
 
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -19,9 +20,8 @@ import (
 
 var (
 	keyDefaultFlag = &pflag.Flag{
-		Name:      "default",
-		Shorthand: "d",
-		Usage:     "mark as default",
+		Name:  "default",
+		Usage: "mark as default",
 	}
 	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
@@ -29,6 +29,7 @@ var (
 )
 
 type keyAddOpts struct {
+	cmd.LoggingFlagOpts
 	name         string
 	plugin       string
 	id           string
@@ -37,11 +38,13 @@ type keyAddOpts struct {
 }
 
 type keyUpdateOpts struct {
+	cmd.LoggingFlagOpts
 	name      string
 	isDefault bool
 }
 
 type keyDeleteOpts struct {
+	cmd.LoggingFlagOpts
 	names []string
 }
 
@@ -49,6 +52,20 @@ func keyCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "key",
 		Short: "Manage keys used for signing",
+		Long: `Manage keys used for signing
+
+Example - Add a key to signing key list:
+  notation key add --plugin <plugin_name> --id <key_id> <key_name>
+
+Example - List keys used for signing:
+  notation key ls
+
+Example - Update the default signing key:
+  notation key set --default <key_name>
+
+Example - Delete the key from signing key list:
+  notation key delete <key_name>...
+`,
 	}
 	command.AddCommand(keyAddCommand(nil), keyUpdateCommand(nil), keyListCommand(), keyDeleteCommand(nil))
 
@@ -70,9 +87,10 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return addKey(cmd, opts)
+			return addKey(cmd.Context(), opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringVarP(&opts.plugin, "plugin", "p", "", "signing plugin name")
 	command.MarkFlagRequired("plugin")
 
@@ -100,10 +118,11 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return updateKey(opts)
+			return updateKey(cmd.Context(), opts)
 		},
 	}
 
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -125,10 +144,9 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 		opts = &keyDeleteOpts{}
 	}
 
-	return &cobra.Command{
-		Use:     "delete [flags] <key_name>...",
-		Aliases: []string{"rm"},
-		Short:   "Delete key from signing key list",
+	command := &cobra.Command{
+		Use:   "delete [flags] <key_name>...",
+		Short: "Delete key from signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key names")
@@ -137,12 +155,19 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return deleteKeys(opts)
+			return deleteKeys(cmd.Context(), opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+
+	return command
 }
 
-func addKey(command *cobra.Command, opts *keyAddOpts) error {
+func addKey(ctx context.Context, opts *keyAddOpts) error {
+	// set log level
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	logger := log.GetLogger(ctx)
+
 	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
 		return err
@@ -154,7 +179,8 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	}
 	pluginName := opts.plugin
 	if pluginName != "" {
-		key, err = addExternalKey(command.Context(), opts, pluginName, name)
+		logger.Debugf("Adding key with name %v and plugin name %v", name, pluginName)
+		key, err = addExternalKey(ctx, opts, pluginName, name)
 		if err != nil {
 			return err
 		}
@@ -173,6 +199,7 @@ func addKey(command *cobra.Command, opts *keyAddOpts) error {
 	}
 
 	// write out
+	logger.Debugf("Added key with name %s - {%+v}", key.Name, key.ExternalKey)
 	if isDefault {
 		fmt.Printf("%s: marked as default\n", key.Name)
 	} else {
@@ -219,7 +246,11 @@ func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefaul
 	return nil
 }
 
-func updateKey(opts *keyUpdateOpts) error {
+func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
+	// set log level
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	logger := log.GetLogger(ctx)
+
 	// initialize
 	name := opts.name
 	// core process
@@ -231,6 +262,7 @@ func updateKey(opts *keyUpdateOpts) error {
 		return errors.New(name + ": not found")
 	}
 	if !opts.isDefault {
+		logger.Warn("--default flag is not set, command did not take effect")
 		return nil
 	}
 	if signingKeys.Default != name {
@@ -256,7 +288,11 @@ func listKeys() error {
 	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
 }
 
-func deleteKeys(opts *keyDeleteOpts) error {
+func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
+	// set log level
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	logger := log.GetLogger(ctx)
+
 	// core process
 	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
@@ -268,6 +304,7 @@ func deleteKeys(opts *keyDeleteOpts) error {
 	for _, name := range opts.names {
 		idx := slices.Index(signingKeys.Keys, name)
 		if idx < 0 {
+			logger.Warnf("Key %s not found, command did not take effect", name)
 			return errors.New(name + ": not found")
 		}
 		signingKeys.Keys = slices.Delete(signingKeys.Keys, idx)

@@ -7,13 +7,16 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry"
 )
 
 type signOpts struct {
+	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
 	SecureFlagOpts
 	expiry       time.Duration
@@ -58,60 +61,67 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 			return runSign(cmd, opts)
 		},
 	}
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SignerFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-
 	return command
 }
 
 func runSign(command *cobra.Command, cmdOpts *signOpts) error {
+	// set log level
+	ctx := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+
 	// initialize
 	signer, err := cmd.GetSigner(&cmdOpts.SignerFlagOpts)
 	if err != nil {
 		return err
 	}
+	sigRepo, err := getSignatureRepository(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	if err != nil {
+		return err
+	}
+	opts, ref, err := prepareSigningContent(ctx, cmdOpts, sigRepo)
+	if err != nil {
+		return err
+	}
 
 	// core process
-	desc, opts, err := prepareSigningContent(command.Context(), cmdOpts)
-	if err != nil {
-		return err
-	}
-	sigRepo, err := getSignatureRepository(&cmdOpts.SecureFlagOpts, cmdOpts.reference)
-	if err != nil {
-		return err
-	}
-	_, err = notation.Sign(command.Context(), signer, sigRepo, opts)
+	_, err = notation.Sign(ctx, signer, sigRepo, opts)
 	if err != nil {
 		return err
 	}
 
 	// write out
-	fmt.Println(desc.Digest)
+	fmt.Println("Successfully signed", ref)
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts) (ocispec.Descriptor, notation.SignOptions, error) {
-	manifestDesc, err := getManifestDescriptorFromContext(ctx, &opts.SecureFlagOpts, opts.reference)
+func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, registry.Reference, error) {
+	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
+	})
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
+
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.SignOptions{}, err
+		return notation.SignOptions{}, registry.Reference{}, err
 	}
 
 	signOpts := notation.SignOptions{
-		ArtifactReference:  opts.reference,
+		ArtifactReference:  ref.String(),
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
 	}
 
-	return manifestDesc, signOpts, nil
+	return signOpts, ref, nil
 }

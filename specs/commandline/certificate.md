@@ -80,23 +80,27 @@ Aliases:
   list, ls
 
 Flags:
+  -d, --debug          debug mode
   -h, --help           help for list
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
+  -v, --verbose        verbose mode
 ```
 
 ### notation certificate show
 
 ```text
-Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.
+Show certificate details of given trust store name, trust store type, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.
 
 Usage:
   notation certificate show --type <type> --store <name> [flags] <cert_fileName>
 
 Flags:
+  -d, --debug          debug mode
   -h, --help           help for show
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority
+  -v, --verbose        verbose mode
 ```
 
 ### notation certificate delete
@@ -106,9 +110,6 @@ Delete certificates from the trust store.
 
 Usage:
   notation certificate delete --type <type> --store <name> [flags] (--all | <cert_fileName>)
-
-Aliases:
-  delete, rm
 
 Flags:
   -a, --all            delete all certificates in the named store
@@ -127,9 +128,9 @@ Usage:
   notation certificate generate-test [flags] <common_name>
 
 Flags:
-  -b, --bits int      RSA key bits (default 2048)
-  -d, --default       mark as default signing key
-  -h, --help          help for generate-test
+  -b, --bits int   RSA key bits (default 2048)
+      --default    mark as default signing key
+  -h, --help       help for generate-test
 ```
 
 ## Usage

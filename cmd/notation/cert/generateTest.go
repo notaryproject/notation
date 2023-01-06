@@ -22,9 +22,8 @@ import (
 
 var (
 	keyDefaultFlag = &pflag.Flag{
-		Name:      "default",
-		Shorthand: "d",
-		Usage:     "mark as default signing key",
+		Name:  "default",
+		Usage: "mark as default signing key",
 	}
 	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
@@ -51,6 +50,14 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 			opts.name = args[0]
 			return nil
 		},
+		Long: `Generate a test RSA key and a corresponding self-signed certificate
+
+Example - Generate a test RSA key and a corresponding self-signed certificate named "wabbit-networks.io":
+  notation cert generate-test "wabbit-networks.io"
+
+Example - Generate a test RSA key and a corresponding self-signed certificate, set RSA key as a default signing key:
+  notation cert generate-test --default "wabbit-networks.io"
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return generateTestCert(opts)
 		},

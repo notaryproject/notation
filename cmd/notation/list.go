@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	notationRegistry "github.com/notaryproject/notation-go/registry"
+	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -13,6 +14,7 @@ import (
 )
 
 type listOpts struct {
+	cmd.LoggingFlagOpts
 	SecureFlagOpts
 	reference string
 }
@@ -34,56 +36,48 @@ func listCommand(opts *listOpts) *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(cmd, opts)
+			return runList(cmd.Context(), opts)
 		},
 	}
-	opts.ApplyFlags(cmd.Flags())
+	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
+	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
 	return cmd
 }
 
-func runList(command *cobra.Command, opts *listOpts) error {
+func runList(ctx context.Context, opts *listOpts) error {
+	// set log level
+	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getSignatureRepository(&opts.SecureFlagOpts, reference)
+	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}
-
-	// core process
-	manifestDesc, err := getManifestDescriptorFromReference(command.Context(), &opts.SecureFlagOpts, reference)
+	manifestDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, reference, sigRepo)
 	if err != nil {
 		return err
 	}
 
 	// print all signature manifest digests
-	return printSignatureManifestDigests(command.Context(), manifestDesc.Digest, sigRepo, reference)
+	return printSignatureManifestDigests(ctx, manifestDesc, sigRepo, ref)
 }
 
 // printSignatureManifestDigests returns the signature manifest digests of
 // the subject manifest.
-func printSignatureManifestDigests(ctx context.Context, manifestDigest digest.Digest, sigRepo notationRegistry.Repository, reference string) error {
-	// prepare title
-	ref, err := registry.ParseReference(reference)
-	if err != nil {
-		return err
-	}
-	ref.Reference = manifestDigest.String()
+func printSignatureManifestDigests(ctx context.Context, manifestDesc ocispec.Descriptor, sigRepo notationregistry.Repository, ref registry.Reference) error {
+	ref.Reference = manifestDesc.Digest.String()
 	titlePrinted := false
 	printTitle := func() {
 		if !titlePrinted {
 			fmt.Println(ref)
-			fmt.Printf("└── %s\n", notationRegistry.ArtifactTypeNotation)
+			fmt.Printf("└── %s\n", notationregistry.ArtifactTypeNotation)
 			titlePrinted = true
 		}
 	}
 
-	// traverse referrers
-	artifactDescriptor, err := sigRepo.Resolve(ctx, reference)
-	if err != nil {
-		return err
-	}
 	var prevDigest digest.Digest
-	err = sigRepo.ListSignatures(ctx, artifactDescriptor, func(signatureManifests []ocispec.Descriptor) error {
+	err := sigRepo.ListSignatures(ctx, manifestDesc, func(signatureManifests []ocispec.Descriptor) error {
 		for _, sigManifestDesc := range signatureManifests {
 			if prevDigest != "" {
 				// check and print title
