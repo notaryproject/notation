@@ -29,7 +29,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-      --config-file path         optional path of image config file. Should only be used with flag --use-image-manifest. 
+      --config-file path         optional path of image config file. Should only be used with flag --use-image-manifest
   -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
@@ -71,7 +71,7 @@ An example of config file named config.json
 
 ### When to use OCI image manifest
 
-[registry support][registry-support] lists registries with different compatibilities. For registries not supporting `OCI artifact manifest`, user can use flag `--user-image-manifest` to sign artifacts stored in those registries.
+[Registry support][registry-support] lists registries with different compatibilities. For registries not supporting `OCI artifact manifest`, user can use flag `--user-image-manifest` to sign artifacts stored in those registries.
 
 In case registries not listed in the page, user can consider using flag `--user-image-manifest` by checking the error message. Note that there is no deterministic way to determine a registry supporting `OCI artifact manifest` or not. The error message is just for reference. The following response status contained in error messages MAY indicate that the registries doesn't support `OCI artifact manifest`:
 
