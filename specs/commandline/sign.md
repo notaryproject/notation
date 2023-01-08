@@ -29,7 +29,6 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-      --config-file path         optional path of image config file. Should only be used with flag --use-image-manifest
   -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h, --help                     help for sign
   -k, --key string               signing key name, for a key previously added to notation's key list.
@@ -49,7 +48,7 @@ Registries MAY not implement or enable the `Referrers API`, which is used by the
 
 ### Set config property for OCI image manifest
 
-OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if the flag `--use-image-manifest` is used. User can specify custom configurations by using flag `--config-file` for specific needs, which overrides the default configurations.
+OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if the flag `--use-image-manifest` is used.
 
 Notation uses empty JSON object `{}` as the default configuration content, and thus the default `config` property is fixed, as following:
 
@@ -58,14 +57,6 @@ Notation uses empty JSON object `{}` as the default configuration content, and t
     "mediaType": "application/vnd.cncf.notary.signature",
     "size": 2,
     "digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
-}
-```
-
-An example of config file named config.json
-
-```json
-{
-    "foo": "bar"
 }
 ```
 
@@ -162,16 +153,10 @@ Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac48
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Store the signature using OCI image manifest
+### Sign an artifact and store the signature using OCI image manifest
 
 ```shell
 notation sign --use-image-manifest <registry>/<repository>@<digest>
-```
-
-### Store the signature using OCI image manifest with custom configurations
-
-```shell
-notation sign --use-image-manifest --config-file config.json <registry>/<repository>@<digest>
 ```
 
 ## References
