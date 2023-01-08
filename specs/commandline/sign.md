@@ -42,7 +42,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backwards compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial or older versions of the OCI Image specification. Use flag `--use-image-manifest` to force Notation store the signatures using OCI image manifest. Note that Notation doesn't automatically switch to `OCI image manifest` for a failure of putting `OCI artifact manifest`.
+By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial or older versions of the OCI Image specification. Use flag `--use-image-manifest` to force Notation store the signatures using OCI image manifest. Note that Notation doesn't automatically switch to `OCI image manifest` for a failure of putting `OCI artifact manifest`.
 
 Registries MAY not implement or enable the `Referrers API`, which is used by the client to fetch the referrers. In the context of Notation, the referrers are signatures. Notation follows the fallback procedure defined in [OCI distribution spec][oci-backward-compatibility] if `Referrers API` is unavailable.
 
