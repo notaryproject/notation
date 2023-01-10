@@ -40,10 +40,9 @@ var (
 )
 
 var (
-	OCILayoutPath       string
-	TestRepoUri         string
-	TestTag             string
-	RegistryStoragePath string
+	OCILayoutPath string
+	TestRepoUri   string
+	TestTag       string
 )
 
 func init() {

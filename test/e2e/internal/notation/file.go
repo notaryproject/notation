@@ -8,16 +8,16 @@ import (
 
 // copyFile copies the source file to the destination file
 func copyFile(src, dst string) error {
-	si, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
+
+	si, err := in.Stat()
+	if err != nil {
+		return err
+	}
 
 	out, err := os.Create(dst)
 	if err != nil {

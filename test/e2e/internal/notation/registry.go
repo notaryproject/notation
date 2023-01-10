@@ -3,12 +3,10 @@ package notation
 import (
 	"context"
 	"fmt"
-	"math"
-	"math/rand"
+	"hash/maphash"
 	"net"
 	"os"
 	"path/filepath"
-	"time"
 
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/oci"
@@ -102,20 +100,8 @@ func (r *Artifact) ReferenceWithDigest() string {
 
 func newRepoName() string {
 	var newRepo string
-	for {
-		// set the seed with nanosecond precision.
-		rand.Seed(time.Now().UnixNano())
-		newRepo = fmt.Sprintf("%s-%d", TestRepoUri, rand.Intn(math.MaxInt32))
-
-		_, err := os.Stat(filepath.Join(RegistryStoragePath, newRepo))
-		if err != nil {
-			if os.IsNotExist(err) {
-				// newRepo doesn't exist.
-				break
-			}
-			panic(err)
-		}
-	}
+	seed := maphash.MakeSeed()
+	newRepo = fmt.Sprintf("%s-%d", TestRepoUri, maphash.Bytes(seed, nil))
 	return newRepo
 }
 
