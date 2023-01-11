@@ -19,9 +19,10 @@ type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
 	SecureFlagOpts
-	expiry       time.Duration
-	pluginConfig []string
-	reference    string
+	expiry           time.Duration
+	pluginConfig     []string
+	reference        string
+	ociImageManifest bool
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -66,6 +67,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	command.Flags().BoolVar(&opts.ociImageManifest, "use-image-manifest", false, "optional for using OCI image manifest to store signatures in a registry")
 	return command
 }
 
@@ -121,6 +123,7 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
+		OCIImageManifest:   true,
 	}
 
 	return signOpts, ref, nil
