@@ -7,45 +7,70 @@ import (
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 )
 
+// CoreTestFunc is the test function running in a VirtualHost.
+//
+// notation is an Executor isolated by $XDG_CONFIG_HOME.
+// artifact is a generated artifact in a new repository.
+// vhost is the VirtualHost instance.
+type CoreTestFunc func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)
+
 // Host creates a virtualized notation testing host by modify
 // the "XDG_CONFIG_HOME" environment variable of the Executor.
 //
 // options is the required testing environment options
 // fn is the callback function containing the testing logic.
-func Host(options []utils.HostOption, fn func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)) {
-	// create a vhost
-	vhost, err := utils.NewVirtualHost(NotationBinPath, CreateNotationDirOption())
+func Host(options []utils.HostOption, fn CoreTestFunc) {
+	// create a notation vhost
+	vhost, err := createNotationHost(NotationBinPath, options...)
 	if err != nil {
 		panic(err)
 	}
 
-	// set additional options
-	vhost.SetOption(options...)
-
 	// generate a repository with an artifact
-	artifact := GenerateArtifact()
+	artifact := GenerateArtifact("", "")
 
 	// run the main logic
 	fn(vhost.Executor, artifact, vhost)
-
-	// remove the generated repository and artifact
-	if err := artifact.Remove(); err != nil {
-		panic(err)
-	}
 }
 
-// Opts is a grammar sugar to generate a list of HostOption
+// OldNotation create an old version notation ExecOpts in a VirtualHost
+// for testing forward compatibility.
+func OldNotation(options ...utils.HostOption) *utils.ExecOpts {
+	if len(options) == 0 {
+		options = BaseOptions()
+	}
+
+	vhost, err := createNotationHost(NotationOldBinPath, options...)
+	if err != nil {
+		panic(err)
+	}
+
+	return vhost.Executor
+}
+
+func createNotationHost(path string, options ...utils.HostOption) (*utils.VirtualHost, error) {
+	vhost, err := utils.NewVirtualHost(path, CreateNotationDirOption())
+	if err != nil {
+		return nil, err
+	}
+
+	// set additional options
+	vhost.SetOption(options...)
+	return vhost, nil
+}
+
+// Opts is a grammar sugar to generate a list of HostOption.
 func Opts(options ...utils.HostOption) []utils.HostOption {
 	return options
 }
 
-// BaseOptions returns a list of base Options for a valid notation
+// BaseOptions returns a list of base Options for a valid notation.
 // testing environment.
 func BaseOptions() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
-		AddTestKeyOption(),
-		AddTestTrustStoreOption(),
+		AddKeyOption("e2e.key", "e2e.crt"),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustPolicyOption("trustpolicy.json"),
 	)
 }
@@ -53,7 +78,7 @@ func BaseOptions() []utils.HostOption {
 // CreateNotationDirOption creates the notation directory in temp user dir.
 func CreateNotationDirOption() utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return os.MkdirAll(vhost.UserPath(NotationDirName), os.ModePerm)
+		return os.MkdirAll(vhost.AbsolutePath(NotationDirName), os.ModePerm)
 	}
 }
 
@@ -71,19 +96,19 @@ func AuthOption(username, password string) utils.HostOption {
 	}
 }
 
-// AddTestKeyOption adds the test signingkeys.json, key and cert files to
+// AddKeyOption adds the test signingkeys.json, key and cert files to
 // the notation directory.
-func AddTestKeyOption() utils.HostOption {
+func AddKeyOption(keyName, certName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return AddTestKeyPairs(vhost.UserPath(NotationDirName))
+		return AddTestKeyPairs(vhost.AbsolutePath(NotationDirName), keyName, certName)
 	}
 }
 
-// AddTestTrustStoreOption added the test cert to the trust store.
-func AddTestTrustStoreOption() utils.HostOption {
+// AddTrustStoreOption added the test cert to the trust store.
+func AddTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
 		vhost.Executor.
-			Exec("cert", "add", "--type", "ca", "--store", "e2e", NotationE2ECertPath).
+			Exec("cert", "add", "--type", "ca", "--store", namedstore, srcCertPath).
 			MatchKeyWords("Successfully added following certificates")
 		return nil
 	}
@@ -94,7 +119,7 @@ func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
 		return copyFile(
 			filepath.Join(NotationE2ETrustPolicyDir, trustpolicyName),
-			vhost.UserPath(NotationDirName, NotationTrustPolicyName),
+			vhost.AbsolutePath(NotationDirName, TrustPolicyName),
 		)
 	}
 }
@@ -102,8 +127,8 @@ func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 // authEnv creates an auth info
 // (By setting $NOTATION_USERNAME and $NOTATION_PASSWORD)
 func authEnv(username, password string) map[string]string {
-	env := make(map[string]string)
-	env["NOTATION_USERNAME"] = username
-	env["NOTATION_PASSWORD"] = password
-	return env
+	return map[string]string{
+		"NOTATION_USERNAME": username,
+		"NOTATION_PASSWORD": password,
+	}
 }

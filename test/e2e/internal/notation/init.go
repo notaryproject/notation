@@ -10,37 +10,39 @@ import (
 )
 
 const (
-	NotationDirName         = "notation"
-	NotationTrustPolicyName = "trustpolicy.json"
+	NotationDirName   = "notation"
+	TrustPolicyName   = "trustpolicy.json"
+	TrustStoreDirName = "truststore"
+	TrustStoreTypeCA  = "ca"
 )
 
 const (
-	envRegistryHost        = "NOTATION_E2E_REGISTRY_HOST"
-	envRegistryUsername    = "NOTATION_E2E_REGISTRY_USERNAME"
-	envRegistryPassword    = "NOTATION_E2E_REGISTRY_PASSWORD"
-	envNotationBinPath     = "NOTATION_E2E_BINARY_PATH"
-	envNotationE2EKeyPath  = "NOTATION_E2E_KEY_PATH"
-	envNotationE2ECertPath = "NOTATION_E2E_CERT_PATH"
-	envNotationConfigPath  = "NOTATION_E2E_CONFIG_PATH"
-	envOCILayoutPath       = "NOTATION_E2E_OCI_LAYOUT_PATH"
-	envTestRepo            = "NOTATION_E2E_TEST_REPO"
-	envTestTag             = "NOTATION_E2E_TEST_TAG"
-	envRegistryStoragePath = "REGISTRY_STORAGE_PATH"
+	envKeyRegistryHost       = "NOTATION_E2E_REGISTRY_HOST"
+	envKeyRegistryUsername   = "NOTATION_E2E_REGISTRY_USERNAME"
+	envKeyRegistryPassword   = "NOTATION_E2E_REGISTRY_PASSWORD"
+	envKeyNotationBinPath    = "NOTATION_E2E_BINARY_PATH"
+	envKeyNotationOldBinPath = "NOTATION_E2E_OLD_BINARY_PATH"
+	envKeyNotationConfigPath = "NOTATION_E2E_CONFIG_PATH"
+	envKeyOCILayoutPath      = "NOTATION_E2E_OCI_LAYOUT_PATH"
+	envKeyTestRepo           = "NOTATION_E2E_TEST_REPO"
+	envKeyTestTag            = "NOTATION_E2E_TEST_TAG"
 )
 
 var (
-	NotationBinPath           string
-	NotationE2EKeyPath        string
-	NotationE2ECertPath       string
+	// NotationBinPath is the notation binary path.
+	NotationBinPath string
+	// NotationOldBinPath is the path of an old version notation binary for
+	// testing forward compatibility.
+	NotationOldBinPath        string
 	NotationE2EConfigPath     string
+	NotationE2ELocalKeysDir   string
 	NotationE2ETrustPolicyDir string
 )
 
 var (
-	OCILayoutPath       string
-	TestRepo            string
-	TestTag             string
-	RegistryStoragePath string
+	OCILayoutPath string
+	TestRepoUri   string
+	TestTag       string
 )
 
 func init() {
@@ -50,41 +52,24 @@ func init() {
 }
 
 func setUpRegistry() {
-	setValue(envRegistryHost, &TestRegistry.Host)
-	fmt.Printf("Testing using registry host: %s\n", TestRegistry.Host)
+	setValue(envKeyRegistryHost, &TestRegistry.Host)
+	setValue(envKeyRegistryUsername, &TestRegistry.Username)
+	setValue(envKeyRegistryPassword, &TestRegistry.Password)
 
-	setValue(envRegistryUsername, &TestRegistry.Username)
-	fmt.Printf("Testing using registry username: %s\n", TestRegistry.Username)
-
-	setValue(envRegistryPassword, &TestRegistry.Password)
-	fmt.Printf("Testing using registry password: %s\n", TestRegistry.Password)
-
-	testImage := &Artifact{
-		Registry: &TestRegistry,
-		Repo:     testRepo,
-		Tag:      testTag,
-	}
-
-	if err := testImage.Validate(); err != nil {
-		panic(fmt.Sprintf("E2E setup failed: %v", err))
-	}
+	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
+	setValue(envKeyTestRepo, &TestRepoUri)
+	setValue(envKeyTestTag, &TestTag)
 }
 
 func setUpNotationValues() {
 	// set Notation binary path
-	setPathValue(envNotationBinPath, &NotationBinPath)
+	setPathValue(envKeyNotationBinPath, &NotationBinPath)
+	setPathValue(envKeyNotationOldBinPath, &NotationOldBinPath)
 
 	// set Notation configuration paths
-	setPathValue(envNotationE2EKeyPath, &NotationE2EKeyPath)
-	setPathValue(envNotationE2ECertPath, &NotationE2ECertPath)
-	setPathValue(envNotationConfigPath, &NotationE2EConfigPath)
+	setPathValue(envKeyNotationConfigPath, &NotationE2EConfigPath)
 	NotationE2ETrustPolicyDir = filepath.Join(NotationE2EConfigPath, "trustpolicys")
-
-	// set registry values
-	setPathValue(envRegistryStoragePath, &RegistryStoragePath)
-	setPathValue(envOCILayoutPath, &OCILayoutPath)
-	setValue(envTestRepo, &TestRepo)
-	setValue(envTestTag, &TestTag)
+	NotationE2ELocalKeysDir = filepath.Join(NotationE2EConfigPath, LocalKeysDirName)
 }
 
 func setPathValue(envKey string, value *string) {
@@ -95,8 +80,8 @@ func setPathValue(envKey string, value *string) {
 }
 
 func setValue(envKey string, value *string) {
-	*value = os.Getenv(envKey)
-	if *value == "" {
+	if *value = os.Getenv(envKey); *value == "" {
 		panic(fmt.Sprintf("env %s is empty", envKey))
 	}
+	fmt.Printf("set test value $%s=%s\n", envKey, *value)
 }

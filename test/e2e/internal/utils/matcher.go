@@ -43,6 +43,12 @@ func (m *Matcher) MatchKeyWords(keywords ...string) *Matcher {
 }
 
 // MatchErrKeyWords matches given keywords with the stderr.
+func (m *Matcher) MatchErrKeyWords(keywords ...string) *Matcher {
+	matchKeyWords(m.stderr, keywords)
+	return m
+}
+
+// MatchErrKeyWords matches given keywords with the stderr.
 func matchKeyWords(content string, keywords []string) {
 	var missed []string
 	lowered := strings.ToLower(content)

@@ -5,8 +5,8 @@ import (
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
+	"github.com/notaryproject/notation/test/e2e/internal/utils/validator"
 	. "github.com/onsi/ginkgo/v2"
-	// . "github.com/onsi/gomega"
 )
 
 // quickstart doc: https://notaryproject.dev/docs/quickstart/
@@ -25,8 +25,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 		notation = vhost.Executor
 
 		// add an image to the OCI-compatible registry
-		artifact = GenerateArtifact()
-		DeferCleanup(artifact.Remove)
+		artifact = GenerateArtifact("", "")
 	})
 
 	It("list the signatures associated with the container image", func() {
@@ -61,7 +60,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 
 	It("Create a trust policy", func() {
 		vhost.SetOption(AddTrustPolicyOption("quickstart_trustpolicy.json"))
-		utils.CheckFileExist(vhost.UserPath(NotationDirName, NotationTrustPolicyName))
+		validator.CheckFileExist(vhost.AbsolutePath(NotationDirName, TrustPolicyName))
 	})
 
 	It("Verify the container image", func() {
