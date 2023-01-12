@@ -42,7 +42,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial or older versions of the OCI Image specification. Use flag `--use-image-manifest` to force Notation store the signatures using OCI image manifest. Note that Notation doesn't automatically switch to `OCI image manifest` for a failure of using `OCI artifact manifest`.
+By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial of the OCI Image specification v1.1. Use flag `--use-image-manifest` to force Notation store the signatures using OCI image manifest.
 
 Registries MAY not implement or enable the `Referrers API`, which is used by the client to fetch the referrers. In the context of Notation, the referrers are signatures. Notation follows the fallback procedure defined in [OCI distribution spec][oci-backward-compatibility] if `Referrers API` is unavailable.
 
@@ -74,6 +74,12 @@ User may use tools to copy artifacts and associated signatures between two regis
 
 - From registries that support `OCI artifact manifest` to registries that support `OCI artifact manifest`
 - From registries that support `OCI image manifest` to registries that support `OCI image manifest`
+
+For example, use [ORAS][oras-land] to copy artifacts and associated signatures between two registries:
+
+```shell
+oras copy -r demo1.myregistry.io/net-monitor:v1 demo2.myregistry.io/net-monitor:v1
+```
 
 ## Usage
 
@@ -162,3 +168,4 @@ notation sign --use-image-manifest <registry>/<repository>@<digest>
 [oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md
 [oci-backward-compatibility]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#backwards-compatibility
 [registry-support]: https://notaryproject.dev/docs/registrysupport/
+[oras-land]: https://oras.land/
