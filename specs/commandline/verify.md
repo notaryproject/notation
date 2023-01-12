@@ -16,6 +16,17 @@ Warning: The resolved digest may not point to the same signed artifact, since ta
 Successfully verified signature for <registry>/<repository>@<digest>
 ```
 
+A signature can have user defined metadata. If the signature for the OCI artifact contains any metadata, the output message is as follows:
+
+```text
+Successfully verified signature for <registry>/<repository>@<digest>
+
+The artifact was signed with the following user metadata.
+
+KEY    VALUE
+<key>  <value>
+```
+
 ## Outline
 
 ```text
@@ -25,11 +36,12 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
-  -h, --help                    help for verify
-  -p, --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
-      --plain-http              registry access via plain HTTP
-      --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -u, --username string         username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -h,  --help                    help for verify
+  -p,  --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
+       --plain-http              registry access via plain HTTP
+       --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+  -u,  --username string         username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -m,  --user-metadata strings   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
 ```
 
 ## Usage
@@ -113,13 +125,38 @@ An example of output messages for a successful verification:
 Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
+### Verify signatures on an OCI artifact with user metadata
+
+Use the `--user-metadata` flag to verify that provided key-value pairs are present in the payload of the valid signature.
+
+```shell
+# Verify signatures on the supplied OCI artifact identified by the digest and verify that io.wabbit-networks.buildId=123 is present in the signed payload
+notation verify --user-metadata io.wabbit-networks.buildId=123 localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+An example of output messages for a successful verification:
+
+```text
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+
+The artifact is signed with the following user metadata.
+
+KEY                         VALUE
+io.wabbit-networks.buildId  123
+```
+
+An example of output messages for an unsuccessful verification:
+
+```text
+Error: signature verification failed: unable to find specified metadata in any signatures
+```
+
 ### Verify signatures on an OCI artifact identified by a tag
 
 A tag is resolved to a digest first before verification.
 
 ```shell
 # Prerequisites: Signatures are stored in a registry referencing the signed OCI artifact
-
 # Verify signatures on an OCI artifact identified by the tag
 notation verify localhost:5000/net-monitor:v1
 ```
