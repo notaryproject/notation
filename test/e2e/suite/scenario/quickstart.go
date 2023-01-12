@@ -13,6 +13,7 @@ import (
 var _ = Describe("notation quickstart E2E test", Ordered, func() {
 	var vhost *utils.VirtualHost
 	var artifact *Artifact
+	var artifact2 *Artifact
 	var notation *utils.ExecOpts
 	BeforeAll(func() {
 		var err error
@@ -26,6 +27,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 
 		// add an image to the OCI-compatible registry
 		artifact = GenerateArtifact("", "")
+		artifact2 = GenerateArtifact("", "")
 	})
 
 	It("list the signatures associated with the container image", func() {
@@ -57,6 +59,13 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 		notation.Exec("ls", artifact.ReferenceWithDigest()).
 			MatchKeyWords(fmt.Sprintf("%s\n└── application/vnd.cncf.notary.signature\n    └── sha256:", artifact.ReferenceWithDigest()))
 	})
+	It("sign the container image with cose format", func() {
+		notation.Exec("sign", "--signature-format", "cose", artifact2.ReferenceWithDigest()).
+			MatchContent(fmt.Sprintf("Successfully signed %s\n", artifact2.ReferenceWithDigest()))
+
+		notation.Exec("ls", artifact2.ReferenceWithDigest()).
+			MatchKeyWords(fmt.Sprintf("%s\n└── application/vnd.cncf.notary.signature\n    └── sha256:", artifact2.ReferenceWithDigest()))
+	})
 
 	It("Create a trust policy", func() {
 		vhost.SetOption(AddTrustPolicyOption("quickstart_trustpolicy.json"))
@@ -66,5 +75,10 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 	It("Verify the container image", func() {
 		notation.Exec("verify", artifact.ReferenceWithDigest()).
 			MatchContent(fmt.Sprintf("Successfully verified signature for %s\n", artifact.ReferenceWithDigest()))
+	})
+
+	It("Verify the container image with cose format", func() {
+		notation.Exec("verify", artifact2.ReferenceWithDigest()).
+			MatchContent(fmt.Sprintf("Successfully verified signature for %s\n", artifact2.ReferenceWithDigest()))
 	})
 })
