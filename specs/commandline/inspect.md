@@ -10,14 +10,14 @@ Upon successful execution, both the digest of the signed artifact and the digest
 <registry>/<repository>@<digest>
 └── application/vnd.cncf.notary.signature
     ├── <digest_of_signature_manifest>
-        ├── <signing algorithm>
-        ├── <signed attributes>
-        ├── <user defined attributes>
-        ├── <unsigned attributes>
-        ├── <certificates>
-        └── <signed artifact>
-    ├── <digest_of_signature_manifest>
-        ├── <signing algorithm>
+    |   ├── <signature algorithm>
+    |   ├── <signed attributes>
+    |   ├── <user defined attributes>
+    |   ├── <unsigned attributes>
+    |   ├── <certificates>
+    |   └── <signed artifact>
+    └── <digest_of_signature_manifest>
+        ├── <signature algorithm>
         ├── <signed attributes>
         ├── <unsigned attributes>
         ├── <certificates>
@@ -27,7 +27,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
 ## Outline
 
 ```text
-Inspect all signatures with the signed artifact.
+Inspect all signatures associated with the signed artifact.
 
 Usage:
     notation inspect [flags] <reference>
@@ -61,66 +61,66 @@ An example output:
 localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee9088f7ace2efcde9
 └── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        ├── signing algorithm: RSASSA-PSS-SHA-256
+    |   ├── signature algorithm: RSASSA-PSS-SHA-256
+    |   ├── signed attributes
+    |   |   ├── content type: application/vnd.cncf.notary.payload.v1+json
+    |   |   ├── signing scheme: notary.default.x509
+    |   |   ├── signing time: Fri Jun 23 22:04:01 2023
+    |   |   ├── expiry: Sat Jun 29 22:04:01 2024
+    |   |   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin    //extended attributes to support plugins
+    |   ├── user defined attributes
+    |   |   └── io.wabbit-networks.buildId: 123                             //user defined payload annotations
+    |   ├── unsigned attributes
+    |   |   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> //TSA response (time stamp token)
+    |   |   └── io.cncf.notary.signingAgent: notation/1.0.0                 //client that produced the signature
+    |   ├── certificates
+    |   |   ├── SHA1 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
+    |   |   |   ├── issued to: wabbit-com Software
+    |   |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+    |   |   |   └── expiry: Sun Jul 06 20:50:17 2025
+    |   |   ├── SHA1 fingerprint: 5DCC2147712B3C555B1C96CFCC00215403TF044D
+    |   |   |   ├── issued to: wabbit-com Software Code Signing PCA
+    |   |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+    |   |   |   └── expiry: Sun Jul 06 20:50:17 2025
+    |   |   └── SHA1 fingerprint: 1GYA3107712B3C886B1C96AAEC89984914DC0A5A
+    |   |       ├── issued to: wabbit-com Software Root Certificate Authority
+    |   |       ├── issued by: wabbit-com Software Root Certificate Authority
+    |   |       └── expiry: Sat Jun 23 22:04:01 2035
+    |   └── signed artifact                                                 //descriptor of the signed target artifact
+    |       ├── media type: application/vnd.oci.image.manifest.v1+json
+    |       ├── digest: sha256:b94d27b9934d3e08a52e52d7da7dabfac48437a5380ee9088f7ace2efcde9
+    |       └── size: 16724
+    └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        ├── signature algorithm: RSASSA-PSS-SHA-256
         ├── signed attributes
-            ├── content type: application/vnd.cncf.notary.payload.v1+json
-            ├── signing scheme: notary.default.x509
-            ├── signing time: Fri Jun 23 22:04:01 2023
-            ├── expiry: Sat Jun 29 22:04:01 2024
-            ├── io.cncf.notary.verificationPlugin: com.example.nv2plugin    //extended attributes to support plugins
-        ├── user defined attributes
-            ├── io.wabbit-networks.buildId: 123                             //user defined payload annotations
+        |   ├── content type: application/vnd.cncf.notary.payload.v1+json
+        |   ├── signing scheme: notary.signingAuthority.x509
+        |   ├── signing time: Fri Jun 23 22:04:01 2023
+        |   ├── expiry: Sat Jun 29 22:04:01 2024
+        |   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin                  
         ├── unsigned attributes
-            ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> //TSA response (time stamp token)
-            ├── io.cncf.notary.signingAgent: notation/1.0.0                 //client that produced the signature
+        |   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
+        |   └── io.cncf.notary.signingAgent: notation/1.0.0                  
         ├── certificates
-            ├── SHA1 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
-                ├── issued to: wabbit-com Software
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: 5DCC2147712B3C555B1C96CFCC00215403TF044D
-                ├── issued to: wabbit-com Software Code Signing PCA
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: 1GYA3107712B3C886B1C96AAEC89984914DC0A5A
-                ├── issued to: wabbit-com Software Root Certificate Authority
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sat Jun 23 22:04:01 2035
-        └── signed artifact                                                 //descriptor of the signed target artifact
-            ├── media type: application/vnd.oci.image.manifest.v1+json
-            ├── digest: sha256:b94d27b9934d3e08a52e52d7da7dabfac48437a5380ee9088f7ace2efcde9
-            └── size: 16724
-    ├── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-        ├── signing algorithm: RSASSA-PSS-SHA-256
-        ├── signed attributes
-            ├── content type: application/vnd.cncf.notary.payload.v1+json
-            ├── signing scheme: notary.signingAuthority.x509
-            ├── signing time: Fri Jun 23 22:04:01 2023
-            ├── expiry: Sat Jun 29 22:04:01 2024
-            ├── io.cncf.notary.verificationPlugin: com.example.nv2plugin                  
-        ├── unsigned attributes
-            ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
-            ├── io.cncf.notary.signingAgent: notation/1.0.0                  
-        ├── certificates
-            ├── SHA1 fingerprint: 68C15B4C98AD91E051EE5AF5F524A8729040B1D
-                ├── issued to: wabbit-com Software
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: 4ACC2147712B3C555B1C96CFCC00215403TE011C
-                ├── issued to: wabbit-com Software Code Signing PCA 2010
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: A4YA1205512B3C886B1C96AAEC89984914DC012A
-                ├── issued to: wabbit-com Software Root Certificate Authority
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sat Jun 23 22:04:01 2035
-        └── signed attributes 
+        |   ├── SHA1 fingerprint: 68C15B4C98AD91E051EE5AF5F524A8729040B1D
+        |   |   ├── issued to: wabbit-com Software
+        |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+        |   |   └── expiry: Sun Jul 06 20:50:17 2025
+        |   ├── SHA1 fingerprint: 4ACC2147712B3C555B1C96CFCC00215403TE011C
+        |   |   ├── issued to: wabbit-com Software Code Signing PCA 2010
+        |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+        |   |   └── expiry: Sun Jul 06 20:50:17 2025
+        |   └── SHA1 fingerprint: A4YA1205512B3C886B1C96AAEC89984914DC012A
+        |       ├── issued to: wabbit-com Software Root Certificate Authority
+        |       ├── issued by: wabbit-com Software Root Certificate Authority
+        |       └── expiry: Sat Jun 23 22:04:01 2035
+        └── signed artifact 
             ├── media type: application/vnd.oci.image.manifest.v1+json
             ├── digest: sha256:b94d27b9934d3e08a52e52d7da7fac484efe37a5380ee9088f7ace2efcde9
             └── size: 16724
 ```
 
-## Usage signatures on an OCI artifact identified by a tag
+## Inspect signatures on an OCI artifact identified by a tag
 
 `Tags` are mutable, but `Digests` uniquely and immutably identify an artifact. If a tag is used to identify a signed artifact, notation resolves the tag to the `digest` first.
 
@@ -139,59 +139,59 @@ Warning: The resolved digest may not point to the same signed artifact, since ta
 localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380ee9088f7ace2eaab9
 └── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        ├── signing algorithm: RSASSA-PSS-SHA-256
+    |   ├── signature algorithm: RSASSA-PSS-SHA-256
+    |   ├── signed attributes
+    |   |   ├── content type: application/vnd.cncf.notary.payload.v1+json
+    |   |   ├── signing scheme: notary.default.x509
+    |   |   ├── signing time: Fri Jun 23 22:04:01 2023
+    |   |   ├── expiry: Sat Jun 29 22:04:01 2024
+    |   |   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
+    |   ├── user defined attributes
+    |   |   └── io.wabbit-networks.buildId: 123
+    |   ├── unsigned attributes
+    |   |   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
+    |   |   └── io.cncf.notary.signingAgent: notation/1.0.0
+    |   ├── certificates
+    |   |   ├── SHA1 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
+    |   |   |   ├── issued to: wabbit-com Software
+    |   |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+    |   |   |   └── expiry: Sun Jul 06 20:50:17 2025
+    |   |   ├── SHA1 fingerprint: 5DCC2147712B3C555B1C96CFCC00215403TF044D
+    |   |   |   ├── issued to: wabbit-com Software Code Signing PCA
+    |   |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+    |   |   |   └── expiry: Sun Jul 06 20:50:17 2025
+    |   |   └── SHA1 fingerprint: 1GYA3107712B3C886B1C96AAEC89984914DC0A5A
+    |   |       ├── issued to: wabbit-com Software Root Certificate Authority
+    |   |       ├── issued by: wabbit-com Software Root Certificate Authority
+    |   |       └── expiry: Sat Jun 23 22:04:01 2035
+    |   └── signed artifact 
+    |       ├── media type: application/vnd.oci.image.manifest.v1+json
+    |       ├── digest: sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380ee9088f7ace2eaab9
+    |       └── size: 16724
+    └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        ├── signature algorithm: RSASSA-PSS-SHA-256
         ├── signed attributes
-            ├── content type: application/vnd.cncf.notary.payload.v1+json
-            ├── signing scheme: notary.default.x509
-            ├── signing time: Fri Jun 23 22:04:01 2023
-            ├── expiry: Sat Jun 29 22:04:01 2024
-            ├── io.cncf.notary.verificationPlugin: com.example.nv2plugin
-        ├── user defined attributes
-            ├── io.wabbit-networks.buildId: 123
+        |   ├── content type: application/vnd.cncf.notary.payload.v1+json
+        |   ├── signing scheme: notary.signingAuthority.x509
+        |   ├── signing time: Fri Jun 23 22:04:01 2023
+        |   ├── expiry: Sat Jun 29 22:04:01 2024
+        |   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin     
         ├── unsigned attributes
-            ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
-            ├── io.cncf.notary.signingAgent: notation/1.0.0
+        |   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> 
+        |   └── io.cncf.notary.signingAgent: notation/1.0.0   
         ├── certificates
-            ├── SHA1 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
-                ├── issued to: wabbit-com Software
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: 5DCC2147712B3C555B1C96CFCC00215403TF044D
-                ├── issued to: wabbit-com Software Code Signing PCA
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: 1GYA3107712B3C886B1C96AAEC89984914DC0A5A
-                ├── issued to: wabbit-com Software Root Certificate Authority
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sat Jun 23 22:04:01 2035
-        └── signed attribute 
-            ├── media type: application/vnd.oci.image.manifest.v1+json
-            ├── digest: sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380ee9088f7ace2eaab9
-            └── size: 16724
-    ├── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-        ├── signing algorithm: RSASSA-PSS-SHA-256
-        ├── signed attributes
-            ├── content type: application/vnd.cncf.notary.payload.v1+json
-            ├── signing scheme: notary.signingAuthority.x509
-            ├── signing time: Fri Jun 23 22:04:01 2023
-            ├── expiry: Sat Jun 29 22:04:01 2024
-            ├── io.cncf.notary.verificationPlugin: com.example.nv2plugin     
-        ├── unsigned attributes
-            ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> 
-            ├── io.cncf.notary.signingAgent: notation/1.0.0   
-        ├── certificates
-            ├── SHA1 fingerprint: 68C15B4C98AD91E051EE5AF5F524A8729040B1D
-                ├── issued to: wabbit-com Software
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: 4ACC2147712B3C555B1C96CFCC00215403TE011C
-                ├── issued to: wabbit-com Software Code Signing PCA
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sun Jul 06 20:50:17 2025
-            ├── SHA1 fingerprint: A4YA1205512B3C886B1C96AAEC89984914DC012A
-                ├── issued to: wabbit-com Software Root Certificate Authority
-                ├── issued by: wabbit-com Software Root Certificate Authority
-                ├── expiry: Sat Jun 23 22:04:01 2035
+        |   ├── SHA1 fingerprint: 68C15B4C98AD91E051EE5AF5F524A8729040B1D
+        |   |   ├── issued to: wabbit-com Software
+        |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+        |   |   └── expiry: Sun Jul 06 20:50:17 2025
+        |   ├── SHA1 fingerprint: 4ACC2147712B3C555B1C96CFCC00215403TE011C
+        |   |   ├── issued to: wabbit-com Software Code Signing PCA
+        |   |   ├── issued by: wabbit-com Software Root Certificate Authority
+        |   |   └── expiry: Sun Jul 06 20:50:17 2025
+        |   └── SHA1 fingerprint: A4YA1205512B3C886B1C96AAEC89984914DC012A
+        |       ├── issued to: wabbit-com Software Root Certificate Authority
+        |       ├── issued by: wabbit-com Software Root Certificate Authority
+        |       └── expiry: Sat Jun 23 22:04:01 2035
         └── signed artifact 
             ├── media type: application/vnd.oci.image.manifest.v1+json
             ├── digest: sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380ee9088f7ace2eaab9
@@ -209,7 +209,7 @@ An example output:
   "signatures": [
     {
       "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a33",
-      "signingAlgorithm": "RSASSA-PSS-SHA-256",
+      "signatureAlgorithm": "RSASSA-PSS-SHA-256",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": "notary.default.x509",
@@ -229,19 +229,19 @@ An example output:
           "SHA1Fingerprint": "E8C15B4C98AD91E051EE5AF5F524A8729050B2A",
           "issuedTo": "wabbit-com Software",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
-          "expires": "Sun Jul 06 20:50:17 2025"
+          "expiry": "Sun Jul 06 20:50:17 2025"
         },
         {
           "SHA1Fingerprint": "5DCC2147712B3C555B1C96CFCC00215403TF044D",
           "issuedTo": "wabbit-com Software Code Signing PCA",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
-          "expires": "Sun Jul 06 20:50:17 2025"
+          "expiry": "Sun Jul 06 20:50:17 2025"
         },
         {
           "SHA1Fingerprint": "1GYA3107712B3C886B1C96AAEC89984914DC0A5A",
           "issuedTo": "wabbit-com Software Root Certificate Authority",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
-          "expires": "Sat Jun 23 22:04:01 2035"
+          "expiry": "Sat Jun 23 22:04:01 2035"
         }
       ],
       "signedArtifact": {
@@ -252,7 +252,7 @@ An example output:
     },
     {
       "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
-      "signingAlgorithm": "RSASSA-PSS-SHA-256",
+      "signatureAlgorithm": "RSASSA-PSS-SHA-256",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": " notary.signingAuthority.x509",
@@ -269,7 +269,7 @@ An example output:
           "SHA1Fingerprint": "68C15B4C98AD91E051EE5AF5F524A8729040B1D",
           "issuedTo": "wabbit-com Software",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
-          "expires": "Sun Jul 06 20:50:17 2025"
+          "expiry": "Sun Jul 06 20:50:17 2025"
         },
         {
           "SHA1Fingerprint": "4ACC2147712B3C555B1C96CFCC00215403TE011C",
@@ -281,7 +281,7 @@ An example output:
           "SHA1Fingerprint": "A4YA1205512B3C886B1C96AAEC89984914DC012A",
           "issuedTo": "wabbit-com Software Root Certificate Authority",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
-          "expires": "Sat Jun 23 22:04:01 2035"
+          "expiry": "Sat Jun 23 22:04:01 2035"
         }
       ],
       "signedArtifact": {
