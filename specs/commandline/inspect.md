@@ -58,6 +58,7 @@ notation inspect localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da1ac
 
 An example output:
 ```shell
+Inspecting all signatures for signed artifact
 localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee9088f7ace2efcde9
 └── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -136,6 +137,7 @@ Warning: The resolved digest may not point to the same signed artifact, since ta
 ```
 
 ```shell
+Inspecting all signatures for signed artifact
 localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380ee9088f7ace2eaab9
 └── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -206,6 +208,7 @@ notation inspect localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52da7dabf
 An example output:
 ```jsonc
 {
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "signatures": [
     {
       "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a33",
