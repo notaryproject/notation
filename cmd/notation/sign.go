@@ -123,7 +123,7 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
-		OCIImageManifest:   true,
+		OCIimageManifest:   opts.ociImageManifest,
 	}
 
 	return signOpts, ref, nil
