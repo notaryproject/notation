@@ -15,6 +15,9 @@ An example of `trustpolicy.json`:
             "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],  // The repository list that policy applies to
             "signatureVerification": {                                  // The level of verification - strict, permissive, audit, skip
                 "level": "strict"
+                "override" : {
+                     "expiry" : "log"
+                }
             },
             "trustStores": [ "ca:wabbit-networks-dev" ],                // The trust stores that contains the X.509 certificates
             "trustedIdentities": [                                      // Identities that are trusted to sign the artifact.
@@ -62,11 +65,16 @@ Flags:
 Add trust policies.
 
 Usage:
-  notation policy add [flags]
+  notation policy add [flags] <policy_name>
 
 Flags:
-  -h, --help     help for add
-      --input    input as a json file or a json object
+      --cert-file          string   optional certificate filepath
+      --custom-level       string   optional custom level to based existing verification level, e.g. "authenticity=log,expiry=log"
+  -h, --help                        help for add
+      --id                 string   optional trust identity aka certificate subject info
+      --scope              string   optional repository URI (default "*")
+      --trust-store        string   required trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
+      --verification-level string   optional verification level, options: "strict", "permissive", "audit", "skip" (default "strict")
 ```
 
 ### notation policy delete
@@ -75,7 +83,7 @@ Flags:
 Delete trust policies. User cannot delete all the trust policies, at least one trust policy should be configured for signature verification.
 
 Usage:
-  notation policy delete [flags] <name>...
+  notation policy delete [flags] <policy_name>...
 
 Flags:
   -h, --help   help for delete
@@ -93,12 +101,13 @@ Aliases:
   list, ls
 
 Flags:
-  -h, --help     help for list
-      --ref      list the trust policies for verifying the specified artifacts
-      --repo     list the trust policies for verifying artifacts in specified repository
-      --ti       list the trust policies with specified trust store configured
-      --ts       list the trust policies with specified trust identity configured
-  -v  --verbose
+      --details                  optional list the details of trust policies
+  -h, --help                     help for list
+      --id          string       optional trust identity aka certificate subject info
+      --name        string       optional trust policy name
+      --reference   string       optional reference to the artifact
+      --repo        string       optional repository URI, e.g. localhost:5000/namespace/repo_name
+      --trust-store string       optional trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
 ```
 
 ### notation policy update
@@ -107,19 +116,44 @@ Flags:
 Update the existing trust policies.
 
 Usage:
-  notation policy update [flags]
+  notation policy update [flags] <policy_name>
 
 Flags:
-  -h, --help   help for update
+      --cert-file          string   optional certificate filepath
+      --custom-level       string   optional custom level to based existing verification level, e.g. "authenticity=log,expiry=log"
+  -h, --help                        help for add
+      --id                 string   optional trust identity aka certificate subject info
+      --scope              string   optional repository URI
+      --trust-store        string   optional trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
+      --verification-level string   optional verification level, options: strict, permissive, audit, skip
 ```
 
 ## Usage
 
-### Add a trust policy that trusts any identities under specified trust store to validate any artifacts
+### Add a trust policy with minimal configurations
 
 ```shell  
-notation policy add --name wabbit-network-dev --ts ca:wabbit-network-dev
+notation policy add --trust-store ca:wabbit-network-dev wabbit-network-dev
 ```
+
+The execution of `add` fails in one of below cases:
+
+- The policy name exists.
+- There is already a policy with registry scope configured with value `*`.
+
+Upon successful execution, the added trust policy is printed out. For example:
+
+In text format
+
+```text
+"name": "wabbit-networks-dev"
+"registryScopes": "*"
+"level": "strict"
+"trustStores": "ca:wabbit-networks-dev"
+"trustedIdentities": "*"
+```
+
+In json format
 
 ```json
 {
@@ -135,31 +169,59 @@ notation policy add --name wabbit-network-dev --ts ca:wabbit-network-dev
 }
 ```
 
-### Add a trust policy that trusts any identities under specified trust store to validate artifacts stored in specified repository
+### Add a trust policy by configuring all the properties
 
 ```shell
-notation policy add --name wabbit-network-dev --scope dev.wabbitnetworks.io/net-monitor --ts ca:wabbit-network-dev
+  notation policy add --scope dev.wabbitnetworks.io/net-monitor --trust-store ca:wabbit-network-dev --id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io" --verification-level "audit" wabbit-network-dev
 ```
+
+Upon successful execution, the added trust policy is printed out. For example:
+
+In text format
+
+```text
+"name": "wabbit-networks-dev"
+"registryScopes": "dev.wabbitnetworks.io/net-monitor"
+"level": "audit"
+"trustStores": "ca:wabbit-networks-dev"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+```
+
+In json format
 
 ```json
 {
   "name": "wabbit-networks-dev",                              
   "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],                                  
   "signatureVerification": {                                  
-      "level": "strict"
+      "level": "audit"
   },
   "trustStores": [ "ca:wabbit-networks-dev" ],                
   "trustedIdentities": [                                      
-      "*"
+      "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
   ]
 }
 ```
 
-### Add a trust policy that trusts specified identity (certificate file) to validate artifacts stored in specified repository
+### Add a trust policy by using certificate files for identities
+
+In this case, users specify the certificate files, notation retrieves the subject info from the certificates.
 
 ```shell
-  notation policy add --name wabbit-network-dev --scope dev.wabbitnetworks.io/net-monitor --ts ca:wabbit-network-dev --cert wabbit-network-dev.crt
+  notation policy add --scope dev.wabbitnetworks.io/net-monitor --trust-store ca:wabbit-network-dev --cert-file wabbit-network-dev.crt wabbit-network-dev
 ```
+
+In text format
+
+```text
+"name": "wabbit-networks-dev"
+"registryScopes": "dev.wabbitnetworks.io/net-monitor"
+"level": "strict"
+"trustStores": "ca:wabbit-networks-dev"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+```
+
+In json format
 
 ```json
 {
@@ -175,25 +237,9 @@ notation policy add --name wabbit-network-dev --scope dev.wabbitnetworks.io/net-
 }
 ```
 
-### Add a trust policy that trusts specified identity (x509 subject) to validate artifacts stored in specified repository
+### Add a trust policy with verification level
 
-```shell
-  notation policy add --name wabbit-network-dev --scope dev.wabbitnetworks.io/net-monitor --ts ca:wabbit-network-dev --id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
-```
-
-```json
-{
-  "name": "wabbit-networks-dev",                              
-  "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],                                  
-  "signatureVerification": {                                  
-      "level": "strict"
-  },
-  "trustStores": [ "ca:wabbit-networks-dev" ],                
-  "trustedIdentities": [                                      
-      "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
-  ]
-}
-```
+### Add a trust policy with custom level
 
 ### Update the registry scopes for a trust policy
 
@@ -280,7 +326,7 @@ wabbit-network-prod
 
 ### Delete trust policies
 
-User cannot delete all the trust policies, at least one trust policy should be kept for signature verification.
+Users cannot delete all the trust policies, at least one trust policy should be kept for signature verification. Deletion SHOULD fail if users intend to delete all the trust policies.
 
 ```shell
 # Delete one trust policy
