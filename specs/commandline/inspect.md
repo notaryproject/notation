@@ -278,7 +278,7 @@ An example output:
           "SHA1Fingerprint": "4ACC2147712B3C555B1C96CFCC00215403TE011C",
           "issuedTo": "wabbit-com Software Code Signing PCA",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
-          "expires": "2025-07-06T20:50:17Z"
+          "expiry": "2025-07-06T20:50:17Z"
         },
         {
           "SHA1Fingerprint": "A4YA1205512B3C886B1C96AAEC89984914DC012A",
