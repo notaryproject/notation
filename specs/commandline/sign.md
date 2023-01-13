@@ -43,7 +43,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial of the OCI Image specification v1.1. Use flag `--image-spec v1.1-image` to force Notation store the signatures using OCI image manifest.
+By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial of the [OCI Image specification v1.1][oci-image-spec]. Use flag `--image-spec v1.1-image` to force Notation store the signatures using OCI image manifest.
 
 Registries MAY not implement or enable the `Referrers API`, which is used by the client to fetch the referrers. In the context of Notation, the referrers are signatures. Notation follows the fallback procedure defined in [OCI distribution spec][oci-backward-compatibility] if `Referrers API` is unavailable.
 
@@ -166,7 +166,8 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 notation sign --image-spec v1.1-image <registry>/<repository>@<digest>
 ```
 
-[oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md
+[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
+[oci-image-spec]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/spec.md 
 [oci-backward-compatibility]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#backwards-compatibility
 [registry-support]: https://notaryproject.dev/docs/registrysupport/
 [oras-land]: https://oras.land/
