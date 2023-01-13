@@ -7,13 +7,13 @@ import (
 	"math"
 	"os"
 	"reflect"
-	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/spf13/cobra"
@@ -115,10 +115,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		if err != nil {
-			var errorVerificationFailed *notation.ErrorVerificationFailed
-			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", err)
-			}
+			return fmt.Errorf("signature verification failed: %w", err)
 		}
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
 	}
@@ -162,18 +159,12 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 }
 
 func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
-	// ignoring error, getting metadata for a successful outcome
-	metadata, _ := outcome.GetUserMetadata()
-
-	if len(metadata) > 0 {
-		fmt.Println("\nThe artifact was signed with the following user metadata.")
-		tw := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
-		fmt.Fprintln(tw, "\nKEY\tVALUE\t")
-
-		for k, v := range metadata {
-			fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
-		}
-
-		tw.Flush()
+	metadata, err := outcome.GetUserMetadata()
+	if err != nil {
+		fmt.Println("Warning: unable to parse metadata from signature")
+		return
 	}
+
+	fmt.Println("\nThe artifact was signed with the following user metadata.")
+	ioutil.PrintMetadataMap(os.Stdout, metadata)
 }
