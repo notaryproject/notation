@@ -21,7 +21,7 @@ GO_BUILD_FLAGS = --ldflags="$(LDFLAGS)"
 
 .PHONY: help
 help:
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: all
 all: build
@@ -42,6 +42,13 @@ build: $(addprefix bin/,$(COMMANDS)) ## builds binaries
 .PHONY: test
 test: vendor check-line-endings ## run unit tests
 	go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+
+.PHONY: e2e
+e2e: build ## build notation cli and run e2e test
+	NOTATION_BIN_PATH=`pwd`/bin/$(COMMANDS); \
+	cd ./test/e2e; \
+	./run.sh zot $$NOTATION_BIN_PATH
 
 .PHONY: clean
 clean:

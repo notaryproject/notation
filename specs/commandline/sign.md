@@ -29,15 +29,16 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-  -e, --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
-  -h, --help                     help for sign
-  -k, --key string               signing key name, for a key previously added to notation's key list.
-  -p, --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)
-      --plain-http               registry access via plain HTTP
-      --plugin-config strings    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
-      --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
-  -u, --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
-      --use-image-manifest       optional for using OCI image manifest to store signatures in a registry
+  -e,  --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
+  -h,  --help                     help for sign
+  -k,  --key string               signing key name, for a key previously added to notation's key list.
+  -p,  --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)
+       --plain-http               registry access via plain HTTP
+       --plugin-config strings    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+       --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
+  -u,  --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
+       --use-image-manifest       optional for using OCI image manifest to store signatures in a registry
+  -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
 ```
 
 ## Use OCI image manifest to store signatures
@@ -79,6 +80,7 @@ For example, use [ORAS][oras-land] to copy artifacts and associated signatures b
 
 ```shell
 oras copy -r demo1.myregistry.io/net-monitor:v1 demo2.myregistry.io/net-monitor:v1
+  -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
 ```
 
 ## Usage
@@ -122,6 +124,19 @@ notation sign --signature-format cose <registry>/<repository>@<digest>
 
 # Use a digest that uniquely and immutably identifies an OCI artifact.
 notation sign <registry>/<repository>@<digest>
+```
+
+### Sign an OCI Artifact with user metadata
+
+```shell
+# Prerequisites: 
+# A default signing key is configured using CLI "notation key"
+
+# sign an artifact stored in a registry and add user-metadata io.wabbit-networks.buildId=123 to the payload
+notation sign --user-metadata io.wabbit-networks.buildId=123 <registry>/<repository>@<digest>
+
+# sign an artifact stored in a registry and add user-metadata io.wabbit-networks.buildId=123 and io.wabbit-networks.buildTime=1672944615 to the payload
+notation sign --user-metadata io.wabbit-networks.buildId=123 --user-metadata io.wabbit-networks.buildTime=1672944615 <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
