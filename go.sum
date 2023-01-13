@@ -24,8 +24,8 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc2 h1:2zx/Stx4Wc5pIPDvIxHXvXtQFW/7XWJGmnM7r3wg034=
 github.com/opencontainers/image-spec v1.1.0-rc2/go.mod h1:3OVijpioIKYWTqjiG0zfF6wvoJ4fAXGbjdZuI2NgsRQ=
-github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230112075024-e97809923987 h1:J1vzS7UwoAj/Yz8Ez1lwIBP1vrkDSRZ4UD+u6ew97GE=
-github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230112075024-e97809923987/go.mod h1:zPpwoqwbgoR3tZH/oQT3vi22D3p2UdvM0DpVmBp7r+U=
+github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230113071526-1a12b76d2c40 h1:Uo05aBoihwRoVkImaDFvDt45u5mzX4vo4fTY5SVPJFc=
+github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230113071526-1a12b76d2c40/go.mod h1:zPpwoqwbgoR3tZH/oQT3vi22D3p2UdvM0DpVmBp7r+U=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

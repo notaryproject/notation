@@ -18,14 +18,14 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
+func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
 
 	// generate notation repository
-	return getRepositoryClient(ctx, opts, ref)
+	return getRepositoryClient(ctx, opts, ref, ociImageManifest)
 }
 
 func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
@@ -41,7 +41,7 @@ func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress 
 	return reg, nil
 }
 
-func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
+func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference, ociImageManifest bool) (notationregistry.Repository, error) {
 	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,10 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 		Reference: ref,
 		PlainHTTP: plainHTTP,
 	}
-	return notationregistry.NewRepository(remoteRepo), nil
+	repositoryOpts := notationregistry.RepositoryOptions{
+		OCIImageManifest: ociImageManifest,
+	}
+	return notationregistry.NewRepositoryWithOptions(remoteRepo, repositoryOpts), nil
 }
 
 func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {

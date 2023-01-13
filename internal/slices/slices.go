@@ -25,3 +25,13 @@ func Contains[E isser](s []E, name string) bool {
 func Delete[S ~[]E, E isser](s S, i int) S {
 	return append(s[:i], s[i+1:]...)
 }
+
+// Contains reports whether v is present in s.
+func ContainsGenerics[E comparable](s []E, v E) bool {
+	for _, vs := range s {
+		if v == vs {
+			return true
+		}
+	}
+	return false
+}

@@ -10,6 +10,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/slices"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -19,11 +20,19 @@ type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
 	SecureFlagOpts
-	expiry           time.Duration
-	pluginConfig     []string
-	reference        string
-	ociImageManifest bool
+	expiry       time.Duration
+	pluginConfig []string
+	reference    string
+	imageSpec    string
 }
+
+const (
+	artifactManifest = "v1.1-artifact"
+
+	imageManifest = "v1.1-image"
+)
+
+var supportedImageSpec = []string{artifactManifest, imageManifest}
 
 func signCommand(opts *signOpts) *cobra.Command {
 	if opts == nil {
@@ -67,11 +76,16 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().BoolVar(&opts.ociImageManifest, "use-image-manifest", false, "optional for using OCI image manifest to store signatures in a registry")
+	command.Flags().StringVar(&opts.imageSpec, "image-spec", "v1.1-artifact", "manifest type for signatures. options: v1.1-artifact, v1.1-image")
 	return command
 }
 
 func runSign(command *cobra.Command, cmdOpts *signOpts) error {
+	// sanity check
+	if !validateImageSpec(cmdOpts.imageSpec) {
+		return fmt.Errorf("image spec has to be in %v, got %s", supportedImageSpec, cmdOpts.imageSpec)
+	}
+
 	// set log level
 	ctx := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
@@ -80,7 +94,11 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getSignatureRepository(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference)
+	var ociImageManifest bool
+	if cmdOpts.imageSpec == imageManifest {
+		ociImageManifest = true
+	}
+	sigRepo, err := getSignatureRepository(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
 	if err != nil {
 		return err
 	}
@@ -123,8 +141,11 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
-		OCIimageManifest:   opts.ociImageManifest,
 	}
 
 	return signOpts, ref, nil
+}
+
+func validateImageSpec(imageSpec string) bool {
+	return slices.ContainsGenerics(supportedImageSpec, imageSpec)
 }

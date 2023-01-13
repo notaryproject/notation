@@ -65,7 +65,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference, false)
 	if err != nil {
 		return err
 	}
