@@ -32,7 +32,7 @@ Available Commands:
   login       Login to registry
   logout      Log out from the logged in registries
   plugin      Manage plugins
-  policy      Manage policies
+  policy      Manage trust policies
   sign        Sign artifacts
   verify      Verify artifacts
   version     Show the notation version information
