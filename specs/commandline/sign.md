@@ -31,25 +31,25 @@ Usage:
 Flags:
   -e,  --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                     help for sign
+       --image-spec string        specify the manifest type for signatures. options: v1.1-artifact, v1.1-image (default: v1.1-artifact)
   -k,  --key string               signing key name, for a key previously added to notation's key list.
   -p,  --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http               registry access via plain HTTP
        --plugin-config strings    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
   -u,  --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
-       --use-image-manifest       optional for using OCI image manifest to store signatures in a registry
   -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
 ```
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial of the OCI Image specification v1.1. Use flag `--use-image-manifest` to force Notation store the signatures using OCI image manifest.
+By default, Notation uses [OCI artifact manifest][oci-image-manifest] to store signatures in the registries. For backward compatibility, Notation supports using `OCI image manifest` to store the signature in the registries that implement partial of the OCI Image specification v1.1. Use flag `--image-spec v1.1-image` to force Notation store the signatures using OCI image manifest.
 
 Registries MAY not implement or enable the `Referrers API`, which is used by the client to fetch the referrers. In the context of Notation, the referrers are signatures. Notation follows the fallback procedure defined in [OCI distribution spec][oci-backward-compatibility] if `Referrers API` is unavailable.
 
 ### Set config property for OCI image manifest
 
-OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if the flag `--use-image-manifest` is used.
+OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if the flag `--image-spec v1.1-image` is used.
 
 Notation uses empty JSON object `{}` as the default configuration content, and thus the default `config` property is fixed, as following:
 
@@ -63,25 +63,11 @@ Notation uses empty JSON object `{}` as the default configuration content, and t
 
 ### When to use OCI image manifest
 
-[Registry support][registry-support] lists registries with different compatibilities. For registries not supporting `OCI artifact manifest`, user can use flag `--user-image-manifest` to sign artifacts stored in those registries.
+[Registry support][registry-support] lists registries with different compatibilities. For registries not supporting `OCI artifact manifest`, user can use flag `--image-spec v1.1-image` to sign artifacts stored in those registries.
 
-In case registries not listed in the page, user can consider using flag `--user-image-manifest` by checking the error message. Note that there is no deterministic way to determine a registry supporting `OCI artifact manifest` or not. The error message is just for reference. The following response status contained in error messages MAY indicate that the registries doesn't support `OCI artifact manifest`:
+In case registries not listed in the page, user can consider using flag `--image-spec v1.1-image` by checking the error message. Note that there is no deterministic way to determine a registry supporting `OCI artifact manifest` or not. The error message is just for reference. The following response status contained in error messages MAY indicate that the registries doesn't support `OCI artifact manifest`:
 
 - Response status `400 BAD Request` with error code `MANIFEST_INVALID` or `UNSUPPORTED`
-
-### Copy signatures between registries
-
-User may use tools to copy artifacts and associated signatures between two registries. The copy succeeds under the following conditions:
-
-- From registries that support `OCI artifact manifest` to registries that support `OCI artifact manifest`
-- From registries that support `OCI image manifest` to registries that support `OCI image manifest`
-
-For example, use [ORAS][oras-land] to copy artifacts and associated signatures between two registries:
-
-```shell
-oras copy -r demo1.myregistry.io/net-monitor:v1 demo2.myregistry.io/net-monitor:v1
-  -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
-```
 
 ## Usage
 
@@ -177,7 +163,7 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 ### Sign an artifact and store the signature using OCI image manifest
 
 ```shell
-notation sign --use-image-manifest <registry>/<repository>@<digest>
+notation sign --image-spec v1.1-image <registry>/<repository>@<digest>
 ```
 
 [oci-image-manifest]: https://github.com/opencontainers/image-spec/blob/v1.0.2/manifest.md
