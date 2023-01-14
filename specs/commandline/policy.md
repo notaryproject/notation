@@ -16,7 +16,8 @@ An example of `trustpolicy.json`:
             "signatureVerification": {                                  // The level of verification - strict, permissive, audit, skip
                 "level": "strict"
                 "override" : {
-                     "expiry" : "log"
+                     "expiry" : "log",
+                     "authenticity": "log"
                 }
             },
             "trustStores": [ "ca:wabbit-networks-dev" ],                // The trust stores that contains the X.509 certificates
@@ -28,7 +29,7 @@ An example of `trustpolicy.json`:
             "name": "wabbit-networks-prod",                             // Name of the 2nd policy.
             "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
             "signatureVerification": {                                
-                "level": "strict"
+                "level": "permissive"
             },
             "trustStores": [ "ca:wabbit-networks-prod" ],                  
             "trustedIdentities": [                                    
@@ -72,7 +73,7 @@ Flags:
       --custom-level       string   optional custom level to based existing verification level, e.g. "authenticity=log,expiry=log"
   -h, --help                        help for add
       --id                 string   optional trust identity aka certificate subject info
-      --scope              string   optional repository URI (default "*")
+      --repo               string   optional repository URI (default "*")
       --trust-store        string   required trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
       --verification-level string   optional verification level, options: "strict", "permissive", "audit", "skip" (default "strict")
 ```
@@ -123,7 +124,7 @@ Flags:
       --custom-level       string   optional custom level to based existing verification level, e.g. "authenticity=log,expiry=log"
   -h, --help                        help for add
       --id                 string   optional trust identity aka certificate subject info
-      --scope              string   optional repository URI
+      --repo               string   optional repository URI
       --trust-store        string   optional trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
       --verification-level string   optional verification level, options: strict, permissive, audit, skip
 ```
@@ -293,7 +294,7 @@ In json format
 }
 ```
 
-### Update the registry scopes for a trust policy
+### Update a trust policy
 
 `notation policy update` command shares the same flags with `notation policy add` command to update the properties for a trust policy. The policy name is a mandatory argument that user MUST specify.
 
@@ -344,12 +345,24 @@ notation policy list
 
 An example of output messages:
 
+in text format:
+
 ```text
 wabbit-network-dev
 wabbit-network-prod
 ```
 
-### List all the trust policies with details (TODO)
+in JSON format:
+
+```json
+{
+  "name": [
+    "wabbit-network-dev","wabbit-network-prod"
+  ]
+}
+```
+
+### List all the trust policies with details
 
 ```shell
 notation policy list --details
@@ -357,34 +370,291 @@ notation policy list --details
 
 An example of output messages:
 
-```text
-name: wabbit-network-dev
+In text format:
 
-wabbit-network-prod
+```text
+"version": "1.0"
+
+"name": "wabbit-networks-dev"
+"registryScopes": "dev.wabbitnetworks.io/net-monitor"
+"level": "strict"
+"override": "expiry=log", "authenticity=log"
+"trustStores": "ca:wabbit-networks-dev"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "version": "1.0",                                                  
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-dev",                              
+            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],
+            "signatureVerification": {
+                "level": "strict"
+                "override" : {
+                     "expiry" : "log",
+                     "authenticity": "log"
+                }
+            },
+            "trustStores": [ "ca:wabbit-networks-dev" ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+            ]
+        },
+        {
+            "name": "wabbit-networks-prod",
+            "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+            "signatureVerification": {                                
+                "level": "permissive"
+            },
+            "trustStores": [ "ca:wabbit-networks-prod" ],                  
+            "trustedIdentities": [                                    
+                "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+            ]
+        }
+    ]
+}
+```
+
+### List details of one trust policy
+
+```shell
+notation policy list --name "wabbit-networks-prod"
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+    "signatureVerification": {                                
+        "level": "permissive"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+    ]
+}
 ```
 
 ### List trust policies for verifying specified artifact
 
 ```shell
-  notation policy list --ref localhost:5000/net-monitor@sha256:xxx
+notation policy list --ref prod.wabbitnetworks.io/net-monitor@sha256:xxx
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+    "signatureVerification": {                                
+        "level": "permissive"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+    ]
+}
+```
+
+Note users may configure only one trust policy with `registryScopes` value as `"*"`. Here is an example of output:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "*"
+"level": "strict"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "*"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "*" ],       
+    "signatureVerification": {                                
+        "level": "strict"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "*"
+    ]
+}
 ```
 
 ### List trust policies for verifying artifacts in specified repository
 
 ```shell
-  notation policy list --repo localhost:5000/net-monitor
+notation policy list --repo prod.wabbitnetworks.io/net-monitor
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+    "signatureVerification": {                                
+        "level": "permissive"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+    ]
+}
 ```
 
 ### List trust policies with specified trust store configured
 
 ```shell
-  notation policy list --ts ca:wabbit-network
+notation policy list --trust-store ca:wabbit-network-prod
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+    "signatureVerification": {                                
+        "level": "permissive"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+    ]
+}
 ```
 
 ### List trust policies with specified trust identity configured
 
 ```shell
-  notation policy list --ti "CN=SecureBuilder, C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Marketing"
+notation policy list --id "C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+    "signatureVerification": {                                
+        "level": "permissive"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+    ]
+}
+```
+
+### List trust policies with specified certificate used
+
+```shell
+notation policy list --cert-file "./wabbit-networks-prod.crt"
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+"name": "wabbit-networks-prod"
+"registryScopes": "prod.wabbitnetworks.io/net-monitor"
+"level": "permissive"
+"trustStores": "ca:wabbit-networks-prod"
+"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+```
+
+In JSON format:
+
+```json
+{
+    "name": "wabbit-networks-prod",
+    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
+    "signatureVerification": {                                
+        "level": "permissive"
+    },
+    "trustStores": [ "ca:wabbit-networks-prod" ],                  
+    "trustedIdentities": [                                    
+        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+    ]
+}
 ```
 
 ### Delete trust policies
