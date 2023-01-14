@@ -102,6 +102,7 @@ Aliases:
   list, ls
 
 Flags:
+      --cert-file   string       optional certificate filepath
       --details                  optional list the details of trust policies
   -h, --help                     help for list
       --id          string       optional trust identity aka certificate subject info
@@ -462,7 +463,7 @@ In JSON format:
 ### List trust policies for verifying specified artifact
 
 ```shell
-notation policy list --ref prod.wabbitnetworks.io/net-monitor@sha256:xxx
+notation policy list --reference prod.wabbitnetworks.io/net-monitor@sha256:xxx
 ```
 
 An example of output messages:
