@@ -13,7 +13,9 @@ Usage:
   notation logout [flags] <server>
 
 Flags:
-  -h, --help          help for logout
+  -d, --debug     debug mode
+  -h, --help      help for logout
+  -v, --verbose   verbose mode
 ```
 
 ## Usage
@@ -22,10 +24,4 @@ Flags:
 
 ```shell
 notation logout registry.example.com
-```
-
-### Log out from all logged in registries
-
-```shell
-notation logout --all
 ```

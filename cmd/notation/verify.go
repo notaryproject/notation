@@ -8,7 +8,7 @@ import (
 	"reflect"
 
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/log"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -62,10 +62,16 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
-	logger := log.GetLogger(ctx)
+
+	// initialize
+	reference := opts.reference
+	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+	if err != nil {
+		return err
+	}
 
 	// resolve the given reference and set the digest
-	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, opts.reference, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
 		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
 		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
 	})
@@ -79,10 +85,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
-	repo, err := getRepositoryClient(ctx, &opts.SecureFlagOpts, ref)
-	if err != nil {
-		return err
-	}
 	// set up verification plugin config.
 	configs, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
 	if err != nil {
@@ -97,17 +99,20 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		MaxSignatureAttempts: math.MaxInt64,
 	}
 
-	// core verify process.
-	_, outcomes, err := notation.Verify(ctx, verifier, repo, verifyOpts)
-	if err != nil {
-		logger.Error(err)
-	}
+	// core verify process
+	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
+		if err != nil {
+			var errorVerificationFailed *notation.ErrorVerificationFailed
+			if !errors.As(err, &errorVerificationFailed) {
+				return fmt.Errorf("signature verification failed: %w", err)
+			}
+		}
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
 	}
 
-	// on success
+	// write out on success
 	outcome := outcomes[0]
 	// print out warning for any failed result with logged verification action
 	for _, result := range outcome.VerificationResults {
@@ -125,8 +130,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	return nil
 }
 
-func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
-	manifestDesc, ref, err := getManifestDescriptor(ctx, opts, reference)
+func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
+	manifestDesc, ref, err := getManifestDescriptor(ctx, opts, reference, sigRepo)
 	if err != nil {
 		return registry.Reference{}, err
 	}

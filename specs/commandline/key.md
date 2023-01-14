@@ -33,11 +33,13 @@ Usage:
   notation key add --plugin <plugin_name> [flags] <key_name>
 
 Flags:
-  -d, --default                mark as default
-  -h, --help                   help for add
-      --id string              key id (required if --plugin is set)
-  -p, --plugin string          signing plugin name
-      --plugin-config strings  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+  -d, --debug                       debug mode
+      --default                     mark as default
+  -h, --help                        help for add
+      --id string                   key id (required if --plugin is set)
+  -p, --plugin string               signing plugin name
+  -c, --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+  -v, --verbose                     verbose mode
 ```
 
 ### notation key delete
@@ -49,8 +51,9 @@ Usage:
   notation key delete [flags] <key_name>...
 
 Flags:
-  -h, --help                   help for delete
-
+  -d, --debug     debug mode
+  -h, --help      help for delete
+  -v, --verbose   verbose mode
 ```
 
 ### notation key list
@@ -65,8 +68,7 @@ Aliases:
   list, ls
 
 Flags:
-  -h, --help                   help for list
-
+  -h, --help   help for list
 ```
 
 ### notation key update
@@ -81,9 +83,10 @@ Aliases:
   update, set
 
 Flags:
-  -d, --default   mark as default
+  -d, --debug     debug mode
+      --default   mark as default
   -h, --help      help for update
-
+  -v, --verbose   verbose mode
 ```
 
 ## Usage
