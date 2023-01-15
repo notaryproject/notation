@@ -18,7 +18,6 @@ This spec contains reference information on using notation commands. Each comman
 | [verify](./commandline/verify.md)           | Verify artifacts                          |
 | [version](./commandline/version.md)         | Print the version of notation CLI         |
 
-
 ## Notation Outline
 
 ```text
