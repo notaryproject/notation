@@ -52,7 +52,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 			MatchKeyWords("notation/truststore/x509/ca/wabbit-networks.io/wabbit-networks.io.crt")
 	})
 
-	It("sign the container image", func() {
+	It("sign the container image with jws format (by default)", func() {
 		notation.Exec("sign", artifact.ReferenceWithDigest()).
 			MatchContent(fmt.Sprintf("Successfully signed %s\n", artifact.ReferenceWithDigest()))
 
@@ -72,7 +72,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 		validator.CheckFileExist(vhost.AbsolutePath(NotationDirName, TrustPolicyName))
 	})
 
-	It("Verify the container image", func() {
+	It("Verify the container image with jws format", func() {
 		notation.Exec("verify", artifact.ReferenceWithDigest()).
 			MatchContent(fmt.Sprintf("Successfully verified signature for %s\n", artifact.ReferenceWithDigest()))
 	})
