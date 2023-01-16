@@ -16,6 +16,14 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
+const (
+	artifactManifest = "v1.1-artifact"
+
+	imageManifest = "v1.1-image"
+)
+
+var supportedImageSpec = []string{artifactManifest, imageManifest}
+
 type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
@@ -25,14 +33,6 @@ type signOpts struct {
 	reference    string
 	imageSpec    string
 }
-
-const (
-	artifactManifest = "v1.1-artifact"
-
-	imageManifest = "v1.1-image"
-)
-
-var supportedImageSpec = []string{artifactManifest, imageManifest}
 
 func signCommand(opts *signOpts) *cobra.Command {
 	if opts == nil {
@@ -76,7 +76,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.imageSpec, "image-spec", "v1.1-artifact", "manifest type for signatures. options: v1.1-artifact, v1.1-image")
+	command.Flags().StringVar(&opts.imageSpec, "image-spec", artifactManifest, "manifest type for signatures. options: v1.1-artifact, v1.1-image")
 	return command
 }
 
