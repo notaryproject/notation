@@ -36,12 +36,14 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
-  -h,  --help                    help for verify
-  -p,  --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
-       --plain-http              registry access via plain HTTP
-       --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -u,  --username string         username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -m,  --user-metadata strings   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -d,  --debug                       debug mode
+  -h,  --help                        help for verify
+  -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
+       --plain-http                  registry access via plain HTTP
+  -c,  --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+  -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -m,  --user-metadata strings       user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -v,  --verbose                     verbose mode
 ```
 
 ## Usage

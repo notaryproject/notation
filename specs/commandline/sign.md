@@ -29,9 +29,10 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
+  -d,  --debug                    debug mode
   -e,  --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                     help for sign
-       --image-spec string        manifest type for signatures. options: v1.1-artifact, v1.1-image (default: v1.1-artifact)
+       --image-spec string        manifest type for signatures. options: v1.1-artifact, v1.1-image (default "v1.1-artifact")
   -k,  --key string               signing key name, for a key previously added to notation's key list.
   -p,  --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http               registry access via plain HTTP
@@ -39,6 +40,7 @@ Flags:
        --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
   -u,  --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
+  -v,  --verbose                  verbose mode
 ```
 
 ## Use OCI image manifest to store signatures
