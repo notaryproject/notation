@@ -360,7 +360,7 @@ In json format
 `notation policy update` command shares the same flags with `notation policy add` command to update the properties for a trust policy.
 
 ```shell
-notation policy update --scope "dev-2.wabbitnetworks.io/net-monitor" --trust-store "ca:wabbit-network-dev-2" --x509-id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev-2, CN=wabbit-networks.io" --verification-level "permissive" wabbit-network-dev
+notation policy update --name wabbit-network-dev --scope "dev-2.wabbitnetworks.io/net-monitor" --trust-store "ca:wabbit-network-dev-2" --x509-id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev-2, CN=wabbit-networks.io" --verification-level "permissive"
 ```
 
 The execution of `update` fails in one of below cases:
