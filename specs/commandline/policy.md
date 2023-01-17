@@ -6,13 +6,13 @@ Use `notation policy` command to add/update/show/delete trust policies. As part 
 
 An example of `trustpolicy.json`:
 
-```jsonc
+```json
 {
     "version": "1.0",                                                   // version info
-    "trustPolicies": [
+    "trustPolicies": [                                                  // list of trust policy statements
         {
-            "name": "wabbit-networks-dev",                              // Name of the 1st policy
-            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],  // The repository list that policy applies to
+            "name": "wabbit-networks-dev",                              // Name of the first policy statement
+            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],  // The registry artifacts to which the policy applies
             "signatureVerification": {                                  // The level of verification - strict, permissive, audit, skip
                 "level": "strict"
                 "override" : {
@@ -26,7 +26,7 @@ An example of `trustpolicy.json`:
             ]
         },
         {
-            "name": "wabbit-networks-prod",                             // Name of the 2nd policy.
+            "name": "wabbit-networks-prod",                             // Name of the second policy statement.
             "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
             "signatureVerification": {                                
                 "level": "permissive"
@@ -51,9 +51,9 @@ Usage:
   notation policy [command]
 
 Available Commands:
-  add           Add trust policies.
-  delete        Delete trust policies.
-  list          List trust policies.
+  add           Add trust policies
+  delete        Delete trust policies
+  list          List trust policies
   update        Update trust policies
 
 Flags:
@@ -66,16 +66,18 @@ Flags:
 Add trust policies.
 
 Usage:
-  notation policy add [flags] <policy_name>
+  notation policy add (--file <policy_file_path> | --name <policy_name>) [flags]
 
 Flags:
-      --cert-file          string   optional certificate filepath
-      --custom-level       string   optional custom level to based existing verification level, e.g. "authenticity=log,expiry=log"
-  -h, --help                        help for add
-      --id                 string   optional trust identity aka certificate subject info
-      --repo               string   optional repository URI (default "*")
-      --trust-store        string   required trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
-      --verification-level string   optional verification level, options: "strict", "permissive", "audit", "skip" (default "strict")
+      --custom-level       stringArray   {key}={value} pairs that represent a custom level to override existing verification level
+  -f  --file               string        path to a trust policy file in JSON format
+  -n  --name               string        name of the trust policy statement
+  -h, --help                             help for add
+      --scope              stringArray   repository URIs to which the policy applies (default ["*"])
+      --trust-store        stringArray   trust stores in format "<trust_store_type>:<trust_store_name>"
+      --verification-level string        verification level, options: "strict", "permissive", "audit", "skip" (default "strict")
+      --x509-cert          stringArray   paths to x509 certificate file that certificate subject is retrieved from
+      --x509-id            stringArray   trust identities, user trusted x509 certificate subjects
 ```
 
 ### notation policy delete
@@ -102,14 +104,11 @@ Aliases:
   list, ls
 
 Flags:
-      --cert-file   string       optional certificate filepath
-      --details                  optional list the details of trust policies
-  -h, --help                     help for list
-      --id          string       optional trust identity aka certificate subject info
-      --name        string       optional trust policy name
-      --reference   string       optional reference to the artifact
-      --repo        string       optional repository URI, e.g. localhost:5000/namespace/repo_name
-      --trust-store string       optional trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
+      --details                 list the details of trust policies
+  -h, --help                    help for list
+  -n, --name        string      name of the trust policy statement
+      --reference   string      reference to the artifact
+      --scope       string      repository URI, e.g. localhost:5000/namespace/repo_name
 ```
 
 ### notation policy update
@@ -118,51 +117,57 @@ Flags:
 Update the existing trust policies.
 
 Usage:
-  notation policy update [flags] <policy_name>
+  notation policy update (--file <policy_file_path> | --name <policy_name>) [flags]
 
 Flags:
-      --cert-file          string   optional certificate filepath
-      --custom-level       string   optional custom level to based existing verification level, e.g. "authenticity=log,expiry=log"
-  -h, --help                        help for add
-      --id                 string   optional trust identity aka certificate subject info
-      --repo               string   optional repository URI
-      --trust-store        string   optional trust store in format "<trust_store_type>:<trust_store_name>", e.g. "ca:my_trust_store"
-      --verification-level string   optional verification level, options: strict, permissive, audit, skip
+      --custom-level       stringArray   {key}={value} pairs that represent a custom level to override existing verification level
+  -f  --file               string        path to a trust policy file in JSON format
+  -n  --name               string        name of the trust policy statement
+  -h, --help               help for add
+      --scope              stringArray   repository URIs to which the policy applies (default ["*"])
+      --trust-store        stringArray   trust stores in format "<trust_store_type>:<trust_store_name>"
+      --verification-level string        verification level, options: "strict", "permissive", "audit", "skip" (default "strict")
+      --x509-cert          stringArray   paths to x509 certificate file that certificate subject is retrieved from
+      --x509-id            stringArray   trust identities, user trusted x509 certificate subjects
 ```
 
 ## Usage
 
-### Add a trust policy
+### Add a trust policy by configuring the properties from command line
 
-To add a trust policy, users need to specify the **policy name** as mandatory argument and configure other properties accordingly. The following table shows how to configure properties and default values.
+The following table shows how to configure properties for a trust policy and default values.
 
-| Property Name       | Necessity | Default value | flag to configure               |
-| ------------------- | --------- | ------------- | ------------------------------- |
-| `trustStores`       | Required  | N/A           | `--trust-store`                 |
-| `registryScopes`    | Optional  | `"*"`         | `--repo`                        |
-| `level`             | Optional  | `"strict"`    | `--verification-level`          |
-| `override`          | Optional  | nil           | `--custom-level`                |
-| `trustedIdentities` | Optional  | `"*"`         | `--id` or `--cert-file` or both |
+| Property Name       | Necessity | flag to configure                    | Default value |
+| ------------------- | --------- | ------------------------------------ | ------------- |
+| `name`              | Required  | `--name`                             | N/A           |
+| `trustStores`       | Required  | `--trust-store`                      | N/A           |
+| `registryScopes`    | Optional  | `--scope`                            | `["*"]`       |
+| `level`             | Optional  | `--verification-level`               | `"strict"`    |
+| `override`          | Optional  | `--custom-level`                     | nil           |
+| `trustedIdentities` | Optional  | `--x509-id` or `--x509-cert` or both | `["*"]`       |
 
 ```shell  
-notation policy add --repo "dev.wabbitnetworks.io/net-monitor" --trust-store "ca:wabbit-network-dev" --id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io" --verification-level "strict" wabbit-network-dev
+notation policy add --name wabbit-network-dev --scope "dev.wabbitnetworks.io/net-monitor" --trust-store "ca:wabbit-network-dev" --x509-id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io" --verification-level "strict"
 ```
 
-The execution of `add` fails in one of below cases:
+The execution of `add` fails in any of below cases:
 
-- The policy name exists.
-- There can only be one trust policy that uses a global scope, that is, the value of `registryScopes` is `*`.
+- The trust policy name exists.
+- More than one trust policy that uses a global scope, that is, the value of `registryScopes` is `["*"]`.
+- The values of `--x509-id` or `--x509cert` overlap. For example, the following two identity values are overlapping:
+  - "C=US, ST=WA, O=wabbit-network.io, OU=org1"
+  - "C=US, ST=WA, O=wabbit-network.io"
 
 Upon successful execution, the added trust policy is printed out. For example:
 
 In text format
 
 ```text
-"name": "wabbit-networks-dev"
-"registryScopes": "dev.wabbitnetworks.io/net-monitor"
-"level": "strict"
-"trustStores": "ca:wabbit-networks-dev"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+name: "wabbit-networks-dev"
+registryScopes: ["dev.wabbitnetworks.io/net-monitor"]
+level: "strict"
+trustStores: ["ca:wabbit-networks-dev"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"]
 ```
 
 In json format
@@ -181,12 +186,14 @@ In json format
 }
 ```
 
+Users can also use `notation policy list` to confirm the trust policies are added.
+
 ### Add a trust policy with default values
 
-Based on the above table, users can leveraging default values when adding a trust policy. Note that the default value of  `registrySopes` is `"*"` called global scope, which means this policy applies to all the artifacts. There can only be one trust policy that uses a global scope.
+Based on the above table, users can leveraging default values when adding a trust policy. Note that the default value of  `registrySopes` is `["*"]` called global scope, which means this policy applies to all the artifacts. There can only be one trust policy that uses a global scope.
 
 ```shell
-notation policy add --trust-store ca:wabbit-network-dev wabbit-network-dev
+notation policy add --name wabbit-network-dev --trust-store "ca:wabbit-network-dev"
 ```
 
 Upon successful execution, the added trust policy is printed out. For example:
@@ -194,11 +201,11 @@ Upon successful execution, the added trust policy is printed out. For example:
 In text format
 
 ```text
-"name": "wabbit-networks-dev"
-"registryScopes": "*"
-"level": "strict"
-"trustStores": "ca:wabbit-networks-dev"
-"trustedIdentities": "*"
+name: "wabbit-networks-dev"
+registryScopes: ["*"]
+level: "strict"
+trustStores: ["ca:wabbit-networks-dev"]
+trustedIdentities: ["*"]
 ```
 
 In json format
@@ -217,12 +224,65 @@ In json format
 }
 ```
 
-### Add a trust policy by using certificate files for trust identities
+Users can also use `notation policy list` to confirm the trust policies are added.
 
-If users specify the certificate files for `trustedIdentities` property, notation retrieves the subject info from the certificates.
+### Add trust policies from a JSON file
+
+Users can add trust policies from a JSON file. This is specially useful when add multiple trust polices.
+
+Create a JSON file that includes the trust polices. For example, a file named `mytrustpolicy.json` with the following content:
+
+```json
+{
+    "version": "1.0",
+    "trustPolicies": [     
+        // First policy                                             
+        {
+            "name": "wabbit-networks-dev",                              
+            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],  
+            "signatureVerification": {                                  
+                "level": "strict"
+                "override" : {
+                     "expiry" : "log",
+                     "authenticity": "log"
+                }
+            },
+            "trustStores": [ "ca:wabbit-networks-dev" ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+            ]
+        },
+        // Second policy
+        {},
+        // Third policy
+        {}
+    ]
+}
+```
+
+Then run the following command to add trust policies
 
 ```shell
-notation policy add --trust-store "ca:wabbit-network-dev" --cert-file "./wabbit-network-dev.crt" wabbit-network-dev
+notation policy add --file mytrustpolicy.json
+```
+
+The execution fails in one of below cases:
+
+- Version doesn't support. Currently only `1.0` version is supported.
+- The trust policy name exists.
+- More than one trust policy that uses a global scope, that is, the value of `registryScopes` is `["*"]`.
+- The values of `trustIdentities` overlap. For example, the following two identity values are overlapping:
+  - "C=US, ST=WA, O=wabbit-network.io, OU=org1"
+  - "C=US, ST=WA, O=wabbit-network.io"
+
+Upon successful execution, the added trust policy is printed out. Users can also use `notation policy list` to confirm the trust policies are added.
+
+### Add a trust policy by using certificate files for trust identities
+
+If users specify the certificate files for `trustedIdentities` property, notation retrieves the subjects from the certificates.
+
+```shell
+notation policy add --name wabbit-network-dev --trust-store "ca:wabbit-network-dev" --x509-cert "./wabbit-network-dev.crt"
 ```
 
 Upon successful execution, the added trust policy is printed out. For example:
@@ -230,11 +290,11 @@ Upon successful execution, the added trust policy is printed out. For example:
 In text format
 
 ```text
-"name": "wabbit-networks-dev"
-"registryScopes": "*"
-"level": "strict"
-"trustStores": "ca:wabbit-networks-dev"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+name: "wabbit-networks-dev"
+registryScopes: ["*"]
+level: "strict"
+trustStores: ["ca:wabbit-networks-dev"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"]
 ```
 
 In json format
@@ -259,7 +319,7 @@ Users can override the default verification level by using flag `--custom-level`
 
 ```shell
 # customize the verification level based on the default verification level `strict`
-notation policy add --trust-store "ca:wabbit-network-dev" --custom-level "expiry=log,authenticity=log" wabbit-network-dev
+notation policy add --name wabbit-network-dev --trust-store "ca:wabbit-network-dev" --custom-level "expiry=log,authenticity=log"
 ```
 
 Upon successful execution, the added trust policy is printed out. For example:
@@ -267,12 +327,12 @@ Upon successful execution, the added trust policy is printed out. For example:
 In text format
 
 ```text
-"name": "wabbit-networks-dev"
-"registryScopes": "*"
-"level": "strict"
-"override": "expiry=log", "authenticity=log"
-"trustStores": "ca:wabbit-networks-dev"
-"trustedIdentities": "*"
+name: "wabbit-networks-dev"
+registryScopes: ["*"]
+level: "strict"
+override: ["expiry=log", "authenticity=log"]
+trustStores: ["ca:wabbit-networks-dev"]
+trustedIdentities: ["*"]
 ```
 
 In json format
@@ -295,29 +355,32 @@ In json format
 }
 ```
 
-### Update a trust policy
+### Update a trust policy by updating the properties from command line
 
-`notation policy update` command shares the same flags with `notation policy add` command to update the properties for a trust policy. The policy name is a mandatory argument that user MUST specify.
+`notation policy update` command shares the same flags with `notation policy add` command to update the properties for a trust policy.
 
 ```shell
-notation policy update --repo "dev-2.wabbitnetworks.io/net-monitor" --trust-store "ca:wabbit-network-dev-2" --id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev-2, CN=wabbit-networks.io" --verification-level "permissive" wabbit-network-dev
+notation policy update --scope "dev-2.wabbitnetworks.io/net-monitor" --trust-store "ca:wabbit-network-dev-2" --x509-id "C=US, ST=WA, L=Seattle, O=Example, OU=Dev-2, CN=wabbit-networks.io" --verification-level "permissive" wabbit-network-dev
 ```
 
 The execution of `update` fails in one of below cases:
 
 - The policy name doesn't exist.
-- There can only be one trust policy that uses a global scope, that is, the value of `registryScopes` is `*`.
+- More than one trust policy that uses a global scope, that is, the value of `registryScopes` is `["*"]`.
+- The values of `--x509-id` or `--x509cert` overlap. For example, the following two identity values are overlapping:
+  - "C=US, ST=WA, O=wabbit-network.io, OU=org1"
+  - "C=US, ST=WA, O=wabbit-network.io"
 
 Upon successful execution, the updated trust policy is printed out. For example:
 
 In text format
 
 ```text
-"name": "wabbit-networks-dev"
-"registryScopes": "dev-2.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-dev-2"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev-2, CN=wabbit-networks.io"
+name: "wabbit-networks-dev"
+registryScopes: ["dev-2.wabbitnetworks.io/net-monitor"]
+level: "permissive"
+trustStores: ["ca:wabbit-networks-dev-2"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev-2, CN=wabbit-networks.io"]
 ```
 
 In json format
@@ -336,6 +399,27 @@ In json format
 }
 ```
 
+### Update trust policies from a JSON file
+
+Users can update trust policies from a JSON file. This is specially useful when update multiple trust polices.
+
+Create a JSON file that includes the trust polices with updated values. Then run the following command to update trust policies.
+
+```shell
+notation policy update --file mytrustpolicy.json
+```
+
+The execution fails in one of below cases:
+
+- Version doesn't support. Currently only `1.0` version is supported.
+- The trust policy name doesn't exists.
+- More than one trust policy that uses a global scope, that is, the value of `registryScopes` is `["*"]`.
+- The values of `trustIdentities` overlap. For example, the following two identity values are overlapping:
+  - "C=US, ST=WA, O=wabbit-network.io, OU=org1"
+  - "C=US, ST=WA, O=wabbit-network.io"
+
+Upon successful execution, the updated trust policies are printed out. Users can also use `notation policy list` to confirm the trust policies are added.
+
 ### List all the trust policies by names
 
 The output is a list of trust policy names.
@@ -349,17 +433,28 @@ An example of output messages:
 in text format:
 
 ```text
-wabbit-network-dev
-wabbit-network-prod
+name: wabbit-network-dev
+registryScopes: ["dev.wabbitnetworks.io/net-monitor"]
+
+name: wabbit-network-prod
+registryScopes: ["prod.wabbitnetworks.io/net-monitor"]
 ```
 
 in JSON format:
 
 ```json
 {
-  "name": [
-    "wabbit-network-dev","wabbit-network-prod"
-  ]
+    "result" : true,
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-dev",
+            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],
+        },
+        {
+            "name": "wabbit-networks-prod",
+            "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],
+        }
+    ]
 }
 ```
 
@@ -374,20 +469,20 @@ An example of output messages:
 In text format:
 
 ```text
-"version": "1.0"
+version: "1.0"
 
-"name": "wabbit-networks-dev"
-"registryScopes": "dev.wabbitnetworks.io/net-monitor"
-"level": "strict"
-"override": "expiry=log", "authenticity=log"
-"trustStores": "ca:wabbit-networks-dev"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+name: "wabbit-networks-dev"
+registryScopes: ["dev.wabbitnetworks.io/net-monitor"]
+level: "strict"
+override: ["expiry=log", "authenticity=log"]
+trustStores: ["ca:wabbit-networks-dev"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"]
 
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+name: "wabbit-networks-prod"
+registryScopes: ["prod.wabbitnetworks.io/net-monitor"]
+level: "permissive"
+trustStores: ["ca:wabbit-networks-prod"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"]
 ```
 
 In JSON format:
@@ -437,11 +532,11 @@ An example of output messages:
 In text format:
 
 ```text
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+name: "wabbit-networks-prod"
+registryScopes: ["prod.wabbitnetworks.io/net-monitor"]
+level: "permissive"
+trustStores: ["ca:wabbit-networks-prod"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"]
 ```
 
 In JSON format:
@@ -471,11 +566,11 @@ An example of output messages:
 In text format:
 
 ```text
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+name: "wabbit-networks-prod"
+registryScopes: ["prod.wabbitnetworks.io/net-monitor"]
+level: "permissive"
+trustStores: ["ca:wabbit-networks-prod"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"]
 ```
 
 In JSON format:
@@ -494,16 +589,16 @@ In JSON format:
 }
 ```
 
-Note users may configure only one trust policy with `registryScopes` value as `"*"`. Here is an example of output:
+Note users may configure only one trust policy with `registryScopes` value as `["*"]`. Here is an example of output:
 
 In text format:
 
 ```text
-"name": "wabbit-networks-prod"
-"registryScopes": "*"
-"level": "strict"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "*"
+name: "wabbit-networks-prod"
+registryScopes: ["*"]
+level: "strict"
+trustStores: ["ca:wabbit-networks-prod"]
+trustedIdentities: ["*"]
 ```
 
 In JSON format:
@@ -525,7 +620,7 @@ In JSON format:
 ### List trust policies for verifying artifacts in specified repository
 
 ```shell
-notation policy list --repo prod.wabbitnetworks.io/net-monitor
+notation policy list --scope prod.wabbitnetworks.io/net-monitor
 ```
 
 An example of output messages:
@@ -533,113 +628,11 @@ An example of output messages:
 In text format:
 
 ```text
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-```
-
-In JSON format:
-
-```json
-{
-    "name": "wabbit-networks-prod",
-    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
-    "signatureVerification": {                                
-        "level": "permissive"
-    },
-    "trustStores": [ "ca:wabbit-networks-prod" ],                  
-    "trustedIdentities": [                                    
-        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-    ]
-}
-```
-
-### List trust policies with specified trust store configured
-
-```shell
-notation policy list --trust-store ca:wabbit-network-prod
-```
-
-An example of output messages:
-
-In text format:
-
-```text
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-```
-
-In JSON format:
-
-```json
-{
-    "name": "wabbit-networks-prod",
-    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
-    "signatureVerification": {                                
-        "level": "permissive"
-    },
-    "trustStores": [ "ca:wabbit-networks-prod" ],                  
-    "trustedIdentities": [                                    
-        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-    ]
-}
-```
-
-### List trust policies with specified trust identity configured
-
-```shell
-notation policy list --id "C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-```
-
-An example of output messages:
-
-In text format:
-
-```text
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-```
-
-In JSON format:
-
-```json
-{
-    "name": "wabbit-networks-prod",
-    "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
-    "signatureVerification": {                                
-        "level": "permissive"
-    },
-    "trustStores": [ "ca:wabbit-networks-prod" ],                  
-    "trustedIdentities": [                                    
-        "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
-    ]
-}
-```
-
-### List trust policies with specified certificate used
-
-```shell
-notation policy list --cert-file "./wabbit-networks-prod.crt"
-```
-
-An example of output messages:
-
-In text format:
-
-```text
-"name": "wabbit-networks-prod"
-"registryScopes": "prod.wabbitnetworks.io/net-monitor"
-"level": "permissive"
-"trustStores": "ca:wabbit-networks-prod"
-"trustedIdentities": "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+name: "wabbit-networks-prod"
+registryScopes: ["prod.wabbitnetworks.io/net-monitor"]
+level: "permissive"
+trustStores: ["ca:wabbit-networks-prod"]
+trustedIdentities: ["x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"]
 ```
 
 In JSON format:
@@ -660,7 +653,7 @@ In JSON format:
 
 ### Delete trust policies
 
-Users cannot delete all the trust policies, at least one trust policy should be kept for signature verification. Deletion SHOULD fail if users intend to delete all the trust policies.
+Users cannot delete all the trust policies, at least one trust policy should be kept for signature verification. Deletion MUST fail if users intend to delete all the trust policies.
 
 ```shell
 # Delete one trust policy
@@ -668,4 +661,36 @@ notation policy delete wabbit-network-dev
 
 # Delete multiple trust policies
 notation policy delete wabbit-network-dev wabbit-network-prod
+```
+
+An example of output messages:
+
+In text format:
+
+```text
+Successfully deleted the following trust policy(s):
+
+name: "wabbit-networks-dev"
+registryScopes: ["dev.wabbitnetworks.io/net-monitor"]
+
+name: "wabbit-networks-prod"
+registryScopes: ["prod.wabbitnetworks.io/net-monitor"]
+```
+
+In JSON format:
+
+```json
+{
+    "result" : true,
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-dev",
+            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],
+        },
+        {
+            "name": "wabbit-networks-prod",
+            "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],
+        }
+    ]
+}
 ```
