@@ -28,4 +28,4 @@ require (
 	golang.org/x/sys v0.2.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230116020158-f3e0421fae95
+replace github.com/notaryproject/notation-go => github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230116090032-4e4d1f0aca9b

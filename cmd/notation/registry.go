@@ -18,6 +18,11 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
+// getSignatureRepository returns a registry.Repository.
+// ociImageManifest denotes the type of manifest used to store signatures during
+// Sign process.
+// Setting ociImageManifest to true means using OCI image manifest.
+// Otherwise, notation will use OCI artifact manifest.
 func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {

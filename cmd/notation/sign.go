@@ -18,8 +18,7 @@ import (
 
 const (
 	artifactManifest = "v1.1-artifact"
-
-	imageManifest = "v1.1-image"
+	imageManifest    = "v1.1-image"
 )
 
 var supportedImageSpec = []string{artifactManifest, imageManifest}
@@ -68,6 +67,10 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// sanity check
+			if !validateImageSpec(opts.imageSpec) {
+				return fmt.Errorf("image spec has to be in %v, got %s", supportedImageSpec, opts.imageSpec)
+			}
 			return runSign(cmd, opts)
 		},
 	}
@@ -81,11 +84,6 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 }
 
 func runSign(command *cobra.Command, cmdOpts *signOpts) error {
-	// sanity check
-	if !validateImageSpec(cmdOpts.imageSpec) {
-		return fmt.Errorf("image spec has to be in %v, got %s", supportedImageSpec, cmdOpts.imageSpec)
-	}
-
 	// set log level
 	ctx := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
