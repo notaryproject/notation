@@ -159,11 +159,10 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 }
 
 func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
-	metadata, err := outcome.GetUserMetadata()
-	if err != nil {
-		fmt.Println("Warning: unable to parse metadata from signature")
-		return
-	}
+	// the signature envelope is parsed as part of verification.
+	// since user metadata is only printed on successful verification,
+	// this error can be ignored
+	metadata, _ := outcome.GetUserMetadata()
 
 	fmt.Println("\nThe artifact was signed with the following user metadata.")
 	ioutil.PrintMetadataMap(os.Stdout, metadata)
