@@ -100,34 +100,34 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, registry.Reference, error) {
+func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.RemoteSignOptions, registry.Reference, error) {
 	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
 		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
 		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
 	})
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 
-	signOpts := notation.SignOptions{
+	signOpts := notation.RemoteSignOptions{
 		ArtifactReference:  ref.String(),
 		SignatureMediaType: mediaType,
 		ExpiryDuration:     opts.expiry,
 		PluginConfig:       pluginConfig,
-		UserMetadata: userMetadata,
+		UserMetadata:       userMetadata,
 	}
 
 	return signOpts, ref, nil

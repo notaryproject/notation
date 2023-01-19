@@ -107,7 +107,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		// TODO: need to change MaxSignatureAttempts as a user input flag or
 		// a field in config.json
 		MaxSignatureAttempts: math.MaxInt64,
-		UserMetadata: userMetadata,
+		UserMetadata:         userMetadata,
 	}
 
 	// core verify process
@@ -115,7 +115,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		if err != nil {
-			return fmt.Errorf("signature verification failed: %w", err)
+			var errorVerificationFailed notation.ErrorVerificationFailed
+			if !errors.As(err, &errorVerificationFailed) {
+				return fmt.Errorf("signature verification failed: %w", err)
+			}
 		}
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
 	}
