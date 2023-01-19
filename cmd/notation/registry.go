@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 
@@ -12,11 +13,14 @@ import (
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/configutil"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/sirupsen/logrus"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
+
+const zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 
 func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
@@ -89,6 +93,17 @@ func getRepositoryClientForSign(ctx context.Context, opts *SecureFlagOpts, ref r
 	if !ociImageManifest {
 		if err := remoteRepo.SetReferrersCapability(true); err != nil {
 			return nil, err
+		}
+		// when uploading OCI artifact manifest, Notation requires the registry
+		// to support the Referrers API as well.
+		// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
+		var checkReferrerDesc ocispec.Descriptor
+		checkReferrerDesc.Digest = zeroDigest
+		err := remoteRepo.Referrers(ctx, checkReferrerDesc, "", func(referrers []ocispec.Descriptor) error {
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to ping Referrers API on uploading OCI artifact manifest with error: %v. Try OCI image manifest instead", err)
 		}
 	}
 	return notationregistry.NewRepositoryWithOptions(remoteRepo, repositoryOpts), nil
