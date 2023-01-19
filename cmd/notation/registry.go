@@ -18,19 +18,14 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// getSignatureRepository returns a registry.Repository.
-// ociImageManifest denotes the type of manifest used to store signatures during
-// Sign process.
-// Setting ociImageManifest to true means using OCI image manifest.
-// Otherwise, notation will use OCI artifact manifest.
-func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
+func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
 	}
 
 	// generate notation repository
-	return getRepositoryClient(ctx, opts, ref, ociImageManifest)
+	return getRepositoryClient(ctx, opts, ref)
 }
 
 func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
@@ -46,7 +41,36 @@ func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress 
 	return reg, nil
 }
 
-func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference, ociImageManifest bool) (notationregistry.Repository, error) {
+func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
+	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	remoteRepo := &remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: plainHTTP,
+	}
+	return notationregistry.NewRepository(remoteRepo), nil
+}
+
+// getSignatureRepositoryForSign returns a registry.Repository for Sign.
+// ociImageManifest denotes the type of manifest used to store signatures during
+// Sign process.
+// Setting ociImageManifest to true means using OCI image manifest and Index.
+// Otherwise, notation will use OCI artifact manifest and Referrers API.
+func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return nil, err
+	}
+
+	// generate notation repository
+	return getRepositoryClientForSign(ctx, opts, ref, ociImageManifest)
+}
+
+func getRepositoryClientForSign(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference, ociImageManifest bool) (notationregistry.Repository, error) {
 	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
 	if err != nil {
 		return nil, err
@@ -59,6 +83,13 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 	}
 	repositoryOpts := notationregistry.RepositoryOptions{
 		OCIImageManifest: ociImageManifest,
+	}
+	// using OCI artifact manifest to store signatures. This requires the
+	// existence of Referrers API for Sign process.
+	if !ociImageManifest {
+		if err := remoteRepo.SetReferrersCapability(true); err != nil {
+			return nil, err
+		}
 	}
 	return notationregistry.NewRepositoryWithOptions(remoteRepo, repositoryOpts), nil
 }

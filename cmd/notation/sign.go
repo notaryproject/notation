@@ -79,7 +79,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.imageSpec, "image-spec", artifactManifest, "manifest type for signatures. options: v1.1-artifact, v1.1-image")
+	command.Flags().StringVar(&opts.imageSpec, "artifact-type", artifactManifest, "manifest type for signatures. options: v1.1-artifact, v1.1-image")
 	return command
 }
 
@@ -96,7 +96,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if cmdOpts.imageSpec == imageManifest {
 		ociImageManifest = true
 	}
-	sigRepo, err := getSignatureRepository(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
+	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
 	if err != nil {
 		return err
 	}

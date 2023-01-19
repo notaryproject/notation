@@ -50,7 +50,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference, false)
+	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}

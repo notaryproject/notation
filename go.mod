@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/notaryproject/notation-core-go v1.0.0-rc.1
-	github.com/notaryproject/notation-go v1.0.0-rc.1
+	github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230119020804-36d97f79abc8
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc2
 	github.com/sirupsen/logrus v1.9.0
@@ -28,4 +28,4 @@ require (
 	golang.org/x/sys v0.2.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230116090032-4e4d1f0aca9b
+replace github.com/notaryproject/notation-go => github.com/patrickzheng200/notation-go v0.9.0-alpha.1.0.20230119071817-79b30887f89a
