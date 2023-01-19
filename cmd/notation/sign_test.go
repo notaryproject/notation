@@ -65,7 +65,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--plain-http",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
-		"--image-spec", imageManifest}); err != nil {
+		"--artifact-type", imageManifest}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
