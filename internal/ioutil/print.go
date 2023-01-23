@@ -8,6 +8,11 @@ import (
 	"github.com/notaryproject/notation-go/config"
 )
 
+const (
+	OutputPlaintext = "plaintext"
+	OutputJson      = "json"
+)
+
 func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }

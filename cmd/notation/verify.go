@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -26,6 +27,12 @@ type verifyOpts struct {
 	reference    string
 	pluginConfig []string
 	userMetadata []string
+	outputFormat string
+}
+
+type verifyOutput struct {
+	Reference    string            `json:"reference"`
+	UserMetadata map[string]string `json:"userMetadata"`
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -60,6 +67,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVarP(&opts.pluginConfig, "plugin-config", "c", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
 	return command
 }
 
@@ -101,6 +109,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
+	if opts.outputFormat != ioutil.OutputJson && opts.outputFormat != ioutil.OutputPlaintext {
+		return fmt.Errorf("unrecognized output format: %v", opts.outputFormat)
+	}
+
 	verifyOpts := notation.RemoteVerifyOptions{
 		ArtifactReference: ref.String(),
 		PluginConfig:      configs,
@@ -136,8 +148,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
 		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
 	} else {
-		fmt.Println("Successfully verified signature for", ref.String())
-		printMetadataIfPresent(outcome)
+		return printResult(opts.outputFormat, ref.String(), outcome)
 	}
 	return nil
 }
@@ -161,12 +172,25 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 	return ref, nil
 }
 
-func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
+func printResult(outputFormat string, reference string, outcome *notation.VerificationOutcome) error {
 	// the signature envelope is parsed as part of verification.
 	// since user metadata is only printed on successful verification,
 	// this error can be ignored
 	metadata, _ := outcome.GetUserMetadata()
 
+	if outputFormat == ioutil.OutputJson {
+		output := verifyOutput{Reference: reference, UserMetadata: metadata}
+		outputBytes, err := json.Marshal(output) // TODO: check the err
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(outputBytes))
+		return nil
+	}
+
+	fmt.Println("Successfully verified signature for", reference)
 	fmt.Println("\nThe artifact was signed with the following user metadata.")
 	ioutil.PrintMetadataMap(os.Stdout, metadata)
+	return nil
 }

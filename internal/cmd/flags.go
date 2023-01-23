@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
@@ -77,11 +78,21 @@ var (
 		Shorthand: "m",
 	}
 
-	PflagUserMetadataSignUsage = "{key}={value} pairs that are added to the signature payload"
+	PflagUserMetadataSignUsage   = "{key}={value} pairs that are added to the signature payload"
 	PflagUserMetadataVerifyUsage = "user defined {key}={value} pairs that must be present in the signature for successful verification if provided"
 
 	SetPflagUserMetadata = func(fs *pflag.FlagSet, p *[]string, usage string) {
 		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
+	}
+
+	PflagOutput = &pflag.Flag{
+		Name:      "output",
+		Shorthand: "o",
+	}
+
+	PflagOutputUsage = fmt.Sprintf("output format, options: '%s', '%s'", ioutil.OutputJson, ioutil.OutputPlaintext)
+	SetPflagOutput   = func(fs *pflag.FlagSet, p *string, usage string) {
+		fs.StringVarP(p, PflagOutput.Name, PflagOutput.Shorthand, ioutil.OutputPlaintext, usage)
 	}
 )
 
