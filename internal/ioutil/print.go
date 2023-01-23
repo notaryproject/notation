@@ -1,6 +1,7 @@
 package ioutil
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"text/tabwriter"
@@ -9,7 +10,7 @@ import (
 )
 
 const (
-	OutputPlaintext = "plaintext"
+	OutputPlaintext = "text"
 	OutputJson      = "json"
 )
 
@@ -47,4 +48,15 @@ func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
 	}
 
 	return tw.Flush()
+}
+
+func PrintObjectAsJson(i interface{}) error {
+	jsonBytes, err := json.Marshal(i)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(jsonBytes))
+
+	return nil
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -180,13 +179,7 @@ func printResult(outputFormat string, reference string, outcome *notation.Verifi
 
 	if outputFormat == ioutil.OutputJson {
 		output := verifyOutput{Reference: reference, UserMetadata: metadata}
-		outputBytes, err := json.Marshal(output) // TODO: check the err
-		if err != nil {
-			return err
-		}
-
-		fmt.Println(string(outputBytes))
-		return nil
+		return ioutil.PrintObjectAsJson(output)
 	}
 
 	fmt.Println("Successfully verified signature for", reference)
