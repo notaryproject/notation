@@ -32,7 +32,7 @@ type verifyOpts struct {
 type verifyOutput struct {
 	Reference    string            `json:"reference"`
 	UserMetadata map[string]string `json:"userMetadata"`
-	Warnings     []string          `json:"warnings"`
+	Result       string            `json:"result"`
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -82,16 +82,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
-	warnings := []string{}
-
 	// resolve the given reference and set the digest
 	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		resolvedTagWarning := "The resolved digest may not point to the same signed artifact, since tags are mutable."
 		if opts.outputFormat == ioutil.OutputPlaintext {
 			fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
-			fmt.Println("Warning:", resolvedTagWarning)
-		} else {
-			warnings = append(warnings, resolvedTagWarning)
+			fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
 		}
 	})
 	if err != nil {
@@ -149,16 +144,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			actionFailedWarning := fmt.Sprintf("%v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 			if opts.outputFormat == ioutil.OutputPlaintext {
-				fmt.Println("Warning:", actionFailedWarning)
-			} else {
-				warnings = append(warnings, actionFailedWarning)
+				fmt.Printf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 			}
 		}
 	}
 
-	return printResult(opts.outputFormat, ref.String(), outcome, warnings)
+	return printResult(opts.outputFormat, ref.String(), outcome)
 }
 
 func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
@@ -180,15 +172,16 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 	return ref, nil
 }
 
-func printResult(outputFormat, reference string, outcome *notation.VerificationOutcome, warnings []string) error {
+func printResult(outputFormat, reference string, outcome *notation.VerificationOutcome) error {
+	output := verifyOutput{Reference: reference, Result: "Success", UserMetadata: map[string]string{}}
 
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		verificationSkippedWarning := "Trust policy is configured to skip signature verification for" + reference
 		if outputFormat == ioutil.OutputPlaintext {
-			fmt.Println(verificationSkippedWarning)
+			fmt.Println("Trust policy is configured to skip signature verification for" + reference)
 			return nil
 		} else {
-			warnings = append(warnings, verificationSkippedWarning)
+			output.Result = "Skipped"
+			return ioutil.PrintObjectAsJson(output)
 		}
 	}
 
@@ -198,7 +191,7 @@ func printResult(outputFormat, reference string, outcome *notation.VerificationO
 	metadata, _ := outcome.GetUserMetadata()
 
 	if outputFormat == ioutil.OutputJson {
-		output := verifyOutput{Reference: reference, UserMetadata: metadata, Warnings: warnings}
+		output.UserMetadata = metadata
 		return ioutil.PrintObjectAsJson(output)
 	}
 
