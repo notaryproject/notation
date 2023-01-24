@@ -51,7 +51,7 @@ func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
 }
 
 func PrintObjectAsJson(i interface{}) error {
-	jsonBytes, err := json.Marshal(i)
+	jsonBytes, err := json.MarshalIndent(i, "", "    ")
 	if err != nil {
 		return err
 	}

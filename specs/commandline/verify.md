@@ -37,7 +37,7 @@ Usage:
 
 Flags:
   -h,  --help                    help for verify
-  -o,  --output string           output format, options: 'json', 'plaintext' (default "plaintext")
+  -o,  --output string           output format, options: 'json', 'text' (default "text")
   -p,  --password string         password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http              registry access via plain HTTP
        --plugin-config strings   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
@@ -175,11 +175,16 @@ Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b993
 Use the `--output` flag to format successful verification output in json.
 
 ```shell
-notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+notation verify --output json localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-{"reference":"localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9","userMetadata":{"io.wabbit-networks.buildId":"123"}}
+{
+    "reference": "localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    "userMetadata": {
+        "io.wabbit-networks.buildId": "123"
+    }
+}
 ```
