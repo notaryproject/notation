@@ -185,6 +185,7 @@ An example of output messages for a successful verification:
     "reference": "localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
     "userMetadata": {
         "io.wabbit-networks.buildId": "123"
-    }
+    },
+    "result": "Success"
 }
 ```

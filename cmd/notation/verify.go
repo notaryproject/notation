@@ -173,14 +173,13 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 }
 
 func printResult(outputFormat, reference string, outcome *notation.VerificationOutcome) error {
-	output := verifyOutput{Reference: reference, Result: "Success", UserMetadata: map[string]string{}}
 
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
 		if outputFormat == ioutil.OutputPlaintext {
-			fmt.Println("Trust policy is configured to skip signature verification for" + reference)
+			fmt.Println("Trust policy is configured to skip signature verification for", reference)
 			return nil
 		} else {
-			output.Result = "Skipped"
+			output := verifyOutput{Reference: reference, Result: "Skipped", UserMetadata: map[string]string{}}
 			return ioutil.PrintObjectAsJson(output)
 		}
 	}
@@ -191,7 +190,7 @@ func printResult(outputFormat, reference string, outcome *notation.VerificationO
 	metadata, _ := outcome.GetUserMetadata()
 
 	if outputFormat == ioutil.OutputJson {
-		output.UserMetadata = metadata
+		output := verifyOutput{Reference: reference, Result: "Success", UserMetadata: metadata}
 		return ioutil.PrintObjectAsJson(output)
 	}
 
