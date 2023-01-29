@@ -8,12 +8,15 @@ import (
 	"os"
 	"path/filepath"
 
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
+
+const ArtifactTypeNotation = "application/vnd.cncf.notary.signature"
 
 type Registry struct {
 	Host     string
@@ -96,6 +99,31 @@ func (r *Artifact) ReferenceWithTag() string {
 // ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
 func (r *Artifact) ReferenceWithDigest() string {
 	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
+}
+
+// SignatureManifest returns the manifest of the artifact.
+func (r *Artifact) SignatureDescriptors() ([]ocispec.Descriptor, error) {
+	ctx := context.Background()
+	repo, err := newRepository(r.ReferenceWithDigest())
+	if err != nil {
+		return nil, err
+	}
+
+	// get manifest descriptor
+	desc, err := repo.Manifests().Resolve(ctx, r.ReferenceWithDigest())
+	if err != nil {
+		return nil, err
+	}
+
+	// get signature descriptors
+	var descriptors []ocispec.Descriptor
+	if err := repo.Referrers(context.Background(), desc, ArtifactTypeNotation, func(referrers []ocispec.Descriptor) error {
+		descriptors = append(descriptors, referrers...)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return descriptors, nil
 }
 
 func newRepoName() string {
