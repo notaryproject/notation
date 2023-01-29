@@ -1,0 +1,17 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "e2e",
+            "registryScopes": [ "*" ],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "x509.subject: CN=e2e,O=Notary,L=Seattle,ST=WA,C=US",
+                "x509.subject: CN=e2e,O=Notary,ST=WA,C=US"
+            ]
+        }
+    ]
+}

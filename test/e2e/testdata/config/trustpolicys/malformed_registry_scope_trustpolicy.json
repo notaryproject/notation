@@ -1,0 +1,16 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "e2e",
+            "registryScopes": [ "localhost:5000\\test-repo"],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        }
+    ]
+}
