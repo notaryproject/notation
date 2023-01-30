@@ -62,8 +62,8 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 // getSignatureRepositoryForSign returns a registry.Repository for Sign.
 // ociImageManifest denotes the type of manifest used to store signatures during
 // Sign process.
-// Setting ociImageManifest to true means using OCI image manifest and Index.
-// Otherwise, notation will use OCI artifact manifest and Referrers API.
+// Setting ociImageManifest to true means using OCI image manifest.
+// Otherwise, use OCI artifact manifest and requires Referrers API.
 func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
