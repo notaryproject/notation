@@ -7,10 +7,12 @@ import (
 	"io"
 	"os"
 	"strings"
+	"syscall"
 
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/auth"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 	orasauth "oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -108,11 +110,12 @@ func newCredentialFromInput(username, password string) orasauth.Credential {
 
 func readPassword(opts *loginOpts) error {
 	if opts.passwordStdin {
-		password, err := readLine()
+		fmt.Print("Enter password: ")
+		bytePass, err := term.ReadPassword(syscall.Stdin)
 		if err != nil {
 			return err
 		}
-		opts.Password = password
+		opts.Password = string(bytePass)
 	}
 	return nil
 }
