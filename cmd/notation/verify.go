@@ -165,7 +165,7 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 	// the signature envelope is parsed as part of verification.
 	// since user metadata is only printed on successful verification,
 	// this error can be ignored
-	metadata, _ := outcome.GetUserMetadata()
+	metadata, _ := outcome.UserMetadata()
 
 	fmt.Println("\nThe artifact was signed with the following user metadata.")
 	ioutil.PrintMetadataMap(os.Stdout, metadata)
