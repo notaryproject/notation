@@ -1,0 +1,28 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "e2e",
+            "registryScopes": [ "localhost:5000/test-repo8"],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        },
+        {
+            "name": "e2e2",
+            "registryScopes": [ "localhost:5000/test-repo8"],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        }
+
+    ]
+}
