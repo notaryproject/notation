@@ -1,0 +1,9 @@
+{
+    "keys": [
+        {
+            "name": "e2e",
+            "keyPath": "notation/localkeys/e2e.key",
+            "certPath": "notation/localkeys/e2e.crt"
+        }
+    ]
+}
