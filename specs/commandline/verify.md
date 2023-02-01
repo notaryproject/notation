@@ -11,8 +11,7 @@ Successfully verified signature for <registry>/<repository>@<digest>
 Tags are mutable and a tag reference can point to a different artifact than that was signed referred by the same tag. If a `tag` is used to identify the OCI artifact, the output message is as follows:
 
 ```text
-Resolved artifact tag `<tag>` to digest `<digest>` before verification.
-Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
+Warning:  Always verify the artifact using digest(@sha256:...) rather than a tag(:v1) because resolved digest may not point to the same signed artifact, as tags are mutable.
 Successfully verified signature for <registry>/<repository>@<digest>
 ```
 
@@ -164,7 +163,6 @@ notation verify localhost:5000/net-monitor:v1
 An example of output messages for a successful verification:
 
 ```text
-Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before verification.
-Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.
+Warning:  Always verify the artifact using digest(@sha256:...) rather than a tag(:v1) because resolved digest may not point to the same signed artifact, as tags are mutable.
 Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
