@@ -17,11 +17,11 @@ func validateRequiredField(data any, fieldSet map[string]struct{}) error {
 	valueOfData := reflect.ValueOf(data)
 	typeOfData := valueOfData.Type()
 	for i := 0; i < valueOfData.NumField(); i++ {
-		filedName := typeOfData.Field(i).Name
-		if _, ok := fieldSet[filedName]; ok {
-			// check the required filed
+		fieldName := typeOfData.Field(i).Name
+		if _, ok := fieldSet[fieldName]; ok {
+			// check the required field
 			if valueOfData.Field(i).IsZero() {
-				return fmt.Errorf("%s is not set", filedName)
+				return fmt.Errorf("%s is not set", fieldName)
 			}
 		}
 	}

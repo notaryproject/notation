@@ -17,6 +17,7 @@ var _ = Describe("notation plugin verify", func() {
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				// add pluginConfig to enable generating envelope capability and update extended attribute
 				"-c", fmt.Sprintf("%s=true", CapabilityEnvelopeGenerator),
+				// specify verification plugin is e2e-plugin
 				"-c", fmt.Sprintf("%s=e2e-plugin", HeaderVerificationPlugin)).
 				MatchKeyWords("plugin-key")
 
@@ -29,6 +30,10 @@ var _ = Describe("notation plugin verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
+				MatchErrKeyWords(
+					"Plugin verify-signature request",
+					"Plugin verify-signature response",
+					`{\"verificationResults\":{\"SIGNATURE_VERIFIER.REVOCATION_CHECK\":{\"success\":true},\"SIGNATURE_VERIFIER.TRUSTED_IDENTITY\":{\"success\":true}},\"processedAttributes\":null}`).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

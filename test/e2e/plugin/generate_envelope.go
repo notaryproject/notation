@@ -60,6 +60,7 @@ func runGenerateEnvelopeCommand(req *proto.GenerateEnvelopeRequest) error {
 	resp := &proto.GenerateEnvelopeResponse{
 		SignatureEnvelope:     sig,
 		SignatureEnvelopeType: req.SignatureEnvelopeType,
+		Annotations:           map[string]string{"signer": "e2e-plugin"},
 	}
 
 	// update response for testing various cases
