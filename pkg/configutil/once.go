@@ -26,6 +26,9 @@ func LoadConfigOnce() (*config.Config, error) {
 	var err error
 	configOnce.Do(func() {
 		configInfo, err = config.LoadConfig()
+		if err != nil {
+			return
+		}
 		// set default value
 		configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
 		if configInfo.SignatureFormat == "" {

@@ -1,6 +1,8 @@
 package configutil
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -35,6 +37,7 @@ func TestIsRegistryInsecure(t *testing.T) {
 			}
 		})
 	}
+
 }
 
 func TestIsRegistryInsecureMissingConfig(t *testing.T) {
@@ -62,6 +65,29 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 				t.Errorf("IsRegistryInsecure() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
+	configDir := "./testdata"
+	// for restore dir
+	defer func(oldDir string) error {
+		// restore permission
+		dir.UserConfigDir = oldDir
+		configOnce = sync.Once{}
+		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
+	}(dir.UserConfigDir)
+
+	// update config dir
+	dir.UserConfigDir = configDir
+
+	// forbid reading the file
+	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
+		t.Error(err)
+	}
+
+	if IsRegistryInsecure("reg1.io") {
+		t.Error("should false because of missing config.json read permission.")
 	}
 }
 
@@ -111,5 +137,22 @@ func TestResolveKey(t *testing.T) {
 			t.Error("should error")
 		}
 		signingKeysOnce = sync.Once{}
+	})
+
+	t.Run("signingkeys.json without read permission", func(t *testing.T) {
+		dir.UserConfigDir = "./testdata/valid_signingkeys"
+		defer func() error {
+			// restore the permission
+			return os.Chmod(filepath.Join(dir.UserConfigDir, "signingkeys.json"), 0644)
+		}()
+
+		// forbid reading the file
+		if err := os.Chmod(filepath.Join(dir.UserConfigDir, "signingkeys.json"), 0000); err != nil {
+			t.Error(err)
+		}
+		_, err := ResolveKey("")
+		if !strings.Contains(err.Error(), "permission denied") {
+			t.Error("should error with permission denied")
+		}
 	})
 }
