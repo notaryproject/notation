@@ -32,6 +32,8 @@ func TestWithLoggerLevel(t *testing.T) {
 			if logrusLogger.Level != logrus.DebugLevel {
 				t.Errorf("log level want = %v, got %v", logrus.DebugLevel, logrusLogger.Level)
 			}
+		} else {
+			t.Fatal("should log with logrus")
 		}
 	})
 
@@ -42,6 +44,8 @@ func TestWithLoggerLevel(t *testing.T) {
 			if logrusLogger.Level != logrus.InfoLevel {
 				t.Errorf("log level want = %v, got %v", logrus.InfoLevel, logrusLogger.Level)
 			}
+		} else {
+			t.Fatal("should log with logrus")
 		}
 	})
 }
