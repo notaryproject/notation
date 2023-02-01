@@ -16,7 +16,6 @@ If a `tag` is used to identify the OCI artifact, the output message is as follow
 
 ```test
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:<tag>`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
-Resolved artifact tag `<tag>` to digest `<digest>` before signing.
 Successfully signed <registry>/<repository>@<digest>
 ```
 
@@ -74,7 +73,7 @@ For registries not listed in the page, users can consider using flag `--image-sp
 ### Sign an OCI artifact
 
 ```shell
-# Prerequisites: 
+# Prerequisites:
 # - A signing plugin is installed. See plugin documentation (https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details.
 # - Configure the signing plugin as instructed by plugin vendor.
 
@@ -95,7 +94,7 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 ### Sign an OCI artifact using COSE signature format
 
 ```shell
-# Prerequisites: 
+# Prerequisites:
 # A default signing key is configured using CLI "notation key"
 
 # Use option "--signature-format" to set the signature format to COSE.
@@ -105,7 +104,7 @@ notation sign --signature-format cose <registry>/<repository>@<digest>
 ### Sign an OCI artifact stored in a registry using the default signing key
 
 ```shell
-# Prerequisites: 
+# Prerequisites:
 # A default signing key is configured using CLI "notation key"
 
 # Use a digest that uniquely and immutably identifies an OCI artifact.
@@ -115,7 +114,7 @@ notation sign <registry>/<repository>@<digest>
 ### Sign an OCI Artifact with user metadata
 
 ```shell
-# Prerequisites: 
+# Prerequisites:
 # A default signing key is configured using CLI "notation key"
 
 # sign an artifact stored in a registry and add user-metadata io.wabbit-networks.buildId=123 to the payload
@@ -144,7 +143,7 @@ notation sign --key <key_name> <registry>/<repository>@<digest>
 ### Sign an OCI artifact identified by a tag
 
 ```shell
-# Prerequisites: 
+# Prerequisites:
 # A default signing key is configured using CLI "notation key"
 
 # Use a tag to identify a container image
@@ -156,7 +155,6 @@ An example for a successful signing:
 ```console
 $ notation sign localhost:5000/net-monitor:v1
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
-Resolved artifact tag `v1` to digest `sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9` before signing.
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
@@ -167,7 +165,7 @@ notation sign --image-spec v1.1-image <registry>/<repository>@<digest>
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
-[oci-image-spec]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/spec.md 
+[oci-image-spec]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/spec.md
 [oci-backward-compatibility]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#backwards-compatibility
 [registry-support]: https://notaryproject.dev/docs/registrysupport/
 [oras-land]: https://oras.land/
