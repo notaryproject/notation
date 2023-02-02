@@ -232,7 +232,7 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 		var err error
 		deletedNames, err = s.Remove(opts.names)
 		if err != nil {
-			logger.Warnf("%v", err)
+			logger.Error("something went wrong while deleting keys, error: %v", err)
 		}
 		return err
 		

@@ -111,7 +111,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 
 	// update signingkeys.json config
 	exec := func(s *config.SigningKeys) error {
-		return s.Add(opts.name, keyPath,certPath, opts.isDefault)
+		return s.Add(opts.name, keyPath, certPath, opts.isDefault)
 	}
 	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err
