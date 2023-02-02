@@ -59,6 +59,12 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
+
+Example - Sign an OCI image using the default signing key, with the default JWS envelope:
+  notation sign --image-spec v1.1-image <registry>/<repository>@<digest>
+
+Example - Sign an OCI image using the default signing key, with the COSE envelope:
+  notation sign --image-spec v1.1-image --signature-format cose <registry>/<repository>@<digest> 
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

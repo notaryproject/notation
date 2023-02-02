@@ -20,8 +20,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/notaryproject/notation-core-go v1.0.0-rc.1 h1:ACi0gr6mD1bzp9+gu3P0meJ/N6iWHlyM9zgtdnooNAA=
 github.com/notaryproject/notation-core-go v1.0.0-rc.1/go.mod h1:n8Gbvl9sKa00KptkKEL5XKUyMTIALe74QipKauE2rj4=
-github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230119020804-36d97f79abc8 h1:yMECf0ucr7cyWD5ArDSQUPjUEQ9U8DEASqBjHUNhL7s=
-github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230119020804-36d97f79abc8/go.mod h1:zPpwoqwbgoR3tZH/oQT3vi22D3p2UdvM0DpVmBp7r+U=
+github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230202012840-ed6ff0c14241 h1:hY4PuFdZlzmz5TbyKEzotDPClvWgShZYsECLffbNkN8=
+github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230202012840-ed6ff0c14241/go.mod h1:0wGeTOs3nBr9zILyGpt90JR4Z48RGsfDjKXwqPLHwpA=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc2 h1:2zx/Stx4Wc5pIPDvIxHXvXtQFW/7XWJGmnM7r3wg034=
@@ -39,8 +39,8 @@ github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.2 h1:4jaiDzPyXQvSd7D0EjG45355tLlV3VOECpq10pLC+8s=
 github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1FQKckRals=
-github.com/veraison/go-cose v1.0.0-rc.2 h1:zH3QmP4N5kwpdGauceIT3aJm8iUyV9OqpUOb+7CF7rQ=
-github.com/veraison/go-cose v1.0.0-rc.2/go.mod h1:7ziE85vSq4ScFTg6wyoMXjucIGOf4JkFEZi/an96Ct4=
+github.com/veraison/go-cose v1.0.0 h1:Jxirc0rl3gG7wUFgW+82tBQNeK8T8e2Bk1Vd298ob4A=
+github.com/veraison/go-cose v1.0.0/go.mod h1:7ziE85vSq4ScFTg6wyoMXjucIGOf4JkFEZi/an96Ct4=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
