@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/notaryproject/notation-go"
@@ -115,8 +116,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 
 func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, registry.Reference, error) {
 	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		fmt.Printf("Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:%s`) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
-		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before signing.\n", ref.Reference, manifestDesc.Digest.String())
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
 	})
 	if err != nil {
 		return notation.SignOptions{}, registry.Reference{}, err
