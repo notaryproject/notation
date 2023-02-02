@@ -67,9 +67,8 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("digital signature has expired",
-					"expiry was set to \"log\"",
-					VerifySuccessfully)
+				MatchErrKeyWords("expiry was set to \"log\" and failed with error: digital signature has expired").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -82,9 +81,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")))
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("Warning: authenticTimestamp was set to \"log\"",
-					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired",
-					VerifySuccessfully)
+				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
+					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -123,9 +122,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("digital signature has expired",
-					"expiry was set to \"log\"",
-					VerifySuccessfully)
+				MatchErrKeyWords("digital signature has expired",
+					"expiry was set to \"log\"").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -138,9 +137,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")))
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("Warning: authenticTimestamp was set to \"log\"",
-					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired",
-					VerifySuccessfully)
+				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
+					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -155,9 +154,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("Warning: authenticity was set to \"log\"",
-					"signature is not produced by a trusted signer",
-					VerifySuccessfully)
+				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
+					"signature is not produced by a trusted signer").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -191,9 +190,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("digital signature has expired",
-					"expiry was set to \"log\"",
-					VerifySuccessfully)
+				MatchErrKeyWords("digital signature has expired",
+					"expiry was set to \"log\"").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -206,9 +205,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")))
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("Warning: authenticTimestamp was set to \"log\"",
-					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired",
-					VerifySuccessfully)
+				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
+					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -222,9 +221,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("Warning: authenticity was set to \"log\"",
-					"signature is not produced by a trusted signer",
-					VerifySuccessfully)
+				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
+					"signature is not produced by a trusted signer").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -265,9 +264,9 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords("Warning: authenticity was set to \"log\"",
-					"signature is not produced by a trusted signer",
-					VerifySuccessfully)
+				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
+					"signature is not produced by a trusted signer").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
