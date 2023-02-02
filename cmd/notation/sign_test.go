@@ -23,7 +23,7 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
-		imageSpec: artifactManifest,
+		imageSpec: imageSpecArtifact,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -55,7 +55,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			SignatureFormat: envelope.COSE,
 		},
 		expiry:    24 * time.Hour,
-		imageSpec: imageManifest,
+		imageSpec: imageSpecImage,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -65,7 +65,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--plain-http",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
-		"--artifact-type", imageManifest}); err != nil {
+		"--image-spec", imageSpecImage}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -87,7 +87,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 		},
 		expiry:       365 * 24 * time.Hour,
 		pluginConfig: []string{"key0=val0", "key1=val1"},
-		imageSpec:    artifactManifest,
+		imageSpec:    imageSpecArtifact,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,

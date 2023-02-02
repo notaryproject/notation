@@ -29,7 +29,67 @@ func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference
 	}
 
 	// generate notation repository
-	return getRepositoryClient(ctx, opts, ref)
+	remoteRepo, err := getRepositoryClient(ctx, opts, ref)
+	if err != nil {
+		return nil, err
+	}
+	return notationregistry.NewRepository(remoteRepo), nil
+}
+
+// getSignatureRepositoryForSign returns a registry.Repository for Sign.
+// ociImageManifest denotes the type of manifest used to store signatures during
+// Sign process.
+// Setting ociImageManifest to true means using OCI image manifest and tag
+// schema.
+// Otherwise, use OCI artifact manifest and requires Referrers API.
+func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
+	ref, err := registry.ParseReference(reference)
+	if err != nil {
+		return nil, err
+	}
+
+	// generate notation repository
+	remoteRepo, err := getRepositoryClient(ctx, opts, ref)
+	if err != nil {
+		return nil, err
+	}
+	// 1. OCI artifact manifest requires Referrers API.
+	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
+	// 2. OCI image manifest requires Referrers Tag Schema.
+	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
+	if err := remoteRepo.SetReferrersCapability(!ociImageManifest); err != nil {
+		return nil, err
+	}
+	// using OCI artifact manifest to store signatures. Notation requires the
+	// existence of Referrers API for Sign process.
+	if !ociImageManifest {
+		var checkReferrerDesc ocispec.Descriptor
+		checkReferrerDesc.Digest = zeroDigest
+		err := remoteRepo.Referrers(ctx, checkReferrerDesc, "", func(referrers []ocispec.Descriptor) error {
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to ping Referrers API with error: %v. Try OCI image manifest using `--image-spec`", err)
+		}
+	}
+	repositoryOpts := notationregistry.RepositoryOptions{
+		OCIImageManifest: ociImageManifest,
+	}
+	return notationregistry.NewRepositoryWithOptions(remoteRepo, repositoryOpts), nil
+}
+
+func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
+	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
+	if err != nil {
+		return nil, err
+	}
+
+	remoteRepo := &remote.Repository{
+		Client:    authClient,
+		Reference: ref,
+		PlainHTTP: plainHTTP,
+	}
+	return remoteRepo, nil
 }
 
 func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
@@ -43,70 +103,6 @@ func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress 
 		return nil, err
 	}
 	return reg, nil
-}
-
-func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (notationregistry.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	remoteRepo := &remote.Repository{
-		Client:    authClient,
-		Reference: ref,
-		PlainHTTP: plainHTTP,
-	}
-	return notationregistry.NewRepository(remoteRepo), nil
-}
-
-// getSignatureRepositoryForSign returns a registry.Repository for Sign.
-// ociImageManifest denotes the type of manifest used to store signatures during
-// Sign process.
-// Setting ociImageManifest to true means using OCI image manifest.
-// Otherwise, use OCI artifact manifest and requires Referrers API.
-func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
-	ref, err := registry.ParseReference(reference)
-	if err != nil {
-		return nil, err
-	}
-
-	// generate notation repository
-	return getRepositoryClientForSign(ctx, opts, ref, ociImageManifest)
-}
-
-func getRepositoryClientForSign(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference, ociImageManifest bool) (notationregistry.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
-	if err != nil {
-		return nil, err
-	}
-
-	remoteRepo := &remote.Repository{
-		Client:    authClient,
-		Reference: ref,
-		PlainHTTP: plainHTTP,
-	}
-	repositoryOpts := notationregistry.RepositoryOptions{
-		OCIImageManifest: ociImageManifest,
-	}
-	// using OCI artifact manifest to store signatures. This requires the
-	// existence of Referrers API for Sign process.
-	if !ociImageManifest {
-		if err := remoteRepo.SetReferrersCapability(true); err != nil {
-			return nil, err
-		}
-		// when uploading OCI artifact manifest, Notation requires the registry
-		// to support the Referrers API as well.
-		// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
-		var checkReferrerDesc ocispec.Descriptor
-		checkReferrerDesc.Digest = zeroDigest
-		err := remoteRepo.Referrers(ctx, checkReferrerDesc, "", func(referrers []ocispec.Descriptor) error {
-			return nil
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to ping Referrers API on uploading OCI artifact manifest with error: %v. Try OCI image manifest instead", err)
-		}
-	}
-	return notationregistry.NewRepositoryWithOptions(remoteRepo, repositoryOpts), nil
 }
 
 func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {

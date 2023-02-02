@@ -42,7 +42,7 @@ func TestContains(t *testing.T) {
 	}
 	for _, tt := range tests {
 		if got := Contains(tt.s, tt.v); got != tt.want {
-			t.Errorf("Index() = %v, want %v", got, tt.want)
+			t.Errorf("Contains() = %v, want %v", got, tt.want)
 		}
 	}
 }
@@ -60,6 +60,26 @@ func TestDelete(t *testing.T) {
 	for _, tt := range tests {
 		if got := Delete(tt.s, tt.i); !reflect.DeepEqual(got, tt.want) {
 			t.Errorf("Delete() = %v, want %v", got, tt.want)
+		}
+	}
+}
+
+func TestContainerElement(t *testing.T) {
+	tests := []struct {
+		c    []string
+		v    string
+		want bool
+	}{
+		{nil, "", false},
+		{[]string{}, "", false},
+		{[]string{"1", "2", "3"}, "4", false},
+		{[]string{"1", "2", "3"}, "2", true},
+		{[]string{"1", "2", "2", "3"}, "2", true},
+		{[]string{"1", "2", "3", "2"}, "2", true},
+	}
+	for _, tt := range tests {
+		if got := ContainerElement(tt.c, tt.v); got != tt.want {
+			t.Errorf("ContainerElement() = %v, want %v", got, tt.want)
 		}
 	}
 }

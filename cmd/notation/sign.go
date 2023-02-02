@@ -17,11 +17,11 @@ import (
 )
 
 const (
-	artifactManifest = "v1.1-artifact"
-	imageManifest    = "v1.1-image"
+	imageSpecArtifact = "v1.1-artifact"
+	imageSpecImage    = "v1.1-image"
 )
 
-var supportedImageSpec = []string{artifactManifest, imageManifest}
+var supportedImageSpec = []string{imageSpecArtifact, imageSpecImage}
 
 type signOpts struct {
 	cmd.LoggingFlagOpts
@@ -69,7 +69,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// sanity check
 			if !validateImageSpec(opts.imageSpec) {
-				return fmt.Errorf("image spec has to be in %v, got %s", supportedImageSpec, opts.imageSpec)
+				return fmt.Errorf("image spec must be one of the following %v but got %s", supportedImageSpec, opts.imageSpec)
 			}
 			return runSign(cmd, opts)
 		},
@@ -79,7 +79,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.imageSpec, "artifact-type", artifactManifest, "manifest type for signatures. options: v1.1-artifact, v1.1-image")
+	command.Flags().StringVar(&opts.imageSpec, "image-spec", imageSpecArtifact, "manifest type for signatures. options: v1.1-artifact, v1.1-image")
 	return command
 }
 
@@ -92,10 +92,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	var ociImageManifest bool
-	if cmdOpts.imageSpec == imageManifest {
-		ociImageManifest = true
-	}
+	ociImageManifest := cmdOpts.imageSpec == imageSpecImage
 	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
 	if err != nil {
 		return err
@@ -145,5 +142,5 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 }
 
 func validateImageSpec(imageSpec string) bool {
-	return slices.ContainsGenerics(supportedImageSpec, imageSpec)
+	return slices.ContainerElement(supportedImageSpec, imageSpec)
 }

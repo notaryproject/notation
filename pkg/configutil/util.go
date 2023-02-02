@@ -45,7 +45,7 @@ func ResolveKey(name string) (config.KeySuite, error) {
 				" Please set default singing key or specify a key name")
 		}
 	}
-	
+
 	idx := slices.Index(signingKeys.Keys, name)
 	if idx < 0 {
 		return config.KeySuite{}, ErrKeyNotFound
