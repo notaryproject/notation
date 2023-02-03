@@ -52,7 +52,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchErrKeyWords(`trust policy statement "e2e" has malformed trust store value "*". Format <TrustStoreType>:<TrustStoreName> is required`)
+				MatchErrKeyWords(`trust policy statement "e2e" has malformed trust store value "*". The required format is <TrustStoreType>:<TrustStoreName>`)
 		})
 	})
 
