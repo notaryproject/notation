@@ -86,12 +86,11 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 		return nil, err
 	}
 
-	remoteRepo := &remote.Repository{
+	return &remote.Repository{
 		Client:    authClient,
 		Reference: ref,
 		PlainHTTP: plainHTTP,
-	}
-	return remoteRepo, nil
+	}, nil
 }
 
 func getRegistryClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
