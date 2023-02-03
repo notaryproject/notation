@@ -97,4 +97,4 @@ export NOTATION_E2E_TEST_TAG=v1
 export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME
 
 # run tests
-ginkgo -r -p -v --focus "notation plugin verify"
+ginkgo -r -p -v 
