@@ -122,12 +122,12 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 
-	signOpts := notation.RemoteSignOptions{}
-	signOpts.ArtifactReference = ref.String()
-	signOpts.SignatureMediaType = mediaType
-	signOpts.ExpiryDuration = opts.expiry
-	signOpts.PluginConfig = pluginConfig
-	signOpts.UserMetadata = userMetadata
-
+	signOpts := notation.RemoteSignOptions{
+	    ArtifactReference: ref.String(),
+	    SignatureMediaType: mediaType,
+	    ExpiryDuration: opts.expiry,
+	    PluginConfig: pluginConfig,
+	    UserMetadata: userMetadata,
+	}
 	return signOpts, ref, nil
 }
