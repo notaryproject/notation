@@ -16,10 +16,19 @@ type X509KeyPair struct {
 	CertificatePath string `json:"certPath"`
 }
 
+// ExternalKey contains the necessary information to delegate
+// the signing operation to the named plugin.
+type ExternalKey struct {
+	ID           string            `json:"id,omitempty"`
+	PluginName   string            `json:"pluginName,omitempty"`
+	PluginConfig map[string]string `json:"pluginConfig,omitempty"`
+}
+
 // KeySuite is a named key suite.
 type KeySuite struct {
 	Name string `json:"name"`
 	*X509KeyPair
+	*ExternalKey
 }
 
 // SigningKeys reflects the signingkeys.json file.
@@ -28,12 +37,12 @@ type SigningKeys struct {
 	Keys    []KeySuite `json:"keys"`
 }
 
-// AddTestKeyPairs creates the signingkeys.json file and the localkeys directory
+// AddKeyPairs creates the signingkeys.json file and the localkeys directory
 // with e2e.key and e2e.crt
-func AddTestKeyPairs(dir, keyName, certName string) error {
+func AddKeyPairs(dir, keyName, certName string) error {
 	// create signingkeys.json files
 	if err := saveJSON(
-		genTestSigningKey(dir),
+		generateSigningKeys(dir),
 		filepath.Join(dir, SigningKeysFileName)); err != nil {
 		return err
 	}
@@ -49,7 +58,8 @@ func AddTestKeyPairs(dir, keyName, certName string) error {
 	return copyFile(filepath.Join(NotationE2ELocalKeysDir, certName), filepath.Join(localKeysDir, "e2e.crt"))
 }
 
-func genTestSigningKey(dir string) *SigningKeys {
+// generateSigningKeys generates the signingkeys.json for notation.
+func generateSigningKeys(dir string) *SigningKeys {
 	return &SigningKeys{
 		Default: "e2e",
 		Keys: []KeySuite{
@@ -58,6 +68,25 @@ func genTestSigningKey(dir string) *SigningKeys {
 				X509KeyPair: &X509KeyPair{
 					KeyPath:         filepath.Join(dir, "localkeys", "e2e.key"),
 					CertificatePath: filepath.Join(dir, "localkeys", "e2e.crt"),
+				},
+			},
+		},
+	}
+}
+
+// generatePluginKeys generates pluginkeys.json for e2e-plugin.
+func generatePluginKeys(dir string) *SigningKeys {
+	return &SigningKeys{
+		Keys: []KeySuite{
+			{
+				Name: "e2e-plugin",
+				X509KeyPair: &X509KeyPair{
+					KeyPath:         filepath.Join(dir, "localkeys", "e2e.key"),
+					CertificatePath: filepath.Join(dir, "localkeys", "e2e.crt"),
+				},
+				ExternalKey: &ExternalKey{
+					ID:         "key1",
+					PluginName: PluginName,
 				},
 			},
 		},

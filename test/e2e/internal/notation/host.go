@@ -100,7 +100,7 @@ func AuthOption(username, password string) utils.HostOption {
 // the notation directory.
 func AddKeyOption(keyName, certName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return AddTestKeyPairs(vhost.AbsolutePath(NotationDirName), keyName, certName)
+		return AddKeyPairs(vhost.AbsolutePath(NotationDirName), keyName, certName)
 	}
 }
 
@@ -120,6 +120,26 @@ func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 		return copyFile(
 			filepath.Join(NotationE2ETrustPolicyDir, trustpolicyName),
 			vhost.AbsolutePath(NotationDirName, TrustPolicyName),
+		)
+	}
+}
+
+func AddPlugin(pluginPath string) utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		// add pluginkeys.json configuration file for e2e-plugin
+		saveJSON(
+			generatePluginKeys(vhost.AbsolutePath(NotationDirName)),
+			vhost.AbsolutePath(NotationDirName, "pluginkeys.json"),
+		)
+
+		// install plugin
+		e2ePluginDir := vhost.AbsolutePath(NotationDirName, PluginDirName, PluginName)
+		if err := os.MkdirAll(e2ePluginDir, 0700); err != nil {
+			return err
+		}
+		return copyFile(
+			NotationE2EPluginPath,
+			filepath.Join(e2ePluginDir, "notation-"+PluginName),
 		)
 	}
 }
