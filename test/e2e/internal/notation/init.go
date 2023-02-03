@@ -14,6 +14,8 @@ const (
 	TrustPolicyName   = "trustpolicy.json"
 	TrustStoreDirName = "truststore"
 	TrustStoreTypeCA  = "ca"
+	PluginDirName     = "plugins"
+	PluginName        = "e2e-plugin"
 )
 
 const (
@@ -22,6 +24,7 @@ const (
 	envKeyRegistryPassword   = "NOTATION_E2E_REGISTRY_PASSWORD"
 	envKeyNotationBinPath    = "NOTATION_E2E_BINARY_PATH"
 	envKeyNotationOldBinPath = "NOTATION_E2E_OLD_BINARY_PATH"
+	envKeyNotationPluginPath = "NOTATION_E2E_PLUGIN_PATH"
 	envKeyNotationConfigPath = "NOTATION_E2E_CONFIG_PATH"
 	envKeyOCILayoutPath      = "NOTATION_E2E_OCI_LAYOUT_PATH"
 	envKeyTestRepo           = "NOTATION_E2E_TEST_REPO"
@@ -34,15 +37,17 @@ var (
 	// NotationOldBinPath is the path of an old version notation binary for
 	// testing forward compatibility.
 	NotationOldBinPath        string
+	NotationE2EPluginPath     string
 	NotationE2EConfigPath     string
 	NotationE2ELocalKeysDir   string
 	NotationE2ETrustPolicyDir string
 )
 
 var (
-	OCILayoutPath string
-	TestRepoUri   string
-	TestTag       string
+	OCILayoutPath       string
+	TestRepoUri         string
+	TestTag             string
+	RegistryStoragePath string
 )
 
 func init() {
@@ -65,6 +70,9 @@ func setUpNotationValues() {
 	// set Notation binary path
 	setPathValue(envKeyNotationBinPath, &NotationBinPath)
 	setPathValue(envKeyNotationOldBinPath, &NotationOldBinPath)
+
+	// set Notation e2e-plugin path
+	setPathValue(envKeyNotationPluginPath, &NotationE2EPluginPath)
 
 	// set Notation configuration paths
 	setPathValue(envKeyNotationConfigPath, &NotationE2EConfigPath)
