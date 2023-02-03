@@ -102,8 +102,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilitySignatureGenerator)+"=true",
-				"-c", mock.TamperKeyID+"=key10").
+				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
+				"--plugin-config", mock.TamperKeyID+"=key10").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -122,8 +122,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilitySignatureGenerator)+"=true",
-				"-c", mock.TamperSignature+"=invalid_sig").
+				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
+				"--plugin-config", mock.TamperSignature+"=invalid_sig").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -143,8 +143,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilitySignatureGenerator)+"=true",
-				"-c", mock.TamperSignatureAlgorithm+"=invalid_alg").
+				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
+				"--plugin-config", mock.TamperSignatureAlgorithm+"=invalid_alg").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -162,8 +162,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilitySignatureGenerator)+"=true",
-				"-c", mock.TamperCertificateChain+"=invalid_cert_chain").
+				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
+				"--plugin-config", mock.TamperCertificateChain+"=invalid_cert_chain").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -182,8 +182,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilityEnvelopeGenerator)+"=true",
-				"-c", mock.TamperSignatureEnvelope+"={}").
+				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
+				"--plugin-config", mock.TamperSignatureEnvelope+"={}").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -202,8 +202,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilityEnvelopeGenerator)+"=true",
-				"-c", mock.TamperSignatureEnvelopeType+"="+cose.MediaTypeEnvelope).
+				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
+				"--plugin-config", mock.TamperSignatureEnvelopeType+"="+cose.MediaTypeEnvelope).
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -222,8 +222,8 @@ var _ = Describe("notation plugin sign", func() {
 			// setup plugin and plugin-key
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
-				"-c", string(CapabilityEnvelopeGenerator)+"=true",
-				"-c", mock.TamperAnnotation+"=k1=v1").
+				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
+				"--plugin-config", mock.TamperAnnotation+"=k1=v1").
 				MatchKeyWords("plugin-key")
 
 			// run signing
