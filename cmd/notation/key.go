@@ -225,17 +225,16 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	logger := log.GetLogger(ctx)
 
 	// core process
-	var deletedNames []string 
+	var deletedNames []string
 	var prevDefault string
 	exec := func(s *config.SigningKeys) error {
 		prevDefault = *s.Default
 		var err error
-		deletedNames, err = s.Remove(opts.names)
+		deletedNames, err = s.Remove(opts.names...)
 		if err != nil {
 			logger.Error("Keys deletion failed to complete with error: %v", err)
 		}
 		return err
-		
 	}
 	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err
@@ -251,4 +250,3 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	}
 	return nil
 }
-
