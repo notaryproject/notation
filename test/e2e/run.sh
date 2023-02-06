@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+CWD=$(pwd)
 SUPPORTED_REGISTRY=("zot" "dockerhub")
 
 function help {
@@ -22,7 +23,7 @@ fi
 
 # check notation binary path.
 export NOTATION_E2E_BINARY_PATH=$(if [ ! -z "$2" ]; then realpath $2; fi)
-if [ ! -f "$NOTATION_E2E_BINARY_PATH" ];then
+if [ ! -f "$NOTATION_E2E_BINARY_PATH" ]; then
     echo "notation binary path doesn't exist."
     help
     exit 1
@@ -30,7 +31,7 @@ fi
 
 # check old notation binary path for forward compatibility test.
 export NOTATION_E2E_OLD_BINARY_PATH=$(if [ ! -z "$3" ]; then realpath $3; fi)
-if [ ! -f "$NOTATION_E2E_OLD_BINARY_PATH" ];then
+if [ ! -f "$NOTATION_E2E_OLD_BINARY_PATH" ]; then
     OLD_NOTATION_DIR=/tmp/notation_old
     export NOTATION_E2E_OLD_BINARY_PATH=$OLD_NOTATION_DIR/notation
     mkdir -p $OLD_NOTATION_DIR
@@ -58,22 +59,26 @@ fi
 # install dependency
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.3.0
 
+# build e2e plugin
+PLUGIN_NAME=e2e-plugin
+( cd $CWD/plugin && go build -o ./bin/$PLUGIN_NAME . && echo "e2e plugin built." )
+
 # setup registry
 case $REGISTRY_NAME in
 
-    "zot")
-        source ./scripts/zot.sh
-        ;;
+"zot")
+    source ./scripts/zot.sh
+    ;;
 
-    "dockerhub")
-        source ./scripts/dockerhub.sh
-        ;;
+"dockerhub")
+    source ./scripts/dockerhub.sh
+    ;;
 
-    *)
-        echo "invalid registry"
-        help
-        exit 1
-        ;;
+*)
+    echo "invalid registry"
+    help
+    exit 1
+    ;;
 esac
 
 setup_registry
@@ -85,10 +90,11 @@ function cleanup {
 trap cleanup EXIT
 
 # set environment variable for E2E testing
-export NOTATION_E2E_CONFIG_PATH=`pwd`/testdata/config
-export NOTATION_E2E_OCI_LAYOUT_PATH=`pwd`/testdata/registry/oci_layout
+export NOTATION_E2E_CONFIG_PATH=$CWD/testdata/config
+export NOTATION_E2E_OCI_LAYOUT_PATH=$CWD/testdata/registry/oci_layout
 export NOTATION_E2E_TEST_REPO=e2e
 export NOTATION_E2E_TEST_TAG=v1
+export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME
 
 # run tests
 ginkgo -r -p -v

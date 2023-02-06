@@ -4,16 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/notaryproject/notation-go/config"
 	"os"
 
-	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
-	"github.com/notaryproject/notation/internal/slices"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -166,7 +162,6 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
-	logger := log.GetLogger(ctx)
 
 	signingKeys, err := configutil.LoadSigningkeysOnce()
 	if err != nil {
@@ -222,27 +217,23 @@ func addExternalKey(ctx context.Context, opts *keyAddOpts, pluginName, keyName s
 	}
 	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
-		return config.KeySuite{}, err
+		return err
 	}
 
-	return config.KeySuite{
-		Name: keyName,
-		ExternalKey: &config.ExternalKey{
-			ID:           id,
-			PluginName:   pluginName,
-			PluginConfig: pluginConfig,
-		},
-	}, nil
-}
+	// core process
+	exec := func(s *config.SigningKeys) error {
+		return s.AddPlugin(ctx, opts.name, opts.id, opts.plugin, pluginConfig, opts.isDefault)
+	}
+	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+		return err
+	}
 
-func addKeyCore(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
-	if slices.Contains(signingKeys.Keys, key.Name) {
-		return fmt.Errorf("signing key with name %q already exists", key.Name)
+	if opts.isDefault {
+		fmt.Printf("%s: marked as default\n", opts.name)
+	} else {
+		fmt.Println(opts.name)
 	}
-	signingKeys.Keys = append(signingKeys.Keys, key)
-	if markDefault {
-		signingKeys.Default = key.Name
-	}
+
 	return nil
 }
 
@@ -251,35 +242,27 @@ func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
 	logger := log.GetLogger(ctx)
 
-	// initialize
-	name := opts.name
-	// core process
-	signingKeys, err := configutil.LoadSigningkeysOnce()
-	if err != nil {
-		return err
-	}
-	if !slices.Contains(signingKeys.Keys, name) {
-		return errors.New(name + ": not found")
-	}
 	if !opts.isDefault {
 		logger.Warn("--default flag is not set, command did not take effect")
 		return nil
 	}
-	if signingKeys.Default != name {
-		signingKeys.Default = name
-		if err := signingKeys.Save(); err != nil {
-			return err
-		}
+
+	// core process
+	exec := func(s *config.SigningKeys) error {
+		return s.UpdateDefault(opts.name)
+	}
+	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+		return err
 	}
 
 	// write out
-	fmt.Printf("%s: marked as default\n", name)
+	fmt.Printf("%s: marked as default\n", opts.name)
 	return nil
 }
 
 func listKeys() error {
 	// core process
-	signingKeys, err := configutil.LoadSigningkeysOnce()
+	signingKeys, err := config.LoadSigningKeys()
 	if err != nil {
 		return err
 	}
@@ -294,26 +277,18 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	logger := log.GetLogger(ctx)
 
 	// core process
-	signingKeys, err := configutil.LoadSigningkeysOnce()
-	if err != nil {
+	var deletedNames []string
+	var prevDefault string
+	exec := func(s *config.SigningKeys) error {
+		prevDefault = *s.Default
+		var err error
+		deletedNames, err = s.Remove(opts.names...)
+		if err != nil {
+			logger.Errorf("Keys deletion failed to complete with error: %v", err)
+		}
 		return err
 	}
-
-	prevDefault := signingKeys.Default
-	var deletedNames []string
-	for _, name := range opts.names {
-		idx := slices.Index(signingKeys.Keys, name)
-		if idx < 0 {
-			logger.Warnf("Key %s not found, command did not take effect", name)
-			return errors.New(name + ": not found")
-		}
-		signingKeys.Keys = slices.Delete(signingKeys.Keys, idx)
-		deletedNames = append(deletedNames, name)
-		if prevDefault == name {
-			signingKeys.Default = ""
-		}
-	}
-	if err := signingKeys.Save(); err != nil {
+	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err
 	}
 

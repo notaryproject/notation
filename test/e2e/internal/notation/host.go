@@ -100,11 +100,11 @@ func AuthOption(username, password string) utils.HostOption {
 // the notation directory.
 func AddKeyOption(keyName, certName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return AddTestKeyPairs(vhost.AbsolutePath(NotationDirName), keyName, certName)
+		return AddKeyPairs(vhost.AbsolutePath(NotationDirName), keyName, certName)
 	}
 }
 
-// AddTrustStoreOption added the test cert to the trust store.
+// AddTrustStoreOption adds the test cert to the trust store.
 func AddTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
 		vhost.Executor.
@@ -114,7 +114,7 @@ func AddTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption
 	}
 }
 
-// AddTrustPolicyOption added a valid trust policy for testing
+// AddTrustPolicyOption adds a valid trust policy for testing.
 func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
 		return copyFile(
@@ -124,7 +124,28 @@ func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 	}
 }
 
-// authEnv creates an auth info
+// AddPlugin adds a pluginkeys.json config file and installs an e2e-plugin.
+func AddPlugin(pluginPath string) utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		// add pluginkeys.json configuration file for e2e-plugin
+		saveJSON(
+			generatePluginKeys(vhost.AbsolutePath(NotationDirName)),
+			vhost.AbsolutePath(NotationDirName, "pluginkeys.json"),
+		)
+
+		// install plugin
+		e2ePluginDir := vhost.AbsolutePath(NotationDirName, PluginDirName, PluginName)
+		if err := os.MkdirAll(e2ePluginDir, 0700); err != nil {
+			return err
+		}
+		return copyFile(
+			NotationE2EPluginPath,
+			filepath.Join(e2ePluginDir, "notation-"+PluginName),
+		)
+	}
+}
+
+// authEnv creates an auth info.
 // (By setting $NOTATION_USERNAME and $NOTATION_PASSWORD)
 func authEnv(username, password string) map[string]string {
 	return map[string]string{
