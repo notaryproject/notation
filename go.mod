@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation
 
-go 1.19
+go 1.20
 
 require (
 	github.com/docker/docker-credential-helpers v0.7.0
