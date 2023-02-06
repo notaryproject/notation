@@ -172,15 +172,13 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 }
 
 func printResult(outputFormat, reference string, outcome *notation.VerificationOutcome) error {
-
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
 		if outputFormat == ioutil.OutputPlaintext {
 			fmt.Println("Trust policy is configured to skip signature verification for", reference)
 			return nil
-		} else {
-			output := verifyOutput{Reference: reference, Result: "Skipped", UserMetadata: map[string]string{}}
-			return ioutil.PrintObjectAsJson(output)
 		}
+		output := verifyOutput{Reference: reference, Result: "Skipped", UserMetadata: map[string]string{}}
+		return ioutil.PrintObjectAsJson(output)
 	}
 
 	// the signature envelope is parsed as part of verification.
