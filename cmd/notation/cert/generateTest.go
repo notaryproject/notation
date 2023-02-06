@@ -14,6 +14,8 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/internal/slices"
+	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -109,11 +111,21 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 	fmt.Println("wrote certificate:", certPath)
 
-	// update signingkeys.json config
-	exec := func(s *config.SigningKeys) error {
-		return s.Add(opts.name, keyPath, certPath, opts.isDefault)
+	// update config
+	signingKeys, err := configutil.LoadSigningkeysOnce()
+	if err != nil {
+		return err
 	}
-	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+	isDefault := opts.isDefault
+	keySuite := config.KeySuite{
+		Name: name,
+		X509KeyPair: &config.X509KeyPair{
+			KeyPath:         keyPath,
+			CertificatePath: certPath,
+		},
+	}
+	err = addKeyToSigningKeys(signingKeys, keySuite, isDefault)
+	if err != nil {
 		return err
 	}
 
@@ -122,9 +134,14 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 
+	// Save to the SigningKeys.json
+	if err := signingKeys.Save(); err != nil {
+		return err
+	}
+
 	// write out
 	fmt.Printf("%s: added to the key list\n", name)
-	if opts.isDefault {
+	if isDefault {
 		fmt.Printf("%s: mark as default signing key\n", name)
 	}
 	return nil
@@ -151,4 +168,15 @@ func generateCertPEM(rsaCertTuple *testhelper.RSACertTuple) []byte {
 func generateSelfSignedCert(privateKey *rsa.PrivateKey, name string) (testhelper.RSACertTuple, []byte, error) {
 	rsaCertTuple := testhelper.GetRSASelfSignedCertTupleWithPK(privateKey, name)
 	return rsaCertTuple, generateCertPEM(&rsaCertTuple), nil
+}
+
+func addKeyToSigningKeys(signingKeys *config.SigningKeys, key config.KeySuite, markDefault bool) error {
+	if slices.Contains(signingKeys.Keys, key.Name) {
+		return fmt.Errorf("signing key with name %q already exists", key.Name)
+	}
+	signingKeys.Keys = append(signingKeys.Keys, key)
+	if markDefault {
+		signingKeys.Default = key.Name
+	}
+	return nil
 }

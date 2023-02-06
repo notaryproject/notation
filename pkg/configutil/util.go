@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation/internal/slices"
 )
 
 var (
@@ -29,15 +30,25 @@ func IsRegistryInsecure(target string) bool {
 // ResolveKey resolves the key by name.
 // The default key is attempted if name is empty.
 func ResolveKey(name string) (config.KeySuite, error) {
-	signingKeys, err := config.LoadSigningKeys()
+	signingKeys, err := LoadSigningkeysOnce()
 	if err != nil {
 		return config.KeySuite{}, err
 	}
 
 	// if name is empty, look for default signing key
 	if name == "" {
-		return signingKeys.GetDefault()
+		name = signingKeys.Default
+
+		// if name is still empty, return error
+		if name == "" {
+			return config.KeySuite{}, errors.New("default signing key not set." +
+				" Please set default singing key or specify a key name")
+		}
 	}
 	
-	return signingKeys.Get(name)
+	idx := slices.Index(signingKeys.Keys, name)
+	if idx < 0 {
+		return config.KeySuite{}, ErrKeyNotFound
+	}
+	return signingKeys.Keys[idx], nil
 }

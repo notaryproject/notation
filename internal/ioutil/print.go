@@ -18,12 +18,12 @@ func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
 
-func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
+func PrintKeyMap(w io.Writer, target string, v []config.KeySuite) error {
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "NAME\tKEY PATH\tCERTIFICATE PATH\tID\tPLUGIN NAME\t")
 	for _, key := range v {
 		name := key.Name
-		if target != nil && key.Name == *target {
+		if key.Name == target {
 			name = "* " + name
 		}
 		kp := key.X509KeyPair
