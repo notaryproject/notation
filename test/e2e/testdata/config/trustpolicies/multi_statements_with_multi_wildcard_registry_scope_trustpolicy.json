@@ -1,0 +1,28 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "e2e",
+            "registryScopes": [ "*"],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        },
+        {
+            "name": "e2e2",
+            "registryScopes": [ "*"],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        }
+
+    ]
+}
