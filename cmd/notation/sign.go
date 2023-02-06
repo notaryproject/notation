@@ -148,5 +148,5 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 }
 
 func validateImageSpec(imageSpec string) bool {
-	return slices.ContainerElement(supportedImageSpec, imageSpec)
+	return slices.Contains(supportedImageSpec, imageSpec)
 }
