@@ -38,10 +38,5 @@ func ResolveKey(name string) (config.KeySuite, error) {
 	if name == "" {
 		return signingKeys.GetDefault()
 	}
-
-	idx := slices.Index(signingKeys.Keys, name)
-	if idx < 0 {
-		return config.KeySuite{}, ErrKeyNotFound
-	}
-	return signingKeys.Keys[idx], nil
+	return signingKeys.Get(name)
 }
