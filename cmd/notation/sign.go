@@ -18,20 +18,20 @@ import (
 )
 
 const (
-	imageSpecArtifact = "v1.1-artifact"
-	imageSpecImage    = "v1.1-image"
+	sigArtifactManifest = "artifact"
+	sigImageManifest    = "image"
 )
 
-var supportedImageSpec = []string{imageSpecArtifact, imageSpecImage}
+var supportedSignatureManifest = []string{sigArtifactManifest, sigImageManifest}
 
 type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
 	SecureFlagOpts
-	expiry       time.Duration
-	pluginConfig []string
-	reference    string
-	imageSpec    string
+	expiry            time.Duration
+	pluginConfig      []string
+	reference         string
+	signatureManifest string
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -60,11 +60,11 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
-Example - Sign an OCI image using the default signing key, with the default JWS envelope:
-  notation sign --image-spec v1.1-image <registry>/<repository>@<digest>
+Example - Sign an OCI artifact and use OCI image manifest to store the signature, with the default JWS envelope:
+  notation sign --signature-manifest image <registry>/<repository>@<digest>
 
-Example - Sign an OCI image using the default signing key, with the COSE envelope:
-  notation sign --image-spec v1.1-image --signature-format cose <registry>/<repository>@<digest> 
+Example - Sign an OCI artifact and use OCI image manifest to store the signature, with the COSE envelope:
+  notation sign --signature-manifest image --signature-format cose <registry>/<repository>@<digest> 
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -75,8 +75,8 @@ Example - Sign an OCI image using the default signing key, with the COSE envelop
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// sanity check
-			if !validateImageSpec(opts.imageSpec) {
-				return fmt.Errorf("image spec must be one of the following %v but got %s", supportedImageSpec, opts.imageSpec)
+			if !validateSignatureManifest(opts.signatureManifest) {
+				return fmt.Errorf("image spec must be one of the following %v but got %s", supportedSignatureManifest, opts.signatureManifest)
 			}
 			return runSign(cmd, opts)
 		},
@@ -86,7 +86,7 @@ Example - Sign an OCI image using the default signing key, with the COSE envelop
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.imageSpec, "image-spec", imageSpecArtifact, "manifest type for signatures. options: v1.1-artifact, v1.1-image")
+	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", sigArtifactManifest, "manifest type for signatures. options: artifact, image")
 	return command
 }
 
@@ -99,7 +99,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	ociImageManifest := cmdOpts.imageSpec == imageSpecImage
+	ociImageManifest := cmdOpts.signatureManifest == sigImageManifest
 	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
 	if err != nil {
 		return err
@@ -147,6 +147,6 @@ func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notation
 	return signOpts, ref, nil
 }
 
-func validateImageSpec(imageSpec string) bool {
-	return slices.Contains(supportedImageSpec, imageSpec)
+func validateSignatureManifest(signatureManifest string) bool {
+	return slices.Contains(supportedSignatureManifest, signatureManifest)
 }
