@@ -76,7 +76,7 @@ Example - Sign an OCI artifact and use OCI image manifest to store the signature
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// sanity check
 			if !validateSignatureManifest(opts.signatureManifest) {
-				return fmt.Errorf("image spec must be one of the following %v but got %s", supportedSignatureManifest, opts.signatureManifest)
+				return fmt.Errorf("signature manifest must be one of the following %v but got %s", supportedSignatureManifest, opts.signatureManifest)
 			}
 			return runSign(cmd, opts)
 		},
