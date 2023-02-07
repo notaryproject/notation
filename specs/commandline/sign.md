@@ -35,14 +35,14 @@ Flags:
        --plain-http                 registry access via plain HTTP
        --plugin-config strings      {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --signature-manifest string  manifest type for signatures. options: "image", "artifact" (default "artifact")
+       --signature-manifest string  manifest type for signatures, options: "image", "artifact" (default "artifact")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata strings      {key}={value} pairs that are added to the signature payload
 ```
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For registries that don't support `OCI artifact` or [Referrers API][oci-referers-api] is not enabled in registries, users can use flag `--signature-manifest image` to force Notation to store the signatures using [OCI image manifest][oci-image-spec].
+By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For registries that don't support `OCI artifact` or [Referrers API][oci-referers-api] is not enabled in registries, users should use flag `--signature-manifest image` to force Notation to store the signatures using [OCI image manifest][oci-image-spec].
 
 Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
 
