@@ -1,0 +1,22 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "e2e",
+            "registryScopes": [ "*" ],
+            "signatureVerification": {
+                "level" : "audit",
+                "override" : {
+                    "revocation":"enforce",
+                    "expiry" : "enforce",
+                    "authenticTimestamp": "enforce",
+                    "authenticity": "enforce"
+                }
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        }
+    ]
+}
