@@ -104,7 +104,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		if err != nil {
-			var errorVerificationFailed *notation.ErrorVerificationFailed
+			var errorVerificationFailed notation.ErrorVerificationFailed
 			if !errors.As(err, &errorVerificationFailed) {
 				return fmt.Errorf("signature verification failed: %w", err)
 			}
