@@ -1,0 +1,16 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-images",
+            "registryScopes": [ "*" ],
+            "signatureVerification": {
+                "level" : "strict" 
+            },
+            "trustStores": [ "ca:wabbit-networks.io" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        }
+    ]
+}

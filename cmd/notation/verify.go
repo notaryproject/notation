@@ -76,8 +76,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// resolve the given reference and set the digest
 	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		fmt.Printf("Resolved artifact tag `%s` to digest `%s` before verification.\n", ref.Reference, manifestDesc.Digest.String())
-		fmt.Println("Warning: The resolved digest may not point to the same signed artifact, since tags are mutable.")
+		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
 	})
 	if err != nil {
 		return err
@@ -130,7 +129,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			fmt.Printf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
+			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 		}
 	}
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
