@@ -76,10 +76,8 @@ var (
 		Name:      "user-metadata",
 		Shorthand: "m",
 	}
-
 	PflagUserMetadataSignUsage = "{key}={value} pairs that are added to the signature payload"
 	PflagUserMetadataVerifyUsage = "user defined {key}={value} pairs that must be present in the signature for successful verification if provided"
-
 	SetPflagUserMetadata = func(fs *pflag.FlagSet, p *[]string, usage string) {
 		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
 	}

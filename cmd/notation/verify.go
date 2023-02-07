@@ -167,6 +167,8 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 	// this error can be ignored
 	metadata, _ := outcome.UserMetadata()
 
-	fmt.Println("\nThe artifact was signed with the following user metadata.")
-	ioutil.PrintMetadataMap(os.Stdout, metadata)
+	if len(metadata) > 0 {
+		fmt.Println("\nThe artifact was signed with the following user metadata.")
+		ioutil.PrintMetadataMap(os.Stdout, metadata)
+	}
 }
