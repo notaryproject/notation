@@ -42,7 +42,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For registries that don't support `OCI artifact` or [Referrers API][oci-referers-api] is not enabled in registries, users should use flag `--signature-manifest image` to force Notation to store the signatures using [OCI image manifest][oci-image-spec].
+By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For registries that don't support `OCI artifact` or [Referrers API][oci-referers-api] is not enabled, users SHOULD use flag `--signature-manifest image` to force Notation to store the signatures using [OCI image manifest][oci-image-spec].
 
 Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
 
