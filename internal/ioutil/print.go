@@ -32,3 +32,14 @@ func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
 	}
 	return tw.Flush()
 }
+
+func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
+	tw := newTabWriter(w)
+	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
+
+	for k, v := range metadata {
+		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
+	}
+
+	return tw.Flush()
+}
