@@ -12,10 +12,6 @@ var (
 	// configInfo is the config.json data
 	configInfo *config.Config
 	configOnce sync.Once
-
-	// signingKeyInfo if the signingkeys.json data
-	signingKeysInfo *config.SigningKeys
-	signingKeysOnce sync.Once
 )
 
 // LoadConfigOnce returns the previously read config file.
@@ -26,6 +22,9 @@ func LoadConfigOnce() (*config.Config, error) {
 	var err error
 	configOnce.Do(func() {
 		configInfo, err = config.LoadConfig()
+		if err != nil {
+			return
+		}
 		// set default value
 		configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
 		if configInfo.SignatureFormat == "" {
