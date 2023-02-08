@@ -184,7 +184,7 @@ func printResult(outputFormat, reference string, outcome *notation.VerificationO
 	// the signature envelope is parsed as part of verification.
 	// since user metadata is only printed on successful verification,
 	// this error can be ignored
-	metadata, _ := outcome.GetUserMetadata()
+	metadata, _ := outcome.UserMetadata()
 
 	if outputFormat == ioutil.OutputJson {
 		output := verifyOutput{Reference: reference, Result: "Success", UserMetadata: metadata}
