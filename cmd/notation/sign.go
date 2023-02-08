@@ -18,11 +18,11 @@ import (
 )
 
 const (
-	sigArtifactManifest = "artifact"
-	sigImageManifest    = "image"
+	signatureManifestArtifact = "artifact"
+	signatureManifestImage    = "image"
 )
 
-var supportedSignatureManifest = []string{sigArtifactManifest, sigImageManifest}
+var supportedSignatureManifest = []string{signatureManifestArtifact, signatureManifestImage}
 
 type signOpts struct {
 	cmd.LoggingFlagOpts
@@ -62,9 +62,6 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 
 Example - Sign an OCI artifact and use OCI image manifest to store the signature, with the default JWS envelope:
   notation sign --signature-manifest image <registry>/<repository>@<digest>
-
-Example - Sign an OCI artifact and use OCI image manifest to store the signature, with the COSE envelope:
-  notation sign --signature-manifest image --signature-format cose <registry>/<repository>@<digest> 
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -86,7 +83,7 @@ Example - Sign an OCI artifact and use OCI image manifest to store the signature
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", sigArtifactManifest, "manifest type for signatures. options: artifact, image")
+	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestArtifact, "manifest type for signatures. options: artifact, image")
 	return command
 }
 
@@ -99,7 +96,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	ociImageManifest := cmdOpts.signatureManifest == sigImageManifest
+	ociImageManifest := cmdOpts.signatureManifest == signatureManifestImage
 	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
 	if err != nil {
 		return err
@@ -114,7 +111,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
 		if errors.As(err, &errorPushSignatureFailed) {
-			return fmt.Errorf("%v. This might be due to target registry does not support OCI artifact manifest. Try store signatures with OCI image manifest using `--signature-manifest image`", err)
+			return fmt.Errorf("%v. Target registry does not seem to support OCI artifact manifest. Try the flag `--signature-manifest image` to store signatures using OCI image manifest for backwards compatibility", err)
 		}
 		return err
 	}

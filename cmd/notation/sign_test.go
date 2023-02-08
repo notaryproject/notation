@@ -55,7 +55,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			SignatureFormat: envelope.COSE,
 		},
 		expiry:            24 * time.Hour,
-		signatureManifest: sigImageManifest,
+		signatureManifest: signatureManifestImage,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -65,7 +65,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--plain-http",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
-		"--signature-manifest", sigImageManifest}); err != nil {
+		"--signature-manifest", signatureManifestImage}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 
@@ -181,6 +180,7 @@ func getSavedCreds(ctx context.Context, serverAddress string) (auth.Credential, 
 }
 
 func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error {
+	logger := log.GetLogger(ctx)
 	if err := remoteRepo.SetReferrersCapability(true); err != nil {
 		return err
 	}
@@ -196,12 +196,15 @@ func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error 
 			return err
 		}
 		if isErrorCode(errResp, errcode.ErrorCodeNameUnknown) {
-			// The repository is not found.
+			// The repository is not found in the target registry.
+			// This is triggered when putting signatures to an empty repository.
+			// For notation, this path should never be triggered.
 			return err
 		}
 		// A 404 returned by Referrers API indicates that Referrers API is
 		// not supported.
-		errMsg := fmt.Sprintf("failed to ping Referrers API with error: %v. This is due to target registry does not support the Referrers API. Try store signatures with OCI image manifest using `--signature-manifest image`", err)
+		logger.Infof("failed to ping Referrers API with error: %v", err)
+		errMsg := "Target registry does not support the Referrers API. Try the flag `--signature-manifest image` to store signatures using OCI image manifest for backwards compatibility"
 		return notationerrors.ErrorReferrersAPINotSupported{Msg: errMsg}
 	}
 	return nil
