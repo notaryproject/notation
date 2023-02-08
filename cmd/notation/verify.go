@@ -177,7 +177,7 @@ func printResult(outputFormat, reference string, outcome *notation.VerificationO
 			fmt.Println("Trust policy is configured to skip signature verification for", reference)
 			return nil
 		}
-		output := verifyOutput{Reference: reference, Result: "Skipped", UserMetadata: map[string]string{}}
+		output := verifyOutput{Reference: reference, Result: "SkippedByTrustPolicy", UserMetadata: map[string]string{}}
 		return ioutil.PrintObjectAsJson(output)
 	}
 
