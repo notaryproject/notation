@@ -64,8 +64,6 @@ func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, re
 	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
 	if !ociImageManifest {
 		logger.Info("Use OCI artifact manifest and Referrers API to store signature")
-		var checkReferrerDesc ocispec.Descriptor
-		checkReferrerDesc.Digest = zeroDigest
 		// ping Referrers API
 		if err := pingReferrersAPI(ctx, remoteRepo); err != nil {
 			return nil, err
