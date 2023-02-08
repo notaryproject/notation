@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/docker/docker-credential-helpers v0.7.0
 	github.com/notaryproject/notation-core-go v1.0.0-rc.1
-	github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230203031935-510def1a3f48
+	github.com/notaryproject/notation-go v1.0.0-rc.1.0.20230207181533-5e5cba1e9adf
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc2
 	github.com/sirupsen/logrus v1.9.0

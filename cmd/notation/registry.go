@@ -71,7 +71,7 @@ func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, re
 			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to ping Referrers API with error: %v. Try store signatures with OCI image manifest using `--signature-manifest image`", err)
+			return nil, fmt.Errorf("failed to ping Referrers API with error: %v. This might be due to target registry does not support the Referrers API. Try store signatures with OCI image manifest using `--signature-manifest image`", err)
 		}
 	}
 	repositoryOpts := notationregistry.RepositoryOptions{
