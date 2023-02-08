@@ -73,7 +73,7 @@ var _ = Describe("notation verify", func() {
 					"123",
 				)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "--user-metadata", "io.wabbit-networks.buildId=321").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "--user-metadata", "io.wabbit-networks.buildId=321").
 				MatchErrKeyWords("unable to find specified metadata in the signature")
 		})
 	})
@@ -86,7 +86,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "--output", "json").
 				MatchContent(fmt.Sprintf("{\n    \"reference\": \"%s\",\n    \"userMetadata\": {\n        \"io.wabbit-networks.buildId\": \"123\"\n    },\n    \"result\": \"Success\"\n}\n", artifact.ReferenceWithDigest()))
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "--user-metadata", "io.wabbit-networks.buildId=321").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "--user-metadata", "io.wabbit-networks.buildId=321").
 				MatchErrKeyWords("unable to find specified metadata in the signature")
 		})
 	})
