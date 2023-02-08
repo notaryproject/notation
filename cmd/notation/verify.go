@@ -150,13 +150,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	return printResult(opts.outputFormat, ref.String(), outcome)
-	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
-	} else {
-		fmt.Println("Successfully verified signature for", ref.String())
-		printMetadataIfPresent(outcome)
-	}
-	return nil
 }
 
 func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
