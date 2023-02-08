@@ -9,6 +9,7 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
@@ -18,6 +19,7 @@ import (
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/errcode"
 )
 
 const zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
@@ -43,6 +45,7 @@ func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference
 // Referrers tag schema.
 // Otherwise, use OCI artifact manifest and requires the Referrers API.
 func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
+	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
@@ -53,25 +56,25 @@ func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, re
 	if err != nil {
 		return nil, err
 	}
+
 	// Notation enforces the following two paths during Sign process:
 	// 1. OCI artifact manifest uses the Referrers API
 	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
 	// 2. OCI image manifest uses the Referrers Tag Schema
 	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
-	if err := remoteRepo.SetReferrersCapability(!ociImageManifest); err != nil {
-		return nil, err
-	}
-	// when using OCI artifact manifest to store signatures, needs to ping the
-	// Referrers API before Signing
 	if !ociImageManifest {
+		logger.Info("Use OCI artifact manifest to store signature")
 		var checkReferrerDesc ocispec.Descriptor
 		checkReferrerDesc.Digest = zeroDigest
 		// ping Referrers API
-		err := remoteRepo.Referrers(ctx, checkReferrerDesc, "", func(referrers []ocispec.Descriptor) error {
-			return nil
-		})
-		if err != nil {
-			return nil, fmt.Errorf("failed to ping Referrers API with error: %v. This might be due to target registry does not support the Referrers API. Try store signatures with OCI image manifest using `--signature-manifest image`", err)
+		if err := pingReferrersAPI(ctx, remoteRepo); err != nil {
+			return nil, err
+		}
+		logger.Info("Successfully pinged Referrers API on target registry")
+	} else {
+		logger.Info("Use OCI image manifest to store signature")
+		if err := remoteRepo.SetReferrersCapability(false); err != nil {
+			return nil, err
 		}
 	}
 	repositoryOpts := notationregistry.RepositoryOptions{
@@ -177,4 +180,37 @@ func getSavedCreds(ctx context.Context, serverAddress string) (auth.Credential, 
 	}
 
 	return nativeStore.Get(serverAddress)
+}
+
+func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error {
+	if err := remoteRepo.SetReferrersCapability(true); err != nil {
+		return err
+	}
+	var checkReferrerDesc ocispec.Descriptor
+	checkReferrerDesc.Digest = zeroDigest
+	// core process
+	err := remoteRepo.Referrers(ctx, checkReferrerDesc, "", func(referrers []ocispec.Descriptor) error {
+		return nil
+	})
+	if err != nil {
+		var errResp *errcode.ErrorResponse
+		if !errors.As(err, &errResp) || errResp.StatusCode != http.StatusNotFound {
+			return err
+		}
+		if isErrorCode(errResp, errcode.ErrorCodeNameUnknown) {
+			// The repository is not found.
+			return err
+		}
+		// A 404 returned by Referrers API indicates that Referrers API is
+		// not supported.
+		errMsg := fmt.Sprintf("failed to ping Referrers API with error: %v. This is due to target registry does not support the Referrers API. Try store signatures with OCI image manifest using `--signature-manifest image`", err)
+		return notationerrors.ErrorReferrersAPINotSupported{Msg: errMsg}
+	}
+	return nil
+}
+
+// isErrorCode returns true if err is an Error and its Code equals to code.
+func isErrorCode(err error, code string) bool {
+	var ec errcode.Error
+	return errors.As(err, &ec) && ec.Code == code
 }
