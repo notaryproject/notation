@@ -22,6 +22,7 @@ type signOpts struct {
 	SecureFlagOpts
 	expiry       time.Duration
 	pluginConfig []string
+	userMetadata []string
 	reference    string
 }
 
@@ -67,6 +68,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	return command
 }
 
@@ -99,29 +101,35 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, registry.Reference, error) {
+func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.RemoteSignOptions, registry.Reference, error) {
 	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
 	})
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
+	}
+	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	if err != nil {
+		return notation.RemoteSignOptions{}, registry.Reference{}, err
 	}
 
-	signOpts := notation.SignOptions{
-		ArtifactReference:  ref.String(),
-		SignatureMediaType: mediaType,
-		ExpiryDuration:     opts.expiry,
-		PluginConfig:       pluginConfig,
+	signOpts := notation.RemoteSignOptions{
+		SignOptions: notation.SignOptions{
+			ArtifactReference:  ref.String(),
+			SignatureMediaType: mediaType,
+			ExpiryDuration:     opts.expiry,
+			PluginConfig:       pluginConfig,
+		},
+		UserMetadata: userMetadata,
 	}
-
 	return signOpts, ref, nil
 }

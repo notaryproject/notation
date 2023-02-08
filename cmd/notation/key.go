@@ -163,7 +163,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
 
-	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
