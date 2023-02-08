@@ -1,7 +1,6 @@
 package configutil
 
 import (
-	"sync"
 	"testing"
 )
 
@@ -17,5 +16,4 @@ func TestLoadConfigOnce(t *testing.T) {
 	if config1 != config2 {
 		t.Fatal("LoadConfigOnce is invalid.")
 	}
-	configOnce = sync.Once{}
 }

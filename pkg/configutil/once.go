@@ -12,10 +12,6 @@ var (
 	// configInfo is the config.json data
 	configInfo *config.Config
 	configOnce sync.Once
-
-	// signingKeyInfo if the signingkeys.json data
-	signingKeysInfo *config.SigningKeys
-	signingKeysOnce sync.Once
 )
 
 // LoadConfigOnce returns the previously read config file.

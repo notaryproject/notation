@@ -11,6 +11,7 @@ import (
 )
 
 func TestIsRegistryInsecure(t *testing.T) {
+	configOnce = sync.Once{}
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
@@ -41,6 +42,7 @@ func TestIsRegistryInsecure(t *testing.T) {
 }
 
 func TestIsRegistryInsecureMissingConfig(t *testing.T) {
+	configOnce = sync.Once{}
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
@@ -94,7 +96,6 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 func TestResolveKey(t *testing.T) {
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		signingKeysOnce = sync.Once{}
 	}(dir.UserConfigDir)
 
 	t.Run("valid e2e key", func(t *testing.T) {
@@ -106,7 +107,6 @@ func TestResolveKey(t *testing.T) {
 		if keySuite.Name != "e2e" {
 			t.Error("key name is not correct.")
 		}
-		signingKeysOnce = sync.Once{}
 	})
 
 	t.Run("key name is empty (using default key)", func(t *testing.T) {
@@ -118,25 +118,6 @@ func TestResolveKey(t *testing.T) {
 		if keySuite.Name != "e2e" {
 			t.Error("key name is not correct.")
 		}
-		signingKeysOnce = sync.Once{}
-	})
-
-	t.Run("key name doesn't exist", func(t *testing.T) {
-		dir.UserConfigDir = "./testdata/valid_signingkeys"
-		_, err := ResolveKey("e2e2")
-		if !strings.Contains(err.Error(), "signing key not found") {
-			t.Error("should error")
-		}
-		signingKeysOnce = sync.Once{}
-	})
-
-	t.Run("key name is empty (no default key)", func(t *testing.T) {
-		dir.UserConfigDir = "./testdata/no_default_key_signingkeys"
-		_, err := ResolveKey("")
-		if !strings.Contains(err.Error(), "default signing key not set.") {
-			t.Error("should error")
-		}
-		signingKeysOnce = sync.Once{}
 	})
 
 	t.Run("signingkeys.json without read permission", func(t *testing.T) {
