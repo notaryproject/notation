@@ -27,10 +27,12 @@ Aliases:
   list, ls
 
 Flags:
+  -d, --debug             debug mode
   -h, --help              help for list
   -p, --password string   password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http        registry access via plain HTTP
   -u, --username string   username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -v, --verbose           verbose mode
 ```
 
 ## Usage

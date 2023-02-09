@@ -28,16 +28,18 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
+  -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                       help for sign
   -k,  --key string                 signing key name, for a key previously added to notation's key list.
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                 registry access via plain HTTP
-       --plugin-config strings      {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+       --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
        --signature-manifest string  manifest type for signature, options: "image", "artifact" (default "artifact")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -m,  --user-metadata strings      {key}={value} pairs that are added to the signature payload
+  -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
+  -v,  --verbose                    verbose mode
 ```
 
 ## Use OCI image manifest to store signatures
@@ -50,6 +52,7 @@ Note that there is no deterministic way to determine whether a registry supports
 
 ### Set config property for OCI image manifest
 
+OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if flag `--signature-manifest image` is used.
 OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if flag `--signature-manifest image` is used.
 
 Notation uses empty JSON object `{}` as the default configuration content, and thus the default `config` property is fixed, as following:
@@ -155,6 +158,7 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 ### Sign an artifact and store the signature using OCI image manifest
 
 ```shell
+notation sign --signature-manifest image <registry>/<repository>@<digest>
 notation sign --signature-manifest image <registry>/<repository>@<digest>
 ```
 
