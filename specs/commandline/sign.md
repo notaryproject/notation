@@ -35,7 +35,7 @@ Flags:
        --plain-http                 registry access via plain HTTP
        --plugin-config strings      {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --signature-manifest string  manifest type for signatures, options: "image", "artifact" (default "artifact")
+       --signature-manifest string  manifest type for signature, options: "image", "artifact" (default "artifact")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata strings      {key}={value} pairs that are added to the signature payload
 ```
