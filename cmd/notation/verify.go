@@ -31,7 +31,7 @@ type verifyOpts struct {
 
 type verifyOutput struct {
 	Reference    string            `json:"reference"`
-	UserMetadata map[string]string `json:"userMetadata"`
+	UserMetadata map[string]string `json:"userMetadata,omitempty"`
 	Result       string            `json:"result"`
 }
 
@@ -60,6 +60,10 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.outputFormat != ioutil.OutputJson && opts.outputFormat != ioutil.OutputPlaintext {
+				return fmt.Errorf("unrecognized output format: %v", opts.outputFormat)
+			}
+
 			return runVerify(cmd, opts)
 		},
 	}
@@ -84,9 +88,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// resolve the given reference and set the digest
 	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		if opts.outputFormat == ioutil.OutputPlaintext {
-			fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
-		}
+		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
 	})
 	if err != nil {
 		return err
@@ -108,10 +110,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
 		return err
-	}
-
-	if opts.outputFormat != ioutil.OutputJson && opts.outputFormat != ioutil.OutputPlaintext {
-		return fmt.Errorf("unrecognized output format: %v", opts.outputFormat)
 	}
 
 	verifyOpts := notation.RemoteVerifyOptions{
@@ -143,9 +141,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			if opts.outputFormat == ioutil.OutputPlaintext {
-				fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
-			}
+			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 		}
 	}
 
