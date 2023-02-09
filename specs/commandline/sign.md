@@ -53,7 +53,6 @@ Note that there is no deterministic way to determine whether a registry supports
 ### Set config property for OCI image manifest
 
 OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if flag `--signature-manifest image` is used.
-OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if flag `--signature-manifest image` is used.
 
 Notation uses empty JSON object `{}` as the default configuration content, and thus the default `config` property is fixed, as following:
 
@@ -158,7 +157,6 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 ### Sign an artifact and store the signature using OCI image manifest
 
 ```shell
-notation sign --signature-manifest image <registry>/<repository>@<digest>
 notation sign --signature-manifest image <registry>/<repository>@<digest>
 ```
 
