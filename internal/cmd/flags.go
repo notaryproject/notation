@@ -64,12 +64,11 @@ var (
 	}
 
 	PflagPluginConfig = &pflag.Flag{
-		Name:      "plugin-config",
-		Shorthand: "c",
-		Usage:     "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values",
+		Name:  "plugin-config",
+		Usage: "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values",
 	}
 	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *[]string) {
-		fs.StringArrayVarP(p, PflagPluginConfig.Name, PflagPluginConfig.Shorthand, nil, PflagPluginConfig.Usage)
+		fs.StringArrayVar(p, PflagPluginConfig.Name, nil, PflagPluginConfig.Usage)
 	}
 
 	PflagUserMetadata = &pflag.Flag{

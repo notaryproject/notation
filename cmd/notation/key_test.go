@@ -17,7 +17,7 @@ func TestKeyAddCommand_BasicArgs(t *testing.T) {
 	if err := cmd.ParseFlags([]string{
 		"--plugin", expected.plugin,
 		"--id", expected.id,
-		"-c", "pluginconfig",
+		"--plugin-config", "pluginconfig",
 		expected.name}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
