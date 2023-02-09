@@ -59,12 +59,12 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 			opts.reference = args[0]
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.outputFormat != ioutil.OutputJson && opts.outputFormat != ioutil.OutputPlaintext {
+		RunE: func(cmnd *cobra.Command, args []string) error {
+			if opts.outputFormat != cmd.OutputJson && opts.outputFormat != cmd.OutputPlaintext {
 				return fmt.Errorf("unrecognized output format: %v", opts.outputFormat)
 			}
 
-			return runVerify(cmd, opts)
+			return runVerify(cmnd, opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
@@ -169,12 +169,14 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 
 func printResult(outputFormat, reference string, outcome *notation.VerificationOutcome) error {
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		if outputFormat == ioutil.OutputPlaintext {
+		switch outputFormat {
+		case cmd.OutputJson:
+			output := verifyOutput{Reference: reference, Result: "SkippedByTrustPolicy", UserMetadata: map[string]string{}}
+			return ioutil.PrintObjectAsJSON(output)
+		default:
 			fmt.Println("Trust policy is configured to skip signature verification for", reference)
 			return nil
 		}
-		output := verifyOutput{Reference: reference, Result: "SkippedByTrustPolicy", UserMetadata: map[string]string{}}
-		return ioutil.PrintObjectAsJson(output)
 	}
 
 	// the signature envelope is parsed as part of verification.
@@ -182,15 +184,16 @@ func printResult(outputFormat, reference string, outcome *notation.VerificationO
 	// this error can be ignored
 	metadata, _ := outcome.UserMetadata()
 
-	if outputFormat == ioutil.OutputJson {
+	switch outputFormat {
+	case cmd.OutputJson:
 		output := verifyOutput{Reference: reference, Result: "Success", UserMetadata: metadata}
-		return ioutil.PrintObjectAsJson(output)
+		return ioutil.PrintObjectAsJSON(output)
+	default:
+		fmt.Println("Successfully verified signature for", reference)
+		if len(metadata) > 0 {
+			fmt.Println("\nThe artifact was signed with the following user metadata.")
+			ioutil.PrintMetadataMap(os.Stdout, metadata)
+		}
+		return nil
 	}
-
-	fmt.Println("Successfully verified signature for", reference)
-	if len(metadata) > 0 {
-		fmt.Println("\nThe artifact was signed with the following user metadata.")
-		ioutil.PrintMetadataMap(os.Stdout, metadata)
-	}
-	return nil
 }

@@ -189,3 +189,5 @@ An example of output messages for a successful verification:
     "result": "Success"
 }
 ```
+
+On unsuccessful verification, nothing is written to `stdout`, and the failure is logged to `stderr`.

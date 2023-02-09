@@ -9,11 +9,6 @@ import (
 	"github.com/notaryproject/notation-go/config"
 )
 
-const (
-	OutputPlaintext = "text"
-	OutputJson      = "json"
-)
-
 func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
@@ -39,6 +34,7 @@ func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
 	return tw.Flush()
 }
 
+// PrintMetadataMap prints a map to a given Writer as a table
 func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
@@ -50,7 +46,8 @@ func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
 	return tw.Flush()
 }
 
-func PrintObjectAsJson(i interface{}) error {
+// PrintObjectAsJSON takes an interface and prints it as an indented JSON string
+func PrintObjectAsJSON(i interface{}) error {
 	jsonBytes, err := json.MarshalIndent(i, "", "    ")
 	if err != nil {
 		return err

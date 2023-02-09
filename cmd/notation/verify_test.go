@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/internal/cmd"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -17,7 +17,7 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 			Password: "password",
 		},
 		pluginConfig: []string{"key1=val1"},
-		outputFormat: ioutil.OutputPlaintext,
+		outputFormat: cmd.OutputPlaintext,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -43,7 +43,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 			PlainHTTP: true,
 		},
 		pluginConfig: []string{"key1=val1", "key2=val2"},
-		outputFormat: ioutil.OutputJson,
+		outputFormat: cmd.OutputJson,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
