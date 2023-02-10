@@ -28,7 +28,7 @@ var (
 
 	PflagSignatureFormat = &pflag.Flag{
 		Name:  "signature-format",
-		Usage: "signature envelope format, options: 'jws', 'cose'",
+		Usage: "signature envelope format, options: \"jws\", \"cose\"",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
 		defaultSignatureFormat := envelope.JWS
@@ -80,7 +80,6 @@ var (
 		Name:      "user-metadata",
 		Shorthand: "m",
 	}
-
 	PflagUserMetadataSignUsage   = "{key}={value} pairs that are added to the signature payload"
 	PflagUserMetadataVerifyUsage = "user defined {key}={value} pairs that must be present in the signature for successful verification if provided"
 	SetPflagUserMetadata         = func(fs *pflag.FlagSet, p *[]string, usage string) {
