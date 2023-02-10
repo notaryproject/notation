@@ -84,7 +84,7 @@ Example - Sign an OCI artifact and use OCI image manifest to store the signature
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestArtifact, "manifest type for signatures. options: artifact, image")
+	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestArtifact, "manifest type for signature. options: \"artifact\", \"image\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	return command
 }
