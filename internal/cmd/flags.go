@@ -11,6 +11,11 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const (
+	OutputPlaintext = "text"
+	OutputJson      = "json"
+)
+
 var (
 	PflagKey = &pflag.Flag{
 		Name:      "key",
@@ -75,10 +80,20 @@ var (
 		Name:      "user-metadata",
 		Shorthand: "m",
 	}
-	PflagUserMetadataSignUsage = "{key}={value} pairs that are added to the signature payload"
+
+	PflagUserMetadataSignUsage   = "{key}={value} pairs that are added to the signature payload"
 	PflagUserMetadataVerifyUsage = "user defined {key}={value} pairs that must be present in the signature for successful verification if provided"
-	SetPflagUserMetadata = func(fs *pflag.FlagSet, p *[]string, usage string) {
+	SetPflagUserMetadata         = func(fs *pflag.FlagSet, p *[]string, usage string) {
 		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
+	}
+
+	PflagOutput = &pflag.Flag{
+		Name:      "output",
+		Shorthand: "o",
+	}
+	PflagOutputUsage = fmt.Sprintf("output format, options: '%s', '%s'", OutputJson, OutputPlaintext)
+	SetPflagOutput   = func(fs *pflag.FlagSet, p *string, usage string) {
+		fs.StringVarP(p, PflagOutput.Name, PflagOutput.Shorthand, OutputPlaintext, usage)
 	}
 )
 
