@@ -46,6 +46,10 @@ Flags:
   -v,  --verbose                     verbose mode
 ```
 
+## Limitations
+
+To circumvent an issue in go-asn1-ber/asn1-ber where it allocates large amount of memory for decoding ber, notation does not support x509 subjects that contain "=#". For more information please look at [this issue](https://github.com/notaryproject/notation-go/issues/276).
+
 ## Usage
 
 Pre-requisite: User needs to configure trust store and trust policy properly before using `notation verify` command.
@@ -57,8 +61,6 @@ Use `notation certificate` command to configure trust stores.
 ### Configure Trust Policy
 
 Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/tutorials/directory-structure/) for `{NOTATION_CONFIG}`.
-
-**Note** To circumvent an issue in go-asn1-ber/asn1-ber where it allocates large amount of memory for decoding ber, notation does not support x509 subjects that contain "=#". For more information please look at [this issue](https://github.com/notaryproject/notation-go/issues/276).
 
 An example of `trustpolicy.json`:
 

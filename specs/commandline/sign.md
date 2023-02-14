@@ -42,6 +42,10 @@ Flags:
   -v,  --verbose                    verbose mode
 ```
 
+## Limitations
+
+To circumvent an issue in go-asn1-ber/asn1-ber where it allocates large amount of memory for decoding ber, notation does not support x509 subjects that contain "=#". For more information please look at [this issue](https://github.com/notaryproject/notation-go/issues/276).
+
 ## Use OCI image manifest to store signatures
 
 By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For registries that don't support `OCI artifact` or [Referrers API][oci-referers-api] is not enabled, users SHOULD use flag `--signature-manifest image` to force Notation to store the signatures using [OCI image manifest][oci-image-spec].
