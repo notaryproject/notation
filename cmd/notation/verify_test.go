@@ -3,8 +3,6 @@ package main
 import (
 	"reflect"
 	"testing"
-
-	"github.com/notaryproject/notation/internal/cmd"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -17,7 +15,6 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 			Password: "password",
 		},
 		pluginConfig: []string{"key1=val1"},
-		outputFormat: cmd.OutputPlaintext,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -43,14 +40,12 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 			PlainHTTP: true,
 		},
 		pluginConfig: []string{"key1=val1", "key2=val2"},
-		outputFormat: cmd.OutputJson,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--plain-http",
 		"--plugin-config", "key1=val1",
-		"--plugin-config", "key2=val2",
-		"--output", "json"}); err != nil {
+		"--plugin-config", "key2=val2"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
