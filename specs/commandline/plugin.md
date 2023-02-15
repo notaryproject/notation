@@ -36,15 +36,55 @@ Aliases:
   list, ls
 ```
 
+### notation plugin install
+
+```text
+Installs a plugin
+
+Usage:
+  notation plugin install --name <plugin name> --plugin-package <plugin package> [flags]
+
+Flags:
+  -n, --name           string   name of the plugin
+  -p, --plugin-package string   path to the plugin package
+  -h, --help                    help for install
+
+Aliases:
+  install, add
+```
+
+### notation plugin remove 
+
+```text
+Removes a plugin
+
+Usage:
+  notation plugin remove <plugin name> [flags]
+
+Flags:
+  -h, --help          help for remove
+
+Aliases:
+  remove, rm
+```
+
 ## Usage
 
 ### Install a plugin
 
-Currently there is no subcommand available for plugin installation. Plugin publisher should provide instructions to download and install the plugin.
+```shell
+notation plugin install --name <plugin name> --plugin-package <plugin package>
+```
+
+Unpon successful execution, the plugins directory is created under the default plugin directory if it does not exist, and the plugin package is extracted to the plugins directory. The plugin installation is then verified. If the verification fails, the plugin is removed from the plugins directory and an error is returned. 
 
 ### Uninstall a plugin
 
-Currently there is no subcommand available for plugin un-installation. Plugin publisher should provide instructions to uninstall the plugin.
+```shell
+notation plugin remove <plugin name>
+```
+
+Upon successful execution, the plugin is removed from the plugins directory. If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
 ### List installed plugins
 
@@ -58,5 +98,5 @@ An example of output from `notation plugin list`:
 
 ```text
 NAME       DESCRIPTION                                   VERSION             CAPABILITIES                ERROR
-azure-kv   Sign artifacts with keys in Azure Key Vault   v0.3.1-alpha.1      [SIGNATURE_GENERATOR.RAW]   <nil>
+azure-kv   Sign artifacts with keys in Azure Key Vault   v0.5.0-rc.1     [SIGNATURE_GENERATOR.RAW]   <nil>
 ```
