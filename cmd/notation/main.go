@@ -23,6 +23,7 @@ func main() {
 		loginCommand(nil),
 		logoutCommand(nil),
 		versionCommand(),
+		inspectCommand(nil),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
