@@ -59,7 +59,7 @@ Aliases:
 Removes a plugin
 
 Usage:
-  notation plugin remove <plugin name> [flags]
+  notation plugin remove [flags] <plugin name>
 
 Flags:
   -h, --help          help for remove
