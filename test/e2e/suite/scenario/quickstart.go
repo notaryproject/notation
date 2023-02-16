@@ -74,7 +74,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 
 	It("Verify the container image with jws format", func() {
 		notation.Exec("verify", artifact.ReferenceWithDigest()).
-			MatchContent(fmt.Sprintf("Successfully verified signature for %s\n", artifact.ReferenceWithDigest()))
+			MatchKeyWords(fmt.Sprintf("Successfully verified signature for %s\n", artifact.ReferenceWithDigest()))
 	})
 
 	It("Verify the container image with cose format", func() {
