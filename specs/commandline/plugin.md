@@ -65,7 +65,7 @@ Flags:
   -h, --help          help for remove
 
 Aliases:
-  remove, rm
+  remove, rm, uninstall, delete
 ```
 
 ## Usage
