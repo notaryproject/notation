@@ -37,8 +37,8 @@ Flags:
       --default                     mark as default
   -h, --help                        help for add
       --id string                   key id (required if --plugin is set)
-  -p, --plugin string               signing plugin name
-  -c, --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+      --plugin string               signing plugin name
+      --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
   -v, --verbose                     verbose mode
 ```
 

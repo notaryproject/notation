@@ -87,7 +87,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.plugin, "plugin", "p", "", "signing plugin name")
+	command.Flags().StringVar(&opts.plugin, "plugin", "", "signing plugin name")
 	command.MarkFlagRequired("plugin")
 
 	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
