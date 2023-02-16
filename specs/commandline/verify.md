@@ -197,3 +197,39 @@ export NOTATION_EXPERIMENTAL=1
 # The value of --scope should be set base on the trust policy configuration
 notation verify --oci-layout --scope "local/hello-world" hello-world:v1
 ```
+
+### Verify signatures on an OCI artifact with json output
+
+Use the `--output` flag to format verification output in json.
+
+```shell
+notation verify --output json localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+An example of output messages for a successful verification:
+
+```json
+{
+    "reference": "localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    "signatures" : [
+        {
+            "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "userDefinedAttributes": {
+                "io.wabbit-networks.buildId": "123"
+            }
+        }
+    ],
+    "result": "success"
+}
+```
+
+An example of output messages for a verification skipped by the trust policy:
+
+```json
+{
+    "reference": "localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+    "result": "skipped"
+}
+```
+
+On unsuccessful verification, a non-zero exit code will be returned and an error message will be written to stderr.
