@@ -42,7 +42,7 @@ Aliases:
 Installs a plugin
 
 Usage:
-  notation plugin install --name <plugin name> --plugin-package <plugin package> [flags]
+  notation plugin install [--name <plugin name>] [flags] <plugin package> 
 
 Flags:
   -n, --name           string   name of the plugin
