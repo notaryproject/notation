@@ -59,6 +59,7 @@ func addCerts(opts *certAddOpts) error {
 	}
 	var success []string
 	var failure []string
+	// Have to come up with a different logic to process errors
 	var errorSlice []error
 	for _, p := range opts.path {
 		err := truststore.AddCert(p, storeType, namedStore, false)
