@@ -59,13 +59,13 @@ func addCerts(opts *certAddOpts) error {
 	}
 	var success []string
 	var failure []string
-	// Have to come up with a different logic to process errors
-	var errorSlice []error
+	var errs Errors
+
 	for _, p := range opts.path {
 		err := truststore.AddCert(p, storeType, namedStore, false)
 		if err != nil {
 			failure = append(failure, p)
-			errorSlice = append(errorSlice, err)
+			errs = append(errs, err)
 		} else {
 			success = append(success, p)
 		}
@@ -82,7 +82,7 @@ func addCerts(opts *certAddOpts) error {
 		errStr := fmt.Sprintf("Failed to add following certificates to named store %s of type %s:\n", namedStore, storeType)
 
 		for ind := range failure {
-			errStr = errStr + fmt.Sprintf("%s, with error %q\n", failure[ind], errorSlice[ind])
+			errStr = errStr + fmt.Sprintf("%s, with error %q\n", failure[ind], errs[ind])
 		}
 		return errors.New(errStr)
 	}

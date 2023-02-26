@@ -3,10 +3,21 @@ package cert
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
+
+type Errors []error
+
+func (errs Errors) Error() string {
+	var messages []string
+	for _, err := range errs {
+		messages = append(messages, err.Error())
+	}
+	return strings.Join(messages, "\n")
+}
 
 type certDeleteOpts struct {
 	storeType  string
@@ -66,19 +77,16 @@ func deleteCerts(opts *certDeleteOpts) error {
 	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	var errorSlice []error
+	var errs Errors
 
 	if opts.all {
 		// Delete all certificates under storeType/namedStore
-		errorSlice = truststore.DeleteAllCerts(storeType, namedStore, opts.confirmed, errorSlice)
-
+		errs = truststore.DeleteAllCerts(storeType, namedStore, opts.confirmed, errs)
 		// write out on failure
-		if len(errorSlice) > 0 {
+		if len(errs) > 0 {
 			errStr := "Failed to delete following named stores:\n"
-			for _, err := range errorSlice {
-				errStr = errStr + err.Error() + "\n"
-			}
-			return errors.New(errStr)
+			errs = append([]error{errors.New(errStr)}, errs...)
+			return errs
 		}
 
 		return nil
@@ -89,14 +97,12 @@ func deleteCerts(opts *certDeleteOpts) error {
 	if cert == "" {
 		return errors.New("to delete a specific certificate, certificate fileName cannot be empty")
 	}
-	errorSlice = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
+	errs = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errs)
 	// write out on failure
-	if len(errorSlice) > 0 {
+	if len(errs) > 0 {
 		errStr := "Failed to delete following certificate:\n"
-		for _, err := range errorSlice {
-			errStr = errStr + err.Error() + "\n"
-		}
-		return errors.New(errStr)
+		errs = append([]error{errors.New(errStr)}, errs...)
+		return errs
 	}
 
 	return nil
