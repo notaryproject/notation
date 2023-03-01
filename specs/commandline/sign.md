@@ -36,7 +36,7 @@ Flags:
        --plain-http                 registry access via plain HTTP
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --signature-manifest string  manifest type for signature, options: "image", "artifact" (default "artifact")
+       --signature-manifest string  manifest type for signature, options: "image", "artifact" (default "image")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -v,  --verbose                    verbose mode
@@ -44,7 +44,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For registries that don't support `OCI artifact` or [Referrers API][oci-referers-api] is not enabled, users SHOULD use flag `--signature-manifest image` to force Notation to store the signatures using [OCI image manifest][oci-image-spec].
+By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users could instead choose [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag. In this case, the registry is REQUIRED to support `OCI artifact` and with [Referrers API][oci-referers-api] enabled.
 
 Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
 
@@ -52,9 +52,7 @@ Note that there is no deterministic way to determine whether a registry supports
 
 ### Set config property for OCI image manifest
 
-OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if flag `--signature-manifest image` is used.
-
-Notation uses empty JSON object `{}` as the default configuration content, and thus the default `config` property is fixed, as following:
+OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. On default signing with OCI image manifest, Notation uses empty JSON object `{}` as the default configuration content, and thus the `config` property is fixed, as following:
 
 ```json
 "config": {
@@ -154,10 +152,10 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Sign an artifact and store the signature using OCI image manifest
+### Sign an artifact and store the signature using OCI artifact manifest
 
 ```shell
-notation sign --signature-manifest image <registry>/<repository>@<digest>
+notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
