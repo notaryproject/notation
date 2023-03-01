@@ -26,6 +26,7 @@ type verifyOpts struct {
 	reference    string
 	pluginConfig []string
 	userMetadata []string
+	localContent bool
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -60,6 +61,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	command.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, verify local content")
 	return command
 }
 

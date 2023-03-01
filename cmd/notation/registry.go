@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -15,6 +18,7 @@ import (
 	"github.com/notaryproject/notation/pkg/configutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/sirupsen/logrus"
+	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -214,4 +218,41 @@ func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error 
 func isErrorCode(err error, code string) bool {
 	var ec errcode.Error
 	return errors.As(err, &ec) && ec.Code == code
+}
+
+// ociLayoutFolderAsRepository returns a oci.Store as registry.Repository
+func ociLayoutFolderAsRepository(path string, ociImageManifest bool) (notationregistry.Repository, error) {
+	root, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
+	}
+	ociStore, err := oci.New(root)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OCI store: %w", err)
+	}
+	repositoryOpts := notationregistry.RepositoryOptions{
+		OCIImageManifest: ociImageManifest,
+	}
+	return notationregistry.NewRepositoryWithOptions(ociStore, repositoryOpts), nil
+}
+
+// parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
+func parseOCILayoutReference(raw string) (path string, ref string, err error) {
+	if idx := strings.LastIndex(raw, "@"); idx != -1 {
+		// `digest` found
+		path = raw[:idx]
+		ref = raw[idx+1:]
+	} else {
+		// find `tag`
+		i := strings.LastIndex(raw, ":")
+		if i < 0 {
+			return "", "", errors.New("reference is missing digest or tag")
+		} else {
+			path, ref = raw[:i], raw[i+1:]
+		}
+		if path == "" {
+			return "", "", fmt.Errorf("found empty file path in %q", raw)
+		}
+	}
+	return
 }
