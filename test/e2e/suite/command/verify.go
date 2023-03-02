@@ -15,7 +15,7 @@ var _ = Describe("notation verify", func() {
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest()).
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -25,7 +25,7 @@ var _ = Describe("notation verify", func() {
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithTag()).
+			notation.Exec("verify", artifact.ReferenceWithTag(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
