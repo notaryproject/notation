@@ -23,7 +23,7 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
-		signatureManifest: "artifact",
+		signatureManifest: "image",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -87,7 +87,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 		},
 		expiry:            365 * 24 * time.Hour,
 		pluginConfig:      []string{"key0=val0", "key1=val1"},
-		signatureManifest: "artifact",
+		signatureManifest: "image",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
