@@ -12,6 +12,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
+	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -112,17 +113,17 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		if err != nil {
 			return err
 		}
-		sigRepo, err := ociLayoutFolderAsRepository(layout.path, ociImageManifest)
+		sigRepo, err := ociLayoutFolderAsRepositoryForSign(layout.path, ociImageManifest)
 		if err != nil {
 			return err
 		}
-		localSignOpts, err := prepareLocalSigningContent(ctx, cmdOpts, &layout, sigRepo)
+		targetDesc, localSignOpts, err := prepareLocalSigningContent(ctx, cmdOpts, &layout, sigRepo)
 		if err != nil {
 			return err
 		}
 
 		// core process
-		targetDesc, sig, annotations, err := notation.SignLocalContent(ctx, signer, localSignOpts)
+		targetDesc, sig, annotations, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOpts)
 		if err != nil {
 			return err
 		}
@@ -186,34 +187,35 @@ func prepareRemoteSigningContent(ctx context.Context, opts *signOpts, sigRepo no
 	return signOpts, ref, nil
 }
 
-func prepareLocalSigningContent(ctx context.Context, opts *signOpts, layout *ociLayout, sigRepo notationregistry.Repository) (notation.LocalSignOptions, error) {
+func prepareLocalSigningContent(ctx context.Context, opts *signOpts, layout *ociLayout, sigRepo notationregistry.Repository) (ocispec.Descriptor, notation.LocalSignOptions, error) {
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return notation.LocalSignOptions{}, err
+		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
-		return notation.LocalSignOptions{}, err
+		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
 	}
 	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
-		return notation.LocalSignOptions{}, err
+		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
 	}
 	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
 	if err != nil {
-		return notation.LocalSignOptions{}, err
+		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
+	}
+	// layout.reference is a tag
+	if digest.Digest(layout.reference).Validate() != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
 	}
 
 	localSignOptions := notation.LocalSignOptions{
-		SignOptions: notation.SignOptions{
-			SignatureMediaType: mediaType,
-			ExpiryDuration:     opts.expiry,
-			PluginConfig:       pluginConfig,
-		},
-		UserMetadata:   userMetadata,
-		TargetArtifact: targetDesc,
+		SignatureMediaType: mediaType,
+		ExpiryDuration:     opts.expiry,
+		PluginConfig:       pluginConfig,
+		UserMetadata:       userMetadata,
 	}
-	return localSignOptions, nil
+	return targetDesc, localSignOptions, nil
 }
 
 func validateSignatureManifest(signatureManifest string) bool {

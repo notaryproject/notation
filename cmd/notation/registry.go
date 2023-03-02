@@ -220,8 +220,8 @@ func isErrorCode(err error, code string) bool {
 	return errors.As(err, &ec) && ec.Code == code
 }
 
-// ociLayoutFolderAsRepository returns a oci.Store as registry.Repository
-func ociLayoutFolderAsRepository(path string, ociImageManifest bool) (notationregistry.Repository, error) {
+// ociLayoutFolderAsRepositoryForSign returns a oci.Store as registry.Repository
+func ociLayoutFolderAsRepositoryForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
 	root, err := filepath.Abs(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
@@ -234,6 +234,19 @@ func ociLayoutFolderAsRepository(path string, ociImageManifest bool) (notationre
 		OCIImageManifest: ociImageManifest,
 	}
 	return notationregistry.NewRepositoryWithOptions(ociStore, repositoryOpts), nil
+}
+
+// ociLayoutFolderAsRepository returns a oci.Store as registry.Repository
+func ociLayoutFolderAsRepository(path string) (notationregistry.Repository, error) {
+	root, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
+	}
+	ociStore, err := oci.New(root)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OCI store: %w", err)
+	}
+	return notationregistry.NewRepository(ociStore), nil
 }
 
 // parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]

@@ -20,13 +20,16 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
+const maxSignatureAttempts = math.MaxInt64
+
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference    string
-	pluginConfig []string
-	userMetadata []string
-	localContent bool
+	reference        string
+	pluginConfig     []string
+	userMetadata     []string
+	localContent     bool
+	trustPolicyScope string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -62,6 +65,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
 	command.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, verify local content")
+	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local content verification. If ignored, the global scope is used")
 	return command
 }
 
@@ -70,21 +74,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
 	// initialize
-	reference := opts.reference
-	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
-	if err != nil {
-		return err
-	}
-
-	// resolve the given reference and set the digest
-	ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
-	})
-	if err != nil {
-		return err
-	}
-
-	// initialize verifier
 	verifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
@@ -102,26 +91,69 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
-	verifyOpts := notation.RemoteVerifyOptions{
-		ArtifactReference: ref.String(),
-		PluginConfig:      configs,
-		// TODO: need to change MaxSignatureAttempts as a user input flag or
-		// a field in config.json
-		MaxSignatureAttempts: math.MaxInt64,
-		UserMetadata:         userMetadata,
+	var outcomes []*notation.VerificationOutcome
+	var sigRepo notationregistry.Repository
+	var artifactPrintout string
+	if opts.localContent {
+		var layout ociLayout
+		layout.path, layout.reference, err = parseOCILayoutReference(opts.reference)
+		if err != nil {
+			return err
+		}
+		sigRepo, err = ociLayoutFolderAsRepository(layout.path)
+		if err != nil {
+			return err
+		}
+		localVerifyOpts := notation.LocalVerifyOptions{
+			LayoutReference:      layout.reference,
+			PluginConfig:         configs,
+			MaxSignatureAttempts: maxSignatureAttempts,
+			UserMetadata:         userMetadata,
+			TargetAtLocal:        opts.localContent,
+			TrustPolicyScope:     opts.trustPolicyScope,
+		}
+		var targetDesc ocispec.Descriptor
+		targetDesc, outcomes, err = notation.VerifyLocalContent(ctx, verifier, sigRepo, localVerifyOpts)
+		artifactPrintout = layout.path + "@" + targetDesc.Digest.String()
+	} else {
+		reference := opts.reference
+		sigRepo, err = getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+		if err != nil {
+			return err
+		}
+
+		// resolve the given reference and set the digest
+		var ref registry.Reference
+		ref, err = resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+			fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
+		})
+		if err != nil {
+			return err
+		}
+		artifactPrintout = ref.String()
+
+		verifyOpts := notation.RemoteVerifyOptions{
+			ArtifactReference: ref.String(),
+			PluginConfig:      configs,
+			// TODO: need to change MaxSignatureAttempts as a user input flag or
+			// a field in config.json
+			MaxSignatureAttempts: maxSignatureAttempts,
+			UserMetadata:         userMetadata,
+		}
+
+		// core verify process
+		_, outcomes, err = notation.Verify(ctx, verifier, sigRepo, verifyOpts)
 	}
 
-	// core verify process
-	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		if err != nil {
 			var errorVerificationFailed notation.ErrorVerificationFailed
 			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", err)
+				return fmt.Errorf("signature verification: %w", err)
 			}
 		}
-		return fmt.Errorf("signature verification failed for all the signatures associated with %s", ref.String())
+		return fmt.Errorf("signature verification failed for all the signatures associated with %s", artifactPrintout)
 	}
 
 	// write out on success
@@ -135,9 +167,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		}
 	}
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", ref.String())
+		fmt.Println("Trust policy is configured to skip signature verification for", artifactPrintout)
 	} else {
-		fmt.Println("Successfully verified signature for", ref.String())
+		fmt.Println("Successfully verified signature for", artifactPrintout)
 		printMetadataIfPresent(outcome)
 	}
 	return nil
