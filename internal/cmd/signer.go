@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/signer"
@@ -13,9 +14,34 @@ import (
 
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
-	// Construct a signer from preconfigured key pair in config.json
-	// if key name is provided as the CLI argument
-	key, err := configutil.ResolveKey(opts.Key)
+	var key config.KeySuite
+	var err error
+
+	// Check if the options are valid for the key (Key is mutually exclusive with [KeyID, PluginName])
+	if opts.KeyID != "" && opts.PluginName != "" {
+		if opts.Key == "" {
+			// Construct a signer from on-demand key
+			mgr := plugin.NewCLIManager(dir.PluginFS())
+			plugin, err := mgr.Get(context.Background(), opts.PluginName)
+			if err != nil {
+				return nil, err
+			}
+			return signer.NewFromPlugin(plugin, opts.KeyID, map[string]string{})
+		} else {
+			return nil, errors.New("incompatible options, do not provide a key name when providing a key ID and plugin name")
+		}
+	} else if opts.KeyID == "" && opts.PluginName == "" {
+		// Construct a signer from preconfigured key pair in config.json
+		// if key name is provided as the CLI argument
+		key, err = configutil.ResolveKey(opts.Key)
+	} else {
+		if opts.Key == "" {
+			return nil, errors.New("incompatible options, both a key ID and plugin name are required when not using an existing key")
+		} else {
+			return nil, errors.New("incompatible options, do not provide a key ID or plugin name when providing a key name")
+		}
+	}
+
 	if err != nil {
 		return nil, err
 	}

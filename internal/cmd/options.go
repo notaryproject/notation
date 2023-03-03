@@ -12,12 +12,16 @@ import (
 type SignerFlagOpts struct {
 	Key             string
 	SignatureFormat string
+	KeyID           string
+	PluginName      string
 }
 
 // ApplyFlags set flags and their default values for the FlagSet
 func (opts *SignerFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	SetPflagKey(fs, &opts.Key)
 	SetPflagSignatureFormat(fs, &opts.SignatureFormat)
+	SetPflagID(fs, &opts.KeyID)
+	SetPflagPlugin(fs, &opts.PluginName)
 }
 
 // LoggingFlagOpts option struct.

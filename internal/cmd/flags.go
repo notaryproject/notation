@@ -20,7 +20,7 @@ var (
 	PflagKey = &pflag.Flag{
 		Name:      "key",
 		Shorthand: "k",
-		Usage:     "signing key name, for a key previously added to notation's key list.",
+		Usage:     "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags",
 	}
 	SetPflagKey = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
@@ -39,6 +39,22 @@ var (
 		}
 
 		fs.StringVar(p, PflagSignatureFormat.Name, defaultSignatureFormat, PflagSignatureFormat.Usage)
+	}
+
+	PflagID = &pflag.Flag{
+		Name:  "id",
+		Usage: "key id (required if --plugin is set). This is mutually exclusive with the --key flag",
+	}
+	SetPflagID = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVar(p, PflagID.Name, "", PflagID.Usage)
+	}
+
+	PflagPlugin = &pflag.Flag{
+		Name:  "plugin",
+		Usage: "signing plugin name. This is mutually exclusive with the --key flag",
+	}
+	SetPflagPlugin = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVar(p, PflagPlugin.Name, "", PflagPlugin.Usage)
 	}
 
 	PflagTimestamp = &pflag.Flag{

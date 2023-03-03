@@ -123,6 +123,38 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	}
 }
 
+func TestSignCommmand_OnDemandKeyOptions(t *testing.T) {
+	opts := &signOpts{}
+	command := signCommand(opts)
+	expected := &signOpts{
+		reference: "ref",
+		SecureFlagOpts: SecureFlagOpts{
+			Username: "user",
+			Password: "password",
+		},
+		SignerFlagOpts: cmd.SignerFlagOpts{
+			KeyID:           "keyID",
+			PluginName:      "pluginName",
+			SignatureFormat: envelope.JWS,
+		},
+		signatureManifest: "image",
+	}
+	if err := command.ParseFlags([]string{
+		expected.reference,
+		"-u", expected.Username,
+		"--password", expected.Password,
+		"--id", expected.KeyID,
+		"--plugin", expected.PluginName}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := command.Args(command, command.Flags().Args()); err != nil {
+		t.Fatalf("Parse args failed: %v", err)
+	}
+	if !reflect.DeepEqual(*expected, *opts) {
+		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+	}
+}
+
 func TestSignCommand_MissingArgs(t *testing.T) {
 	cmd := signCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
