@@ -44,7 +44,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users can use [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag, which is an experimental feature. When using OCI artifact manifest to store the signature, the registry is REQUIRED to support both `OCI artifact` and [Referrers API][oci-referers-api].
+By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users can use [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag. This is an experimental feature, which is not intended for production use and may change or be removed in future versions. When using OCI artifact manifest to store the signature, the registry is REQUIRED to support both `OCI artifact` and [Referrers API][oci-referers-api].
 
 Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
 
@@ -152,9 +152,7 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Sign an artifact and store the signature using OCI artifact manifest
-
-Note: This is an experimental feature.
+### [Experimental] Sign an artifact and store the signature using OCI artifact manifest
 
 ```shell
 notation sign --signature-manifest artifact <registry>/<repository>@<digest>
