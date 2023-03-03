@@ -36,7 +36,7 @@ Flags:
        --plain-http                 registry access via plain HTTP
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --signature-manifest string  manifest type for signature, options: "image", "artifact" (default "image")
+       --signature-manifest string  [Experimental] manifest type for signature, options: "image", "artifact" (default "image")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -v,  --verbose                    verbose mode
@@ -44,7 +44,7 @@ Flags:
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users can use [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag. When using OCI artifact manifest to store the signature, the registry is REQUIRED to support both `OCI artifact` and [Referrers API][oci-referers-api].
+By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users can use [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag, which is an experimental feature. When using OCI artifact manifest to store the signature, the registry is REQUIRED to support both `OCI artifact` and [Referrers API][oci-referers-api].
 
 Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
 
@@ -153,6 +153,8 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 ```
 
 ### Sign an artifact and store the signature using OCI artifact manifest
+
+Note: This is an experimental feature.
 
 ```shell
 notation sign --signature-manifest artifact <registry>/<repository>@<digest>
