@@ -208,7 +208,7 @@ func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error 
 		// A 404 returned by Referrers API indicates that Referrers API is
 		// not supported.
 		logger.Infof("failed to ping Referrers API with error: %v", err)
-		errMsg := "Target registry does not support the Referrers API. Try the flag `--signature-manifest image` to store signatures using OCI image manifest for backwards compatibility"
+		errMsg := "Target registry does not support the Referrers API. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest"
 		return notationerrors.ErrorReferrersAPINotSupported{Msg: errMsg}
 	}
 	return nil

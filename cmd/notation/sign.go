@@ -53,7 +53,7 @@ func signCommand(opts *signOpts) *cobra.Command {
 
 Prerequisite: a signing key needs to be configured using the command "notation key".
 
-Example - Sign an OCI artifact using the default signing key, with the default JWS envelope:
+Example - Sign an OCI artifact using the default signing key, with the default JWS envelope, and use OCI image manifest to store the signature:
   notation sign <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact using the default signing key, with the COSE envelope:
@@ -68,8 +68,8 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
-Example - Sign an OCI artifact and use OCI image manifest to store the signature, with the default JWS envelope:
-  notation sign --signature-manifest image <registry>/<repository>@<digest>
+Example - Sign an OCI artifact and use OCI artifact manifest to store the signature:
+  notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -91,7 +91,7 @@ Example - Sign an OCI artifact and use OCI image manifest to store the signature
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestArtifact, "manifest type for signature. options: \"artifact\", \"image\"")
+	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	command.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, sign local content")
 	return command
