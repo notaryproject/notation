@@ -87,7 +87,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.plugin, "plugin", "p", "", "signing plugin name")
+	command.Flags().StringVar(&opts.plugin, "plugin", "", "signing plugin name")
 	command.MarkFlagRequired("plugin")
 
 	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
@@ -163,7 +163,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
 
-	pluginConfig, err := cmd.ParseFlagPluginConfig(opts.pluginConfig)
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,9 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	var deletedNames []string
 	var prevDefault string
 	exec := func(s *config.SigningKeys) error {
-		prevDefault = *s.Default
+		if s.Default != nil {
+			prevDefault = *s.Default
+		}
 		var err error
 		deletedNames, err = s.Remove(opts.names...)
 		if err != nil {

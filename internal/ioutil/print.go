@@ -1,6 +1,7 @@
 package ioutil
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"text/tabwriter"
@@ -31,4 +32,27 @@ func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
 	}
 	return tw.Flush()
+}
+
+func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
+	tw := newTabWriter(w)
+	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
+
+	for k, v := range metadata {
+		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
+	}
+
+	return tw.Flush()
+}
+
+// PrintObjectAsJSON takes an interface and prints it as an indented JSON string
+func PrintObjectAsJSON(i interface{}) error {
+	jsonBytes, err := json.MarshalIndent(i, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(jsonBytes))
+
+	return nil
 }

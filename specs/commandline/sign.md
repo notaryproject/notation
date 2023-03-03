@@ -28,29 +28,33 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-  -e,  --expiry duration          optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
-  -h,  --help                     help for sign
-       --image-spec string        manifest type for signatures. options: v1.1-artifact, v1.1-image (default: v1.1-artifact)
-  -k,  --key string               signing key name, for a key previously added to notation's key list.
-  -p,  --password string          password for registry operations (default to $NOTATION_PASSWORD if not specified)
-       --plain-http               registry access via plain HTTP
-       --plugin-config strings    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
-       --signature-format string  signature envelope format, options: 'jws', 'cose' (default "jws")
-  -u,  --username string          username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -m,  --user-metadata strings    {key}={value} pairs that are added to the signature payload
+  -d,  --debug                      debug mode
+  -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
+  -h,  --help                       help for sign
+       --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
+  -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
+  -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
+       --plain-http                 registry access via plain HTTP
+       --plugin string              signing plugin name. This is mutually exclusive with the --key flag
+       --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
+       --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
+       --signature-manifest string  [Experimental] manifest type for signature, options: "image", "artifact" (default "image")
+  -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
+  -v,  --verbose                    verbose mode
 ```
 
 ## Use OCI image manifest to store signatures
 
-By default, Notation uses [OCI artifact manifest][oci-artifact-manifest] to store signatures in registries. For backward compatibility, Notation supports using `OCI image manifest` to store signatures in registries that partially implement the [OCI Image specification v1.1][oci-image-spec]. Use flag `--image-spec v1.1-image` to force Notation to store the signatures using OCI image manifest.
+By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users can use [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag. This is an experimental feature, which is not intended for production use and may change or be removed in future versions. When using OCI artifact manifest to store the signature, the registry is REQUIRED to support both `OCI artifact` and [Referrers API][oci-referers-api].
 
-Registries MAY not implement or enable the `Referrers API`, which is used by clients to fetch referrers. In the context of Notation, the referrers are signatures. Notation follows the fallback procedure defined in [OCI distribution spec][oci-backward-compatibility] if `Referrers API` is unavailable.
+Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
+
+- Response status `400 BAD Request` with error code `MANIFEST_INVALID` or `UNSUPPORTED`
 
 ### Set config property for OCI image manifest
 
-OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. Notation creates a default config descriptor for the user if flag `--image-spec v1.1-image` is used.
-
-Notation uses empty JSON object `{}` as the default configuration content, and thus the default `config` property is fixed, as following:
+OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. When signing with OCI image manifest, Notation uses empty JSON object `{}` as the default configuration content, and thus the `config` property is fixed, as following:
 
 ```json
 "config": {
@@ -60,17 +64,9 @@ Notation uses empty JSON object `{}` as the default configuration content, and t
 }
 ```
 
-### When to use OCI image manifest
-
-[Registry support][registry-support] lists registries with different compatibilities. For registries not supporting `OCI artifact manifest`, users can use flag `--image-spec v1.1-image` to sign artifacts stored in those registries.
-
-For registries not listed in the page, users can consider using flag `--image-spec v1.1-image` by checking the error message. Note that there is no deterministic way to determine whether a registry supports `OCI artifact manifest` or not. The error message is just for reference. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact manifest`:
-
-- Response status `400 BAD Request` with error code `MANIFEST_INVALID` or `UNSUPPORTED`
-
 ## Usage
 
-### Sign an OCI artifact
+### Sign an OCI artifact by adding new key
 
 ```shell
 # Prerequisites:
@@ -89,6 +85,12 @@ An example for a successful signing:
 ```console
 $ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Sign an OCI artifact with on-demand remote key
+
+```shell
+notation sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact using COSE signature format
@@ -158,14 +160,12 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Sign an artifact and store the signature using OCI image manifest
+### [Experimental] Sign an artifact and store the signature using OCI artifact manifest
 
 ```shell
-notation sign --image-spec v1.1-image <registry>/<repository>@<digest>
+notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
 [oci-image-spec]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/spec.md
-[oci-backward-compatibility]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#backwards-compatibility
-[registry-support]: https://notaryproject.dev/docs/registrysupport/
-[oras-land]: https://oras.land/
+[oci-referers-api]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
