@@ -2,15 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/internal/slices"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -35,6 +39,7 @@ type signOpts struct {
 	reference         string
 	signatureManifest string
 	localContent      bool
+	signatureOutput   string
 }
 
 type ociLayout struct {
@@ -94,6 +99,7 @@ Example - Sign an OCI artifact and use OCI artifact manifest to store the signat
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	command.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, sign local content")
+	command.Flags().StringVar(&opts.signatureOutput, "output", "", "output path for generated signature")
 	return command
 }
 
@@ -108,51 +114,31 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	}
 	ociImageManifest := cmdOpts.signatureManifest == signatureManifestImage
 	if cmdOpts.localContent {
-		var layout ociLayout
-		layout.path, layout.reference, err = parseOCILayoutReference(cmdOpts.reference)
-		if err != nil {
-			return err
-		}
-		sigRepo, err := ociLayoutFolderAsRepositoryForSign(layout.path, ociImageManifest)
-		if err != nil {
-			return err
-		}
-		targetDesc, localSignOpts, err := prepareLocalSigningContent(ctx, cmdOpts, &layout, sigRepo)
-		if err != nil {
-			return err
-		}
-
-		// core process
-		targetDesc, sig, annotations, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOpts)
-		if err != nil {
-			return err
-		}
-		_, _, err = sigRepo.PushSignature(ctx, localSignOpts.SignatureMediaType, sig, targetDesc, annotations)
-		if err != nil {
-			return err
-		}
-		fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
-	} else {
-		sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
-		if err != nil {
-			return err
-		}
-		opts, ref, err := prepareRemoteSigningContent(ctx, cmdOpts, sigRepo)
-		if err != nil {
-			return err
-		}
-
-		// core process
-		_, err = notation.Sign(ctx, signer, sigRepo, opts)
-		if err != nil {
-			var errorPushSignatureFailed notation.ErrorPushSignatureFailed
-			if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
-				return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
-			}
-			return err
-		}
-		fmt.Println("Successfully signed", ref)
+		return signLocal(ctx, cmdOpts, signer, ociImageManifest)
 	}
+	return signRemote(ctx, cmdOpts, signer, ociImageManifest)
+}
+
+func signRemote(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
+	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
+	if err != nil {
+		return err
+	}
+	opts, ref, err := prepareRemoteSigningContent(ctx, cmdOpts, sigRepo)
+	if err != nil {
+		return err
+	}
+
+	// core process
+	_, err = notation.Sign(ctx, signer, sigRepo, opts)
+	if err != nil {
+		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
+		if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
+			return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
+		}
+		return err
+	}
+	fmt.Println("Successfully signed", ref)
 	return nil
 }
 
@@ -187,37 +173,163 @@ func prepareRemoteSigningContent(ctx context.Context, opts *signOpts, sigRepo no
 	return signOpts, ref, nil
 }
 
-func prepareLocalSigningContent(ctx context.Context, opts *signOpts, layout *ociLayout, sigRepo notationregistry.Repository) (ocispec.Descriptor, notation.LocalSignOptions, error) {
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
+	mediaType, err := envelope.GetEnvelopeMediaType(cmdOpts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
+		return err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := cmd.ParseFlagMap(cmdOpts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
+		return err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := cmd.ParseFlagMap(cmdOpts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
+		return err
+	}
+	localSignOptions := notation.LocalSignOptions{
+		SignatureMediaType: mediaType,
+		ExpiryDuration:     cmdOpts.expiry,
+		PluginConfig:       pluginConfig,
+		UserMetadata:       userMetadata,
+	}
+	if checkFile(cmdOpts.reference) {
+		// descritpor.json
+		return signFromFile(ctx, cmdOpts, signer, localSignOptions)
+	}
+
+	var layout ociLayout
+	layout.path, layout.reference, err = parseOCILayoutReference(cmdOpts.reference)
+	if err != nil {
+		return err
+	}
+	sigRepo, err := ociLayoutTarForSign(layout.path, ociImageManifest)
+	if err != nil {
+		var errorOciLayoutTarForSign notationerrors.ErrorOciLayoutTarForSign
+		if errors.As(err, &errorOciLayoutTarForSign) {
+			// oci layout folder
+			return signFromFolder(ctx, cmdOpts, signer, layout, localSignOptions, ociImageManifest)
+		}
+		return err
+	}
+	// oci layout tarball
+	return signFromTar(ctx, cmdOpts, sigRepo, signer, layout, localSignOptions)
+}
+
+func signFromFile(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, localSignOptions notation.LocalSignOptions) error {
+	if cmdOpts.signatureOutput == "" {
+		return errors.New("signing a descriptor from file, must specifiy output dir for storing generated signature")
+	}
+	root, err := filepath.Abs(cmdOpts.reference)
+	if err != nil {
+		return err
+	}
+	file, err := os.ReadFile(root)
+	if err != nil {
+		return err
+	}
+	var targetDesc ocispec.Descriptor
+	err = json.Unmarshal(file, &targetDesc)
+	if err != nil {
+		return fmt.Errorf("signing a descriptor from file, the file must be json format: %w", err)
+	}
+
+	// core process
+	targetDesc, sig, _, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
+	if err != nil {
+		return err
+	}
+	// write out
+	output, err := filepath.Abs(cmdOpts.signatureOutput)
+	if err != nil {
+		return err
+	}
+	if err := osutil.WriteFileWithPermission(output, sig, 0600, false); err != nil {
+		return fmt.Errorf("failed to write generated signature file: %v", err)
+	}
+	fmt.Println("wrote signature:", output)
+	return nil
+}
+
+func signFromTar(ctx context.Context, cmdOpts *signOpts, sigRepo notationregistry.Repository, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions) error {
+	if cmdOpts.signatureOutput == "" {
+		return errors.New("signing an oci layout tarball, must specifiy output dir for storing generated signature")
 	}
 	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
 	if err != nil {
-		return ocispec.Descriptor{}, notation.LocalSignOptions{}, err
+		return fmt.Errorf("failed to resolve OCI layout reference: %w", err)
 	}
 	// layout.reference is a tag
 	if digest.Digest(layout.reference).Validate() != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
 	}
 
-	localSignOptions := notation.LocalSignOptions{
-		SignatureMediaType: mediaType,
-		ExpiryDuration:     opts.expiry,
-		PluginConfig:       pluginConfig,
-		UserMetadata:       userMetadata,
+	// core process
+	targetDesc, sig, _, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
+	if err != nil {
+		return err
 	}
-	return targetDesc, localSignOptions, nil
+	path, err := filepath.Abs(cmdOpts.signatureOutput)
+	if err != nil {
+		return err
+	}
+	if err := osutil.WriteFileWithPermission(path, sig, 0600, false); err != nil {
+		return fmt.Errorf("failed to write generated signature file: %v", err)
+	}
+	fmt.Println("wrote signature:", path)
+	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
+	return nil
+}
+
+func signFromFolder(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions, ociImageManifest bool) error {
+	sigRepo, err := ociLayoutFolderAsRepositoryForSign(layout.path, ociImageManifest)
+	if err != nil {
+		return err
+	}
+	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
+	if err != nil {
+		return fmt.Errorf("failed to resolve OCI layout reference: %w", err)
+	}
+	// layout.reference is a tag
+	if digest.Digest(layout.reference).Validate() != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
+	}
+
+	// core process
+	targetDesc, sig, annotations, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
+	if err != nil {
+		return err
+	}
+	if cmdOpts.signatureOutput != "" {
+		path, err := filepath.Abs(cmdOpts.signatureOutput)
+		if err != nil {
+			return err
+		}
+		if err := osutil.WriteFileWithPermission(path, sig, 0600, false); err != nil {
+			return fmt.Errorf("failed to write generated signature file: %v", err)
+		}
+		fmt.Println("wrote signature:", path)
+	} else {
+		_, _, err = sigRepo.PushSignature(ctx, localSignOptions.SignatureMediaType, sig, targetDesc, annotations)
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
+	return nil
 }
 
 func validateSignatureManifest(signatureManifest string) bool {
 	return slices.Contains(supportedSignatureManifest, signatureManifest)
+}
+
+// checkFile checks if path is a regular file
+func checkFile(path string) bool {
+	fileStat, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	if !fileStat.Mode().IsRegular() {
+		return false
+	}
+	return true
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -249,6 +250,32 @@ func ociLayoutFolderAsRepository(path string) (notationregistry.Repository, erro
 	return notationregistry.NewRepository(ociStore), nil
 }
 
+// ociLayoutTarForSign returns a oci.ReadOnlyStore as registry.Repository
+func ociLayoutTarForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
+	root, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
+	}
+	_, err = oci.NewStorageFromTar(root)
+	if err != nil {
+		return nil, notationerrors.ErrorOciLayoutTarForSign{Msg: err.Error()}
+	}
+	return nil, nil
+}
+
+// ociLayoutTar returns a oci.ReadOnlyStore as registry.Repository
+// func ociLayoutTar(path string) (notationregistry.Repository, error) {
+// 	root, err := filepath.Abs(path)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
+// 	}
+// 	_, err = oci.NewStorageFromTar(root)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to create ReadOnlyStorage from tar: %w", err)
+// 	}
+// 	return nil, nil
+// }
+
 // parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
 func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 	if idx := strings.LastIndex(raw, "@"); idx != -1 {
@@ -258,7 +285,7 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 	} else {
 		// find `tag`
 		i := strings.LastIndex(raw, ":")
-		if i < 0 {
+		if i < 0 || (i == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
 			return "", "", errors.New("reference is missing digest or tag")
 		} else {
 			path, ref = raw[:i], raw[i+1:]

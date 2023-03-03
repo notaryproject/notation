@@ -12,3 +12,16 @@ func (e ErrorReferrersAPINotSupported) Error() string {
 	}
 	return "referrers API not supported"
 }
+
+// ErrorOciLayoutTarForSign is used when signing local content in tarball, but
+// failed to get an oci.ReadOnlyStorage
+type ErrorOciLayoutTarForSign struct {
+	Msg string
+}
+
+func (e ErrorOciLayoutTarForSign) Error() string {
+	if e.Msg != "" {
+		return "failed to create ReadOnlyStorage from tar: " + e.Msg
+	}
+	return "failed to create ReadOnlyStorage from tar"
+}
