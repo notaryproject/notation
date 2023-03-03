@@ -31,10 +31,12 @@ Flags:
   -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                       help for sign
-  -k,  --key string                 signing key name, for a key previously added to notation's key list.
+       --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
+  -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                 registry access via plain HTTP
-       --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+       --plugin string              signing plugin name. This is mutually exclusive with the --key flag
+       --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
        --signature-manifest string  manifest type for signature, options: "image", "artifact" (default "image")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
@@ -64,7 +66,7 @@ OCI image manifest requires additional property `config` of type `descriptor`, w
 
 ## Usage
 
-### Sign an OCI artifact
+### Sign an OCI artifact by adding new key
 
 ```shell
 # Prerequisites:
@@ -83,6 +85,12 @@ An example for a successful signing:
 ```console
 $ notation sign localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Sign an OCI artifact with on-demand remote key
+
+```shell
+notation sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
 ```
 
 ### Sign an OCI artifact using COSE signature format
