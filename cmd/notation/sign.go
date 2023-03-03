@@ -146,8 +146,8 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		_, err = notation.Sign(ctx, signer, sigRepo, opts)
 		if err != nil {
 			var errorPushSignatureFailed notation.ErrorPushSignatureFailed
-			if errors.As(err, &errorPushSignatureFailed) {
-				return fmt.Errorf("%v. Target registry does not seem to support OCI artifact manifest. Try the flag `--signature-manifest image` to store signatures using OCI image manifest for backwards compatibility", err)
+			if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
+				return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
 			}
 			return err
 		}
