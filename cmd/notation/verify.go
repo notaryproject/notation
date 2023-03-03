@@ -109,7 +109,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 			PluginConfig:         configs,
 			MaxSignatureAttempts: maxSignatureAttempts,
 			UserMetadata:         userMetadata,
-			TargetAtLocal:        opts.localContent,
 			TrustPolicyScope:     opts.trustPolicyScope,
 		}
 		var targetDesc ocispec.Descriptor
@@ -121,7 +120,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if err != nil {
 			return err
 		}
-
 		// resolve the given reference and set the digest
 		var ref registry.Reference
 		ref, err = resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
@@ -150,7 +148,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		if err != nil {
 			var errorVerificationFailed notation.ErrorVerificationFailed
 			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification: %w", err)
+				return fmt.Errorf("signature verification failed: %w", err)
 			}
 		}
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", artifactPrintout)
