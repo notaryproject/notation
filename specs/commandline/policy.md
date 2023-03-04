@@ -2,50 +2,77 @@
 
 ## Description
 
-As part of signature verification workflow, users need to configure the trust policies to specify trusted identities that sign the artifacts, and the level of signature verification to use. For more details, see [trust policy spec](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
+As part of signature verification workflow, users need to configure the trust policies to specify trusted identities that signed the artifacts, and the level of signature verification to use. For more details, see [trust policy specification and examples](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
 
-An example of trust policy configuration file:
+The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to import and export trust policies from/to a JSON file. Users can export a template file with trust policy configuration to start from scratch.
+
+An example of template file:
 
 ```jsonc
 {
-    "version": "1.0",                                                   // version info
-    "trustPolicies": [                                                  // list of trust policy statements
+    "version": "1.0",
+    "trustPolicies": [
         {
-            "name": "wabbit-networks-dev",                              // Name of the first policy statement
-            "registryScopes": [ "dev.wabbitnetworks.io/net-monitor" ],  // The registry artifacts to which the policy applies
-            "signatureVerification": {                                  // The level of verification - strict, permissive, audit, skip
+            // Policy for set of artifacts signed by Wabbit Networks
+            // that are pulled from ACME Rockets repository
+            "name": "wabbit-networks-images",
+            "registryScopes": [ 
+              "registry.acme-rockets.io/software/net-monitor",
+              "registry.acme-rockets.io/software/net-logger" 
+            ],
+            "signatureVerification": {
                 "level": "strict"
-                "override" : {
-                     "expiry" : "log",
-                     "authenticity": "log"
-                }
             },
-            "trustStores": [ "ca:wabbit-networks-dev" ],                // The trust stores that contains the X.509 certificates
-            "trustedIdentities": [                                      // Identities that are trusted to sign the artifact.
-                "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Dev, CN=wabbit-networks.io"
+            "trustStores": [ 
+              "ca:wabbit-networks",
+              "ca:wabbit-networks-ca2"
+            ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
         },
         {
-            "name": "wabbit-networks-prod",                             // Name of the second policy statement.
-            "registryScopes": [ "prod.wabbitnetworks.io/net-monitor" ],       
-            "signatureVerification": {                                
-                "level": "permissive"
+            // Exception policy for a single unsigned artifact pulled from
+            // Wabbit Networks repository
+            "name": "unsigned-image",
+            "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
+            "signatureVerification": {
+              "level" : "skip" 
+            }
+        },
+        {
+            // Policy that uses custom verification level to relax the strict verification.
+            // It logs expiry and skips revocation check for a specific artifact.
+            "name": "allow-expired-images",
+            "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
+            "signatureVerification": {
+              "level" : "strict",
+              "override" : {
+                "expiry" : "log",
+                "revocation" : "skip"
+              }
             },
-            "trustStores": [ "ca:wabbit-networks-prod" ],                  
+            "trustStores": ["ca:acme-rockets"],
+            "trustedIdentities": ["*"]
+        },
+        {
+            // Policy for all other artifacts signed by ACME Rockets
+            "name": "global-policy-for-all-other-images",
+            "registryScopes": [ "*" ],       
+            "signatureVerification": {                                
+                "level": "strict"
+            },
+            "trustStores": [ 
+              "ca:acme-rockets-others"
+            ],                  
             "trustedIdentities": [                                    
-                "x509.subject: C=US, ST=WA, L=Seattle, O=Example, OU=Prod, CN=wabbit-networks.io"
+                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder",
+                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Hr, CN=SecureBuilder"
             ]
         }
     ]
 }
 ```
-
-The goal of `notation policy` command is to provide a user-friendly CLI for users to manage trust policies without the knowledge of trust policy configuration name, directory path and property names. Two high level use cases as follows:
-
-1. Users can import trust policies from a JSON file, and export trust policies into a JSON file.
-2. Users can add/view/update/delete trust policies and properties without editing the trust policy configuration file.
-
-A phased approach is adopted to achieve the goal. The first use case will be implemented in phase-1. A trust policy template file will be provided for users to get started. This specification only covers phase-1.
 
 ## Outline
 
@@ -75,7 +102,10 @@ Usage:
   notation policy export [flags] <file_path>
 
 Flags:
-  -h, --help    help for export
+  -d, --debug     debug mode
+  -h, --help      help for export
+      --template  export a template of trust policies
+  -v, --verbose   verbose mode
 ```
 
 ### notation policy import
@@ -87,7 +117,9 @@ Usage:
   notation policy import [flags] <file_path>
 
 Flags:
-  -h, --help    help for import
+  -d, --debug     debug mode
+  -h, --help      help for import
+  -v, --verbose   verbose mode
 ```
 
 ### notation policy show
@@ -99,7 +131,9 @@ Usage:
   notation policy [flags] show
 
 Flags:
-  -h, --help    help for show
+  -d, --debug     debug mode
+  -h, --help      help for show
+  -v, --verbose   verbose mode
 ```
 
 ## Usage
@@ -110,7 +144,15 @@ Flags:
 notation policy import ./my_policy.json
 ```
 
-The trust policies in the JSON file will be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). Upon successful import, the trust policies are printed out.
+The trust policies in the JSON file will be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policies are imported successfully. Error logs including the reason should be printed out if the importing fails.  
+
+### Export a template file of trust policies
+
+The template file is for users to create trust policies from scratch. Users should update the trust policies according to own requirements before importing the template file.
+
+```shell
+notation policy export ./trustpolicy_template.json
+```
 
 ### Export trust policies into a JSON file
 
@@ -118,7 +160,7 @@ The trust policies in the JSON file will be validated according to [trust policy
 notation policy export ./policy_exported.json
 ```
 
-For phase-1, to update trust policies, users need to export the trust policies to a file first, update the file, and import the file again.
+Upon successful execution, the trust policies are exported into a json file.
 
 ### Show trust policies
 
@@ -126,4 +168,4 @@ For phase-1, to update trust policies, users need to export the trust policies t
 notation policy show
 ```
 
-Upon successful execution, the trust policies are printed out. If trust policies are not configured, users should receive a warning message.
+Upon successful execution, the trust policies are printed out. If trust policies are not configured, users should receive an error message.
