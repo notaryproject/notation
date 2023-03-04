@@ -71,6 +71,26 @@ Example - Sign an OCI artifact and use OCI artifact manifest to store the signat
 			opts.reference = args[0]
 			return nil
 		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// Check if the options are valid for the key (Key is mutually exclusive with [KeyID, PluginName])
+			if opts.KeyID != "" && opts.PluginName != "" {
+				if opts.Key == "" {
+					// Valid, use ondemand key
+					return nil
+				} else {
+					return errors.New("incompatible options, do not provide a key name when providing a key ID and plugin name")
+				}
+			} else if opts.KeyID == "" && opts.PluginName == "" {
+				// Valid, use preconfigured key
+				return nil
+			} else {
+				if opts.Key == "" {
+					return errors.New("incompatible options, both a key ID and plugin name are required when not using an existing key")
+				} else {
+					return errors.New("incompatible options, do not provide a key ID or plugin name when providing a key name")
+				}
+			}
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// sanity check
 			if !validateSignatureManifest(opts.signatureManifest) {

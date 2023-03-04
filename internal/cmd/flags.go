@@ -57,15 +57,6 @@ var (
 		fs.StringVar(p, PflagPlugin.Name, "", PflagPlugin.Usage)
 	}
 
-	PflagTimestamp = &pflag.Flag{
-		Name:      "timestamp",
-		Shorthand: "t",
-		Usage:     "timestamp the signed signature via the remote TSA",
-	}
-	SetPflagTimestamp = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, PflagTimestamp.Name, PflagTimestamp.Shorthand, "", PflagTimestamp.Usage)
-	}
-
 	PflagExpiry = &pflag.Flag{
 		Name:      "expiry",
 		Shorthand: "e",
