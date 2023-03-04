@@ -151,16 +151,16 @@ The trust policies in the JSON file will be validated according to [trust policy
 The template file is for users to create trust policies from scratch. Users should update the trust policies according to own requirements before importing the template file.
 
 ```shell
-notation policy export ./trustpolicy_template.json
+notation policy export --template ./trustpolicy_template.json
 ```
 
-### Export trust policies into a JSON file
+### Export existing trust policies into a JSON file
 
 ```shell
 notation policy export ./policy_exported.json
 ```
 
-Upon successful execution, the trust policies are exported into a json file.
+Upon successful execution, the existing trust policies are exported into a json file.
 
 ### Show trust policies
 
