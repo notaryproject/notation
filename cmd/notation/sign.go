@@ -211,7 +211,7 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 		}
 		return err
 	}
-	// oci layout tarball
+	// TODO: oci layout tarball
 	return signFromTar(ctx, cmdOpts, sigRepo, signer, layout, localSignOptions)
 }
 
