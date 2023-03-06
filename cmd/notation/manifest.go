@@ -50,7 +50,6 @@ func getManifestDescriptorFromOCILayout(ctx context.Context, reference string, s
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	fmt.Printf("%+v\n", manifestDesc)
 
 	logger.Infof("Reference %s resolved to manifest descriptor: %+v", reference, manifestDesc)
 	return manifestDesc, nil
