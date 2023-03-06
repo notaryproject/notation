@@ -155,6 +155,182 @@ func TestSignCommmand_OnDemandKeyOptions(t *testing.T) {
 	}
 }
 
+func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
+	t.Run("error when using id and plugin options with key", func(t *testing.T) {
+		opts := &signOpts{}
+		command := signCommand(opts)
+		expected := &signOpts{
+			reference: "ref",
+			SecureFlagOpts: SecureFlagOpts{
+				Username: "user",
+				Password: "password",
+			},
+			SignerFlagOpts: cmd.SignerFlagOpts{
+				KeyID:           "keyID",
+				PluginName:      "pluginName",
+				Key:             "keyName",
+				SignatureFormat: envelope.JWS,
+			},
+			signatureManifest: "image",
+		}
+		if err := command.ParseFlags([]string{
+			expected.reference,
+			"-u", expected.Username,
+			"--password", expected.Password,
+			"--id", expected.KeyID,
+			"--plugin", expected.PluginName,
+			"--key", expected.Key}); err != nil {
+			t.Fatalf("Parse Flag failed: %v", err)
+		}
+		if err := command.Args(command, command.Flags().Args()); err != nil {
+			t.Fatalf("Parse args failed: %v", err)
+		}
+		if !reflect.DeepEqual(*expected, *opts) {
+			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		}
+		err := command.ValidateFlagGroups()
+		if err == nil || err.Error() != "if any flags in the group [key id] are set none of the others can be; [id key] were all set" {
+			t.Fatalf("Didn't get the expected error, but got: %v", err)
+		}
+	})
+	t.Run("error when using key and id options", func(t *testing.T) {
+		opts := &signOpts{}
+		command := signCommand(opts)
+		expected := &signOpts{
+			reference: "ref",
+			SecureFlagOpts: SecureFlagOpts{
+				Username: "user",
+				Password: "password",
+			},
+			SignerFlagOpts: cmd.SignerFlagOpts{
+				KeyID:           "keyID",
+				Key:             "keyName",
+				SignatureFormat: envelope.JWS,
+			},
+			signatureManifest: "image",
+		}
+		if err := command.ParseFlags([]string{
+			expected.reference,
+			"-u", expected.Username,
+			"--password", expected.Password,
+			"--id", expected.KeyID,
+			"--key", expected.Key}); err != nil {
+			t.Fatalf("Parse Flag failed: %v", err)
+		}
+		if err := command.Args(command, command.Flags().Args()); err != nil {
+			t.Fatalf("Parse args failed: %v", err)
+		}
+		if !reflect.DeepEqual(*expected, *opts) {
+			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		}
+		err := command.ValidateFlagGroups()
+		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [plugin]" {
+			t.Fatalf("Didn't get the expected error, but got: %v", err)
+		}
+	})
+	t.Run("error when using key and plugin options", func(t *testing.T) {
+		opts := &signOpts{}
+		command := signCommand(opts)
+		expected := &signOpts{
+			reference: "ref",
+			SecureFlagOpts: SecureFlagOpts{
+				Username: "user",
+				Password: "password",
+			},
+			SignerFlagOpts: cmd.SignerFlagOpts{
+				PluginName:      "pluginName",
+				Key:             "keyName",
+				SignatureFormat: envelope.JWS,
+			},
+			signatureManifest: "image",
+		}
+		if err := command.ParseFlags([]string{
+			expected.reference,
+			"-u", expected.Username,
+			"--password", expected.Password,
+			"--plugin", expected.PluginName,
+			"--key", expected.Key}); err != nil {
+			t.Fatalf("Parse Flag failed: %v", err)
+		}
+		if err := command.Args(command, command.Flags().Args()); err != nil {
+			t.Fatalf("Parse args failed: %v", err)
+		}
+		if !reflect.DeepEqual(*expected, *opts) {
+			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		}
+		err := command.ValidateFlagGroups()
+		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [id]" {
+			t.Fatalf("Didn't get the expected error, but got: %v", err)
+		}
+	})
+	t.Run("error when using id option and not plugin", func(t *testing.T) {
+		opts := &signOpts{}
+		command := signCommand(opts)
+		expected := &signOpts{
+			reference: "ref",
+			SecureFlagOpts: SecureFlagOpts{
+				Username: "user",
+				Password: "password",
+			},
+			SignerFlagOpts: cmd.SignerFlagOpts{
+				KeyID:           "keyID",
+				SignatureFormat: envelope.JWS,
+			},
+			signatureManifest: "image",
+		}
+		if err := command.ParseFlags([]string{
+			expected.reference,
+			"-u", expected.Username,
+			"--password", expected.Password,
+			"--id", expected.KeyID}); err != nil {
+			t.Fatalf("Parse Flag failed: %v", err)
+		}
+		if err := command.Args(command, command.Flags().Args()); err != nil {
+			t.Fatalf("Parse args failed: %v", err)
+		}
+		if !reflect.DeepEqual(*expected, *opts) {
+			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		}
+		err := command.ValidateFlagGroups()
+		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [plugin]" {
+			t.Fatalf("Didn't get the expected error, but got: %v", err)
+		}
+	})
+	t.Run("error when using plugin option and not id", func(t *testing.T) {
+		opts := &signOpts{}
+		command := signCommand(opts)
+		expected := &signOpts{
+			reference: "ref",
+			SecureFlagOpts: SecureFlagOpts{
+				Username: "user",
+				Password: "password",
+			},
+			SignerFlagOpts: cmd.SignerFlagOpts{
+				PluginName:      "pluginName",
+				SignatureFormat: envelope.JWS,
+			},
+			signatureManifest: "image",
+		}
+		if err := command.ParseFlags([]string{
+			expected.reference,
+			"-u", expected.Username,
+			"--password", expected.Password,
+			"--plugin", expected.PluginName}); err != nil {
+			t.Fatalf("Parse Flag failed: %v", err)
+		}
+		if err := command.Args(command, command.Flags().Args()); err != nil {
+			t.Fatalf("Parse args failed: %v", err)
+		}
+		if !reflect.DeepEqual(*expected, *opts) {
+			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		}
+		err := command.ValidateFlagGroups()
+		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [id]" {
+			t.Fatalf("Didn't get the expected error, but got: %v", err)
+		}
+	})
+}
+
 func TestSignCommand_MissingArgs(t *testing.T) {
 	cmd := signCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
