@@ -5,6 +5,7 @@ import (
 
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
 
@@ -17,11 +18,15 @@ type SignerFlagOpts struct {
 }
 
 // ApplyFlags set flags and their default values for the FlagSet
-func (opts *SignerFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
+func (opts *SignerFlagOpts) ApplyFlagsToCommand(command *cobra.Command) {
+	fs := command.Flags()
 	SetPflagKey(fs, &opts.Key)
 	SetPflagSignatureFormat(fs, &opts.SignatureFormat)
 	SetPflagID(fs, &opts.KeyID)
 	SetPflagPlugin(fs, &opts.PluginName)
+	command.MarkFlagsRequiredTogether("id", "plugin")
+	command.MarkFlagsMutuallyExclusive("key", "id")
+	command.MarkFlagsMutuallyExclusive("key", "plugin")
 }
 
 // LoggingFlagOpts option struct.
