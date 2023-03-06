@@ -9,6 +9,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature/cose"
 	"github.com/notaryproject/notation-core-go/signature/jws"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+	gcose "github.com/veraison/go-cose"
 )
 
 const (
@@ -34,6 +35,18 @@ func GetEnvelopeMediaType(sigFormat string) (string, error) {
 		return cose.MediaTypeEnvelope, nil
 	}
 	return "", fmt.Errorf("signature format %q not supported", sigFormat)
+}
+
+func SpeculateSignatureEnvelopeFormat(raw []byte) (string, error) {
+	var msg gcose.Sign1Message
+	if err := msg.UnmarshalCBOR(raw); err == nil {
+		return cose.MediaTypeEnvelope, nil
+	}
+	if len(raw) == 0 || raw[0] != '{' {
+		// very certain
+		return "", errors.New("unsupported signature format")
+	}
+	return jws.MediaTypeEnvelope, nil
 }
 
 // ValidatePayloadContentType validates signature payload's content type.

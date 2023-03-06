@@ -250,20 +250,20 @@ func ociLayoutFolderAsRepository(path string) (notationregistry.Repository, erro
 	return notationregistry.NewRepository(ociStore), nil
 }
 
-// ociLayoutTarForSign returns a oci.ReadOnlyStore as registry.Repository
-func ociLayoutTarForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
-	root, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
-	}
-	_, err = oci.NewStorageFromTar(root)
-	if err != nil {
-		return nil, notationerrors.ErrorOciLayoutTarForSign{Msg: err.Error()}
-	}
-	return nil, nil
-}
+// TODO: ociLayoutTarForSign returns a oci.ReadOnlyStore as registry.Repository
+// func ociLayoutTarForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
+// 	root, err := filepath.Abs(path)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
+// 	}
+// 	_, err = oci.NewStorageFromTar(root)
+// 	if err != nil {
+// 		return nil, notationerrors.ErrorOciLayoutTarForSign{Msg: err.Error()}
+// 	}
+// 	return nil, nil
+// }
 
-// ociLayoutTar returns a oci.ReadOnlyStore as registry.Repository
+// TODO: ociLayoutTar returns a oci.ReadOnlyStore as registry.Repository
 // func ociLayoutTar(path string) (notationregistry.Repository, error) {
 // 	root, err := filepath.Abs(path)
 // 	if err != nil {

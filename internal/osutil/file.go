@@ -71,3 +71,15 @@ func CopyToDir(src, dst string) (int64, error) {
 	}
 	return io.Copy(destination, source)
 }
+
+// CheckFile checks if path is a regular file
+func CheckFile(path string) bool {
+	fileStat, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	if !fileStat.Mode().IsRegular() {
+		return false
+	}
+	return true
+}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -192,7 +190,7 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 		PluginConfig:       pluginConfig,
 		UserMetadata:       userMetadata,
 	}
-	if checkFile(cmdOpts.reference) {
+	if osutil.CheckFile(cmdOpts.reference) {
 		// descritpor.json
 		return signFromFile(ctx, cmdOpts, signer, localSignOptions)
 	}
@@ -202,39 +200,32 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	if err != nil {
 		return err
 	}
-	sigRepo, err := ociLayoutTarForSign(layout.path, ociImageManifest)
-	if err != nil {
-		var errorOciLayoutTarForSign notationerrors.ErrorOciLayoutTarForSign
-		if errors.As(err, &errorOciLayoutTarForSign) {
-			// oci layout folder
-			return signFromFolder(ctx, cmdOpts, signer, layout, localSignOptions, ociImageManifest)
-		}
-		return err
-	}
+	return signFromFolder(ctx, cmdOpts, signer, layout, localSignOptions, ociImageManifest)
+
 	// TODO: oci layout tarball
-	return signFromTar(ctx, cmdOpts, sigRepo, signer, layout, localSignOptions)
+	// sigRepo, err := ociLayoutTarForSign(layout.path, ociImageManifest)
+	// if err != nil {
+	// 	var errorOciLayoutTarForSign notationerrors.ErrorOciLayoutTarForSign
+	// 	if errors.As(err, &errorOciLayoutTarForSign) {
+	// 		// oci layout folder
+	// 		return signFromFolder(ctx, cmdOpts, signer, layout, localSignOptions, ociImageManifest)
+	// 	}
+	// 	return err
+	// }
+	//return signFromTar(ctx, cmdOpts, sigRepo, signer, layout, localSignOptions)
 }
 
 func signFromFile(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, localSignOptions notation.LocalSignOptions) error {
 	if cmdOpts.signatureOutput == "" {
 		return errors.New("signing a descriptor from file, must specifiy output dir for storing generated signature")
 	}
-	root, err := filepath.Abs(cmdOpts.reference)
+	targetDesc, err := getManifestDescriptorFromFile(cmdOpts.reference)
 	if err != nil {
 		return err
-	}
-	file, err := os.ReadFile(root)
-	if err != nil {
-		return err
-	}
-	var targetDesc ocispec.Descriptor
-	err = json.Unmarshal(file, &targetDesc)
-	if err != nil {
-		return fmt.Errorf("signing a descriptor from file, the file must be json format: %w", err)
 	}
 
 	// core process
-	targetDesc, sig, _, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
+	_, sig, _, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
 	if err != nil {
 		return err
 	}
@@ -250,35 +241,36 @@ func signFromFile(ctx context.Context, cmdOpts *signOpts, signer notation.Signer
 	return nil
 }
 
-func signFromTar(ctx context.Context, cmdOpts *signOpts, sigRepo notationregistry.Repository, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions) error {
-	if cmdOpts.signatureOutput == "" {
-		return errors.New("signing an oci layout tarball, must specifiy output dir for storing generated signature")
-	}
-	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
-	if err != nil {
-		return fmt.Errorf("failed to resolve OCI layout reference: %w", err)
-	}
-	// layout.reference is a tag
-	if digest.Digest(layout.reference).Validate() != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
-	}
+// TODO: sign from tarball
+// func signFromTar(ctx context.Context, cmdOpts *signOpts, sigRepo notationregistry.Repository, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions) error {
+// 	if cmdOpts.signatureOutput == "" {
+// 		return errors.New("signing an oci layout tarball, must specifiy output dir for storing generated signature")
+// 	}
+// 	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to resolve OCI layout reference: %w", err)
+// 	}
+// 	// layout.reference is a tag
+// 	if digest.Digest(layout.reference).Validate() != nil {
+// 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
+// 	}
 
-	// core process
-	targetDesc, sig, _, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
-	if err != nil {
-		return err
-	}
-	path, err := filepath.Abs(cmdOpts.signatureOutput)
-	if err != nil {
-		return err
-	}
-	if err := osutil.WriteFileWithPermission(path, sig, 0600, false); err != nil {
-		return fmt.Errorf("failed to write generated signature file: %v", err)
-	}
-	fmt.Println("wrote signature:", path)
-	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
-	return nil
-}
+// 	// core process
+// 	targetDesc, sig, _, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	path, err := filepath.Abs(cmdOpts.signatureOutput)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if err := osutil.WriteFileWithPermission(path, sig, 0600, false); err != nil {
+// 		return fmt.Errorf("failed to write generated signature file: %v", err)
+// 	}
+// 	fmt.Println("wrote signature:", path)
+// 	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
+// 	return nil
+// }
 
 func signFromFolder(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions, ociImageManifest bool) error {
 	sigRepo, err := ociLayoutFolderAsRepositoryForSign(layout.path, ociImageManifest)
@@ -320,16 +312,4 @@ func signFromFolder(ctx context.Context, cmdOpts *signOpts, signer notation.Sign
 
 func validateSignatureManifest(signatureManifest string) bool {
 	return slices.Contains(supportedSignatureManifest, signatureManifest)
-}
-
-// checkFile checks if path is a regular file
-func checkFile(path string) bool {
-	fileStat, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	if !fileStat.Mode().IsRegular() {
-		return false
-	}
-	return true
 }
