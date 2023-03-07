@@ -90,7 +90,7 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SignerFlagOpts.ApplyFlags(command.Flags())
+	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
@@ -106,7 +106,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
 	// initialize
-	signer, err := cmd.GetSigner(&cmdOpts.SignerFlagOpts)
+	signer, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
 	if err != nil {
 		return err
 	}

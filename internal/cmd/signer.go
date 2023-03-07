@@ -12,7 +12,18 @@ import (
 )
 
 // GetSigner returns a signer according to the CLI context.
-func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
+func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, error) {
+	// Check if using on-demand key
+	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
+		// Construct a signer from on-demand key
+		mgr := plugin.NewCLIManager(dir.PluginFS())
+		plugin, err := mgr.Get(ctx, opts.PluginName)
+		if err != nil {
+			return nil, err
+		}
+		return signer.NewFromPlugin(plugin, opts.KeyID, map[string]string{})
+	}
+
 	// Construct a signer from preconfigured key pair in config.json
 	// if key name is provided as the CLI argument
 	key, err := configutil.ResolveKey(opts.Key)
@@ -26,7 +37,7 @@ func GetSigner(opts *SignerFlagOpts) (notation.Signer, error) {
 	// corresponds to an external key
 	if key.ExternalKey != nil {
 		mgr := plugin.NewCLIManager(dir.PluginFS())
-		plugin, err := mgr.Get(context.Background(), key.PluginName)
+		plugin, err := mgr.Get(ctx, key.PluginName)
 		if err != nil {
 			return nil, err
 		}
