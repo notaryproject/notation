@@ -51,7 +51,7 @@ var (
 
 	PflagPlugin = &pflag.Flag{
 		Name:  "plugin",
-		Usage: "signing plugin name. This is mutually exclusive with the --key flag",
+		Usage: "signing plugin name (required if --id is set). This is mutually exclusive with the --key flag",
 	}
 	SetPflagPlugin = func(fs *pflag.FlagSet, p *string) {
 		fs.StringVar(p, PflagPlugin.Name, "", PflagPlugin.Usage)
