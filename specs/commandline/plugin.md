@@ -45,7 +45,7 @@ Usage:
   notation plugin install [--name <plugin name>] [flags] <plugin package> 
 
 Flags:
-  -n, --name           string   name of the plugin
+  -n, --name string             name of the plugin
   -p, --plugin-package string   path to the plugin package
   -h, --help                    help for install
 
