@@ -12,6 +12,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -97,164 +98,180 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 
-	var outcomes []*notation.VerificationOutcome
-	var sigRepo notationregistry.Repository
-	var artifactPrintout string
-	var verifyErr error
+	// core verify process
 	if opts.localContent {
-		if osutil.CheckFile(opts.reference) {
-			// reference is descriptor.json
-			if len(opts.localSignaturePath) == 0 {
-				return errors.New("missing signature for descriptor file verification")
-			}
-			signatures, err := parseSignaturesFromPathArray(opts.localSignaturePath)
-			if err != nil {
-				return err
-			}
-			targetDesc, err := getManifestDescriptorFromFile(opts.reference)
-			if err != nil {
-				return err
-			}
-			verifyOpts := notation.VerifyOptions{
-				TargetAtLocal:    true,
-				PluginConfig:     configs,
-				UserMetadata:     userMetadata,
-				TrustPolicyScope: opts.trustPolicyScope,
-			}
-			for _, signature := range signatures {
-				signatureMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(signature)
-				if err != nil {
-					return err
-				}
-				verifyOpts.SignatureMediaType = signatureMediaType
-				outcome, sigErr := verifier.Verify(ctx, targetDesc, signature, verifyOpts)
-				if sigErr != nil {
-					if outcome == nil {
-						return fmt.Errorf("signature verification failed: %w", sigErr)
-					}
-					continue
-				}
-				outcomes = []*notation.VerificationOutcome{outcome}
-				break
-			}
-			if len(outcomes) == 0 {
-				verifyErr = notation.ErrorVerificationFailed{}
-			}
-			artifactPrintout = opts.reference + "@" + targetDesc.Digest.String()
-		} else {
-			// reference is oci layout folder
-			var layout ociLayout
-			layout.path, layout.reference, err = parseOCILayoutReference(opts.reference)
-			if err != nil {
-				return err
-			}
-			sigRepo, err = ociLayoutFolderAsRepository(layout.path)
-			if err != nil {
-				return err
-			}
-			localVerifyOpts := notation.LocalVerifyOptions{
-				LayoutReference:      layout.reference,
-				PluginConfig:         configs,
-				MaxSignatureAttempts: maxSignatureAttempts,
-				UserMetadata:         userMetadata,
-				TrustPolicyScope:     opts.trustPolicyScope,
-			}
-			var targetDesc ocispec.Descriptor
-			if len(opts.localSignaturePath) == 0 {
-				targetDesc, outcomes, verifyErr = notation.VerifyLocalContent(ctx, verifier, sigRepo, localVerifyOpts)
-			} else {
-				verifyOpts := notation.VerifyOptions{
-					TargetAtLocal:    true,
-					PluginConfig:     configs,
-					UserMetadata:     userMetadata,
-					TrustPolicyScope: opts.trustPolicyScope,
-				}
-				signatures, err := parseSignaturesFromPathArray(opts.localSignaturePath)
-				if err != nil {
-					return err
-				}
-				targetDesc, err = getManifestDescriptorFromOCILayout(ctx, layout.reference, sigRepo)
-				if err != nil {
-					return err
-				}
-				for _, signature := range signatures {
-					signatureMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(signature)
-					if err != nil {
-						return err
-					}
-					verifyOpts.SignatureMediaType = signatureMediaType
-					outcome, sigErr := verifier.Verify(ctx, targetDesc, signature, verifyOpts)
-					if sigErr != nil {
-						if outcome == nil {
-							return fmt.Errorf("signature verification failed: %w", sigErr)
-						}
-						continue
-					}
-					outcomes = []*notation.VerificationOutcome{outcome}
-					break
-				}
-				if len(outcomes) == 0 {
-					verifyErr = notation.ErrorVerificationFailed{}
-				}
-			}
-			artifactPrintout = layout.path + "@" + targetDesc.Digest.String()
-		}
-	} else {
-		reference := opts.reference
-		sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+		printOut, outcomes, err := verifyLocal(ctx, opts, verifier, configs, userMetadata)
 		if err != nil {
 			return err
 		}
-		// resolve the given reference and set the digest
-		ref, err := resolveReference(command.Context(), &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-			fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
-		})
+		onSucess(outcomes, printOut)
+	} else {
+		printOut, outcomes, err := verifyRemote(ctx, opts, verifier, configs, userMetadata)
 		if err != nil {
 			return err
 		}
-		artifactPrintout = ref.String()
-
-		verifyOpts := notation.RemoteVerifyOptions{
-			ArtifactReference: ref.String(),
-			PluginConfig:      configs,
-			// TODO: need to change MaxSignatureAttempts as a user input flag or
-			// a field in config.json
-			MaxSignatureAttempts: maxSignatureAttempts,
-			UserMetadata:         userMetadata,
-		}
-
-		// core verify process
-		_, outcomes, verifyErr = notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-	}
-
-	// write out on failure
-	if verifyErr != nil || len(outcomes) == 0 {
-		if verifyErr != nil {
-			var errorVerificationFailed notation.ErrorVerificationFailed
-			if !errors.As(verifyErr, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", verifyErr)
-			}
-		}
-		return fmt.Errorf("signature verification failed for all the signatures associated with %s", artifactPrintout)
-	}
-
-	// write out on success
-	outcome := outcomes[0]
-	// print out warning for any failed result with logged verification action
-	for _, result := range outcome.VerificationResults {
-		if result.Error != nil {
-			// at this point, the verification action has to be logged and
-			// it's failed
-			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
-		}
-	}
-	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", artifactPrintout)
-	} else {
-		fmt.Println("Successfully verified signature for", artifactPrintout)
-		printMetadataIfPresent(outcome)
+		onSucess(outcomes, printOut)
 	}
 	return nil
+}
+
+func verifyRemote(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+	reference := opts.reference
+	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+	if err != nil {
+		return "", nil, err
+	}
+	// resolve the given reference and set the digest
+	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
+	})
+	if err != nil {
+		return "", nil, err
+	}
+	verifyOpts := notation.RemoteVerifyOptions{
+		ArtifactReference: ref.String(),
+		PluginConfig:      configs,
+		// TODO: need to change MaxSignatureAttempts as a user input flag or
+		// a field in config.json
+		MaxSignatureAttempts: maxSignatureAttempts,
+		UserMetadata:         userMetadata,
+	}
+
+	// core verify process
+	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
+	err = checkFailure(outcomes, ref.String(), err)
+	if err != nil {
+		return "", nil, err
+	}
+	return ref.String(), outcomes, nil
+}
+
+func verifyLocal(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+	var layout ociLayout
+	var err error
+	layout.path, layout.reference, err = parseOCILayoutReference(opts.reference)
+	if err != nil {
+		var errorOciLayoutMissingReference notationerrors.ErrorOciLayoutMissingReference
+		if errors.As(err, &errorOciLayoutMissingReference) {
+			isFile, err := osutil.CheckFile(opts.reference)
+			if err != nil {
+				return "", nil, err
+			}
+			if isFile {
+				// reference is descriptor.json
+				return verifyFromFile(ctx, opts, verifier, configs, userMetadata)
+			}
+		}
+	}
+
+	// reference is oci layout folder
+	// TODO: add support for oci layout tarball
+	return verifyFromFolder(ctx, opts, verifier, layout, configs, userMetadata)
+}
+
+func verifyFromFile(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+	if len(opts.localSignaturePath) == 0 {
+		return "", nil, errors.New("missing signature for descriptor file verification")
+	}
+	signatures, err := parseSignaturesFromPathArray(opts.localSignaturePath)
+	if err != nil {
+		return "", nil, err
+	}
+	targetDesc, err := getManifestDescriptorFromFile(opts.reference)
+	if err != nil {
+		return "", nil, err
+	}
+	verifyOpts := notation.VerifyOptions{
+		TargetAtLocal:    true,
+		PluginConfig:     configs,
+		UserMetadata:     userMetadata,
+		TrustPolicyScope: opts.trustPolicyScope,
+	}
+	var outcomes []*notation.VerificationOutcome
+	for _, signature := range signatures {
+		signatureMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(signature)
+		if err != nil {
+			return "", nil, err
+		}
+		verifyOpts.SignatureMediaType = signatureMediaType
+		outcome, err := verifier.Verify(ctx, targetDesc, signature, verifyOpts)
+		if err != nil {
+			if outcome == nil {
+				return "", nil, fmt.Errorf("signature verification failed: %w", err)
+			}
+			continue
+		}
+		// verification succeeded
+		outcomes = append(outcomes, outcome)
+		break
+	}
+	printOut := opts.reference + "@" + targetDesc.Digest.String()
+	if len(outcomes) == 0 {
+		return "", nil, checkFailure(outcomes, printOut, notation.ErrorVerificationFailed{})
+	}
+	return printOut, outcomes, nil
+}
+
+func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, layout ociLayout, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+	sigRepo, err := ociLayoutFolderAsRepository(layout.path)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(opts.localSignaturePath) == 0 {
+		localVerifyOpts := notation.LocalVerifyOptions{
+			LayoutReference:      layout.reference,
+			PluginConfig:         configs,
+			MaxSignatureAttempts: maxSignatureAttempts,
+			UserMetadata:         userMetadata,
+			TrustPolicyScope:     opts.trustPolicyScope,
+		}
+		// verify signatures inside the OCI layout folder
+		targetDesc, outcomes, err := notation.VerifyLocalContent(ctx, verifier, sigRepo, localVerifyOpts)
+		printOut := layout.path + "@" + targetDesc.Digest.String()
+		err = checkFailure(outcomes, printOut, err)
+		if err != nil {
+			return "", nil, err
+		}
+		return printOut, outcomes, nil
+	}
+	// verify from local signatures only
+	signatures, err := parseSignaturesFromPathArray(opts.localSignaturePath)
+	if err != nil {
+		return "", nil, err
+	}
+	targetDesc, err := getManifestDescriptorFromOCILayout(ctx, layout.reference, sigRepo)
+	if err != nil {
+		return "", nil, err
+	}
+	verifyOpts := notation.VerifyOptions{
+		TargetAtLocal:    true,
+		PluginConfig:     configs,
+		UserMetadata:     userMetadata,
+		TrustPolicyScope: opts.trustPolicyScope,
+	}
+	var outcomes []*notation.VerificationOutcome
+	for _, signature := range signatures {
+		signatureMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(signature)
+		if err != nil {
+			return "", nil, err
+		}
+		verifyOpts.SignatureMediaType = signatureMediaType
+		outcome, err := verifier.Verify(ctx, targetDesc, signature, verifyOpts)
+		if err != nil {
+			if outcome == nil {
+				return "", nil, fmt.Errorf("signature verification failed: %w", err)
+			}
+			continue
+		}
+		// verification succeeded
+		outcomes = append(outcomes, outcome)
+		break
+	}
+	printOut := layout.path + "@" + targetDesc.Digest.String()
+	if len(outcomes) == 0 {
+		return "", nil, checkFailure(outcomes, printOut, notation.ErrorVerificationFailed{})
+	}
+	return printOut, outcomes, nil
 }
 
 func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
@@ -274,6 +291,39 @@ func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference strin
 	ref.Reference = manifestDesc.Digest.String()
 
 	return ref, nil
+}
+
+func checkFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
+	// write out on failure
+	if err != nil || len(outcomes) == 0 {
+		if err != nil {
+			var errorVerificationFailed notation.ErrorVerificationFailed
+			if !errors.As(err, &errorVerificationFailed) {
+				return fmt.Errorf("signature verification failed: %w", err)
+			}
+		}
+		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
+	}
+	return nil
+}
+
+func onSucess(outcomes []*notation.VerificationOutcome, printout string) {
+	// write out on success
+	outcome := outcomes[0]
+	// print out warning for any failed result with logged verification action
+	for _, result := range outcome.VerificationResults {
+		if result.Error != nil {
+			// at this point, the verification action has to be logged and
+			// it's failed
+			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
+		}
+	}
+	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
+		fmt.Println("Trust policy is configured to skip signature verification for", printout)
+	} else {
+		fmt.Println("Successfully verified signature for", printout)
+		printMetadataIfPresent(outcome)
+	}
 }
 
 func printMetadataIfPresent(outcome *notation.VerificationOutcome) {

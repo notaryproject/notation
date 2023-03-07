@@ -221,7 +221,8 @@ func isErrorCode(err error, code string) bool {
 	return errors.As(err, &ec) && ec.Code == code
 }
 
-// ociLayoutFolderAsRepositoryForSign returns a oci.Store as registry.Repository
+// ociLayoutFolderAsRepositoryForSign returns an oci.Store as
+// registry.Repository
 func ociLayoutFolderAsRepositoryForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
 	root, err := filepath.Abs(path)
 	if err != nil {
@@ -286,7 +287,7 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 		// find `tag`
 		i := strings.LastIndex(raw, ":")
 		if i < 0 || (i == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
-			return "", "", errors.New("reference is missing digest or tag")
+			return "", "", notationerrors.ErrorOciLayoutMissingReference{}
 		} else {
 			path, ref = raw[:i], raw[i+1:]
 		}

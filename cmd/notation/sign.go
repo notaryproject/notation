@@ -10,6 +10,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -190,14 +191,21 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 		PluginConfig:       pluginConfig,
 		UserMetadata:       userMetadata,
 	}
-	if osutil.CheckFile(cmdOpts.reference) {
-		// descritpor.json
-		return signFromFile(ctx, cmdOpts, signer, localSignOptions)
-	}
 
 	var layout ociLayout
 	layout.path, layout.reference, err = parseOCILayoutReference(cmdOpts.reference)
 	if err != nil {
+		var errorOciLayoutMissingReference notationerrors.ErrorOciLayoutMissingReference
+		if errors.As(err, &errorOciLayoutMissingReference) {
+			isFile, err := osutil.CheckFile(cmdOpts.reference)
+			if err != nil {
+				return err
+			}
+			if isFile {
+				// descritpor.json
+				return signFromFile(ctx, cmdOpts, signer, localSignOptions)
+			}
+		}
 		return err
 	}
 	return signFromFolder(ctx, cmdOpts, signer, layout, localSignOptions, ociImageManifest)
@@ -238,6 +246,46 @@ func signFromFile(ctx context.Context, cmdOpts *signOpts, signer notation.Signer
 		return fmt.Errorf("failed to write generated signature file: %v", err)
 	}
 	fmt.Println("wrote signature:", output)
+	fmt.Println("Successfully signed", cmdOpts.reference+"@"+targetDesc.Digest.String())
+	return nil
+}
+
+func signFromFolder(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions, ociImageManifest bool) error {
+	sigRepo, err := ociLayoutFolderAsRepositoryForSign(layout.path, ociImageManifest)
+	if err != nil {
+		return err
+	}
+	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
+	if err != nil {
+		return fmt.Errorf("failed to resolve OCI layout reference: %w", err)
+	}
+	// layout.reference is a tag
+	if digest.Digest(layout.reference).Validate() != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
+	}
+
+	// core process
+	targetDesc, sig, annotations, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
+	if err != nil {
+		return err
+	}
+	if cmdOpts.signatureOutput != "" {
+		path, err := filepath.Abs(cmdOpts.signatureOutput)
+		if err != nil {
+			return err
+		}
+		if err := osutil.WriteFileWithPermission(path, sig, 0600, false); err != nil {
+			return fmt.Errorf("failed to write generated signature file: %v", err)
+		}
+		fmt.Println("wrote signature:", path)
+	} else {
+		_, signatureManifestDesc, err := sigRepo.PushSignature(ctx, localSignOptions.SignatureMediaType, sig, targetDesc, annotations)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Pushed signature to OCI layout folder with manifest digest %q\n", signatureManifestDesc.Digest)
+	}
+	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
 	return nil
 }
 
@@ -271,44 +319,6 @@ func signFromFile(ctx context.Context, cmdOpts *signOpts, signer notation.Signer
 // 	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
 // 	return nil
 // }
-
-func signFromFolder(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, layout ociLayout, localSignOptions notation.LocalSignOptions, ociImageManifest bool) error {
-	sigRepo, err := ociLayoutFolderAsRepositoryForSign(layout.path, ociImageManifest)
-	if err != nil {
-		return err
-	}
-	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
-	if err != nil {
-		return fmt.Errorf("failed to resolve OCI layout reference: %w", err)
-	}
-	// layout.reference is a tag
-	if digest.Digest(layout.reference).Validate() != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
-	}
-
-	// core process
-	targetDesc, sig, annotations, err := notation.SignLocalContent(ctx, targetDesc, signer, localSignOptions)
-	if err != nil {
-		return err
-	}
-	if cmdOpts.signatureOutput != "" {
-		path, err := filepath.Abs(cmdOpts.signatureOutput)
-		if err != nil {
-			return err
-		}
-		if err := osutil.WriteFileWithPermission(path, sig, 0600, false); err != nil {
-			return fmt.Errorf("failed to write generated signature file: %v", err)
-		}
-		fmt.Println("wrote signature:", path)
-	} else {
-		_, _, err = sigRepo.PushSignature(ctx, localSignOptions.SignatureMediaType, sig, targetDesc, annotations)
-		if err != nil {
-			return err
-		}
-	}
-	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
-	return nil
-}
 
 func validateSignatureManifest(signatureManifest string) bool {
 	return slices.Contains(supportedSignatureManifest, signatureManifest)

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -40,27 +39,29 @@ func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference 
 	return manifestDesc, ref, nil
 }
 
-func getManifestDescriptorFromOCILayout(ctx context.Context, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, error) {
+// getManifestDescriptorFromOCILayout returns target artifact manifest
+// descriptor given OCI layout reference.
+// layoutReference is a valid tag or digest in the OCI layout
+// sigRepo should be oci.Store for an OCI layout folder
+func getManifestDescriptorFromOCILayout(ctx context.Context, layoutReference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, error) {
 	logger := log.GetLogger(ctx)
 
 	if err := validateOciStore(sigRepo); err != nil {
 		return ocispec.Descriptor{}, err
 	}
-	manifestDesc, err := sigRepo.Resolve(ctx, reference)
+	manifestDesc, err := sigRepo.Resolve(ctx, layoutReference)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
 
-	logger.Infof("Reference %s resolved to manifest descriptor: %+v", reference, manifestDesc)
+	logger.Infof("Reference %s resolved to manifest descriptor: %+v", layoutReference, manifestDesc)
 	return manifestDesc, nil
 }
 
+// getManifestDescriptorFromFile parses target artifact manifest
+// descriptor from path of a local descriptor json file.
 func getManifestDescriptorFromFile(path string) (ocispec.Descriptor, error) {
-	root, err := filepath.Abs(path)
-	if err != nil {
-		return ocispec.Descriptor{}, err
-	}
-	file, err := os.ReadFile(root)
+	file, err := os.ReadFile(path)
 	if err != nil {
 		return ocispec.Descriptor{}, err
 	}
@@ -72,6 +73,7 @@ func getManifestDescriptorFromFile(path string) (ocispec.Descriptor, error) {
 	return plain(targetDesc), nil
 }
 
+// validateOciStore validates if repo is an oci.Store
 func validateOciStore(repo notationregistry.Repository) error {
 	switch r := repo.(type) {
 	case *notationregistry.RepositoryClient:
