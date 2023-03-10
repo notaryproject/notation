@@ -63,7 +63,7 @@ The `notation policy` command provides a user-friendly way to manage trust polic
               "ca:acme-rockets"
             ],                  
             "trustedIdentities": [                                    
-                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, CN=SecureBuilder",
+                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, CN=SecureBuilder"
             ]
         }
     ]
