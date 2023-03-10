@@ -4,17 +4,21 @@
 
 As part of signature verification workflow, users need to configure the trust policies to specify trusted identities that signed the artifacts, and the level of signature verification to use. For more details, see [trust policy specification and examples](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
 
-The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to import and export trust policies from/to a JSON file. Users can export a template file with trust policy configuration to start from scratch.
+The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to import and export trust policies from/to a JSON file. To get started user can use following sample trust policy. In this sample, there are four policies configured for different requirements:
 
-An example of template file:
+- The Policy named "wabbit-networks-images" is for verifying images signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
 
+- Policy named "unsigned-image" is for skipping the verification on unsigned images stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
+
+- Policy "allow-expired-images" is for logging instead of failing expired images stored in repository `"registry.acme-rockets.io/software/legacy/metrics`.
+  
+- Policy "global-policy-for-all-other-images" is for verifying any other images that signed by the ACME Rockets.
+  
 ```jsonc
 {
     "version": "1.0",
     "trustPolicies": [
         {
-            // Policy for set of artifacts signed by Wabbit Networks
-            // that are pulled from ACME Rockets repository
             "name": "wabbit-networks-images",
             "registryScopes": [ 
               "registry.acme-rockets.io/software/net-monitor",
@@ -25,49 +29,41 @@ An example of template file:
             },
             "trustStores": [ 
               "ca:wabbit-networks",
-              "ca:wabbit-networks-ca2"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
             ]
         },
         {
-            // Exception policy for a single unsigned artifact pulled from
-            // Wabbit Networks repository
             "name": "unsigned-image",
-            "registryScopes": [ "registry.wabbit-networks.io/software/unsigned/net-utils" ],
+            "registryScopes": [ "registry.acme-rockets.io/software/unsigned/net-utils" ],
             "signatureVerification": {
               "level" : "skip" 
             }
         },
         {
-            // Policy that uses custom verification level to relax the strict verification.
-            // It logs expiry and skips revocation check for a specific artifact.
             "name": "allow-expired-images",
             "registryScopes": [ "registry.acme-rockets.io/software/legacy/metrics" ],
             "signatureVerification": {
               "level" : "strict",
               "override" : {
-                "expiry" : "log",
-                "revocation" : "skip"
+                "expiry" : "log"
               }
             },
             "trustStores": ["ca:acme-rockets"],
             "trustedIdentities": ["*"]
         },
         {
-            // Policy for all other artifacts signed by ACME Rockets
             "name": "global-policy-for-all-other-images",
             "registryScopes": [ "*" ],       
             "signatureVerification": {                                
                 "level": "strict"
             },
             "trustStores": [ 
-              "ca:acme-rockets-others"
+              "ca:acme-rockets"
             ],                  
             "trustedIdentities": [                                    
-                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder",
-                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Hr, CN=SecureBuilder"
+                "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, CN=SecureBuilder",
             ]
         }
     ]
@@ -103,8 +99,8 @@ Usage:
 
 Flags:
   -d, --debug     debug mode
+      --force     override the supplied file, never prompt
   -h, --help      help for export
-      --template  export a template of trust policies
   -v, --verbose   verbose mode
 ```
 
@@ -118,6 +114,7 @@ Usage:
 
 Flags:
   -d, --debug     debug mode
+      --force     override the existing policies, never prompt
   -h, --help      help for import
   -v, --verbose   verbose mode
 ```
@@ -144,15 +141,9 @@ Flags:
 notation policy import ./my_policy.json
 ```
 
-The trust policies in the JSON file will be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policies are imported successfully. Error logs including the reason should be printed out if the importing fails.  
+The trust policies in the JSON file will be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policies are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
-### Export a template file of trust policies
-
-The template file is for users to create trust policies from scratch. Users should update the trust policies according to own requirements before importing the template file.
-
-```shell
-notation policy export --template ./trustpolicy_template.json
-```
+Use `--force` flag to override existing policies without prompt.
 
 ### Export existing trust policies into a JSON file
 
@@ -160,7 +151,9 @@ notation policy export --template ./trustpolicy_template.json
 notation policy export ./policy_exported.json
 ```
 
-Upon successful execution, the existing trust policies are exported into a json file.
+Upon successful execution, the existing trust policies are exported into a json file. 
+
+Use `--force` flag to override supplied file without prompt.
 
 ### Show trust policies
 
