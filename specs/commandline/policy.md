@@ -4,14 +4,13 @@
 
 As part of signature verification workflow, users need to configure the trust policies to specify trusted identities that signed the artifacts, and the level of signature verification to use. For more details, see [trust policy specification and examples](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
 
-The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to import and export trust policies from/to a JSON file. To get started user can use following sample trust policy. In this sample, there are four policies configured for different requirements:
+The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to initialize trust policies with default values, import trust policies from a JSON file, and show trust policies. To get started user can use following sample trust policy. In this sample, there are four policies configured for different requirements:
 
 - The Policy named "wabbit-networks-images" is for verifying images signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
-
 - Policy named "unsigned-image" is for skipping the verification on unsigned images stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
 - Policy "allow-expired-images" is for logging instead of failing expired images stored in repository `registry.acme-rockets.io/software/legacy/metrics`.
 - Policy "global-policy-for-all-other-images" is for verifying any other images that signed by the ACME Rockets.
-  
+
 ```jsonc
 {
     "version": "1.0",
@@ -79,27 +78,12 @@ Usage:
   notation policy [command]
 
 Available Commands:
-  export    export trust policies to a JSON file
   import    import trust policies from a JSON file
+  init      initialize trust policies with default values
   show      show trust policies
 
 Flags:
   -h, --help   help for policy
-```
-
-### notation policy export
-
-```text
-Export trust policies to a JSON file
-
-Usage:
-  notation policy export [flags] <file_path>
-
-Flags:
-  -d, --debug     debug mode
-      --force     override the supplied file, never prompt
-  -h, --help      help for export
-  -v, --verbose   verbose mode
 ```
 
 ### notation policy import
@@ -112,9 +96,25 @@ Usage:
 
 Flags:
   -d, --debug     debug mode
-      --force     override the existing policies, never prompt
+      --force     override the existing trust policies, never prompt
   -h, --help      help for import
   -v, --verbose   verbose mode
+```
+
+### notation policy init
+
+```text
+Initialize trust policies with default values
+
+Usage:
+  notation policy init [flags]
+
+Flags:
+  -d, --debug        debug mode
+      --force        override the existing trust polices, never prompt
+  -h, --help         help for export
+      --ts string    specify the trust store in format "<type>:<name>", e.g. "ca:my_store"
+  -v, --verbose      verbose mode
 ```
 
 ### notation policy show
@@ -143,15 +143,60 @@ The trust policies in the JSON file will be validated according to [trust policy
 
 Use `--force` flag to override existing policies without prompt.
 
-### Export existing trust policies into a JSON file
+### Initialize trust policies with default values
 
 ```shell
-notation policy export ./policy_exported.json
+notation policy init
 ```
 
-Upon successful execution, the existing trust policies are exported into a json file. 
+Upon successful execution, trust policies with default values are created as following. Make sure to update the `trustStores` property with correct values.
 
-Use `--force` flag to override supplied file without prompt.
+```jsonc
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "policy-by-init-command",
+            "registryScopes": ["*"],
+            "signatureVerification": {
+                "level": "strict"
+            },
+            "trustStores": ["ca:default"],
+            "trustedIdentities": ["*"]
+        }
+    ]
+}
+
+```
+
+Use `--force` flag to override existing policies without prompt.
+
+### Initialize trust policies with specified trust store
+
+```shell
+notation policy init --ts "ca:my_store"
+```
+
+Upon successful execution, trust policies with default values and specified trust stores are created as following:
+
+```jsonc
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "policy-by-init-command",
+            "registryScopes": ["*"],
+            "signatureVerification": {
+                "level": "strict"
+            },
+            "trustStores": ["ca:my_store"],
+            "trustedIdentities": ["*"]
+        }
+    ]
+}
+```
+
+Use `--force` flag to override existing policies without prompt.
 
 ### Show trust policies
 
@@ -159,4 +204,29 @@ Use `--force` flag to override supplied file without prompt.
 notation policy show
 ```
 
-Upon successful execution, the trust policies are printed out. If trust policies are not configured, users should receive an error message.
+Upon successful execution, the trust policies are printed out in the console. If trust policies are not configured, users should receive an error message.
+
+### Export trust policies into a JSON file
+
+Users can redirect the output of command `notation policy show` to a JSON file.
+
+```shell
+notation policy show > ./trust_policy.json
+```
+
+### Update trust policies
+
+The steps to update trust policies:
+
+1. Export trust policies into a JSON file.
+
+   ```shell
+   notation policy show > ./trust_policy.json
+   ```
+
+2. Edit the exported JSON file "trust_policy.json", update trust policies and save the file.
+3. Import trust policies from the file.
+
+   ```shell
+   notation policy import ./trust_policy.json
+   ```

@@ -34,7 +34,7 @@ Available Commands:
   login       Login to registry
   logout      Log out from the logged in registries
   plugin      Manage plugins
-  policy      Manage trust policies for signature verification
+  policy      [Preview] Manage trust policies for signature verification
   sign        Sign artifacts
   verify      Verify artifacts
   version     Show the notation version information
