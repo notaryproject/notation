@@ -194,7 +194,7 @@ Use `--force` flag to override existing policies without prompt.
 notation policy show
 ```
 
-Upon successful execution, the trust policies are printed out in the console. If trust policies are not configured, users should receive an error message.
+Upon successful execution, the trust policies are printed out in the console. If trust policies are not configured, users should receive an error message, and a tip to initialize trust policies using command `notation policy init`.
 
 ### Export trust policies into a JSON file
 
