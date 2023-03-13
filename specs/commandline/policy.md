@@ -9,7 +9,7 @@ The `notation policy` command provides a user-friendly way to manage trust polic
 - The Policy named "wabbit-networks-images" is for verifying images signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
 
 - Policy named "unsigned-image" is for skipping the verification on unsigned images stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
-- Policy "allow-expired-images" is for logging instead of failing expired images stored in repository `"registry.acme-rockets.io/software/legacy/metrics`.
+- Policy "allow-expired-images" is for logging instead of failing expired images stored in repository `registry.acme-rockets.io/software/legacy/metrics`.
 - Policy "global-policy-for-all-other-images" is for verifying any other images that signed by the ACME Rockets.
   
 ```jsonc
