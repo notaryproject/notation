@@ -110,11 +110,11 @@ Usage:
   notation policy init [flags]
 
 Flags:
-  -d, --debug        debug mode
-      --force        override the existing trust polices, never prompt
-  -h, --help         help for export
-      --ts string    specify the trust store in format "<type>:<name>", e.g. "ca:my_store"
-  -v, --verbose      verbose mode
+  -d, --debug             debug mode
+      --force             override the existing trust polices, never prompt
+  -h, --help              help for export
+      --ts stringArray    specify the trust stores in format "<type>:<name>", e.g. "ca:my_store"
+  -v, --verbose           verbose mode
 ```
 
 ### notation policy show
@@ -132,16 +132,6 @@ Flags:
 ```
 
 ## Usage
-
-### Import trust policies from a JSON file
-
-```shell  
-notation policy import ./my_policy.json
-```
-
-The trust policies in the JSON file will be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policies are imported successfully. Error logs including the reason should be printed out if the importing fails.
-
-Use `--force` flag to override existing policies without prompt.
 
 ### Initialize trust policies with default values
 
@@ -171,10 +161,10 @@ Upon successful execution, trust policies with default values are created as fol
 
 Use `--force` flag to override existing policies without prompt.
 
-### Initialize trust policies with specified trust store
+### Initialize trust policies with specified trust stores
 
 ```shell
-notation policy init --ts "ca:my_store"
+notation policy init --ts "ca:my_store" --ts "ca:my_store_2"
 ```
 
 Upon successful execution, trust policies with default values and specified trust stores are created as following:
@@ -189,7 +179,7 @@ Upon successful execution, trust policies with default values and specified trus
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": ["ca:my_store"],
+            "trustStores": ["ca:my_store", "ca:my_store_2"],
             "trustedIdentities": ["*"]
         }
     ]
@@ -213,6 +203,16 @@ Users can redirect the output of command `notation policy show` to a JSON file.
 ```shell
 notation policy show > ./trust_policy.json
 ```
+
+### Import trust policies from a JSON file
+
+```shell  
+notation policy import ./my_policy.json
+```
+
+The trust policies in the JSON file will be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policies are imported successfully. Error logs including the reason should be printed out if the importing fails.
+
+Use `--force` flag to override existing policies without prompt.
 
 ### Update trust policies
 
