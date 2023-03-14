@@ -110,11 +110,11 @@ Usage:
   notation policy init [flags]
 
 Flags:
-  -d, --debug             debug mode
-      --force             override the existing trust polices, never prompt
-  -h, --help              help for export
-      --ts stringArray    specify the trust stores in format "<type>:<name>", e.g. "ca:my_store"
-  -v, --verbose           verbose mode
+  -d, --debug                      debug mode
+      --force                      restore the trust policies to default values. Any existing trust polices will be discarded, never prompt
+  -h, --help                       help for export
+      --trust-store stringArray    specify the trust stores in format "<type>:<name>", e.g. "ca:my_store". If this flag is ignored, a default trust store "ca:default" is used
+  -v, --verbose                    verbose mode
 ```
 
 ### notation policy show
@@ -123,7 +123,7 @@ Flags:
 Show trust policies
 
 Usage:
-  notation policy [flags] show
+  notation policy show [flags]
 
 Flags:
   -d, --debug     debug mode
@@ -139,7 +139,7 @@ Flags:
 notation policy init
 ```
 
-Upon successful execution, trust policies with default values are created as following. Make sure to update the `trustStores` property with correct values.
+Upon successful execution, trust policies with default values are created and printed out as following. Use command `notation cert add --type ca --store default <cert_file>` to add CA certificates to trust store `ca:default`. If users want to use different trust stores, refer to section [Update trust policies](#update-trust-policies) on how to do the update.
 
 ```jsonc
 {
@@ -159,7 +159,7 @@ Upon successful execution, trust policies with default values are created as fol
 
 ```
 
-Use `--force` flag to override existing policies without prompt.
+If there are existing trust policies configured and users still run `notation policy init` command, A prompt should be displayed asking for confirmation on whether restoring to default values or not. Use `--force` flag to discard any existing trust policies without prompt.
 
 ### Initialize trust policies with specified trust stores
 
@@ -167,7 +167,7 @@ Use `--force` flag to override existing policies without prompt.
 notation policy init --ts "ca:my_store" --ts "ca:my_store_2"
 ```
 
-Upon successful execution, trust policies with default values and specified trust stores are created as following:
+Upon successful execution, trust policies with default values and specified trust stores are created and printed out as following:
 
 ```jsonc
 {
@@ -194,7 +194,7 @@ Use `--force` flag to override existing policies without prompt.
 notation policy show
 ```
 
-Upon successful execution, the trust policies are printed out in the console. If trust policies are not configured, users should receive an error message, and a tip to initialize trust policies using command `notation policy init`.
+Upon successful execution, the trust policies are printed out. If trust policies are not configured, users should receive an error message, and a tip to initialize trust policies using command `notation policy init`.
 
 ### Export trust policies into a JSON file
 
