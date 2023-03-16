@@ -2,9 +2,9 @@
 
 ## Description
 
-As part of signature verification workflow, users need to configure the trust policies to specify trusted identities that signed the artifacts, and the level of signature verification to use. For more details, see [trust policy specification and examples](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
+As part of signature verification workflow, users need to configure the trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [trust policy specification and examples](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
 
-The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to import/export trust policies from/to a JSON file, and show trust policies. To get started user can use following sample trust policy. In this sample, there are four policies configured for different requirements:
+The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. To get started user can refer to the following trust policy configuration sample. In this sample, there are four policies configured for different requirements:
 
 - The Policy named "wabbit-networks-images" is for verifying images signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
 - Policy named "unsigned-image" is for skipping the verification on unsigned images stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
@@ -72,14 +72,14 @@ The `notation policy` command provides a user-friendly way to manage trust polic
 ### notation policy command
 
 ```text
-Manage trust policies for signature verification.
+Manage trust policy configuration for signature verification.
 
 Usage:
   notation policy [command]
 
 Available Commands:
-  import    import trust policies from a JSON file
-  show      show trust policies
+  import    import trust policy configuration from a JSON file
+  show      show trust policy configuration
 
 Flags:
   -h, --help   help for policy
@@ -88,14 +88,14 @@ Flags:
 ### notation policy import
 
 ```text
-Import trust policies from a JSON file
+Import trust policy configuration from a JSON file
 
 Usage:
   notation policy import [flags] <file_path>
 
 Flags:
   -d, --debug     debug mode
-      --force     override the existing trust policies, never prompt
+      --force     override the existing trust policy configuration, never prompt
   -h, --help      help for import
   -v, --verbose   verbose mode
 ```
@@ -103,7 +103,7 @@ Flags:
 ### notation policy show
 
 ```text
-Show trust policies
+Show trust policy configuration
 
 Usage:
   notation policy show [flags]
@@ -116,29 +116,29 @@ Flags:
 
 ## Usage
 
-### Import trust policies from a JSON file
+### Import trust policy configuration from a JSON file
 
-An example of importing trust policies from a JSON file:
+An example of import trust policy configuration from a JSON file:
 
 ```shell  
 notation policy import ./my_policy.json
 ```
 
-The trust policies in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policies are imported successfully. Error logs including the reason should be printed out if the importing fails.
+The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
-Use `--force` flag to override existing policies without prompt.
+If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
 
 ### Show trust policies
 
-Use the following command to show trust policies:
+Use the following command to show trust policy configuration:
 
 ```shell
 notation policy show
 ```
 
-Upon successful execution, the trust policies are printed out. If trust policies are not configured, users should receive an error message, and a tip to import trust policies from a JSON file.
+Upon successful execution, the trust policy configuration are printed out in a pretty JSON format. If trust policy is not configured, users should receive an error message, and a tip to import trust policy configuration from a JSON file.
 
-### Export trust policies into a JSON file
+### Export trust policy configuration into a JSON file
 
 Users can redirect the output of command `notation policy show` to a JSON file.
 
@@ -146,18 +146,18 @@ Users can redirect the output of command `notation policy show` to a JSON file.
 notation policy show > ./trust_policy.json
 ```
 
-### Update trust policies
+### Update trust policy configuration
 
-The steps to update trust policies:
+The steps to update trust policy configuration:
 
-1. Export trust policies into a JSON file.
+1. Export trust policy configuration into a JSON file.
 
    ```shell
    notation policy show > ./trust_policy.json
    ```
 
-2. Edit the exported JSON file "trust_policy.json", update trust policies and save the file.
-3. Import trust policies from the file.
+2. Edit the exported JSON file "trust_policy.json", update trust policy configuration and save the file.
+3. Import trust policy configuration from the file.
 
    ```shell
    notation policy import ./trust_policy.json
