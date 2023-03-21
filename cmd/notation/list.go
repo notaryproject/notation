@@ -10,13 +10,13 @@ import (
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2/registry"
 )
 
 type listOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference string
+	reference    string
+	localContent bool
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
@@ -41,6 +41,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	}
 	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
 	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
+	cmd.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, list signatures from OCI layout")
 	return cmd
 }
 
@@ -50,23 +51,41 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
+	if opts.localContent {
+		var layout ociLayout
+		var err error
+		layout.path, layout.reference, err = parseOCILayoutReference(opts.reference)
+		if err != nil {
+			return err
+		}
+		sigRepo, err := ociLayoutRepository(layout.path)
+		if err != nil {
+			return err
+		}
+		targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
+		if err != nil {
+			return err
+		}
+		printOut := layout.path + "@" + targetDesc.Digest.String()
+		// print all signature manifest digests
+		return printSignatureManifestDigests(ctx, targetDesc, sigRepo, printOut)
+	}
 	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}
-	manifestDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, reference, sigRepo)
+	targetDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, reference, sigRepo)
 	if err != nil {
 		return err
 	}
-
+	ref.Reference = targetDesc.Digest.String()
 	// print all signature manifest digests
-	return printSignatureManifestDigests(ctx, manifestDesc, sigRepo, ref)
+	return printSignatureManifestDigests(ctx, targetDesc, sigRepo, ref.String())
 }
 
 // printSignatureManifestDigests returns the signature manifest digests of
 // the subject manifest.
-func printSignatureManifestDigests(ctx context.Context, manifestDesc ocispec.Descriptor, sigRepo notationregistry.Repository, ref registry.Reference) error {
-	ref.Reference = manifestDesc.Digest.String()
+func printSignatureManifestDigests(ctx context.Context, targetDesc ocispec.Descriptor, sigRepo notationregistry.Repository, ref string) error {
 	titlePrinted := false
 	printTitle := func() {
 		if !titlePrinted {
@@ -77,7 +96,7 @@ func printSignatureManifestDigests(ctx context.Context, manifestDesc ocispec.Des
 	}
 
 	var prevDigest digest.Digest
-	err := sigRepo.ListSignatures(ctx, manifestDesc, func(signatureManifests []ocispec.Descriptor) error {
+	err := sigRepo.ListSignatures(ctx, targetDesc, func(signatureManifests []ocispec.Descriptor) error {
 		for _, sigManifestDesc := range signatureManifests {
 			if prevDigest != "" {
 				// check and print title

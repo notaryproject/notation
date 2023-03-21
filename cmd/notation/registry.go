@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/notaryproject/notation/pkg/configutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/sirupsen/logrus"
-	"oras.land/oras-go/v2/content/oci"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -27,6 +25,11 @@ import (
 )
 
 const zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+type ociLayout struct {
+	path      string
+	reference string
+}
 
 func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
@@ -221,61 +224,19 @@ func isErrorCode(err error, code string) bool {
 	return errors.As(err, &ec) && ec.Code == code
 }
 
-// ociLayoutFolderAsRepositoryForSign returns an oci.Store as
+// ociLayoutRepositoryForSign returns an oci.Store as
 // registry.Repository
-func ociLayoutFolderAsRepositoryForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
-	root, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
-	}
-	ociStore, err := oci.New(root)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create OCI store: %w", err)
-	}
+func ociLayoutRepositoryForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
 	repositoryOpts := notationregistry.RepositoryOptions{
 		OCIImageManifest: ociImageManifest,
 	}
-	return notationregistry.NewRepositoryWithOptions(ociStore, repositoryOpts), nil
+	return notationregistry.NewRepositoryWithOciStore(path, repositoryOpts)
 }
 
-// ociLayoutFolderAsRepository returns a oci.Store as registry.Repository
-func ociLayoutFolderAsRepository(path string) (notationregistry.Repository, error) {
-	root, err := filepath.Abs(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
-	}
-	ociStore, err := oci.New(root)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create OCI store: %w", err)
-	}
-	return notationregistry.NewRepository(ociStore), nil
+// ociLayoutRepository returns a oci.Store as registry.Repository
+func ociLayoutRepository(path string) (notationregistry.Repository, error) {
+	return notationregistry.NewRepositoryWithOciStore(path, notationregistry.RepositoryOptions{})
 }
-
-// TODO: ociLayoutTarForSign returns a oci.ReadOnlyStore as registry.Repository
-// func ociLayoutTarForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
-// 	root, err := filepath.Abs(path)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
-// 	}
-// 	_, err = oci.NewStorageFromTar(root)
-// 	if err != nil {
-// 		return nil, notationerrors.ErrorOciLayoutTarForSign{Msg: err.Error()}
-// 	}
-// 	return nil, nil
-// }
-
-// TODO: ociLayoutTar returns a oci.ReadOnlyStore as registry.Repository
-// func ociLayoutTar(path string) (notationregistry.Repository, error) {
-// 	root, err := filepath.Abs(path)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to get absolute representation of path: %w", err)
-// 	}
-// 	_, err = oci.NewStorageFromTar(root)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to create ReadOnlyStorage from tar: %w", err)
-// 	}
-// 	return nil, nil
-// }
 
 // parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
 func parseOCILayoutReference(raw string) (path string, ref string, err error) {
