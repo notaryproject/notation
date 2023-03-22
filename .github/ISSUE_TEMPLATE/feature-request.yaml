@@ -27,8 +27,6 @@ body:
       label: "What is the areas you would like to add the new feature to?"
       options: 
         - Notation CLI
-        - Notation-Core-Go Library
-        - Notation-Go Library
   - type: textarea
     id: problem
     validations:
@@ -60,4 +58,4 @@ body:
   - type: markdown
     attributes:
       value: |
-        If you want to contribute to this project, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to imrpove the functionality. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
+        If you want to contribute to this project, we will be happy to guide you through out contribution process especially when you already have a good proposal or understanding of how to improve the functionality. Join us at https://slack.cncf.io/ and choose #notary-v2 channel.
