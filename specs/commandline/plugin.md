@@ -16,6 +16,8 @@ Usage:
 
 Available Commands:
   list        List installed plugins
+  install     Installs a plugin
+  remove      Removes a plugin
 
 Flags:
   -h, --help          help for plugin
@@ -42,11 +44,9 @@ Aliases:
 Installs a plugin
 
 Usage:
-  notation plugin install [--name <plugin name>] [flags] <plugin package> 
+  notation plugin install [flags] <plugin path>
 
 Flags:
-  -n, --name string             name of the plugin
-  -p, --plugin-package string   path to the plugin package
   -h, --help                    help for install
 
 Aliases:
@@ -73,10 +73,10 @@ Aliases:
 ### Install a plugin
 
 ```shell
-notation plugin install --name <plugin name> --plugin-package <plugin package>
+notation plugin install <plugin path>
 ```
 
-Unpon successful execution, the plugins directory is created under the default plugin directory if it does not exist, and the plugin package is extracted to the plugins directory. The plugin installation is then verified. If the verification fails, the plugin is removed from the plugins directory and an error is returned. 
+Upon successful execution, the plugin is moved to plugins directory. If the plugin directory does not exist, it will be created. The plugin installation is then verified and if the verification fails, the plugin is removed from the plugins directory and an error is returned. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
 
 ### Uninstall a plugin
 
