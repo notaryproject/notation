@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -24,7 +25,9 @@ import (
 	"oras.land/oras-go/v2/registry/remote/errcode"
 )
 
-const zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+const (
+	zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+)
 
 type ociLayout struct {
 	path      string
@@ -257,4 +260,11 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 		}
 	}
 	return
+}
+
+// localArtifactReference creates an artifact reference for local artifact
+func localArtifactReference(path string, digest string) string {
+	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
+	repo := strings.ToLower(filepath.Base(path))
+	return fmt.Sprintf("%s/%s@%s", reg, repo, digest)
 }

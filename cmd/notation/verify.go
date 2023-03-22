@@ -12,8 +12,8 @@ import (
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
 	"github.com/spf13/cobra"
@@ -25,12 +25,11 @@ const maxSignatureAttempts = math.MaxInt64
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference          string
-	pluginConfig       []string
-	userMetadata       []string
-	localContent       bool
-	trustPolicyScope   string
-	localSignaturePath []string
+	reference        string
+	pluginConfig     []string
+	userMetadata     []string
+	localContent     bool
+	trustPolicyScope string
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -55,9 +54,6 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 				return errors.New("missing reference")
 			}
 			opts.reference = args[0]
-			if len(args) > 1 {
-				opts.localSignaturePath = append(opts.localSignaturePath, args[1:]...)
-			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,7 +65,8 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
 	command.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, verify local content")
-	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local content verification. If ignored, the global scope is used")
+	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local content verification. This flag is required when local-content is set to true")
+	command.MarkFlagsRequiredTogether("local-content", "scope")
 	return command
 }
 
@@ -150,85 +147,40 @@ func verifyLocal(ctx context.Context, opts *verifyOpts, verifier notation.Verifi
 	if err != nil {
 		return "", nil, err
 	}
-
 	return verifyFromFolder(ctx, opts, verifier, layout, configs, userMetadata)
 }
 
 func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, layout ociLayout, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+	fmt.Println(layout.path)
 	sigRepo, err := ociLayoutRepository(layout.path)
 	if err != nil {
 		return "", nil, err
 	}
-	if len(opts.localSignaturePath) == 0 {
-		verifyOpts := notation.VerifyOptions{
-			ArtifactReference:    layout.reference,
-			PluginConfig:         configs,
-			MaxSignatureAttempts: maxSignatureAttempts,
-			UserMetadata:         userMetadata,
-			TrustPolicyScope:     opts.trustPolicyScope,
-		}
-		// verify signatures inside the OCI layout folder
-		targetDesc, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-		printOut := layout.path + "@" + targetDesc.Digest.String()
-		err = checkFailure(outcomes, printOut, err)
-		if err != nil {
-			return "", nil, err
-		}
-		return printOut, outcomes, nil
-	}
-	// verify from local signatures only
 	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
 	if err != nil {
 		return "", nil, err
 	}
-	fmt.Printf("Reference %s resolved to manifest descriptor: %+v\n", layout.reference, targetDesc)
-	signatures, err := parseSignaturesFromPathArray(opts.localSignaturePath)
+	fmt.Printf("Reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
+	if digest.Digest(layout.reference).Validate() != nil {
+		// layout.reference is a tag
+		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", layout.reference)
+	}
+	layout.reference = targetDesc.Digest.String()
+	verifyOpts := notation.VerifyOptions{
+		ArtifactReference:    opts.trustPolicyScope + "@" + layout.reference,
+		PluginConfig:         configs,
+		MaxSignatureAttempts: maxSignatureAttempts,
+		UserMetadata:         userMetadata,
+	}
+
+	// core process
+	targetDesc, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
+	printOut := layout.path + "@" + targetDesc.Digest.String()
+	err = checkFailure(outcomes, printOut, err)
 	if err != nil {
 		return "", nil, err
 	}
-	verifyOpts := notation.VerifierVerifyOptions{
-		ArtifactReference: layout.reference,
-		PluginConfig:      configs,
-		UserMetadata:      userMetadata,
-		LocalVerify:       true,
-		TrustPolicyScope:  opts.trustPolicyScope,
-	}
-	var outcomes []*notation.VerificationOutcome
-	for _, signature := range signatures {
-		signatureMediaType, err := envelope.SpeculateSignatureEnvelopeFormat(signature)
-		if err != nil {
-			return "", nil, err
-		}
-		verifyOpts.SignatureMediaType = signatureMediaType
-		outcome, err := verifier.Verify(ctx, targetDesc, signature, verifyOpts)
-		if err != nil {
-			if outcome == nil {
-				return "", nil, fmt.Errorf("signature verification failed: %w", err)
-			}
-			continue
-		}
-		// verification succeeded
-		outcomes = append(outcomes, outcome)
-		break
-	}
-	printOut := layout.path + "@" + targetDesc.Digest.String()
-	if len(outcomes) == 0 {
-		return "", nil, checkFailure(outcomes, printOut, notation.ErrorVerificationFailed{})
-	}
 	return printOut, outcomes, nil
-}
-
-// parseSignaturesFromPathArray parses signatures from array of signature paths
-func parseSignaturesFromPathArray(sigPath []string) ([][]byte, error) {
-	var signatures [][]byte
-	for _, path := range sigPath {
-		signature, err := os.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		signatures = append(signatures, signature)
-	}
-	return signatures, nil
 }
 
 func checkFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {

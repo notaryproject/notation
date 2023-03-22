@@ -12,6 +12,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
+	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry"
@@ -179,9 +180,22 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	if err != nil {
 		return err
 	}
+	sigRepo, err := ociLayoutRepositoryForSign(layout.path, ociImageManifest)
+	if err != nil {
+		return err
+	}
+	manifestDesc, err := sigRepo.Resolve(ctx, layout.reference)
+	if err != nil {
+		return err
+	}
+	if digest.Digest(layout.reference).Validate() != nil {
+		// layout.reference is a tag
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
+	}
+	layout.reference = manifestDesc.Digest.String()
 	signOpts := notation.SignOptions{
 		SignerSignOptions: notation.SignerSignOptions{
-			ArtifactReference:  layout.reference,
+			ArtifactReference:  localArtifactReference(layout.path, layout.reference),
 			SignatureMediaType: mediaType,
 			ExpiryDuration:     cmdOpts.expiry,
 			PluginConfig:       pluginConfig,
@@ -189,17 +203,8 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 		UserMetadata: userMetadata,
 	}
 
-	return signFromFolder(ctx, cmdOpts, signer, layout, signOpts, ociImageManifest)
-}
-
-func signFromFolder(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, layout ociLayout, signOptions notation.SignOptions, ociImageManifest bool) error {
-	sigRepo, err := ociLayoutRepositoryForSign(layout.path, ociImageManifest)
-	if err != nil {
-		return err
-	}
-
 	// core process
-	targetDesc, err := notation.Sign(ctx, signer, sigRepo, signOptions)
+	targetDesc, err := notation.Sign(ctx, signer, sigRepo, signOpts)
 	if err != nil {
 		return err
 	}
