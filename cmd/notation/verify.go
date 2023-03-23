@@ -147,25 +147,25 @@ func verifyLocal(ctx context.Context, opts *verifyOpts, verifier notation.Verifi
 	if err != nil {
 		return "", nil, err
 	}
-	return verifyFromFolder(ctx, opts, verifier, layout, configs, userMetadata)
+	return verifyFromFolder(ctx, opts, verifier, &layout, configs, userMetadata)
 }
 
-func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, layout ociLayout, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
-	fmt.Println(layout.path)
+func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, layout *ociLayout, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
 	sigRepo, err := ociLayoutRepository(layout.path)
 	if err != nil {
 		return "", nil, err
 	}
 	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
 	if err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
-	fmt.Printf("Reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
+	fmt.Printf("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
 	if digest.Digest(layout.reference).Validate() != nil {
 		// layout.reference is a tag
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", layout.reference)
 	}
 	layout.reference = targetDesc.Digest.String()
+	printOut := layout.path + "@" + targetDesc.Digest.String()
 	verifyOpts := notation.VerifyOptions{
 		ArtifactReference:    opts.trustPolicyScope + "@" + layout.reference,
 		PluginConfig:         configs,
@@ -174,8 +174,7 @@ func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.V
 	}
 
 	// core process
-	targetDesc, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-	printOut := layout.path + "@" + targetDesc.Digest.String()
+	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
 	err = checkFailure(outcomes, printOut, err)
 	if err != nil {
 		return "", nil, err

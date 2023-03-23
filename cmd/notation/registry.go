@@ -262,7 +262,7 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 	return
 }
 
-// localArtifactReference creates an artifact reference for local artifact
+// localArtifactReference creates an artifact reference for a local artifact
 func localArtifactReference(path string, digest string) string {
 	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
 	repo := strings.ToLower(filepath.Base(path))

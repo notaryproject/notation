@@ -63,6 +63,12 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
+Example - Sign an OCI artifact stored in a local OCI layout directory's index.json
+  notation sign --local-content "<oci_layout_path>@<digest>"
+
+Example - Sign an OCI artifact identified by a tag stored in a local OCI layout directory's index.json
+  notation sign --local-content "<oci_layout_path>:<tag>"
+
 Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to store the signature:
   notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 `,
@@ -184,15 +190,16 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	if err != nil {
 		return err
 	}
-	manifestDesc, err := sigRepo.Resolve(ctx, layout.reference)
+	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
+	fmt.Printf("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
 	if digest.Digest(layout.reference).Validate() != nil {
 		// layout.reference is a tag
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
 	}
-	layout.reference = manifestDesc.Digest.String()
+	layout.reference = targetDesc.Digest.String()
 	signOpts := notation.SignOptions{
 		SignerSignOptions: notation.SignerSignOptions{
 			ArtifactReference:  localArtifactReference(layout.path, layout.reference),
@@ -204,7 +211,7 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	}
 
 	// core process
-	targetDesc, err := notation.Sign(ctx, signer, sigRepo, signOpts)
+	targetDesc, err = notation.Sign(ctx, signer, sigRepo, signOpts)
 	if err != nil {
 		return err
 	}

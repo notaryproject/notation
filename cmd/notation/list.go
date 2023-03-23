@@ -64,7 +64,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 		}
 		targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 		}
 		printOut := layout.path + "@" + targetDesc.Digest.String()
 		// print all signature manifest digests
