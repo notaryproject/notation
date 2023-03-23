@@ -41,7 +41,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	}
 	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
 	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
-	cmd.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, list signatures from OCI layout")
+	cmd.Flags().BoolVar(&opts.localContent, "local-content", false, "list signatures from OCI layout")
 	return cmd
 }
 
