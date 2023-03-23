@@ -48,6 +48,7 @@ Usage:
 
 Flags:
   -h, --help                    help for install
+  -f, --force                   force the installation of a plugin
 
 Aliases:
   install, add
@@ -76,7 +77,7 @@ Aliases:
 notation plugin install <plugin path>
 ```
 
-Upon successful execution, the plugin is moved to plugins directory. If the plugin directory does not exist, it will be created. The plugin installation is then verified and if the verification fails, the plugin is removed from the plugins directory and an error is returned. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
+Upon successful execution, the plugin is moved to plugins directory and name+version of plugin is displayed. If the plugin directory does not exist, it will be created. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
 
 ### Uninstall a plugin
 
