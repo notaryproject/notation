@@ -48,6 +48,12 @@ Example - Verify a signature on an OCI artifact identified by a digest:
 
 Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
   notation verify <registry>/<repository>:<tag>
+
+Example - Verify an OCI artifact referenced in a local OCI layout directory's index.json using trust policy statement specified by scope.
+  notation verify --local-content <registry>/<repository>@<digest> --scope <trust_policy_scope>
+
+Example - Verify an OCI artifact identified by a tag and referenced in a local OCI layout directory's index.json using trust policy statement specified by scope.
+  notation verify --local-content <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -64,8 +70,8 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	command.Flags().BoolVar(&opts.localContent, "local-content", false, "if set, verify local content")
-	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local content verification. This flag is required when local-content is set to true")
+	command.Flags().BoolVar(&opts.localContent, "local-content", false, "verify local artifact")
+	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local artifact verification. This flag is required when local-content is set to true")
 	command.MarkFlagsRequiredTogether("local-content", "scope")
 	return command
 }
