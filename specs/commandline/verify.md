@@ -40,6 +40,7 @@ Flags:
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                  registry access via plain HTTP
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+       --scope string                [Preview] trust policy scope for local artifact verification.
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode
@@ -167,4 +168,26 @@ An example of output messages for a successful verification:
 ```text
 Warning:  Always verify the artifact using digest(@sha256:...) rather than a tag(:v1) because resolved digest may not point to the same signed artifact, as tags are mutable.
 Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### [Preview] Verify local OCI image
+
+Users should configure trust policy properly before verifying local OCI image. According to trust policy specification, `registryScopes` property determines which trust policy is applicable for the given artifact. For an image stored in a remote registry, the reference is like "localhost:5000/net-monitor:v1", and the value of `registryScopes` should be set to "localhost:5000/net-monitor", which is the repository URL of the image. Local OCI image is in the form of OCI layout directory, the reference is like "./hello-world:v1", the registry scope cannot be extracted from the reference. Users need to specify which `registryScopes` is used to verify the local image using flag `--scope`. Here is an example of trust policy configured for local image `./hello-world:v1`:
+
+```jsonc
+{
+    "name": "local-images",
+    "registryScopes": [ "local/hello-world" ],
+    "signatureVerification": {
+        "level" : "strict"
+    },
+    "trustStores": [ "ca:hello-world" ],
+    "trustedIdentities": ["*"]
+}
+```
+
+Please note that the value of `registryScopes` should be a fully qualified URL for both local and remote images. To verify local image `./hello-world:v1`, use the following command:
+
+```shell
+notation verify --scope "local/hello-world" ./hello-world:v1
 ```
