@@ -169,29 +169,29 @@ notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 
 ### [Preview] Sign local OCI image
 
-A local OCI image means an OCI image Layout on local disk. OCI image layout is defined by spec [OCI image layout][oci-image-layout]. It is a directory structure that contains files and folders. Users can reference an image in the layout using either tags, or the exact digest. The OCI image layout could be a tarball or a directory. Notation only supports signing OCI layout directory.
+A local OCI image means an OCI image Layout on local disk. OCI image layout is defined by spec [OCI image layout][oci-image-layout]. It is a directory structure that contains files and folders. Users can reference an image in the layout using either tags, or the exact digest. The OCI image layout could be a tarball or a directory. Notation only supports signing OCI layout directory for now.
 
-Tools like `docker buildx` support building an OCI image layout on local disk. The following example creates a tarball named `hello-world.tar` with tag `v1`, which is an OCI layout tarball on local disk. Please note that the digest can be found in the output messages.
+Tools like `docker buildx` support building an OCI image layout on local disk. The following example creates a tarball named `hello-world.tar` with tag `v1`, which is an OCI layout tarball on local disk. Please note that the digest can be found in the output messages of `docker buildx build`.
 
 ```shell
 docker buildx create --use
 docker buildx build . -f Dockerfile -o type=oci,dest=hello-world.tar -t hello-world:v1
 ```
 
-Users need to extract the tarball into a directory first. The following command creates the OCI layout directory, and the image can be referred by `./hello-world:v1` or `./hello-world@sha256:xxx`.
+Users need to extract the tarball into a directory first. The following command creates the OCI layout directory, and the image can be referenced by `./hello-world:v1` or `./hello-world@sha256:xxx`.
 
 ```shell
 mkdir hello-world
 tar -xf ./hello-world.tar -C hello-world
 ```
 
-Use flag `--local-artifact` for signing local OCI images. The signatures are stored in the layout directory and associated with the image. For example:
+Use flag `--local-artifact` for signing local OCI images. For example:
 
 ```shell
 notation sign --local-artifact ./hello-world@sha256:xxx
 ```
 
-Upon successful signing, use the `notation list` command to list the signatures, for example:
+Upon successful signing, the signature is stored in the same layout directory and associated with the image. Use `notation list` command to list the signatures, for example:
 
 ```shell
 notation list ./hello-world@sha256:xxx
