@@ -172,7 +172,7 @@ Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b993
 
 ### [Preview] Verify local OCI image
 
-Users should configure trust policy properly before verifying local OCI image. According to trust policy specification, `registryScopes` property determines which trust policy is applicable for the given artifact. For example, a remote image is referenced by "localhost:5000/net-monitor:v1", thus the value of `registryScopes` should contain "localhost:5000/net-monitor", which is the repository URL of the image. Local OCI image is in the form of OCI layout directory, the reference is different from a remote image, for example "./hello-world:v1". Users need to specify which `registryScopes` is used to verify the local image using flag `--scope`. Here is an example of trust policy configured for local image `./hello-world:v1`:
+Users should configure trust policy properly before verifying local OCI image. According to trust policy specification, `registryScopes` property determines which trust policy is applicable for the given artifact. The value of `registryScopes` should be a fully qualified URL for both local and remote images. For example, a remote image is referenced by "localhost:5000/net-monitor:v1", thus the value of `registryScopes` should contain "localhost:5000/net-monitor", which is the repository URL of the image. Local OCI image is in the form of OCI layout directory, the reference is different from a remote image, for example "./hello-world:v1". Users need to specify which `registryScopes` is used to verify the local image using flag `--scope`. Here is an example of trust policy configured for local image `./hello-world:v1`:
 
 ```jsonc
 {
@@ -185,8 +185,6 @@ Users should configure trust policy properly before verifying local OCI image. A
     "trustedIdentities": ["*"]
 }
 ```
-
-Please note that the value of `registryScopes` should be a fully qualified URL for both local and remote images.
 
 To verify local image `./hello-world:v1`, use the following command:
 
