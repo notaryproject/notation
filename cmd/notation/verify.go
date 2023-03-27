@@ -9,6 +9,7 @@ import (
 	"reflect"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -157,6 +158,8 @@ func verifyLocal(ctx context.Context, opts *verifyOpts, verifier notation.Verifi
 }
 
 func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, layout *ociLayout, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+	logger := log.GetLogger(ctx)
+
 	sigRepo, err := ociLayoutRepository(layout.path)
 	if err != nil {
 		return "", nil, err
@@ -165,7 +168,7 @@ func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.V
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
-	fmt.Printf("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
+	logger.Info("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
 	if digest.Digest(layout.reference).Validate() != nil {
 		// layout.reference is a tag
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", layout.reference)

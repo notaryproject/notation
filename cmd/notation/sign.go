@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -169,6 +170,8 @@ func prepareRemoteSigningContent(ctx context.Context, opts *signOpts, sigRepo no
 }
 
 func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
+	logger := log.GetLogger(ctx)
+
 	mediaType, err := envelope.GetEnvelopeMediaType(cmdOpts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return err
@@ -194,7 +197,7 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	if err != nil {
 		return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
-	fmt.Printf("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
+	logger.Info("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
 	if digest.Digest(layout.reference).Validate() != nil {
 		// layout.reference is a tag
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
