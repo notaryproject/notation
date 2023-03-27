@@ -37,6 +37,7 @@ Usage:
 Flags:
   -d,  --debug                       debug mode
   -h,  --help                        help for verify
+       --local-artifact              [Preview] verify artifact on local disk
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                  registry access via plain HTTP
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
@@ -172,7 +173,7 @@ Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b993
 
 ### [Preview] Verify local OCI image
 
-Users should configure trust policy properly before verifying local OCI image. According to trust policy specification, `registryScopes` property determines which trust policy is applicable for the given artifact. The value of `registryScopes` should be a fully qualified URL for both local and remote images. For example, a remote image is referenced by "localhost:5000/net-monitor:v1", thus the value of `registryScopes` should contain "localhost:5000/net-monitor", which is the repository URL of the image. Local OCI image is in the form of OCI layout directory, the reference is different from a remote image, for example "./hello-world:v1". Users need to specify which `registryScopes` is used to verify the local image using flag `--scope`. Here is an example of trust policy configured for local image `./hello-world:v1`:
+Users should configure trust policy properly before verifying local OCI image. According to trust policy specification, `registryScopes` property determines which trust policy is applicable for the given artifact. The value of `registryScopes` should be a fully qualified URL for both local and remote images. For example, a remote image is referenced by "localhost:5000/net-monitor:v1", thus the value of `registryScopes` should contain "localhost:5000/net-monitor", which is the repository URL of the image. Local OCI image is in the form of OCI layout directory, the reference is different from a remote image, for example "./hello-world:v1". Besides flag `--local-artifact`, users need to specify which `registryScopes` is used to verify the local image using flag `--scope`. Here is an example of trust policy configured for local image `./hello-world:v1`:
 
 ```jsonc
 {
@@ -189,5 +190,5 @@ Users should configure trust policy properly before verifying local OCI image. A
 To verify local image `./hello-world:v1`, use the following command:
 
 ```shell
-notation verify --scope "local/hello-world" ./hello-world:v1
+notation verify --local-artifact --scope "local/hello-world" ./hello-world:v1
 ```

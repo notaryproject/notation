@@ -33,7 +33,7 @@ Flags:
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
   -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
-       --local-artifact             [Preview] if set, sign artifacts on local disk
+       --local-artifact             [Preview] sign artifact on local disk
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                 registry access via plain HTTP
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag

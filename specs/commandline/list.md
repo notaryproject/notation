@@ -29,7 +29,7 @@ Aliases:
 Flags:
   -d, --debug             debug mode
   -h, --help              help for list
-      --local-artifact    [Preview] if set, list signatures associated with the image in OCI layout directory
+      --local-artifact    [Preview] list signatures associated with the artifact in OCI layout directory
   -p, --password string   password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http        registry access via plain HTTP
   -u, --username string   username for registry operations (default to $NOTATION_USERNAME if not specified)
