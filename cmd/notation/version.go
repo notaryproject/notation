@@ -21,7 +21,7 @@ func versionCommand() *cobra.Command {
 }
 
 func runVersion() {
-	fmt.Printf("Notation: A tool to sign, store, and verify artifacts.\n\n")
+	fmt.Printf("Notation - a tool to sign and verify artifacts.\n\n")
 
 	fmt.Printf("Version:     %s\n", version.GetVersion())
 	fmt.Printf("Go version:  %s\n", runtime.Version())
