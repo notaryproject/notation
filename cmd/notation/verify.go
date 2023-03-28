@@ -50,10 +50,10 @@ Example - Verify a signature on an OCI artifact identified by a digest:
 Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
   notation verify <registry>/<repository>:<tag>
 
-Example - Verify an OCI artifact referenced in a local OCI layout directory's index.json using trust policy statement specified by scope.
+Example - Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --local-content <registry>/<repository>@<digest> --scope <trust_policy_scope>
 
-Example - Verify an OCI artifact identified by a tag and referenced in a local OCI layout directory's index.json using trust policy statement specified by scope.
+Example - Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --local-content <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -168,7 +168,7 @@ func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.V
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
-	logger.Info("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
+	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", layout.reference, targetDesc)
 	if digest.Digest(layout.reference).Validate() != nil {
 		// layout.reference is a tag
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", layout.reference)

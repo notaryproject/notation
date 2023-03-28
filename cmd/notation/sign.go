@@ -64,10 +64,10 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
-Example - Sign an OCI artifact referenced in a local OCI layout directory's index.json
+Example - Sign an OCI artifact referenced in an OCI layout
   notation sign --local-content "<oci_layout_path>@<digest>"
 
-Example - Sign an OCI artifact identified by a tag and referenced in a local OCI layout directory's index.json
+Example - Sign an OCI artifact identified by a tag and referenced in an OCI layout
   notation sign --local-content "<oci_layout_path>:<tag>"
 
 Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to store the signature:
@@ -120,10 +120,17 @@ func signRemote(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, 
 	if err != nil {
 		return err
 	}
-	opts, ref, err := prepareRemoteSigningContent(ctx, cmdOpts, sigRepo)
+	opts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
 	if err != nil {
 		return err
 	}
+	ref, err := resolveReference(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+	})
+	if err != nil {
+		return err
+	}
+	opts.ArtifactReference = ref.String()
 
 	// core process
 	_, err = notation.Sign(ctx, signer, sigRepo, opts)
@@ -138,53 +145,11 @@ func signRemote(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, 
 	return nil
 }
 
-func prepareRemoteSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, registry.Reference, error) {
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
-	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
-	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
-	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
-	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
-	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
-	}
-	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
-	})
-	if err != nil {
-		return notation.SignOptions{}, registry.Reference{}, err
-	}
-	signOpts := notation.SignOptions{
-		SignerSignOptions: notation.SignerSignOptions{
-			ArtifactReference:  ref.String(),
-			SignatureMediaType: mediaType,
-			ExpiryDuration:     opts.expiry,
-			PluginConfig:       pluginConfig,
-		},
-		UserMetadata: userMetadata,
-	}
-	return signOpts, ref, nil
-}
-
 func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
 	logger := log.GetLogger(ctx)
 
-	mediaType, err := envelope.GetEnvelopeMediaType(cmdOpts.SignerFlagOpts.SignatureFormat)
-	if err != nil {
-		return err
-	}
-	pluginConfig, err := cmd.ParseFlagMap(cmdOpts.pluginConfig, cmd.PflagPluginConfig.Name)
-	if err != nil {
-		return err
-	}
-	userMetadata, err := cmd.ParseFlagMap(cmdOpts.userMetadata, cmd.PflagUserMetadata.Name)
-	if err != nil {
-		return err
-	}
 	var layout ociLayout
+	var err error
 	layout.path, layout.reference, err = parseOCILayoutReference(cmdOpts.reference)
 	if err != nil {
 		return err
@@ -197,21 +162,17 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	if err != nil {
 		return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
-	logger.Info("OCI layout reference %s resolved to target manifest descriptor: %+v\n", layout.reference, targetDesc)
+	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", layout.reference, targetDesc)
 	if digest.Digest(layout.reference).Validate() != nil {
 		// layout.reference is a tag
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
 	}
 	layout.reference = targetDesc.Digest.String()
-	signOpts := notation.SignOptions{
-		SignerSignOptions: notation.SignerSignOptions{
-			ArtifactReference:  localArtifactReference(layout.path, layout.reference),
-			SignatureMediaType: mediaType,
-			ExpiryDuration:     cmdOpts.expiry,
-			PluginConfig:       pluginConfig,
-		},
-		UserMetadata: userMetadata,
+	signOpts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
+	if err != nil {
+		return err
 	}
+	signOpts.ArtifactReference = localArtifactReference(layout.path, layout.reference)
 
 	// core process
 	targetDesc, err = notation.Sign(ctx, signer, sigRepo, signOpts)
@@ -220,6 +181,30 @@ func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, o
 	}
 	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
 	return nil
+}
+
+func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, error) {
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	if err != nil {
+		return notation.SignOptions{}, err
+	}
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	if err != nil {
+		return notation.SignOptions{}, err
+	}
+	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	if err != nil {
+		return notation.SignOptions{}, err
+	}
+	signOpts := notation.SignOptions{
+		SignerSignOptions: notation.SignerSignOptions{
+			SignatureMediaType: mediaType,
+			ExpiryDuration:     opts.expiry,
+			PluginConfig:       pluginConfig,
+		},
+		UserMetadata: userMetadata,
+	}
+	return signOpts, nil
 }
 
 func validateSignatureManifest(signatureManifest string) bool {
