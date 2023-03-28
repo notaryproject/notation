@@ -77,7 +77,7 @@ Aliases:
 notation plugin install <plugin path>
 ```
 
-Upon successful execution, the plugin is moved to plugins directory and name+version of plugin is displayed. If the plugin directory does not exist, it will be created. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
+Upon successful execution, the plugin is copied to plugins directory and name+version of plugin is displayed. If the plugin directory does not exist, it will be created. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
 
 ### Uninstall a plugin
 
