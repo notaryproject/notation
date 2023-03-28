@@ -1,6 +1,6 @@
 # Contributing
 
-Notary v2 is [Apache 2.0 licensed](https://github.com/notaryproject/notation/blob/main/LICENSE) and
+Notation is [Apache 2.0 licensed](https://github.com/notaryproject/notation/blob/main/LICENSE) and
 accepts contributions via GitHub pull requests. This document outlines
 some of the conventions on to make it easier to get your contribution
 accepted.
@@ -36,14 +36,14 @@ join the [CNCF](https://slack.cncf.io/) Slack workspace and use the
 To discuss ideas and specifications we use [Github
 Discussions](https://github.com/notaryproject/notaryproject/discussions).
 
-## Understanding Notary v2
+## Understanding Notation
 
 This project is composed of:
 
-- [notation](https://github.com/notaryproject/notation): The Notary v2 CLI and Docker plugins
-- [notation-go-lib](https://github.com/notaryproject/notation-go): A collection of libraries for supporting Notation sign, verify of oci artifacts. Based on Notary V2 standard.
-- [notaryproject](https://github.com/notaryproject/notaryproject): The Notary v2 requirements and scenarios to frame the scope of the Notary project
-- [tuf-notary](https://github.com/notaryproject/tuf): Integration of Notary v2 and TUF
+- [notation](https://github.com/notaryproject/notation): The Notation CLI and Docker plugins
+- [notation-go-lib](https://github.com/notaryproject/notation-go): A collection of libraries for supporting Notation sign, verify of oci artifacts. Based on Notation standard.
+- [notaryproject](https://github.com/notaryproject/notaryproject): The Notation requirements and scenarios to frame the scope of the Notary project
+- [tuf-notary](https://github.com/notaryproject/tuf): Integration of Notation and TUF
 
 Also consider checking out our [roadmap](https://github.com/notaryproject/roadmap).
 

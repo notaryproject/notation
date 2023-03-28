@@ -4,14 +4,14 @@
 [![codecov](https://codecov.io/gh/notaryproject/notation/branch/main/graph/badge.svg)](https://codecov.io/gh/notaryproject/notation)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/notaryproject/notation/badge)](https://api.securityscorecards.dev/projects/github.com/notaryproject/notation)
 
-Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary v2 specifications][notaryv2-specs].
+Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notation specifications][notaryv2-specs].
 
 ## Table of Contents
 
   - [Documents](#documents)
   - [Community](#community)
     - [Development and Contributing](#development-and-contributing)
-    - [Notary v2 Community Meeting](#notary-v2-community-meeting)
+    - [Notation Community Meeting](#notary-v2-community-meeting)
   - [Release Management](#release-management)
   - [Support](#support)
   - [Code of Conduct](#code-of-conduct)
@@ -31,7 +31,7 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 - [Maintainers and reviewers list](https://github.com/notaryproject/notary/blob/master/MAINTAINERS)
 - Regular conversations for Notation occur on the [Cloud Native Computing Slack](https://slack.cncf.io/) **notary-v2** channel.
 
-### Notary v2 Community Meeting
+### Notation Community Meeting
 
 - Mondays 5-6 PM Pacific time, 8-9 PM US Eastern, 8-9 AM Shanghai
 - Thursdays 9-10 AM Pacific time, 12 PM US Eastern, 5 PM UK

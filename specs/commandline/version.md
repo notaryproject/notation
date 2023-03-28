@@ -7,7 +7,7 @@ Use `notation version` to print notation version information.
 Upon successful execution, the following information is printed.
 
 ```text
-Notation: Notary v2, A tool to sign, store, and verify artifacts.
+Notation: A tool to sign, store, and verify artifacts.
 
 Version:     <MAJOR.MINOR.PATCH>
 Go version:  go<MAJOR.MINOR.PATCH>
@@ -37,7 +37,7 @@ notation version
 An example output:
 
 ```text
-Notation: Notary v2, A tool to sign, store, and verify artifacts.
+Notation: A tool to sign, store, and verify artifacts.
 
 Version:     1.0.0
 Go Version:  go1.19.2
