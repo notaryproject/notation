@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation/cmd/notation/cert"
+	"github.com/notaryproject/notation/cmd/notation/policy"
 	"github.com/spf13/cobra"
 )
 
@@ -18,6 +19,7 @@ func main() {
 		verifyCommand(nil),
 		listCommand(nil),
 		cert.Cmd(),
+		policy.Cmd(),
 		keyCommand(),
 		pluginCommand(),
 		loginCommand(nil),
