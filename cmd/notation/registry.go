@@ -57,22 +57,18 @@ func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, re
 	}
 
 	// Notation enforces the following two paths during Sign process:
-	// 1. OCI artifact manifest uses the Referrers API
+	// 1. OCI artifact manifest uses the Referrers API.
 	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
-	// 2. OCI image manifest uses the Referrers Tag Schema
+	// 2. OCI image manifest uses the Referrers API and automatically fallback
+	// 	  to Referrers Tag Schema if Referrers API is not supported.
 	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
 	if !ociImageManifest {
-		logger.Info("Use OCI artifact manifest and Referrers API to store signature")
+		logger.Info("Use OCI artifact manifest to store signature")
 		// ping Referrers API
 		if err := pingReferrersAPI(ctx, remoteRepo); err != nil {
 			return nil, err
 		}
 		logger.Info("Successfully pinged Referrers API on target registry")
-	} else {
-		logger.Info("Use OCI image manifest and Referrers Tag Schema to store signature")
-		if err := remoteRepo.SetReferrersCapability(false); err != nil {
-			return nil, err
-		}
 	}
 	repositoryOpts := notationregistry.RepositoryOptions{
 		OCIImageManifest: ociImageManifest,
