@@ -94,10 +94,8 @@ Usage:
   notation policy import [flags] <file_path>
 
 Flags:
-  -d, --debug     debug mode
       --force     override the existing trust policy configuration, never prompt
   -h, --help      help for import
-  -v, --verbose   verbose mode
 ```
 
 ### notation policy show
@@ -109,9 +107,7 @@ Usage:
   notation policy show [flags]
 
 Flags:
-  -d, --debug     debug mode
   -h, --help      help for show
-  -v, --verbose   verbose mode
 ```
 
 ## Usage
@@ -136,7 +132,7 @@ Use the following command to show trust policy configuration:
 notation policy show
 ```
 
-Upon successful execution, the trust policy configuration are printed out in a pretty JSON format. If trust policy is not configured, users should receive an error message, and a tip to import trust policy configuration from a JSON file.
+Upon successful execution, the trust policy configuration are printed out to standard output. If trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import trust policy configuration from a JSON file.
 
 ### Export trust policy configuration into a JSON file
 
