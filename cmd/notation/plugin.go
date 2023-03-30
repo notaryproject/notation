@@ -65,9 +65,6 @@ func pluginInstallCommand() *cobra.Command {
 	return cmd
 }
 
-func pluginRemoveCommand() *cobra.Command {
-	
-
 func listPlugins(command *cobra.Command) error {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	pluginNames, err := mgr.List(command.Context())
