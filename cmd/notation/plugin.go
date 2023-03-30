@@ -24,6 +24,7 @@ func pluginCommand() *cobra.Command {
 	}
 	cmd.AddCommand(pluginListCommand())
 	cmd.AddCommand(pluginInstallCommand())
+	cmd.AddCommand(pluginRemoveCommand())
 	return cmd
 }
 
@@ -65,6 +66,22 @@ func pluginInstallCommand() *cobra.Command {
 	return cmd
 }
 
+func pluginRemoveCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:     "remove [flags] <plugin>",
+		Aliases: []string{"rm", "uninstall", "delete"},
+		Short:   "Remove a plugin",
+		Long: `Remove a plugin
+
+		Example - Remove a Notation plugin:
+			notation plugin remove <plugin>
+`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return removePlugin(cmd, args)
+		},
+	}
+}
+
 func listPlugins(command *cobra.Command) error {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	pluginNames, err := mgr.List(command.Context())
@@ -98,6 +115,11 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 	}
 
 	plugin := args[0]
+
+	// if plugin contains a file path split and select the last element in the array
+	if strings.Contains(plugin, "/") {
+		plugin = strings.Split(plugin, "/")[len(strings.Split(plugin, "/"))-1]
+	}
 
 	// get plugin metadata
 	cmd := exec.Command("./"+plugin, "get-plugin-metadata")
@@ -187,6 +209,39 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 			fmt.Printf("Copying plugin %s to directory %s...\n", plugin, pluginDir)
 			copyPlugin(plugin, pluginDir+"/"+plugin)
 		}
+
+		// do not copy plugin, if new plugin version is less than or equal to current plugin version
+		if newSemVersion.LessThan(currentVersion) || newSemVersion.Equal(currentVersion) {
+			fmt.Println("Current version is greater than or equal to new version. Skipping plugin installation.\nUse --force flag to overwrite the plugin.")
+		}
+	}
+
+	return nil
+}
+
+func removePlugin(command *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		return errors.New("missing plugin name")
+	}
+
+	pluginName := args[0]
+
+	// get plugin directory
+	pluginDir, err := dir.PluginFS().SysPath(pluginName)
+	if err != nil {
+		return err
+	}
+
+	// Check if plugin directory exists
+	_, err = os.Stat(pluginDir)
+	if os.IsNotExist(err) {
+		return errors.New("plugin does not exist")
+	}
+
+	// remove plugin directory
+	err = os.RemoveAll(pluginDir)
+	if err != nil {
+		return err
 	}
 
 	return nil
