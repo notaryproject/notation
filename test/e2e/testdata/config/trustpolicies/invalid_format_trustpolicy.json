@@ -1,0 +1,9 @@
+{
+	"version": "1.0",
+	"trustPolicies": [
+	    {
+		"name": "e2e",
+		"registryScopes": [ "*" ]
+	    }}
+	]
+}
