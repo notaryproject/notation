@@ -1,14 +1,10 @@
 package main
 
 import (
-	"archive/tar"
-	"archive/zip"
-	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -48,7 +44,9 @@ Example - List installed Notation plugins:
 }
 
 func pluginInstallCommand() *cobra.Command {
-	return &cobra.Command{
+	var force bool
+
+	cmd := &cobra.Command{
 		Use:     "install [flags] <plugin package>",
 		Aliases: []string{"add"},
 		Short:   "Install a plugin",
@@ -58,10 +56,17 @@ func pluginInstallCommand() *cobra.Command {
 			notation plugin install <plugin package>
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return installPlugin(cmd, args)
+			return installPlugin(cmd, args, force)
 		},
 	}
+
+	cmd.Flags().BoolVarP(&force, "force", "f", false, "Overwrite existing plugin files without prompting")
+
+	return cmd
 }
+
+func pluginRemoveCommand() *cobra.Command {
+	
 
 func listPlugins(command *cobra.Command) error {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
@@ -90,107 +95,19 @@ func listPlugins(command *cobra.Command) error {
 	return tw.Flush()
 }
 
-func installPlugin(command *cobra.Command, args []string) error {
+func installPlugin(command *cobra.Command, args []string, force bool) error {
 	if len(args) != 1 {
 		return errors.New("missing plugin package")
 	}
 
 	plugin := args[0]
 
-	switch {
-	case strings.HasSuffix(plugin, ".zip"):
-
-		// Open the ZIP archive
-		r, err := zip.OpenReader(plugin)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer r.Close()
-
-		// find the plugin binary in the archive
-		var f *zip.File
-		for _, file := range r.File {
-			if strings.HasPrefix(file.Name, "notation-") {
-				f = file
-				break
-			}
-		}
-		if f == nil {
-			return errors.New("plugin binary not found in archive")
-		}
-
-		// Open the target file for writing
-		outFile, err := os.OpenFile(f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer outFile.Close()
-
-		// Open the file in the archive for reading
-		rc, err := f.Open()
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rc.Close()
-
-		// Copy the file contents to the target file
-		_, err = io.Copy(outFile, rc)
-		if err != nil {
-			log.Fatal(err)
-		}
-		plugin = outFile.Name()
-		outFile.Close()
-
-	case strings.HasSuffix(plugin, ".tar.gz"):
-		file, err := os.Open(plugin)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer file.Close()
-
-		reader, err := gzip.NewReader(file)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer reader.Close()
-
-		// create a tar reader
-		tarReader := tar.NewReader(reader)
-
-		// iterate through the files in the archive
-		for {
-			header, err := tarReader.Next()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			// check if the fie name is the plugin binary
-			if strings.HasPrefix(header.Name, "notation-") {
-				// create the output file
-				outFile, err := os.OpenFile(header.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, header.FileInfo().Mode())
-				if err != nil {
-					log.Fatal(err)
-				}
-				defer outFile.Close()
-
-				// write the contents of the file to the output file
-				if _, err := io.Copy(outFile, tarReader); err != nil {
-					log.Fatal(err)
-				}
-				plugin = outFile.Name()
-				outFile.Close()
-			}
-		}
-	}
-
+	// get plugin metadata
 	cmd := exec.Command("./"+plugin, "get-plugin-metadata")
 
 	output, err := cmd.Output()
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	var newPlugin map[string]interface{}
@@ -201,11 +118,15 @@ func installPlugin(command *cobra.Command, args []string) error {
 
 	pluginName := newPlugin["name"].(string)
 	newPluginVersion := newPlugin["version"].(string)
+	newSemVersion, err := semver.NewVersion(newPluginVersion)
+	if err != nil {
+		return err
+	}
 
 	// get plugin directory
 	pluginDir, err := dir.PluginFS().SysPath(pluginName)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	// Check if plugin directory exists
@@ -213,15 +134,27 @@ func installPlugin(command *cobra.Command, args []string) error {
 
 	// create the directory, if not exist
 	if os.IsNotExist(err) {
-		err := os.MkdirAll(pluginDir, 0755)
-		if err != nil {
+		if err := os.MkdirAll(pluginDir, 0755); err != nil {
 			return err
 		}
 	}
 
-	// if plugin dir exists, get plugin metadata
-	if err == nil {
-		// TODO: What if plugin dir exists but the plugin doesn't?
+	// Check if plugin exists
+	_, err = os.Stat(pluginDir + "/" + plugin)
+
+	// copy plugin, if not exist
+	if os.IsNotExist(err) {
+		copyPlugin(plugin, pluginDir+"/"+plugin)
+	}
+
+	// overwrite plugin, if force flag is set
+	if err == nil && force {
+		fmt.Printf("Overwriting plugin %s in directory %s\n", plugin, pluginDir)
+		copyPlugin(plugin, pluginDir+"/"+plugin)
+	}
+
+	// if plugin exists and force flag is not set, get plugin metadata
+	if err == nil && !force {
 		cmd := exec.Command(pluginDir+"/"+plugin, "get-plugin-metadata")
 
 		output, err := cmd.Output()
@@ -235,28 +168,54 @@ func installPlugin(command *cobra.Command, args []string) error {
 			return err
 		}
 
-		newSemVersion, err := semver.NewVersion(newPluginVersion)
-		if err != nil {
-			return err
-		}
-
+		// check if new plugin version is greater than current plugin version
 		currentPluginVersion := currentPlugin["version"].(string)
 		currentVersion, err := semver.NewVersion(currentPluginVersion)
 		if err != nil {
 			return err
 		}
 
-		// check if currentVersion < newVersion
-		if currentVersion.Compare(newSemVersion) == -1 {
-			fmt.Printf("Detected new version %s. Current version is %s.\nMoving plugin %s to directory %s\n", newSemVersion.String(), currentVersion.String(), plugin, pluginDir)
+		// copy plugin, if new plugin version is greater than current plugin version
+		if newSemVersion.GreaterThan(currentVersion) {
+			var confirm string
 
-			// move the plugin binary to the plugin directory
-			err = os.Rename(plugin, pluginDir+"/"+plugin)
-			if err != nil {
-				return err
+			fmt.Printf("Detected new version %s. Current version is %s.\nDo you want to overwrite the plugin %s? [y/N]: ", newSemVersion.String(), currentVersion.String(), plugin)
+			fmt.Scanln(&confirm)
+
+			if strings.ToLower(confirm) != "y" {
+				fmt.Println("Operation cancelled.")
+				return nil
 			}
+
+			fmt.Printf("Copying plugin %s to directory %s...\n", plugin, pluginDir)
+			copyPlugin(plugin, pluginDir+"/"+plugin)
 		}
 	}
 
+	return nil
+}
+
+func copyPlugin(src, dest string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+
+	sourceFileInfo, err := sourceFile.Stat()
+	if err != nil {
+		return err
+	}
+	fileMode := sourceFileInfo.Mode()
+
+	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileMode)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	_, err = io.Copy(destFile, sourceFile)
+	if err != nil {
+		return err
+	}
 	return nil
 }
