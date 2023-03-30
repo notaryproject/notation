@@ -21,7 +21,7 @@ This spec contains reference information on using notation commands. Each comman
 ## Notation Outline
 
 ```text
-Notation - Notary V2 - a tool to sign and verify artifacts
+Notation - a tool to sign and verify artifacts
 
 Usage:
   notation [command]
