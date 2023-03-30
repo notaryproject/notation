@@ -37,11 +37,11 @@ Usage:
 Flags:
   -d,  --debug                       debug mode
   -h,  --help                        help for verify
-       --local-artifact              [Preview] verify artifact on local disk
+       --oci-layout                  [Preview] whether artifact is OCI image layout
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                  registry access via plain HTTP
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-       --scope string                [Preview] trust policy scope for local artifact verification.
+       --scope string                [Preview] set trust policy scope for artifact verification, only use it with flag "--oci-layout"
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode
@@ -171,14 +171,14 @@ Warning:  Always verify the artifact using digest(@sha256:...) rather than a tag
 Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### [Preview] Verify local OCI image
+### [Preview] Verify artifacts in OCI layout directory on disk
 
-Users should configure trust policy properly before verifying local OCI image. According to trust policy specification, `registryScopes` property determines which trust policy is applicable for the given artifact. The value of `registryScopes` should be a fully qualified URL for both local and remote images. For example, a remote image is referenced by "localhost:5000/net-monitor:v1", thus the value of `registryScopes` should contain "localhost:5000/net-monitor", which is the repository URL of the image. Local OCI image is in the form of OCI layout directory, the reference is different from a remote image, for example "./hello-world:v1". Besides flag `--local-artifact`, users need to specify which `registryScopes` is used to verify the local image using flag `--scope`. Here is an example of trust policy configured for local image `./hello-world:v1`:
+Users should configure trust policy properly before verifying artifacts in OCI layout directory on disk. According to trust policy specification, `registryScopes` property of trust policy configuration determines which trust policy is applicable for the given artifact. For example, an image stored in a remote registry is referenced by "localhost:5000/net-monitor:v1". In order to verify the image, the value of `registryScopes` should contain "localhost:5000/net-monitor", which is the repository URL of the image. However, the reference to artifacts in OCI layout directory doesn't contain repository URL information. Users can set `registryScopes` to the URL that the artifact is supposed to be stored in the registry, and then use flag `--scope` for `notation verify` command to determine which trust policy is used for verification. Here is an example of trust policy configured for local image `./hello-world:v1`:
 
 ```jsonc
 {
     "name": "local-images",
-    "registryScopes": [ "local/hello-world" ],
+    "registryScopes": [ "localhost:5000/hello-world" ],
     "signatureVerification": {
         "level" : "strict"
     },
@@ -187,8 +187,8 @@ Users should configure trust policy properly before verifying local OCI image. A
 }
 ```
 
-To verify local image `./hello-world:v1`, use the following command:
+To verify local image `./hello-world:v1`, user should use flag `--oci-layout` and `--scope` together, for example:
 
 ```shell
-notation verify --local-artifact --scope "local/hello-world" ./hello-world:v1
+notation verify --oci-layout --scope "localhost:5000/hello-world" ./hello-world:v1
 ```

@@ -33,7 +33,7 @@ Flags:
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
   -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
-       --local-artifact             [Preview] sign artifact on local disk
+       --oci-layout                 [Preview] whether the artifact is OCI image layout
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                 registry access via plain HTTP
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
@@ -167,34 +167,34 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 ```
 
-### [Preview] Sign local OCI image
+### [Preview] Sign artifacts in OCI layout directory on disk
 
-A local OCI image means an OCI image Layout on local disk. OCI image layout is defined by spec [OCI image layout][oci-image-layout]. It is a directory structure that contains files and folders. Users can reference an image in the layout using either tags, or the exact digest. The OCI image layout could be a tarball or a directory. Notation only supports signing OCI layout directory for now.
+Artifacts can be stored on disk in the form of OCI image Layout defined in spec [OCI image layout][oci-image-layout]. It is a directory structure that contains files and folders. The OCI image layout could be a tarball or a directory in the filesystem. For example, a file named `hello-world.tar` or a directory named `hello-world`. Notation only supports signing OCI layout directory for now. Users can reference an artifact in the layout using either tags, or the exact digest. For example, use `hello-world:v1` or `hello-world@sha256xxx` to reference the container image in OCI layout directory named `hello-world`.
 
-Tools like `docker buildx` support building an OCI image layout on local disk. The following example creates a tarball named `hello-world.tar` with tag `v1`, which is an OCI layout tarball on local disk. Please note that the digest can be found in the output messages of `docker buildx build`.
+Tools like `docker buildx` support building an OCI image layout on disk. The following example creates a tarball named `hello-world.tar` with tag `v1`. Please note that the digest can be retrieved in the output messages of `docker buildx build`.
 
 ```shell
 docker buildx create --use
 docker buildx build . -f Dockerfile -o type=oci,dest=hello-world.tar -t hello-world:v1
 ```
 
-Users need to extract the tarball into a directory first. The following command creates the OCI layout directory, and the image can be referenced by `./hello-world:v1` or `./hello-world@sha256:xxx`.
+Users need to extract the tarball into a directory first, since Notation only support OCI layout directory for now. The following command creates the OCI layout directory.
 
 ```shell
 mkdir hello-world
 tar -xf ./hello-world.tar -C hello-world
 ```
 
-Use flag `--local-artifact` for signing local OCI images. For example:
+Use flag `--oci-layout` to sign the image in OCI layout directory referenced by `hello-world@sha256xxx`. For example:
 
 ```shell
-notation sign --local-artifact ./hello-world@sha256:xxx
+notation sign --oci-layout ./hello-world@sha256:xxx
 ```
 
 Upon successful signing, the signature is stored in the same layout directory and associated with the image. Use `notation list` command to list the signatures, for example:
 
 ```shell
-notation list ./hello-world@sha256:xxx
+notation list --oci-layout ./hello-world@sha256:xxx
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md

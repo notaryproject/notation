@@ -29,7 +29,7 @@ Aliases:
 Flags:
   -d, --debug             debug mode
   -h, --help              help for list
-      --local-artifact    [Preview] list signatures associated with the artifact in OCI layout directory
+      --oci-layout        [Preview] whether the artifact is OCI image layout
   -p, --password string   password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http        registry access via plain HTTP
   -u, --username string   username for registry operations (default to $NOTATION_USERNAME if not specified)
@@ -53,20 +53,20 @@ localhost:5000/net-monitor:v1
     └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
 ```
 
-### [Preview] List all the signatures associated with the image in OCI layout directory
+### [Preview] List all the signatures associated with the image in OCI layout directory on disk
 
 The following example lists the signatures associated with the image in OCI layout directory named `hello-world`.
 
 Reference an image in OCI layout directory using tags:
 
 ```shell
-notation list --local-artifact ./hello-world:v1
+notation list --oci-layout ./hello-world:v1
 ```
 
 Reference an image in OCI layout directory using exact digest:
 
 ```shell
-notation list --local-artifact ./hello-world@sha256:xxx
+notation list --oci-layout ./hello-world@sha256:xxx
 ```
 
 An example output:
