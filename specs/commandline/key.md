@@ -16,7 +16,7 @@ Usage:
 
 Available Commands:
   add         Add key to signing key list
-  delete      Delete key from signing key list
+  remove      Remove key from signing key list
   list        List keys used for signing
   update      Update key in signing key list
 
@@ -45,10 +45,10 @@ Flags:
 ### notation key delete
 
 ```text
-Delete key from signing key list
+Remove key from signing key list
 
 Usage:
-  notation key delete [flags] <key_name>...
+  notation key remove [flags] <key_name>...
 
 Flags:
   -d, --debug     debug mode
@@ -115,10 +115,22 @@ notation key list
 
 Upon successful execution, a list of keys is printed out with information of name, key path, certificate path, key id and plugin name. The default signing key name is preceded by an asterisk. The key id and plugin name are used together to provide the information of the key identifier for the remote key and the plugin associated with it.
 
-### Delete two keys from signing key list
+### Remove a specified key from signing key list
 
 ```shell
-notation key delete <key_name_1> <key_name_2>
+notation key remove <key_name>
 ```
 
-Upon successful execution, the names of deleted signing keys are printed out. Please be noted if default signing key is deleted, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+Upon successful execution, the output message is printed out as following:
+
+```text
+Removed <key_name> from signing key list. You still need to delete the key file from <key_path> and delete the certificate from <cert_path>.
+```
+
+### Remove two keys from signing key list
+
+```shell
+notation key remove <key_name_1> <key_name_2>
+```
+
+Upon successful execution, the names of removed signing keys are printed out. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
