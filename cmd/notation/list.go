@@ -59,7 +59,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 	if err != nil {
 		return err
 	}
-	targetDesc, printOut, err := resolveReference(ctx, inputType, reference, sigRepo, nil)
+	targetDesc, printOut, err := resolveReference(ctx, inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {})
 	if err != nil {
 		return err
 	}

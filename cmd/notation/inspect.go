@@ -103,16 +103,22 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		return err
 	}
 
-	manifestDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, reference, sigRepo)
+	// manifestDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, reference, sigRepo)
+	// if err != nil {
+	// 	return err
+	// }
+	manifestDesc, fullRef, err := resolveReference(ctx, remoteRegistry, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+		fmt.Fprintf(os.Stderr, "Warning: Always inspect the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
+	})
 	if err != nil {
 		return err
 	}
 
-	// reference is a digest reference
-	if err := ref.ValidateReferenceAsDigest(); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Always inspect the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
-		ref.Reference = manifestDesc.Digest.String()
-	}
+	// // reference is a digest reference
+	// if err := ref.ValidateReferenceAsDigest(); err != nil {
+	// 	fmt.Fprintf(os.Stderr, "Warning: Always inspect the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
+	// 	ref.Reference = manifestDesc.Digest.String()
+	// }
 
 	output := inspectOutput{MediaType: manifestDesc.MediaType, Signatures: []signatureOutput{}}
 	skippedSignatures := false
@@ -177,7 +183,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		return err
 	}
 
-	err = printOutput(opts.outputFormat, ref.String(), output)
+	err = printOutput(opts.outputFormat, fullRef, output)
 	if err != nil {
 		return err
 	}

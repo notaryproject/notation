@@ -3,11 +3,8 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
-	"strings"
-	"unicode"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -256,25 +253,4 @@ func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error 
 func isErrorCode(err error, code string) bool {
 	var ec errcode.Error
 	return errors.As(err, &ec) && ec.Code == code
-}
-
-// parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
-func parseOCILayoutReference(raw string) (path string, ref string, err error) {
-	if idx := strings.LastIndex(raw, "@"); idx != -1 {
-		// `digest` found
-		path = raw[:idx]
-		ref = raw[idx+1:]
-	} else {
-		// find `tag`
-		i := strings.LastIndex(raw, ":")
-		if i < 0 || (i == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
-			return "", "", notationerrors.ErrorOCILayoutMissingReference{}
-		} else {
-			path, ref = raw[:i], raw[i+1:]
-		}
-		if path == "" {
-			return "", "", fmt.Errorf("found empty file path in %q", raw)
-		}
-	}
-	return
 }

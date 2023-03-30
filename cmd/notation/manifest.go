@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"unicode"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"
@@ -16,8 +18,12 @@ import (
 
 // resolveReference resolves user input reference based on user input type
 func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
+	// sanity check
 	if reference == "" {
 		return ocispec.Descriptor{}, "", errors.New("missing user input reference")
+	}
+	if fn == nil {
+		return ocispec.Descriptor{}, "", errors.New("fn cannot be nil")
 	}
 	var tagOrDigestRef string
 	var fullRef string
@@ -54,6 +60,33 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 	return manifestDesc, fullRef, nil
 }
 
+// parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
+func parseOCILayoutReference(raw string) (path string, ref string, err error) {
+	if idx := strings.LastIndex(raw, "@"); idx != -1 {
+		// `digest` found
+		path = raw[:idx]
+		ref = raw[idx+1:]
+	} else {
+		// find `tag`
+		i := strings.LastIndex(raw, ":")
+		if i < 0 || (i == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
+			return "", "", notationerrors.ErrorOCILayoutMissingReference{}
+		} else {
+			path, ref = raw[:i], raw[i+1:]
+		}
+		if path == "" {
+			return "", "", fmt.Errorf("found empty file path in %q", raw)
+		}
+	}
+	return
+}
+
+func localTargetPath(path string) string {
+	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
+	repo := strings.ToLower(filepath.Base(path))
+	return fmt.Sprintf("%s/%s", reg, repo)
+}
+
 // getManifestDescriptor returns target artifact manifest descriptor given
 // reference (digest or tag) and Repository.
 func getManifestDescriptor(ctx context.Context, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, error) {
@@ -68,10 +101,4 @@ func getManifestDescriptor(ctx context.Context, reference string, sigRepo notati
 	}
 	logger.Infof("Reference %s resolved to manifest descriptor: %+v", reference, manifestDesc)
 	return manifestDesc, nil
-}
-
-func localTargetPath(path string) string {
-	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
-	repo := strings.ToLower(filepath.Base(path))
-	return fmt.Sprintf("%s/%s", reg, repo)
 }
