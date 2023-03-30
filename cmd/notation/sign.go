@@ -8,15 +8,12 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
-	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2/registry"
 )
 
 const (
@@ -35,7 +32,7 @@ type signOpts struct {
 	userMetadata      []string
 	reference         string
 	signatureManifest string
-	localContent      bool
+	ociLayout         bool
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -95,7 +92,7 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	command.Flags().BoolVar(&opts.localContent, "local-content", false, "sign local artifact")
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "sign local artifact")
 	return command
 }
 
@@ -109,79 +106,104 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		return err
 	}
 	ociImageManifest := cmdOpts.signatureManifest == signatureManifestImage
-	if cmdOpts.localContent {
-		return signLocal(ctx, cmdOpts, signer, ociImageManifest)
+	var inputType inputType = remoteRegistry
+	if cmdOpts.ociLayout {
+		inputType = ociLayout
 	}
-	return signRemote(ctx, cmdOpts, signer, ociImageManifest)
-}
-
-func signRemote(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
-	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
+	sigRepo, err := getRepositoryForSign(ctx, inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, ociImageManifest)
 	if err != nil {
 		return err
 	}
-	opts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
-	if err != nil {
-		return err
-	}
-	ref, err := resolveReference(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
-	})
-	if err != nil {
-		return err
-	}
-	opts.ArtifactReference = ref.String()
-
-	// core process
-	_, err = notation.Sign(ctx, signer, sigRepo, opts)
-	if err != nil {
-		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
-		if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
-			return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
-		}
-		return err
-	}
-	fmt.Println("Successfully signed", ref)
-	return nil
-}
-
-func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
-	logger := log.GetLogger(ctx)
-
-	var layout ociLayout
-	var err error
-	layout.path, layout.reference, err = parseOCILayoutReference(cmdOpts.reference)
-	if err != nil {
-		return err
-	}
-	sigRepo, err := ociLayoutRepositoryForSign(layout.path, ociImageManifest)
-	if err != nil {
-		return err
-	}
-	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
-	if err != nil {
-		return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
-	}
-	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", layout.reference, targetDesc)
-	if digest.Digest(layout.reference).Validate() != nil {
-		// layout.reference is a tag
-		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layout.reference)
-	}
-	layout.reference = targetDesc.Digest.String()
 	signOpts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
 	if err != nil {
 		return err
 	}
-	signOpts.ArtifactReference = localArtifactReference(layout.path, layout.reference)
-
-	// core process
-	targetDesc, err = notation.Sign(ctx, signer, sigRepo, signOpts)
+	_, fullRef, err := resolveReference(ctx, inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
+	})
 	if err != nil {
 		return err
 	}
-	fmt.Println("Successfully signed", layout.path+"@"+targetDesc.Digest.String())
+	signOpts.ArtifactReference = fullRef
+
+	// core process
+	_, err = notation.Sign(ctx, signer, sigRepo, signOpts)
+	if err != nil {
+		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
+		if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
+			return fmt.Errorf("%v. Possible reason: OCI artifact manifest is not supported. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
+		}
+		return err
+	}
+	fmt.Println("Successfully signed", fullRef)
 	return nil
 }
+
+// func signRemote(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
+// 	sigRepo, err := getRemoteRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	opts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	ref, err := resolveReference(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
+// 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
+// 	})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	opts.ArtifactReference = ref.String()
+
+// 	// core process
+// 	_, err = notation.Sign(ctx, signer, sigRepo, opts)
+// 	if err != nil {
+// 		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
+// 		if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
+// 			return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
+// 		}
+// 		return err
+// 	}
+// 	fmt.Println("Successfully signed", ref)
+// 	return nil
+// }
+
+// func signLocal(ctx context.Context, cmdOpts *signOpts, signer notation.Signer, ociImageManifest bool) error {
+// 	logger := log.GetLogger(ctx)
+
+// 	layoutPath, layoutReference, err := parseOCILayoutReference(cmdOpts.reference)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	sigRepo, err := notationregistry.NewOCIRepository(layoutPath, notationregistry.RepositoryOptions{OCIImageManifest: ociImageManifest})
+// 	if err != nil {
+// 		return err
+// 	}
+// 	targetDesc, err := sigRepo.Resolve(ctx, layoutReference)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
+// 	}
+// 	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", layoutReference, targetDesc)
+// 	if digest.Digest(layoutReference).Validate() != nil {
+// 		// layout.reference is a tag
+// 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", layoutReference)
+// 	}
+// 	layoutReference = targetDesc.Digest.String()
+// 	signOpts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	signOpts.ArtifactReference = localTargetPath(layoutPath, layoutReference)
+
+// 	// core process
+// 	targetDesc, err = notation.Sign(ctx, signer, sigRepo, signOpts)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println("Successfully signed", layoutPath+"@"+targetDesc.Digest.String())
+// 	return nil
+// }
 
 func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, error) {
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -25,16 +24,52 @@ import (
 	"oras.land/oras-go/v2/registry/remote/errcode"
 )
 
+type inputType int
+
+const (
+	remoteRegistry inputType = 1 + iota // inputType remote registry
+	ociLayout                           // inputType oci-layout
+)
+
 const (
 	zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 )
 
-type ociLayout struct {
-	path      string
-	reference string
+// getRepository returns a notationregistry.Repository given user input type and
+// reference
+func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts) (notationregistry.Repository, error) {
+	switch inputType {
+	case remoteRegistry:
+		return getRemoteRepository(ctx, opts, reference)
+	case ociLayout:
+		layoutPath, _, err := parseOCILayoutReference(reference)
+		if err != nil {
+			return nil, err
+		}
+		return notationregistry.NewOCIRepository(layoutPath, notationregistry.RepositoryOptions{})
+	default:
+		return nil, errors.New("unsupported input type")
+	}
 }
 
-func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
+// getRepositoryForSign returns a notationregistry.Repository given user input
+// type and reference during Sign process
+func getRepositoryForSign(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, ociImageManifest bool) (notationregistry.Repository, error) {
+	switch inputType {
+	case remoteRegistry:
+		return getRemoteRepositoryForSign(ctx, opts, reference, ociImageManifest)
+	case ociLayout:
+		layoutPath, _, err := parseOCILayoutReference(reference)
+		if err != nil {
+			return nil, err
+		}
+		return notationregistry.NewOCIRepository(layoutPath, notationregistry.RepositoryOptions{OCIImageManifest: ociImageManifest})
+	default:
+		return nil, errors.New("unsupported input type")
+	}
+}
+
+func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
 		return nil, err
@@ -48,13 +83,13 @@ func getSignatureRepository(ctx context.Context, opts *SecureFlagOpts, reference
 	return notationregistry.NewRepository(remoteRepo), nil
 }
 
-// getSignatureRepositoryForSign returns a registry.Repository for Sign.
+// getRemoteRepositoryForSign returns a registry.Repository for Sign.
 // ociImageManifest denotes the type of manifest used to store signatures during
 // Sign process.
 // Setting ociImageManifest to true means using OCI image manifest and the
 // Referrers tag schema.
 // Otherwise, use OCI artifact manifest and requires the Referrers API.
-func getSignatureRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
+func getRemoteRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
 	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
@@ -223,20 +258,6 @@ func isErrorCode(err error, code string) bool {
 	return errors.As(err, &ec) && ec.Code == code
 }
 
-// ociLayoutRepositoryForSign returns an oci.Store as
-// registry.Repository
-func ociLayoutRepositoryForSign(path string, ociImageManifest bool) (notationregistry.Repository, error) {
-	repositoryOpts := notationregistry.RepositoryOptions{
-		OCIImageManifest: ociImageManifest,
-	}
-	return notationregistry.NewRepositoryWithOciStore(path, repositoryOpts)
-}
-
-// ociLayoutRepository returns a oci.Store as registry.Repository
-func ociLayoutRepository(path string) (notationregistry.Repository, error) {
-	return notationregistry.NewRepositoryWithOciStore(path, notationregistry.RepositoryOptions{})
-}
-
 // parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
 func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 	if idx := strings.LastIndex(raw, "@"); idx != -1 {
@@ -247,7 +268,7 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 		// find `tag`
 		i := strings.LastIndex(raw, ":")
 		if i < 0 || (i == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
-			return "", "", notationerrors.ErrorOciLayoutMissingReference{}
+			return "", "", notationerrors.ErrorOCILayoutMissingReference{}
 		} else {
 			path, ref = raw[:i], raw[i+1:]
 		}
@@ -256,11 +277,4 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 		}
 	}
 	return
-}
-
-// localArtifactReference creates an artifact reference for a local artifact
-func localArtifactReference(path string, digest string) string {
-	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
-	repo := strings.ToLower(filepath.Base(path))
-	return fmt.Sprintf("%s/%s@%s", reg, repo, digest)
 }

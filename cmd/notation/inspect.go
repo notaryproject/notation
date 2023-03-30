@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/signature"
@@ -98,7 +98,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return err
 	}

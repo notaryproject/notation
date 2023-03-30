@@ -10,6 +10,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -118,7 +119,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 func verifyRemote(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
 	reference := opts.reference
-	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference)
 	if err != nil {
 		return "", nil, err
 	}
@@ -148,35 +149,33 @@ func verifyRemote(ctx context.Context, opts *verifyOpts, verifier notation.Verif
 }
 
 func verifyLocal(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
-	var layout ociLayout
-	var err error
-	layout.path, layout.reference, err = parseOCILayoutReference(opts.reference)
+	layoutPath, layoutReference, err := parseOCILayoutReference(opts.reference)
 	if err != nil {
 		return "", nil, err
 	}
-	return verifyFromFolder(ctx, opts, verifier, &layout, configs, userMetadata)
+	return verifyFromFolder(ctx, opts, verifier, layoutPath, layoutReference, configs, userMetadata)
 }
 
-func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, layout *ociLayout, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
+func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, path, reference string, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
 	logger := log.GetLogger(ctx)
 
-	sigRepo, err := ociLayoutRepository(layout.path)
+	sigRepo, err := notationregistry.NewOCIRepository(path, notationregistry.RepositoryOptions{})
 	if err != nil {
 		return "", nil, err
 	}
-	targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
+	targetDesc, err := sigRepo.Resolve(ctx, reference)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to resolve OCI layout reference: %s", err)
 	}
-	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", layout.reference, targetDesc)
-	if digest.Digest(layout.reference).Validate() != nil {
+	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", reference, targetDesc)
+	if digest.Digest(reference).Validate() != nil {
 		// layout.reference is a tag
-		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", layout.reference)
+		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
 	}
-	layout.reference = targetDesc.Digest.String()
-	printOut := layout.path + "@" + targetDesc.Digest.String()
+	reference = targetDesc.Digest.String()
+	printOut := path + "@" + targetDesc.Digest.String()
 	verifyOpts := notation.VerifyOptions{
-		ArtifactReference:    opts.trustPolicyScope + "@" + layout.reference,
+		ArtifactReference:    opts.trustPolicyScope + "@" + reference,
 		PluginConfig:         configs,
 		MaxSignatureAttempts: maxSignatureAttempts,
 		UserMetadata:         userMetadata,

@@ -3,53 +3,75 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"
 )
 
-// getManifestDescriptor returns target artifact manifest descriptor and
-// registry.Reference given user input reference.
-func getManifestDescriptor(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, registry.Reference, error) {
+// resolveReference resolves user input reference based on user input type
+func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
+	if reference == "" {
+		return ocispec.Descriptor{}, "", errors.New("missing user input reference")
+	}
+	var tagOrDigestRef string
+	var fullRef string
+	switch inputType {
+	case remoteRegistry:
+		ref, err := registry.ParseReference(reference)
+		if err != nil {
+			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
+		tagOrDigestRef = ref.Reference
+		fullRef = ref.Registry + "/" + ref.Repository
+	case ociLayout:
+		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
+		if err != nil {
+			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
+		tagOrDigestRef = layoutReference
+		fullRef = localTargetPath(layoutPath)
+	default:
+		return ocispec.Descriptor{}, "", errors.New("unsupported user input type")
+	}
+
+	manifestDesc, err := getManifestDescriptor(ctx, tagOrDigestRef, sigRepo)
+	if err != nil {
+		return ocispec.Descriptor{}, "", fmt.Errorf("failed to get manifest descriptor: %w", err)
+	}
+	fullRef = fullRef + "@" + manifestDesc.Digest.String()
+	if _, err := digest.Parse(tagOrDigestRef); err == nil {
+		// tagOrDigestRef is a digest reference
+		return manifestDesc, fullRef, nil
+	}
+	// tagOrDigestRef is a tag reference
+	fn(tagOrDigestRef, manifestDesc)
+	return manifestDesc, fullRef, nil
+}
+
+// getManifestDescriptor returns target artifact manifest descriptor given
+// reference (digest or tag) and Repository.
+func getManifestDescriptor(ctx context.Context, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, error) {
 	logger := log.GetLogger(ctx)
 
 	if reference == "" {
-		return ocispec.Descriptor{}, registry.Reference{}, errors.New("missing reference")
+		return ocispec.Descriptor{}, errors.New("reference cannot be empty")
 	}
-	ref, err := registry.ParseReference(reference)
+	manifestDesc, err := sigRepo.Resolve(ctx, reference)
 	if err != nil {
-		return ocispec.Descriptor{}, registry.Reference{}, err
+		return ocispec.Descriptor{}, err
 	}
-	if ref.Reference == "" {
-		return ocispec.Descriptor{}, registry.Reference{}, errors.New("reference is missing digest or tag")
-	}
-
-	manifestDesc, err := sigRepo.Resolve(ctx, ref.String())
-	if err != nil {
-		return ocispec.Descriptor{}, registry.Reference{}, err
-	}
-
-	logger.Infof("Reference %s resolved to manifest descriptor: %+v", ref.Reference, manifestDesc)
-	return manifestDesc, ref, nil
+	logger.Infof("Reference %s resolved to manifest descriptor: %+v", reference, manifestDesc)
+	return manifestDesc, nil
 }
 
-func resolveReference(ctx context.Context, opts *SecureFlagOpts, reference string, sigRepo notationregistry.Repository, fn func(registry.Reference, ocispec.Descriptor)) (registry.Reference, error) {
-	manifestDesc, ref, err := getManifestDescriptor(ctx, opts, reference, sigRepo)
-	if err != nil {
-		return registry.Reference{}, err
-	}
-
-	// reference is a digest reference
-	if err := ref.ValidateReferenceAsDigest(); err == nil {
-		return ref, nil
-	}
-
-	// reference is a tag reference
-	fn(ref, manifestDesc)
-	// resolve tag to digest reference
-	ref.Reference = manifestDesc.Digest.String()
-
-	return ref, nil
+func localTargetPath(path string) string {
+	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
+	repo := strings.ToLower(filepath.Base(path))
+	return fmt.Sprintf("%s/%s", reg, repo)
 }

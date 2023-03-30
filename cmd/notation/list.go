@@ -15,8 +15,8 @@ import (
 type listOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference    string
-	localContent bool
+	reference string
+	ociLayout bool
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
@@ -41,7 +41,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	}
 	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
 	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
-	cmd.Flags().BoolVar(&opts.localContent, "local-content", false, "list signatures from OCI layout")
+	cmd.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "list signatures from OCI layout")
 	return cmd
 }
 
@@ -51,36 +51,20 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	if opts.localContent {
-		var layout ociLayout
-		var err error
-		layout.path, layout.reference, err = parseOCILayoutReference(opts.reference)
-		if err != nil {
-			return err
-		}
-		sigRepo, err := ociLayoutRepository(layout.path)
-		if err != nil {
-			return err
-		}
-		targetDesc, err := sigRepo.Resolve(ctx, layout.reference)
-		if err != nil {
-			return fmt.Errorf("failed to resolve OCI layout reference: %s", err)
-		}
-		printOut := layout.path + "@" + targetDesc.Digest.String()
-		// print all signature manifest digests
-		return printSignatureManifestDigests(ctx, targetDesc, sigRepo, printOut)
+	var inputType inputType = remoteRegistry
+	if opts.ociLayout {
+		inputType = ociLayout
 	}
-	sigRepo, err := getSignatureRepository(ctx, &opts.SecureFlagOpts, reference)
+	sigRepo, err := getRepository(ctx, inputType, reference, &opts.SecureFlagOpts)
 	if err != nil {
 		return err
 	}
-	targetDesc, ref, err := getManifestDescriptor(ctx, &opts.SecureFlagOpts, reference, sigRepo)
+	targetDesc, printOut, err := resolveReference(ctx, inputType, reference, sigRepo, nil)
 	if err != nil {
 		return err
 	}
-	ref.Reference = targetDesc.Digest.String()
 	// print all signature manifest digests
-	return printSignatureManifestDigests(ctx, targetDesc, sigRepo, ref.String())
+	return printSignatureManifestDigests(ctx, targetDesc, sigRepo, printOut)
 }
 
 // printSignatureManifestDigests returns the signature manifest digests of
