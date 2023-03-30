@@ -21,6 +21,7 @@ import (
 	"oras.land/oras-go/v2/registry/remote/errcode"
 )
 
+// inputType denotes the user input type
 type inputType int
 
 const (
@@ -33,7 +34,7 @@ const (
 )
 
 // getRepository returns a notationregistry.Repository given user input type and
-// reference
+// user input reference
 func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts) (notationregistry.Repository, error) {
 	switch inputType {
 	case remoteRegistry:
@@ -50,7 +51,7 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 }
 
 // getRepositoryForSign returns a notationregistry.Repository given user input
-// type and reference during Sign process
+// type and user input reference during Sign process
 func getRepositoryForSign(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, ociImageManifest bool) (notationregistry.Repository, error) {
 	switch inputType {
 	case remoteRegistry:

@@ -27,11 +27,14 @@ type verifyOpts struct {
 	userMetadata     []string
 	ociLayout        bool
 	trustPolicyScope string
+	inputType        inputType
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
 	if opts == nil {
-		opts = &verifyOpts{}
+		opts = &verifyOpts{
+			inputType: remoteRegistry, // remote registry by default
+		}
 	}
 	command := &cobra.Command{
 		Use:   "verify [reference]",
@@ -47,10 +50,10 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
   notation verify <registry>/<repository>:<tag>
 
 Example - Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
-  notation verify --local-content <registry>/<repository>@<digest> --scope <trust_policy_scope>
+  notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
 
 Example - Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
-  notation verify --local-content <registry>/<repository>:<tag> --scope <trust_policy_scope>
+  notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -67,7 +70,7 @@ Example - Verify a signature on an OCI artifact identified by a tag and referenc
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "verify local content")
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "verify artifact referenced in OCI layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local content verification")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
 	return command
@@ -96,29 +99,16 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// core verify process
-	var inputType inputType = remoteRegistry
 	if opts.ociLayout {
-		inputType = ociLayout
-		// printOut, outcomes, err := verifyLocal(ctx, opts, verifier, configs, userMetadata)
-		// if err != nil {
-		// 	return err
-		// }
-		// onSucess(outcomes, printOut)
-		// } else {
-		// 	printOut, outcomes, err := verifyRemote(ctx, opts, verifier, configs, userMetadata)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	onSucess(outcomes, printOut)
-		// }
+		opts.inputType = ociLayout
 	}
 	reference := opts.reference
-	sigRepo, err := getRepository(ctx, inputType, reference, &opts.SecureFlagOpts)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
 	if err != nil {
 		return err
 	}
 	// resolve the given reference and set the digest
-	_, fullRef, err := resolveReference(ctx, inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	_, fullRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
@@ -140,79 +130,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	onSucess(outcomes, fullRef)
 	return nil
 }
-
-// func verifyRemote(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
-// 	reference := opts.reference
-// 	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference)
-// 	if err != nil {
-// 		return "", nil, err
-// 	}
-// 	// resolve the given reference and set the digest
-// 	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-// 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref.Reference)
-// 	})
-// 	if err != nil {
-// 		return "", nil, err
-// 	}
-// 	verifyOpts := notation.VerifyOptions{
-// 		ArtifactReference: ref.String(),
-// 		PluginConfig:      configs,
-// 		// TODO: need to change MaxSignatureAttempts as a user input flag or
-// 		// a field in config.json
-// 		MaxSignatureAttempts: maxSignatureAttempts,
-// 		UserMetadata:         userMetadata,
-// 	}
-
-// 	// core verify process
-// 	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-// 	err = checkFailure(outcomes, ref.String(), err)
-// 	if err != nil {
-// 		return "", nil, err
-// 	}
-// 	return ref.String(), outcomes, nil
-// }
-
-// func verifyLocal(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
-// 	layoutPath, layoutReference, err := parseOCILayoutReference(opts.reference)
-// 	if err != nil {
-// 		return "", nil, err
-// 	}
-// 	return verifyFromFolder(ctx, opts, verifier, layoutPath, layoutReference, configs, userMetadata)
-// }
-
-// func verifyFromFolder(ctx context.Context, opts *verifyOpts, verifier notation.Verifier, path, reference string, configs, userMetadata map[string]string) (string, []*notation.VerificationOutcome, error) {
-// 	logger := log.GetLogger(ctx)
-
-// 	sigRepo, err := notationregistry.NewOCIRepository(path, notationregistry.RepositoryOptions{})
-// 	if err != nil {
-// 		return "", nil, err
-// 	}
-// 	targetDesc, err := sigRepo.Resolve(ctx, reference)
-// 	if err != nil {
-// 		return "", nil, fmt.Errorf("failed to resolve OCI layout reference: %s", err)
-// 	}
-// 	logger.Infof("OCI layout reference %s resolved to target manifest descriptor: %+v", reference, targetDesc)
-// 	if digest.Digest(reference).Validate() != nil {
-// 		// layout.reference is a tag
-// 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
-// 	}
-// 	reference = targetDesc.Digest.String()
-// 	printOut := path + "@" + targetDesc.Digest.String()
-// 	verifyOpts := notation.VerifyOptions{
-// 		ArtifactReference:    opts.trustPolicyScope + "@" + reference,
-// 		PluginConfig:         configs,
-// 		MaxSignatureAttempts: maxSignatureAttempts,
-// 		UserMetadata:         userMetadata,
-// 	}
-
-// 	// core process
-// 	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-// 	err = checkFailure(outcomes, printOut, err)
-// 	if err != nil {
-// 		return "", nil, err
-// 	}
-// 	return printOut, outcomes, nil
-// }
 
 func checkFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
 	// write out on failure

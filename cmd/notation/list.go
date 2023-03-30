@@ -17,11 +17,14 @@ type listOpts struct {
 	SecureFlagOpts
 	reference string
 	ociLayout bool
+	inputType inputType
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
 	if opts == nil {
-		opts = &listOpts{}
+		opts = &listOpts{
+			inputType: remoteRegistry, // remote registry by default
+		}
 	}
 	cmd := &cobra.Command{
 		Use:     "list [flags] <reference>",
@@ -51,15 +54,14 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	var inputType inputType = remoteRegistry
 	if opts.ociLayout {
-		inputType = ociLayout
+		opts.inputType = ociLayout
 	}
-	sigRepo, err := getRepository(ctx, inputType, reference, &opts.SecureFlagOpts)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
 	if err != nil {
 		return err
 	}
-	targetDesc, printOut, err := resolveReference(ctx, inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {})
+	targetDesc, printOut, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {})
 	if err != nil {
 		return err
 	}

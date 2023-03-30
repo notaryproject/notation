@@ -16,7 +16,9 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
-// resolveReference resolves user input reference based on user input type
+// resolveReference resolves user input reference based on user input type.
+// Returns the resolved manifest descriptor and a full representation of
+// the reference in digest
 func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
 	// sanity check
 	if reference == "" {
