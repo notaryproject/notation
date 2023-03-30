@@ -4,14 +4,14 @@
 [![codecov](https://codecov.io/gh/notaryproject/notation/branch/main/graph/badge.svg)](https://codecov.io/gh/notaryproject/notation)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/notaryproject/notation/badge)](https://api.securityscorecards.dev/projects/github.com/notaryproject/notation)
 
-Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary v2 specifications][notaryv2-specs].
+Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary project specifications][notaryv2-specs].
 
 ## Table of Contents
 
   - [Documents](#documents)
   - [Community](#community)
     - [Development and Contributing](#development-and-contributing)
-    - [Notary v2 Community Meeting](#notary-v2-community-meeting)
+    - [Notary project Community Meeting](#notary-project-community-meeting)
   - [Release Management](#release-management)
   - [Support](#support)
   - [Code of Conduct](#code-of-conduct)
@@ -27,14 +27,14 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 ### Development and Contributing
 
 - [Build Notation from source code](/building.md)
-- [Governance for Notation](https://github.com/notaryproject/notary/blob/master/GOVERNANCE.md)
-- [Maintainers and reviewers list](https://github.com/notaryproject/notary/blob/master/MAINTAINERS)
-- Regular conversations for Notation occur on the [Cloud Native Computing Slack](https://slack.cncf.io/) **notary-v2** channel.
+- [Governance for Notation](https://github.com/notaryproject/.github/blob/master/GOVERNANCE.md)
+- [Maintainers and reviewers list](https://github.com/notaryproject/notation/blob/main/CODEOWNERS)
+- Regular conversations for Notation occur on the [Cloud Native Computing Slack](https://slack.cncf.io/) **notary-project** channel.
 
-### Notary v2 Community Meeting
+### Notary project Community Meeting
 
-- Mondays 5-6 PM Pacific time, 8-9 PM US Eastern, 8-9 AM Shanghai
-- Thursdays 9-10 AM Pacific time, 12 PM US Eastern, 5 PM UK
+- Mondays 5-6 PM PDT, 4-5 PM PST, 8-9 PM EDT, 7-8 PM EST, 8-9 AM Shanghai
+- Thursdays 9-10 AM PDT, 8-9 AM PST, 12 PM EDT, 11 AM EST, 5 PM UK
 
 Join us at [Zoom Dial-in link](https://zoom.us/my/cncfnotaryproject) / Passcode: 77777. Please see the [CNCF Calendar](https://www.cncf.io/calendar/) for community meeting details. Meeting notes are captured on [hackmd.io](https://hackmd.io/_vrqBGAOSUC_VWvFzWruZw).
 
