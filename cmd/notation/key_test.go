@@ -60,9 +60,9 @@ func TestKeyUpdateCommand_MissingArgs(t *testing.T) {
 }
 
 func TestKeyRemoveCommand_BasicArgs(t *testing.T) {
-	opts := &keyDeleteOpts{}
-	cmd := keyDeleteCommand(opts)
-	expected := &keyDeleteOpts{
+	opts := &keyRemoveOpts{}
+	cmd := keyRemoveCommand(opts)
+	expected := &keyRemoveOpts{
 		names: []string{"key0", "key1", "key2"},
 	}
 	if err := cmd.ParseFlags(expected.names); err != nil {
@@ -77,7 +77,7 @@ func TestKeyRemoveCommand_BasicArgs(t *testing.T) {
 }
 
 func TestKeyRemoveCommand_MissingArgs(t *testing.T) {
-	cmd := keyDeleteCommand(nil)
+	cmd := keyRemoveCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}

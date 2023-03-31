@@ -26,6 +26,8 @@ var (
 	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
 		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
 	}
+
+	GenerateTestKeyName string
 )
 
 type certGenerateTestOpts struct {
@@ -68,10 +70,10 @@ Example - Generate a test RSA key and a corresponding self-signed certificate, s
 
 func generateTestCert(opts *certGenerateTestOpts) error {
 	// initialize
-	name := opts.name
-	if !truststore.IsValidFileName(name) {
+	if !truststore.IsValidFileName(opts.name) {
 		return errors.New("name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
+	GenerateTestKeyName = opts.name
 
 	// generate RSA private key
 	bits := opts.bits
@@ -81,14 +83,14 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 		return err
 	}
 
-	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, name)
+	rsaCertTuple, certBytes, err := generateSelfSignedCert(key, GenerateTestKeyName)
 	if err != nil {
 		return err
 	}
 	fmt.Println("generated certificate expiring on", rsaCertTuple.Cert.NotAfter.Format(time.RFC3339))
 
 	// write private key
-	relativeKeyPath, relativeCertPath := dir.LocalKeyPath(name)
+	relativeKeyPath, relativeCertPath := dir.LocalKeyPath(GenerateTestKeyName)
 	configFS := dir.ConfigFS()
 	keyPath, err := configFS.SysPath(relativeKeyPath)
 	if err != nil {
@@ -118,14 +120,14 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 
 	// Add to the trust store
-	if err := truststore.AddCert(certPath, "ca", name, true); err != nil {
+	if err := truststore.AddCert(certPath, "ca", GenerateTestKeyName, true); err != nil {
 		return err
 	}
 
 	// write out
-	fmt.Printf("%s: added to the key list\n", name)
+	fmt.Printf("%s: added to the key list\n", GenerateTestKeyName)
 	if opts.isDefault {
-		fmt.Printf("%s: mark as default signing key\n", name)
+		fmt.Printf("%s: mark as default signing key\n", GenerateTestKeyName)
 	}
 	return nil
 }
