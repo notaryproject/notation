@@ -110,14 +110,15 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 	// resolve the given reference and set the digest
-	_, fullRef, printOut, err := resolveReference(ctx, opts.inputType, reference, opts.trustPolicyScope, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	_, originRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
 		return err
 	}
+	intendedRef := resolveArtifactReference(originRef, opts.trustPolicyScope)
 	verifyOpts := notation.VerifyOptions{
-		ArtifactReference: fullRef,
+		ArtifactReference: intendedRef,
 		PluginConfig:      configs,
 		// TODO: need to change MaxSignatureAttempts as a user input flag or
 		// a field in config.json
@@ -125,11 +126,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-	err = checkVerificationFailure(outcomes, printOut, err)
+	err = checkVerificationFailure(outcomes, originRef, err)
 	if err != nil {
 		return err
 	}
-	reportVerificationSuccess(outcomes, printOut)
+	reportVerificationSuccess(outcomes, originRef)
 	return nil
 }
 

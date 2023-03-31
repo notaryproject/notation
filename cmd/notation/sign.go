@@ -122,13 +122,13 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	_, fullRef, printOut, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, "", sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	manifestDesc, originRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {
 		return err
 	}
-	signOpts.ArtifactReference = fullRef
+	signOpts.ArtifactReference = manifestDesc.Digest.String()
 
 	// core process
 	_, err = notation.Sign(ctx, signer, sigRepo, signOpts)
@@ -139,7 +139,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		}
 		return err
 	}
-	fmt.Println("Successfully signed", printOut)
+	fmt.Println("Successfully signed", originRef)
 	return nil
 }
 
