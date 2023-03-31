@@ -75,8 +75,8 @@ Example - Verify a signature on an OCI artifact identified by a tag and referenc
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "verify artifact referenced in OCI layout")
-	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "trust policy scope for local content verification")
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "verify artifact stored in OCI image layout")
+	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Preview] set trust policy scope for verification, required to be used with flag \"--oci-layout\"")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
 	return command
 }
