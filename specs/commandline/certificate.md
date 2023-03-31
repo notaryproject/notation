@@ -217,7 +217,7 @@ Successfully deleted <cert_fileName> from the trust store.
 If users execute the deletion without specifying required flags using `notation cert delete <cert_fileName>`, the deletion fails and the error output message is printed out as follows:
 
 ```text
-Error: You need to specify the required flag "--type" and "--store". Try "notation cert delete -h" to view examples.
+Error: required flag(s) "store", "type" not set
 ```
 
 ### Generate a local RSA key and a corresponding self-generated certificate for testing purpose and add the certificate into trust store

@@ -121,10 +121,15 @@ Upon successful execution, a list of keys is printed out with information of nam
 notation key remove <key_name>
 ```
 
-Upon successful execution, the output message is printed out as following:
+- Upon successful execution, the output message is printed out as below when removed a key created by notation for local testing purpose:
 
 ```text
 Removed <key_name> from signing key list. You still need to delete the key file from <key_path> and delete the certificate from <cert_path>.
+```
+- Upon successful execution, the output message is printed out as below when removed a key associates with a KMS:
+
+```text
+Removed <key_name> from signing key list.
 ```
 
 ### Remove two keys from signing key list
