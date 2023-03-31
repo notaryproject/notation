@@ -182,19 +182,19 @@ Users need to extract the tarball into a directory first, since Notation only su
 
 ```shell
 mkdir hello-world
-tar -xf ./hello-world.tar -C hello-world
+tar -xf hello-world.tar -C hello-world
 ```
 
 Use flag `--oci-layout` to sign the image stored in OCI layout directory referenced by `hello-world@sha256xxx`. For example:
 
 ```shell
-notation sign --oci-layout ./hello-world@sha256:xxx
+notation sign --oci-layout hello-world@sha256:xxx
 ```
 
 Upon successful signing, the signature is stored in the same layout directory and associated with the image. Use `notation list` command to list the signatures, for example:
 
 ```shell
-notation list --oci-layout ./hello-world@sha256:xxx
+notation list --oci-layout hello-world@sha256:xxx
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md

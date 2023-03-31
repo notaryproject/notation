@@ -72,7 +72,7 @@ notation list --oci-layout hello-world@sha256:xxx
 An example output:
 
 ```shell
-./hello-world@sha256:a08753c0c7bcdaaf5c2fdb375f68e860c34bffb146368982c201d41769e1763c
+hello-world@sha256:a08753c0c7bcdaaf5c2fdb375f68e860c34bffb146368982c201d41769e1763c
 └── application/vnd.cncf.notary.signature
     ├── sha256:647039638efb22a021f59675c9449dd09956c981a44b82c1ff074513c2c9f273
     └── sha256:6bfb3c4fd485d6810f9656ddd4fb603f0c414c5f0b175ef90eeb4090ebd9bfa1
