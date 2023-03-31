@@ -85,19 +85,21 @@ func parseOCILayoutReference(raw string) (string, string, error) {
 	var ref string
 	if idx := strings.LastIndex(raw, "@"); idx != -1 {
 		// `digest` found
-		path = raw[:idx]
-		ref = raw[idx+1:]
+		path, ref = raw[:idx], raw[idx+1:]
 	} else {
 		// find `tag`
-		i := strings.LastIndex(raw, ":")
-		if i < 0 || (i == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
+		idx := strings.LastIndex(raw, ":")
+		if idx < 0 || (idx == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
 			return "", "", notationerrors.ErrorOCILayoutMissingReference{}
 		} else {
-			path, ref = raw[:i], raw[i+1:]
+			path, ref = raw[:idx], raw[idx+1:]
 		}
-		if path == "" {
-			return "", "", fmt.Errorf("found empty file path in %q", raw)
-		}
+	}
+	if path == "" {
+		return "", "", fmt.Errorf("found empty file path in %q", raw)
+	}
+	if ref == "" {
+		return "", "", fmt.Errorf("found empty reference in %q", raw)
 	}
 	return path, ref, nil
 }
