@@ -23,7 +23,7 @@ type listOpts struct {
 func listCommand(opts *listOpts) *cobra.Command {
 	if opts == nil {
 		opts = &listOpts{
-			inputType: remoteRegistry, // remote registry by default
+			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
 	cmd := &cobra.Command{
@@ -37,6 +37,11 @@ func listCommand(opts *listOpts) *cobra.Command {
 			}
 			opts.reference = args[0]
 			return nil
+		},
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if opts.ociLayout {
+				opts.inputType = inputTypeOCILayout
+			}
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(cmd.Context(), opts)
@@ -54,14 +59,11 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	if opts.ociLayout {
-		opts.inputType = ociLayout
-	}
 	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
 	if err != nil {
 		return err
 	}
-	targetDesc, printOut, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {})
+	targetDesc, _, printOut, err := resolveReference(ctx, opts.inputType, reference, "", sigRepo, nil)
 	if err != nil {
 		return err
 	}

@@ -13,19 +13,6 @@ func (e ErrorReferrersAPINotSupported) Error() string {
 	return "referrers API not supported"
 }
 
-// ErrorOCILayoutTarForSign is used when signing local content in oci layout
-// tarball, but failed to get an oci.ReadOnlyStorage
-type ErrorOCILayoutTarForSign struct {
-	Msg string
-}
-
-func (e ErrorOCILayoutTarForSign) Error() string {
-	if e.Msg != "" {
-		return "failed to create ReadOnlyStorage from tar: " + e.Msg
-	}
-	return "failed to create ReadOnlyStorage from tar"
-}
-
 // ErrorOCILayoutMissingReference is used when signing local content in oci
 // layout folder but missing input tag or digest.
 type ErrorOCILayoutMissingReference struct {

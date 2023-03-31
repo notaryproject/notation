@@ -25,8 +25,8 @@ import (
 type inputType int
 
 const (
-	remoteRegistry inputType = 1 + iota // inputType remote registry
-	ociLayout                           // inputType oci-layout
+	inputTypeRegistry  inputType = 1 + iota // inputType remote registry
+	inputTypeOCILayout                      // inputType oci-layout
 )
 
 const (
@@ -37,9 +37,9 @@ const (
 // user input reference
 func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts) (notationregistry.Repository, error) {
 	switch inputType {
-	case remoteRegistry:
+	case inputTypeRegistry:
 		return getRemoteRepository(ctx, opts, reference)
-	case ociLayout:
+	case inputTypeOCILayout:
 		layoutPath, _, err := parseOCILayoutReference(reference)
 		if err != nil {
 			return nil, err
@@ -54,9 +54,9 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 // type and user input reference during Sign process
 func getRepositoryForSign(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, ociImageManifest bool) (notationregistry.Repository, error) {
 	switch inputType {
-	case remoteRegistry:
+	case inputTypeRegistry:
 		return getRemoteRepositoryForSign(ctx, opts, reference, ociImageManifest)
-	case ociLayout:
+	case inputTypeOCILayout:
 		layoutPath, _, err := parseOCILayoutReference(reference)
 		if err != nil {
 			return nil, err

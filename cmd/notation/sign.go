@@ -39,7 +39,7 @@ type signOpts struct {
 func signCommand(opts *signOpts) *cobra.Command {
 	if opts == nil {
 		opts = &signOpts{
-			inputType: remoteRegistry, // remote registry by default
+			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
 	command := &cobra.Command{
@@ -80,6 +80,11 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 			opts.reference = args[0]
 			return nil
 		},
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if opts.ociLayout {
+				opts.inputType = inputTypeOCILayout
+			}
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// sanity check
 			if !validateSignatureManifest(opts.signatureManifest) {
@@ -109,9 +114,6 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		return err
 	}
 	ociImageManifest := cmdOpts.signatureManifest == signatureManifestImage
-	if cmdOpts.ociLayout {
-		cmdOpts.inputType = ociLayout
-	}
 	sigRepo, err := getRepositoryForSign(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, ociImageManifest)
 	if err != nil {
 		return err
@@ -120,7 +122,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	_, fullRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	_, fullRef, printOut, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, "", sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {
@@ -137,7 +139,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		}
 		return err
 	}
-	fmt.Println("Successfully signed", fullRef)
+	fmt.Println("Successfully signed", printOut)
 	return nil
 }
 

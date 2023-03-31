@@ -102,7 +102,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
-	manifestDesc, fullRef, err := resolveReference(ctx, remoteRegistry, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	manifestDesc, _, printOut, err := resolveReference(ctx, inputTypeRegistry, reference, "", sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always inspect the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
@@ -171,7 +171,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		return err
 	}
 
-	err = printOutput(opts.outputFormat, fullRef, output)
+	err = printOutput(opts.outputFormat, printOut, output)
 	if err != nil {
 		return err
 	}

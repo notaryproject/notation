@@ -33,7 +33,7 @@ type verifyOpts struct {
 func verifyCommand(opts *verifyOpts) *cobra.Command {
 	if opts == nil {
 		opts = &verifyOpts{
-			inputType: remoteRegistry, // remote registry by default
+			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
 	command := &cobra.Command{
@@ -61,6 +61,11 @@ Example - Verify a signature on an OCI artifact identified by a tag and referenc
 			}
 			opts.reference = args[0]
 			return nil
+		},
+		PreRun: func(cmd *cobra.Command, args []string) {
+			if opts.ociLayout {
+				opts.inputType = inputTypeOCILayout
+			}
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runVerify(cmd, opts)
@@ -99,16 +104,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// core verify process
-	if opts.ociLayout {
-		opts.inputType = ociLayout
-	}
 	reference := opts.reference
 	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
 	if err != nil {
 		return err
 	}
 	// resolve the given reference and set the digest
-	_, fullRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	_, fullRef, printOut, err := resolveReference(ctx, opts.inputType, reference, opts.trustPolicyScope, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
@@ -123,15 +125,15 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-	err = checkFailure(outcomes, fullRef, err)
+	err = checkVerificationFailure(outcomes, printOut, err)
 	if err != nil {
 		return err
 	}
-	onSucess(outcomes, fullRef)
+	reportVerificationSuccess(outcomes, printOut)
 	return nil
 }
 
-func checkFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
+func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		if err != nil {
@@ -145,7 +147,7 @@ func checkFailure(outcomes []*notation.VerificationOutcome, printOut string, err
 	return nil
 }
 
-func onSucess(outcomes []*notation.VerificationOutcome, printout string) {
+func reportVerificationSuccess(outcomes []*notation.VerificationOutcome, printout string) {
 	// write out on success
 	outcome := outcomes[0]
 	// print out warning for any failed result with logged verification action

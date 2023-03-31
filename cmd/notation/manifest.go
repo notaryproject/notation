@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
@@ -16,54 +17,72 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
+const ociLayout = "oci-layout"
+
 // resolveReference resolves user input reference based on user input type.
-// Returns the resolved manifest descriptor and a full representation of
-// the reference in digest
-func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
+// Returns the resolved manifest descriptor, a full representation of
+// the reference in digest, and a print out for reference in digest
+func resolveReference(ctx context.Context, inputType inputType, reference, policyScope string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, string, error) {
 	// sanity check
 	if reference == "" {
-		return ocispec.Descriptor{}, "", errors.New("missing user input reference")
-	}
-	if fn == nil {
-		return ocispec.Descriptor{}, "", errors.New("fn cannot be nil")
+		return ocispec.Descriptor{}, "", "", errors.New("missing user input reference")
 	}
 	var tagOrDigestRef string
 	var fullRef string
+	var printOut string
 	switch inputType {
-	case remoteRegistry:
+	case inputTypeRegistry:
 		ref, err := registry.ParseReference(reference)
 		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+			return ocispec.Descriptor{}, "", "", fmt.Errorf("failed to resolve user input reference: %w", err)
 		}
 		tagOrDigestRef = ref.Reference
 		fullRef = ref.Registry + "/" + ref.Repository
-	case ociLayout:
+		printOut = ref.Registry + "/" + ref.Repository
+	case inputTypeOCILayout:
 		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
 		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+			return ocispec.Descriptor{}, "", "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
+		layoutPathInfo, err := os.Stat(layoutPath)
+		if err != nil {
+			return ocispec.Descriptor{}, "", "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
+		if !layoutPathInfo.IsDir() {
+			return ocispec.Descriptor{}, "", "", errors.New("failed to resolve user input reference: input path is not a dir")
 		}
 		tagOrDigestRef = layoutReference
-		fullRef = localTargetPath(layoutPath)
+		printOut = layoutPath
+		fullRef = ociLayout + "/" + filepath.Base(layoutPath)
+		if policyScope != "" {
+			fullRef = policyScope
+		}
 	default:
-		return ocispec.Descriptor{}, "", errors.New("unsupported user input type")
+		return ocispec.Descriptor{}, "", "", errors.New("unsupported user input type")
 	}
 
 	manifestDesc, err := getManifestDescriptor(ctx, tagOrDigestRef, sigRepo)
 	if err != nil {
-		return ocispec.Descriptor{}, "", fmt.Errorf("failed to get manifest descriptor: %w", err)
+		return ocispec.Descriptor{}, "", "", fmt.Errorf("failed to get manifest descriptor: %w", err)
 	}
 	fullRef = fullRef + "@" + manifestDesc.Digest.String()
+	printOut = printOut + "@" + manifestDesc.Digest.String()
 	if _, err := digest.Parse(tagOrDigestRef); err == nil {
 		// tagOrDigestRef is a digest reference
-		return manifestDesc, fullRef, nil
+		return manifestDesc, fullRef, printOut, nil
 	}
 	// tagOrDigestRef is a tag reference
-	fn(tagOrDigestRef, manifestDesc)
-	return manifestDesc, fullRef, nil
+	if fn != nil {
+		fn(tagOrDigestRef, manifestDesc)
+	}
+	return manifestDesc, fullRef, printOut, nil
 }
 
-// parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>]
-func parseOCILayoutReference(raw string) (path string, ref string, err error) {
+// parseOCILayoutReference parses the raw in format of <path>[:<tag>|@<digest>].
+// Returns the path to the OCI layout and the reference (tag or digest).
+func parseOCILayoutReference(raw string) (string, string, error) {
+	var path string
+	var ref string
 	if idx := strings.LastIndex(raw, "@"); idx != -1 {
 		// `digest` found
 		path = raw[:idx]
@@ -80,13 +99,7 @@ func parseOCILayoutReference(raw string) (path string, ref string, err error) {
 			return "", "", fmt.Errorf("found empty file path in %q", raw)
 		}
 	}
-	return
-}
-
-func localTargetPath(path string) string {
-	reg := strings.ToLower(filepath.Base(filepath.Dir(path)))
-	repo := strings.ToLower(filepath.Base(path))
-	return fmt.Sprintf("%s/%s", reg, repo)
+	return path, ref, nil
 }
 
 // getManifestDescriptor returns target artifact manifest descriptor given
