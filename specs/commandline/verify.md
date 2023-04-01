@@ -41,7 +41,7 @@ Flags:
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                  registry access via plain HTTP
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-       --scope string                [Preview] set trust policy scope for artifact verification, only use it with flag "--oci-layout"
+       --scope string                [Preview] set trust policy scope for artifact verification, required to be used with flag "--oci-layout"
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode
@@ -187,7 +187,7 @@ Users should configure trust policy properly before verifying artifacts in OCI l
 }
 ```
 
-To verify image `hello-world:v1`, user should use flag `--oci-layout` and `--scope` together, for example:
+To verify image `hello-world:v1`, user should use flags `--oci-layout` and `--scope` together, for example:
 
 ```shell
 notation verify --oci-layout --scope "localhost:5000/hello-world" hello-world:v1
