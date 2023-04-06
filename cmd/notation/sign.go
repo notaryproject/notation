@@ -19,10 +19,11 @@ import (
 )
 
 const (
-	signatureManifestArtifact     = "artifact"
-	signatureManifestImage        = "image"
-	referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
+	signatureManifestArtifact = "artifact"
+	signatureManifestImage    = "image"
 )
+
+const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
 
 var supportedSignatureManifest = []string{signatureManifestArtifact, signatureManifestImage}
 
