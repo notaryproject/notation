@@ -241,7 +241,7 @@ func removeKeys(ctx context.Context, opts *keyRemoveOpts) error {
 
 	// write out
 	for _, name := range removedNames {
-		fmt.Printf("Removed test key %s from Notation signing key list. The source key file is not deleted.\n", name)
+		fmt.Printf("Removed %s from Notation signing key list. The source key file is not deleted.\n", name)
 	}
 	return nil
 }
