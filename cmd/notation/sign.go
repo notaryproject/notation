@@ -119,9 +119,10 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 			if !ociImageManifest {
 				return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
 			}
-			if strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
-				// failed to delete dangling referrers index
-				fmt.Fprintln(os.Stderr, "Warning: failed to delete dangling referrers index, since this is an OCI v1.0 compliant registry and the deletion API is disabled by the registry.")
+			if _, after, found := strings.Cut(err.Error(), referrersTagSchemaDeleteError); found {
+				warnMsg := fmt.Sprintf("Warning: %s %s", referrersTagSchemaDeleteError, after)
+				fmt.Fprintln(os.Stderr, warnMsg)
+				// write out
 				fmt.Println("Successfully signed", ref)
 				return nil
 			}
