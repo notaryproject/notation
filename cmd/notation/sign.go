@@ -64,10 +64,10 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
-Example - Sign an OCI artifact referenced in an OCI layout
+Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
   notation sign --oci-layout "<oci_layout_path>@<digest>"
 
-Example - Sign an OCI artifact identified by a tag and referenced in an OCI layout
+Example - [Experimental] Sign an OCI artifact identified by a tag and referenced in an OCI layout
   notation sign --oci-layout "<oci_layout_path>:<tag>"
 
 Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to store the signature:
@@ -100,7 +100,7 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "sign artifact stored in OCI image layout")
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign artifact stored in OCI image layout")
 	return command
 }
 

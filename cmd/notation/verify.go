@@ -49,10 +49,10 @@ Example - Verify a signature on an OCI artifact identified by a digest:
 Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
   notation verify <registry>/<repository>:<tag>
 
-Example - Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
+Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
 
-Example - Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
+Example - [Experimental] Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -75,8 +75,8 @@ Example - Verify a signature on an OCI artifact identified by a tag and referenc
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "verify artifact stored in OCI image layout")
-	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Preview] set trust policy scope for verification, required to be used with flag \"--oci-layout\"")
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify artifact stored in OCI image layout")
+	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for verification, required to be used with flag \"--oci-layout\"")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
 	return command
 }
