@@ -29,7 +29,7 @@ Aliases:
 Flags:
   -d, --debug             debug mode
   -h, --help              help for list
-      --oci-layout        [Preview] list signatures stored in OCI image layout
+      --oci-layout        [Experimental] list signatures stored in OCI image layout
   -p, --password string   password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --plain-http        registry access via plain HTTP
   -u, --username string   username for registry operations (default to $NOTATION_USERNAME if not specified)
@@ -53,20 +53,20 @@ localhost:5000/net-monitor:v1
     └── sha256:6bfb3c4fd485d6810f9656ddd4fb603f0c414c5f0b175ef90eeb4090ebd9bfa1
 ```
 
-### [Preview] List all the signatures associated with the image in OCI layout directory
+### [Experimental] List all the signatures associated with the image in OCI layout directory
 
-The following example lists the signatures associated with the image in OCI layout directory named `hello-world`.
+The following example lists the signatures associated with the image in OCI layout directory named `hello-world`. To access this flag `--oci-layout` set the environment variable `NOTATION_EXPERIMENTAL`.
 
 Reference an image in OCI layout directory using tags:
 
 ```shell
-notation list --oci-layout hello-world:v1
+NOTATION_EXPERIMENTAL=1 notation list --oci-layout hello-world:v1
 ```
 
 Reference an image in OCI layout directory using exact digest:
 
 ```shell
-notation list --oci-layout hello-world@sha256:xxx
+NOTATION_EXPERIMENTAL=1 notation list --oci-layout hello-world@sha256:xxx
 ```
 
 An example output:

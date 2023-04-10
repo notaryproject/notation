@@ -33,7 +33,7 @@ Flags:
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
   -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
-       --oci-layout                 [Preview] sign the artifact stored in OCI image layout
+       --oci-layout                 [Experimental] sign the artifact stored in OCI image layout
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                 registry access via plain HTTP
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
@@ -163,11 +163,13 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 
 ### [Experimental] Sign an artifact and store the signature using OCI artifact manifest
 
+To access this flag `--signature-manifest` set the environment variable `NOTATION_EXPERIMENTAL`.
+
 ```shell
-notation sign --signature-manifest artifact <registry>/<repository>@<digest>
+NOTATION_EXPERIMENTAL=1 notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 ```
 
-### [Preview] Sign container images stored in OCI layout directory
+### [Experimental] Sign container images stored in OCI layout directory
 
 Container images can be stored in OCI image Layout defined in spec [OCI image layout][oci-image-layout]. It is a directory structure that contains files and folders. The OCI image layout could be a tarball or a directory in the filesystem. For example, a file named `hello-world.tar` or a directory named `hello-world`. Notation only supports signing images stored in OCI layout directory for now. Users can reference an image in the layout using either tags, or the exact digest. For example, use `hello-world:v1` or `hello-world@sha256xxx` to reference the image in OCI layout directory named `hello-world`.
 
@@ -185,16 +187,16 @@ mkdir hello-world
 tar -xf hello-world.tar -C hello-world
 ```
 
-Use flag `--oci-layout` to sign the image stored in OCI layout directory referenced by `hello-world@sha256xxx`. For example:
+Use flag `--oci-layout` to sign the image stored in OCI layout directory referenced by `hello-world@sha256xxx`. To access this flag `--oci-layout` set the environment variable `NOTATION_EXPERIMENTAL`. For example:
 
 ```shell
-notation sign --oci-layout hello-world@sha256:xxx
+NOTATION_EXPERIMENTAL=1 notation sign --oci-layout hello-world@sha256:xxx
 ```
 
 Upon successful signing, the signature is stored in the same layout directory and associated with the image. Use `notation list` command to list the signatures, for example:
 
 ```shell
-notation list --oci-layout hello-world@sha256:xxx
+NOTATION_EXPERIMENTAL=1 notation list --oci-layout hello-world@sha256:xxx
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
