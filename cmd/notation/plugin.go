@@ -129,7 +129,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 
 	output, err := cmd.Output()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	var newPlugin map[string]interface{}
@@ -148,7 +148,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 	// get plugin directory
 	pluginDir, err := dir.PluginFS().SysPath(pluginName)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Check if plugin directory exists
