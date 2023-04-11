@@ -121,12 +121,12 @@ Upon successful execution, a list of keys is printed out with information of nam
 notation key remove <key_name>
 ```
 
-- Upon successful execution, the output message is printed out as below when removed a key created by notation for local testing purpose:
+- Upon successful removal of a local testing key created by notation, the output message is printed out as follows:
 
 ```text
-Removed <key_name> from signing key list. You still need to delete the key file from <key_path> and delete the certificate from <cert_path>.
+Removed <key_name> from signing key list. The source key file is still existed in <key_path>.
 ```
-- Upon successful execution, the output message is printed out as below when removed a key associates with a KMS:
+- Upon successful removal of a key associated with a KMS, the output message is printed out as follows:
 
 ```text
 Removed <key_name> from signing key list.
@@ -138,4 +138,10 @@ Removed <key_name> from signing key list.
 notation key remove <key_name_1> <key_name_2>
 ```
 
-Upon successful execution, the names of removed signing keys are printed out. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+Upon successful execution, the output message is printed out as follows. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+
+```text
+Removed the following keys from signing key list. The source key files are still existed in <key_path>.
+<key_name_1>
+<key_name_2>
+```
