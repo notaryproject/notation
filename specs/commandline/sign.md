@@ -163,7 +163,7 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 
 ### [Experimental] Sign an artifact and store the signature using OCI artifact manifest
 
-To access this flag `--signature-manifest` set the environment variable `NOTATION_EXPERIMENTAL`.
+To access this flag `--signature-manifest`, set the environment variable `NOTATION_EXPERIMENTAL=1`.
 
 ```shell
 NOTATION_EXPERIMENTAL=1 notation sign --signature-manifest artifact <registry>/<repository>@<digest>
@@ -187,7 +187,7 @@ mkdir hello-world
 tar -xf hello-world.tar -C hello-world
 ```
 
-Use flag `--oci-layout` to sign the image stored in OCI layout directory referenced by `hello-world@sha256xxx`. To access this flag `--oci-layout` set the environment variable `NOTATION_EXPERIMENTAL`. For example:
+Use flag `--oci-layout` to sign the image stored in OCI layout directory referenced by `hello-world@sha256xxx`. To access this flag `--oci-layout` , set the environment variable `NOTATION_EXPERIMENTAL=1`. For example:
 
 ```shell
 NOTATION_EXPERIMENTAL=1 notation sign --oci-layout hello-world@sha256:xxx

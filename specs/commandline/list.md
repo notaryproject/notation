@@ -55,7 +55,7 @@ localhost:5000/net-monitor:v1
 
 ### [Experimental] List all the signatures associated with the image in OCI layout directory
 
-The following example lists the signatures associated with the image in OCI layout directory named `hello-world`. To access this flag `--oci-layout` set the environment variable `NOTATION_EXPERIMENTAL`.
+The following example lists the signatures associated with the image in OCI layout directory named `hello-world`. To access this flag `--oci-layout` , set the environment variable `NOTATION_EXPERIMENTAL=1`.
 
 Reference an image in OCI layout directory using tags:
 
