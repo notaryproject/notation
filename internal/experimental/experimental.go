@@ -33,7 +33,7 @@ func CheckCommandAndWarn(cmd *cobra.Command, args []string) error {
 	return Warn()
 }
 
-// CheckCommandAndWarn checks whether experimental flags can be run.
+// CheckFlagsAndWarn checks whether experimental flags can be run.
 func CheckFlagsAndWarn(cmd *cobra.Command, flags ...string) error {
 	if err := Check(func() (string, bool) {
 		var changedFlags []string
