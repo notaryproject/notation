@@ -33,28 +33,26 @@ func CheckCommandAndWarn(cmd *cobra.Command, args []string) error {
 	return Warn()
 }
 
-// FlagsChecker returns the function which checks whether flags are not set.
-func FlagsChecker(flags ...string) func(*cobra.Command, []string) error {
-	return func(cmd *cobra.Command, _ []string) error {
-		if err := Check(func() (string, bool) {
-			var changedFlags []string
-			flagSet := cmd.Flags()
-			for _, flag := range flags {
-				flagSet.MarkHidden(flag)
-				if flagSet.Changed(flag) {
-					changedFlags = append(changedFlags, "--"+flag)
-				}
+// CheckCommandAndWarn checks whether experimental flags can be run.
+func CheckFlagsAndWarn(cmd *cobra.Command, flags ...string) error {
+	if err := Check(func() (string, bool) {
+		var changedFlags []string
+		flagSet := cmd.Flags()
+		for _, flag := range flags {
+			flagSet.MarkHidden(flag)
+			if flagSet.Changed(flag) {
+				changedFlags = append(changedFlags, "--"+flag)
 			}
-			if len(changedFlags) == 0 {
-				// no experimental flag used
-				return "", false
-			}
-			return fmt.Sprintf("flag(s) %s in %s", strings.Join(changedFlags, ","), cmd.CommandPath()), true
-		}); err != nil {
-			return err
 		}
-		return Warn()
+		if len(changedFlags) == 0 {
+			// no experimental flag used
+			return "", false
+		}
+		return fmt.Sprintf("flag(s) %s in %q", strings.Join(changedFlags, ","), cmd.CommandPath()), true
+	}); err != nil {
+		return err
 	}
+	return Warn()
 }
 
 // Check checks whether a feature can be used.
