@@ -7,6 +7,7 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	"github.com/notaryproject/notation/internal/experimental"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +29,8 @@ Example - Show current trust policy configuration:
 Example - Save current trust policy configuration to a file:
   notation policy show > my_policy.json
 `,
-		Args: cobra.ExactArgs(0),
+		Args:    cobra.ExactArgs(0),
+		PreRunE: experimental.CheckCommandAndWarn,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runShow(cmd, opts)
 		},

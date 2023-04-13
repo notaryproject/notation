@@ -18,24 +18,16 @@ func IsDisabled() bool {
 	return os.Getenv(envName) != enabled
 }
 
-// Error returns an error for a disabled experimental feature.
-func Error(description string) error {
-	return fmt.Errorf("%s is experimental and not enabled by default. To use, please set %s=%s environment variable", description, envName, enabled)
-}
-
 // CheckCommandAndWarn checks whether an experimental command can be run.
 func CheckCommandAndWarn(cmd *cobra.Command, _ []string) error {
-	if err := Check(func() (string, bool) {
+	return CheckAndWarn(func() (string, bool) {
 		return fmt.Sprintf("%q", cmd.CommandPath()), true
-	}); err != nil {
-		return err
-	}
-	return Warn()
+	})
 }
 
 // CheckFlagsAndWarn checks whether experimental flags can be run.
 func CheckFlagsAndWarn(cmd *cobra.Command, flags ...string) error {
-	if err := Check(func() (string, bool) {
+	return CheckAndWarn(func() (string, bool) {
 		var changedFlags []string
 		flagSet := cmd.Flags()
 		for _, flag := range flags {
@@ -49,27 +41,24 @@ func CheckFlagsAndWarn(cmd *cobra.Command, flags ...string) error {
 			return "", false
 		}
 		return fmt.Sprintf("flag(s) %s in %q", strings.Join(changedFlags, ","), cmd.CommandPath()), true
-	}); err != nil {
-		return err
-	}
-	return Warn()
+	})
 }
 
-// Check checks whether a feature can be used.
-func Check(doCheck func() (feature string, isExperimental bool)) error {
-	if IsDisabled() {
-		feature, isExperimental := doCheck()
-		if isExperimental {
+// CheckAndWarn checks whether a feature can be used.
+func CheckAndWarn(doCheck func() (feature string, isExperimental bool)) error {
+	feature, isExperimental := doCheck()
+	if isExperimental {
+		if IsDisabled() {
 			// feature is experimental and disabled
-			return Error(feature)
+			return fmt.Errorf("%s is experimental and not enabled by default. To use, please set %s=%s environment variable", feature, envName, enabled)
 		}
-		return nil
+		return warn()
 	}
 	return nil
 }
 
-// Warn prints a warning message for using the experimental feature.
-func Warn() error {
-	_, err := fmt.Fprintf(os.Stderr, "Caution: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n")
+// warn prints a warning message for using the experimental feature.
+func warn() error {
+	_, err := fmt.Fprintf(os.Stderr, "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n")
 	return err
 }
