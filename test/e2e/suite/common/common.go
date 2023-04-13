@@ -1,6 +1,8 @@
 package common
 
 const (
+	LoginSuccessfully  = "Login Succeeded"
+	LogoutSuccessfully = "Logout Succeeded"
 	SignSuccessfully   = "Successfully signed"
 	VerifySuccessfully = "Successfully verified"
 	VerifyFailed       = "signature verification failed"

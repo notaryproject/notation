@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/auth"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 	orasauth "oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -65,6 +67,23 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 	// initialize
 	serverAddress := opts.server
 
+	// input username and password by prompt
+	reader := bufio.NewReader(os.Stdin)
+	var err error
+	if opts.Username == "" {
+		opts.Username, err = readUsernameFromPrompt(reader)
+		if err != nil {
+			return err
+		}
+	}
+
+	if opts.Password == "" {
+		opts.Password, err = readPasswordFromPrompt(reader)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err := validateAuthConfig(ctx, opts, serverAddress); err != nil {
 		return err
 	}
@@ -108,7 +127,7 @@ func newCredentialFromInput(username, password string) orasauth.Credential {
 
 func readPassword(opts *loginOpts) error {
 	if opts.passwordStdin {
-		password, err := readLine()
+		password, err := readLine(os.Stdin)
 		if err != nil {
 			return err
 		}
@@ -117,12 +136,41 @@ func readPassword(opts *loginOpts) error {
 	return nil
 }
 
-func readLine() (string, error) {
-	passwordBytes, err := io.ReadAll(os.Stdin)
+func readLine(r io.Reader) (string, error) {
+	passwordBytes, err := io.ReadAll(r)
 	if err != nil {
 		return "", err
 	}
 	password := strings.TrimSuffix(string(passwordBytes), "\n")
 	password = strings.TrimSuffix(password, "\r")
 	return password, nil
+}
+
+func readUsernameFromPrompt(reader *bufio.Reader) (string, error) {
+	fmt.Print("Username: ")
+	username, err := reader.ReadString('\n')
+	if err != nil {
+		return "", fmt.Errorf("error reading username: %w", err)
+	}
+	username = strings.TrimSpace(username)
+	return username, nil
+}
+
+func readPasswordFromPrompt(reader *bufio.Reader) (string, error) {
+	fmt.Print("Password: ")
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
+		if err != nil {
+			return "", fmt.Errorf("error reading password: %w", err)
+		}
+		fmt.Println()
+		return string(bytePassword), nil
+	} else {
+		password, err := readLine(reader)
+		if err != nil {
+			return "", fmt.Errorf("error reading password: %w", err)
+		}
+		fmt.Println()
+		return password, nil
+	}
 }
