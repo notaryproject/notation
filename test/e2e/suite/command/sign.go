@@ -144,7 +144,7 @@ var _ = Describe("notation sign", func() {
 	It("by digest with oci layout but without experimental", func() {
 		GeneralHost(BaseOptions(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
 			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
-			expectedErrMsg := "Error: flag --oci-layout in \"notation sign\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
+			expectedErrMsg := "Error: flag(s) --oci-layout in \"notation sign\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
 			ociLayoutReference := OCILayoutTestPath + "@" + digest
 			notation.ExpectFailure().Exec("sign", "--oci-layout", ociLayoutReference).
 				MatchErrContent(expectedErrMsg)

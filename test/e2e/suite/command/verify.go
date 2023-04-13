@@ -49,4 +49,56 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
+
+	It("by digest with oci layout", func() {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+			ociLayoutReference := OCILayoutTestPath + "@" + digest
+			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+
+			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
+			notation.Exec("verify", "--oci-layout", "--scope", "*", ociLayoutReference).
+				MatchKeyWords(VerifySuccessfully).
+				MatchErrKeyWords(experimentalMsg)
+		})
+	})
+
+	It("by tag with oci layout and COSE format", func() {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+
+			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
+			notation.Exec("verify", "--oci-layout", "--signature-format", "cose", "--scope", "*", ociLayoutReference).
+				MatchKeyWords(VerifySuccessfully).
+				MatchErrKeyWords(experimentalMsg)
+		})
+	})
+
+	It("by digest with oci layout but without experimental", func() {
+		GeneralHost(BaseOptions(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+			expectedErrMsg := "Error: flag(s) --oci-layout,--scope in \"notation verify\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
+			ociLayoutReference := OCILayoutTestPath + "@" + digest
+			notation.ExpectFailure().Exec("verify", "--oci-layout", "--scope", "*", ociLayoutReference).
+				MatchErrContent(expectedErrMsg)
+		})
+	})
+
+	It("by digest with oci layout but missing scope", func() {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+			ociLayoutReference := OCILayoutTestPath + "@" + digest
+			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+
+			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
+			expectedErrMsg := "Error: if any flags in the group [oci-layout scope] are set they must all be set; missing [scope]"
+			notation.ExpectFailure().Exec("verify", "--oci-layout", ociLayoutReference).
+				MatchErrKeyWords(experimentalMsg).
+				MatchErrKeyWords(expectedErrMsg)
+		})
+	})
 })
