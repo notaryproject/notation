@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	SigningKeysFileName = "signingkeys.json"
-	LocalKeysDirName    = "localkeys"
+	SigningKeysFileName     = "signingkeys.json"
+	LocalKeysDirName        = "localkeys"
+	LocalConfigJsonsDirName = "configjsons"
 )
 
 // X509KeyPair contains the paths of a public/private key pair files.
