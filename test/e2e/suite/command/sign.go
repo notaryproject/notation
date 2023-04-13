@@ -108,10 +108,46 @@ var _ = Describe("notation sign", func() {
 	})
 
 	It("by digest with oci layout", func() {
-		Host(TestOCILayoutOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+			ociLayoutReference := OCILayoutTestPath + "@" + digest
+			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by digest with oci layout and COSE format", func() {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+			ociLayoutReference := OCILayoutTestPath + "@" + digest
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by tag with oci layout", func() {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
 			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
 			notation.Exec("sign", "--oci-layout", ociLayoutReference).
 				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by tag with oci layout and COSE format", func() {
+		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by digest with oci layout but without experimental", func() {
+		GeneralHost(BaseOptions(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
+			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+			expectedErrMsg := "Error: flag(s) --oci-layout in \"notation sign\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable"
+			ociLayoutReference := OCILayoutTestPath + "@" + digest
+			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+				MatchErrContent(expectedErrMsg)
 		})
 	})
 })
