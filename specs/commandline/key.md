@@ -124,7 +124,7 @@ notation key remove <key_name>
 - Upon successful removal of a local testing key created by notation, the output message is printed out as follows:
 
 ```text
-Removed <key_name> from Notation signing key list. The source key file is still existed in <key_path>.
+Removed <key_name> from Notation signing key list. The source key file still exists locally.
 ```
 - Upon successful removal of a key associated with a KMS, the output message is printed out as follows:
 
@@ -141,7 +141,7 @@ notation key remove <key_name_1> <key_name_2>
 Upon successful execution, the output message is printed out as follows. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
 
 ```text
-Removed the following keys from Notation signing key list. The source key files are still existed in <key_path>.
+Removed the following keys from Notation signing key list. The source key files still exist locally.
 <key_name_1>
 <key_name_2>
 ```
