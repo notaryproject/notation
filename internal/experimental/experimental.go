@@ -20,11 +20,11 @@ func IsDisabled() bool {
 
 // Error returns an error for a disabled experimental feature.
 func Error(description string) error {
-	return fmt.Errorf("%s been marked as experimental and not enabled by default. To use it, please set %s=%s in your environment", description, envName, enabled)
+	return fmt.Errorf("%s is experimental and not enabled by default. To use, please set %s=%s environment variable", description, envName, enabled)
 }
 
 // CheckCommandAndWarn checks whether an experimental command can be run.
-func CheckCommandAndWarn(cmd *cobra.Command, args []string) error {
+func CheckCommandAndWarn(cmd *cobra.Command, _ []string) error {
 	if err := Check(func() (string, bool) {
 		return fmt.Sprintf("%q", cmd.CommandPath()), true
 	}); err != nil {
