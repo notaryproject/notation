@@ -106,4 +106,12 @@ var _ = Describe("notation sign", func() {
 				MatchErrKeyWords("signature verification failed for all the signatures")
 		})
 	})
+
+	It("by digest with oci layout", func() {
+		Host(TestOCILayoutOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
+			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
 })

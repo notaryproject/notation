@@ -75,6 +75,16 @@ func BaseOptions() []utils.HostOption {
 	)
 }
 
+func TestOCILayoutOptions() []utils.HostOption {
+	return Opts(
+		AuthOption("", ""),
+		AddKeyOption("e2e.key", "e2e.crt"),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTrustPolicyOption("trustpolicy.json"),
+		EnableExperimental(),
+	)
+}
+
 // TestLoginOptions returns the BaseOptions with removing AuthOption and adding ConfigOption.
 // testing environment.
 func TestLoginOptions() []utils.HostOption {
@@ -172,5 +182,13 @@ func authEnv(username, password string) map[string]string {
 	return map[string]string{
 		"NOTATION_USERNAME": username,
 		"NOTATION_PASSWORD": password,
+	}
+}
+
+// EnableExperimental enables experimental features.
+func EnableExperimental() utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		vhost.UpdateEnv(map[string]string{"NOTATION_EXPERIMENTAL": "1"})
+		return nil
 	}
 }

@@ -28,6 +28,7 @@ const (
 	envKeyNotationPluginPath = "NOTATION_E2E_PLUGIN_PATH"
 	envKeyNotationConfigPath = "NOTATION_E2E_CONFIG_PATH"
 	envKeyOCILayoutPath      = "NOTATION_E2E_OCI_LAYOUT_PATH"
+	envKeyOCILayoutTestPath  = "NOTATION_E2E_OCI_LAYOUT_TEST_PATH"
 	envKeyTestRepo           = "NOTATION_E2E_TEST_REPO"
 	envKeyTestTag            = "NOTATION_E2E_TEST_TAG"
 )
@@ -47,6 +48,7 @@ var (
 
 var (
 	OCILayoutPath       string
+	OCILayoutTestPath   string
 	TestRepoUri         string
 	TestTag             string
 	RegistryStoragePath string
@@ -55,6 +57,7 @@ var (
 func init() {
 	RegisterFailHandler(Fail)
 	setUpRegistry()
+	setUpOCILayout()
 	setUpNotationValues()
 }
 
@@ -66,6 +69,10 @@ func setUpRegistry() {
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)
+}
+
+func setUpOCILayout() {
+	setPathValue(envKeyOCILayoutTestPath, &OCILayoutTestPath)
 }
 
 func setUpNotationValues() {
