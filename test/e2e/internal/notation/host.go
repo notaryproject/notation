@@ -75,6 +75,17 @@ func BaseOptions() []utils.HostOption {
 	)
 }
 
+// TestLoginOptions returns the BaseOptions with removing AuthOption and adding ConfigOption.
+// testing environment.
+func TestLoginOptions() []utils.HostOption {
+	return Opts(
+		AddKeyOption("e2e.key", "e2e.crt"),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTrustPolicyOption("trustpolicy.json"),
+		AddConfigJsonOption("pass_credential_helper_config.json"),
+	)
+}
+
 // CreateNotationDirOption creates the notation directory in temp user dir.
 func CreateNotationDirOption() utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
@@ -120,6 +131,16 @@ func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 		return copyFile(
 			filepath.Join(NotationE2ETrustPolicyDir, trustpolicyName),
 			vhost.AbsolutePath(NotationDirName, TrustPolicyName),
+		)
+	}
+}
+
+// AddConfigJsonOption adds a valid config.json for testing.
+func AddConfigJsonOption(configJsonName string) utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		return copyFile(
+			filepath.Join(NotationE2EConfigJsonDir, configJsonName),
+			vhost.AbsolutePath(NotationDirName, ConfigJsonName),
 		)
 	}
 }

@@ -16,6 +16,7 @@ const (
 	TrustStoreTypeCA  = "ca"
 	PluginDirName     = "plugins"
 	PluginName        = "e2e-plugin"
+	ConfigJsonName    = "config.json"
 )
 
 const (
@@ -41,6 +42,7 @@ var (
 	NotationE2EConfigPath     string
 	NotationE2ELocalKeysDir   string
 	NotationE2ETrustPolicyDir string
+	NotationE2EConfigJsonDir  string
 )
 
 var (
@@ -78,6 +80,7 @@ func setUpNotationValues() {
 	setPathValue(envKeyNotationConfigPath, &NotationE2EConfigPath)
 	NotationE2ETrustPolicyDir = filepath.Join(NotationE2EConfigPath, "trustpolicies")
 	NotationE2ELocalKeysDir = filepath.Join(NotationE2EConfigPath, LocalKeysDirName)
+	NotationE2EConfigJsonDir = filepath.Join(NotationE2EConfigPath, LocalConfigJsonsDirName)
 }
 
 func setPathValue(envKey string, value *string) {
