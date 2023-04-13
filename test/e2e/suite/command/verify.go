@@ -58,7 +58,7 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
-			notation.Exec("verify", "--oci-layout", "--scope", "*", ociLayoutReference).
+			notation.Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayoutReference).
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords(experimentalMsg)
 		})
@@ -71,7 +71,7 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
-			notation.Exec("verify", "--oci-layout", "--signature-format", "cose", "--scope", "*", ociLayoutReference).
+			notation.Exec("verify", "--oci-layout", "--signature-format", "cose", "--scope", "local/e2e", ociLayoutReference).
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords(experimentalMsg)
 		})
@@ -82,7 +82,7 @@ var _ = Describe("notation verify", func() {
 			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
 			expectedErrMsg := "Error: flag(s) --oci-layout,--scope in \"notation verify\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
 			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.ExpectFailure().Exec("verify", "--oci-layout", "--scope", "*", ociLayoutReference).
+			notation.ExpectFailure().Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayoutReference).
 				MatchErrContent(expectedErrMsg)
 		})
 	})
