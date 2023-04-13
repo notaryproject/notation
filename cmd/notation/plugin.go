@@ -14,6 +14,7 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/spf13/cobra"
 )
 
@@ -199,13 +200,13 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 
 		// copy plugin, if new plugin version is greater than current plugin version
 		if newSemVersion.GreaterThan(currentVersion) {
-			var confirm string
+			prompt := fmt.Sprintf("Are you sure you want to overwrite plugin %s v%s with v%s?", pluginName, currentVersion.String(), newSemVersion.String())
+			confimred, err := cmdutil.AskForConfirmation(os.Stdin, prompt, false)
+			if err != nil {
+				return err
+			}
 
-			fmt.Printf("Detected new version %s. Current version is %s.\nDo you want to overwrite the plugin %s? [y/N]: ", newSemVersion.String(), currentVersion.String(), pluginName)
-			fmt.Scanln(&confirm)
-
-			if strings.ToLower(confirm) != "y" {
-				fmt.Println("Operation cancelled.")
+			if !confimred {
 				return nil
 			}
 
