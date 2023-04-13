@@ -71,7 +71,7 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
-			notation.Exec("verify", "--oci-layout", "--signature-format", "cose", "--scope", "local/e2e", ociLayoutReference).
+			notation.Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayoutReference).
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords(experimentalMsg)
 		})
