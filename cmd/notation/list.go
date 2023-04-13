@@ -7,6 +7,7 @@ import (
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/experimental"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -38,10 +39,11 @@ func listCommand(opts *listOpts) *cobra.Command {
 			opts.reference = args[0]
 			return nil
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
+			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(cmd.Context(), opts)

@@ -11,6 +11,7 @@ import (
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 
@@ -62,10 +63,11 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			opts.reference = args[0]
 			return nil
 		},
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
+			return experimental.CheckFlagsAndWarn(cmd, "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runVerify(cmd, opts)
