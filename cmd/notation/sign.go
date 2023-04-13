@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/notaryproject/notation-go"
@@ -21,6 +22,8 @@ const (
 	signatureManifestArtifact = "artifact"
 	signatureManifestImage    = "image"
 )
+
+const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
 
 var supportedSignatureManifest = []string{signatureManifestArtifact, signatureManifestImage}
 
@@ -112,8 +115,16 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	_, err = notation.Sign(ctx, signer, sigRepo, opts)
 	if err != nil {
 		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
-		if errors.As(err, &errorPushSignatureFailed) && !ociImageManifest {
-			return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
+		if errors.As(err, &errorPushSignatureFailed) {
+			if !ociImageManifest {
+				return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
+			}
+			if strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
+				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index is not supported by the remote registry. Garbage collection may be required.")
+				// write out
+				fmt.Println("Successfully signed", ref)
+				return nil
+			}
 		}
 		return err
 	}
