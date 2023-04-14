@@ -80,6 +80,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify artifact stored in OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for verification, required to be used with flag \"--oci-layout\"")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
+	experimental.HideFlags(command, "oci-layout", "scope")
 	return command
 }
 

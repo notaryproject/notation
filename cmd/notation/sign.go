@@ -106,6 +106,7 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign artifact stored in OCI image layout")
+	experimental.HideFlags(command, "signature-manifest", "oci-layout")
 	return command
 }
 

@@ -31,7 +31,6 @@ func CheckFlagsAndWarn(cmd *cobra.Command, flags ...string) error {
 		var changedFlags []string
 		flagSet := cmd.Flags()
 		for _, flag := range flags {
-			flagSet.MarkHidden(flag)
 			if flagSet.Changed(flag) {
 				changedFlags = append(changedFlags, "--"+flag)
 			}
@@ -61,4 +60,14 @@ func CheckAndWarn(doCheck func() (feature string, isExperimental bool)) error {
 func warn() error {
 	_, err := fmt.Fprintf(os.Stderr, "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n")
 	return err
+}
+
+// HideFlags hide experimental flags when NOTATION_EXPERIMENTAL is disabled.
+func HideFlags(cmd *cobra.Command, flags ...string) {
+	if IsDisabled() {
+		flagsSet := cmd.Flags()
+		for _, flag := range flags {
+			flagsSet.MarkHidden(flag)
+		}
+	}
 }

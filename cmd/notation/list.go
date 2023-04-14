@@ -52,6 +52,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
 	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
 	cmd.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
+	experimental.HideFlags(cmd, "oci-layout")
 	return cmd
 }
 
