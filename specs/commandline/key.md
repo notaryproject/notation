@@ -48,7 +48,7 @@ Flags:
 Remove key from Notation signing key list
 
 Usage:
-  notation key remove [flags] <key_name>...
+  notation key delete [flags] <key_name>...
 
 Flags:
   -d, --debug     debug mode
@@ -118,7 +118,7 @@ Upon successful execution, a list of keys is printed out with information of nam
 ### Remove a specified key from Notation signing key list
 
 ```shell
-notation key remove <key_name>
+notation key delete <key_name>
 ```
 
 - Upon successful removal of a local testing key created by notation, the output message is printed out as follows:
@@ -135,7 +135,7 @@ Removed <key_name> from Notation signing key list. The source key files still ex
 ### Remove two keys from Notation signing key list
 
 ```shell
-notation key remove <key_name_1> <key_name_2>
+notation key delete <key_name_1> <key_name_2>
 ```
 
 Upon successful execution, the output message is printed out as follows. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
