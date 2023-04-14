@@ -16,7 +16,7 @@ Usage:
 
 Available Commands:
   add         Add key to Notation signing key list
-  remove      Remove key from Notation signing key list
+  delete      Remove key from Notation signing key list
   list        List keys used for signing
   update      Update key in Notation signing key list
 
