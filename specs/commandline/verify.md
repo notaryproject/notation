@@ -37,11 +37,11 @@ Usage:
 Flags:
   -d,  --debug                       debug mode
   -h,  --help                        help for verify
-       --oci-layout                  [Experimental] verify the artifact stored in OCI image layout
+       --oci-layout                  [Experimental] verify the artifact stored as OCI image layout
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                  registry access via plain HTTP
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-       --scope string                [Experimental] set trust policy scope for artifact verification, required to be used with flag "--oci-layout"
+       --scope string                [Experimental] set trust policy scope for artifact verification, only required if flag "--oci-layout" is set
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode
@@ -177,8 +177,8 @@ Users should configure trust policy properly before verifying artifacts in OCI l
 
 ```jsonc
 {
-    "name": "images stored in OCI layout",
-    "registryScopes": [ "localhost:5000/hello-world" ],
+    "name": "images stored as OCI layout",
+    "registryScopes": [ "local/hello-world" ],
     "signatureVerification": {
         "level" : "strict"
     },
@@ -190,5 +190,8 @@ Users should configure trust policy properly before verifying artifacts in OCI l
 To verify image `hello-world:v1`, user should set the environment variable `NOTATION_EXPERIMENTAL` and use flags `--oci-layout` and `--scope` together. for example:
 
 ```shell
-NOTATION_EXPERIMENTAL=1 notation verify --oci-layout --scope "localhost:5000/hello-world" hello-world:v1
+export NOTATION_EXPERIMENTAL=1
+# Assume OCI layout directory hello-world is under current path
+# The value of --scope should be set base on the trust policy configuration
+notation verify --oci-layout --scope "local/hello-world" hello-world:v1
 ```

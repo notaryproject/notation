@@ -60,13 +60,17 @@ The following example lists the signatures associated with the image in OCI layo
 Reference an image in OCI layout directory using tags:
 
 ```shell
-NOTATION_EXPERIMENTAL=1 notation list --oci-layout hello-world:v1
+export NOTATION_EXPERIMENTAL=1
+# Assume OCI layout directory hello-world is under current path
+notation list --oci-layout hello-world:v1
 ```
 
 Reference an image in OCI layout directory using exact digest:
 
 ```shell
-NOTATION_EXPERIMENTAL=1 notation list --oci-layout hello-world@sha256:xxx
+export NOTATION_EXPERIMENTAL=1
+# Assume OCI layout directory hello-world is under current path
+notation list --oci-layout hello-world@sha256:xxx
 ```
 
 An example output:

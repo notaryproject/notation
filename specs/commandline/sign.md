@@ -33,7 +33,7 @@ Flags:
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
   -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
-       --oci-layout                 [Experimental] sign the artifact stored in OCI image layout
+       --oci-layout                 [Experimental] sign the artifact stored as OCI image layout
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                 registry access via plain HTTP
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
@@ -166,7 +166,8 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 To access this flag `--signature-manifest`, set the environment variable `NOTATION_EXPERIMENTAL=1`.
 
 ```shell
-NOTATION_EXPERIMENTAL=1 notation sign --signature-manifest artifact <registry>/<repository>@<digest>
+export NOTATION_EXPERIMENTAL=1 
+notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory
@@ -190,13 +191,17 @@ tar -xf hello-world.tar -C hello-world
 Use flag `--oci-layout` to sign the image stored in OCI layout directory referenced by `hello-world@sha256xxx`. To access this flag `--oci-layout` , set the environment variable `NOTATION_EXPERIMENTAL=1`. For example:
 
 ```shell
-NOTATION_EXPERIMENTAL=1 notation sign --oci-layout hello-world@sha256:xxx
+export NOTATION_EXPERIMENTAL=1
+# Assume OCI layout directory hello-world is under current path
+notation sign --oci-layout hello-world@sha256:xxx
 ```
 
 Upon successful signing, the signature is stored in the same layout directory and associated with the image. Use `notation list` command to list the signatures, for example:
 
 ```shell
-NOTATION_EXPERIMENTAL=1 notation list --oci-layout hello-world@sha256:xxx
+export NOTATION_EXPERIMENTAL=1
+# Assume OCI layout directory hello-world is under current path
+notation list --oci-layout hello-world@sha256:xxx
 ```
 
 [oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
