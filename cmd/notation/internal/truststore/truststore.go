@@ -132,7 +132,7 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool) error {
 	if err != nil {
 		return err
 	}
-	prompt := fmt.Sprintf("Are you sure you want to delete all certificate in %q of type %q?", namedStore, storeType)
+	prompt := fmt.Sprintf("Are you sure you want to delete all certificates in %q of type %q?", namedStore, storeType)
 	confirmed, err = cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
 	if err != nil {
 		return err
@@ -169,11 +169,11 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 	if _, err := os.Stat(path); err != nil {
 		return err
 	}
-	if err = os.RemoveAll(path); err != nil {
+	if err = os.Remove(path); err != nil {
 		return err
 	}
 	// write out on success
-	fmt.Printf("Successfully deleted %s\n", path)
+	fmt.Printf("Successfully deleted %s\n", cert)
 	return nil
 }
 
