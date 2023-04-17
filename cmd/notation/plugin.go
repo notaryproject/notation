@@ -62,7 +62,7 @@ func pluginInstallCommand() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().BoolVarP(&force, "force", "f", false, "Overwrite existing plugin files without prompting")
+	cmd.Flags().BoolVarP(&force, "force", "f", false, "overwrite existing plugin files without prompting")
 
 	return cmd
 }
