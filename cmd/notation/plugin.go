@@ -117,13 +117,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 
 	pluginPath := args[0]
 
-	var pluginBinary string
-	// if plugin contains a file path split and select the last element in the array
-	if strings.Contains(pluginPath, "/") {
-		pluginBinary = strings.Split(pluginPath, "/")[len(strings.Split(pluginPath, "/"))-1]
-	} else {
-		pluginBinary = pluginPath
-	}
+pluginName := filepath.Base(pluginPath)
 
 	// get plugin metadata
 	cmd := exec.Command("./"+pluginPath, "get-plugin-metadata")
