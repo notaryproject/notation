@@ -24,12 +24,16 @@ func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 		Use:   "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
 		Short: "Delete certificates from the trust store.",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if !opts.all && len(args) == 0 {
+			if opts.all {
+				if len(args) != 0 {
+					return errors.New("cannot delete a single certificate file when --all flag is set. use --help flag for more details")
+				}
+				return nil
+			}
+			if len(args) == 0 {
 				return errors.New("delete requires either the certificate file name that needs to be deleted or --all flag to delete all certificates in the given named trust store")
 			}
-			if len(args) != 0 {
-				opts.cert = args[0]
-			}
+			opts.cert = args[0]
 			return nil
 		},
 		Long: `Delete certificates from the trust store
@@ -51,6 +55,8 @@ Example - Delete all certificates with "ca" type from the trust store "acme-rock
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "delete all certificates in the named store")
 	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")
+	command.MarkFlagRequired("type")
+	command.MarkFlagRequired("store")
 	return command
 }
 
@@ -66,38 +72,22 @@ func deleteCerts(opts *certDeleteOpts) error {
 	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	var errorSlice []error
-
 	if opts.all {
 		// Delete all certificates under storeType/namedStore
-		errorSlice = truststore.DeleteAllCerts(storeType, namedStore, opts.confirmed, errorSlice)
-
-		// write out on failure
-		if len(errorSlice) > 0 {
-			errStr := "Failed to delete following named stores:\n"
-			for _, err := range errorSlice {
-				errStr = errStr + err.Error() + "\n"
-			}
-			return errors.New(errStr)
+		err := truststore.DeleteAllCerts(storeType, namedStore, opts.confirmed)
+		if err != nil {
+			return fmt.Errorf("failed to delete the named trust store: %w", err)
 		}
-
 		return nil
 	}
-
 	// Delete a certain certificate with path storeType/namedStore/cert
 	cert := opts.cert
 	if cert == "" {
 		return errors.New("to delete a specific certificate, certificate fileName cannot be empty")
 	}
-	errorSlice = truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed, errorSlice)
-	// write out on failure
-	if len(errorSlice) > 0 {
-		errStr := "Failed to delete following certificate:\n"
-		for _, err := range errorSlice {
-			errStr = errStr + err.Error() + "\n"
-		}
-		return errors.New(errStr)
+	err := truststore.DeleteCert(storeType, namedStore, cert, opts.confirmed)
+	if err != nil {
+		return fmt.Errorf("failed to delete the certificate file: %w", err)
 	}
-
 	return nil
 }
