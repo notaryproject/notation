@@ -120,7 +120,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 pluginName := filepath.Base(pluginPath)
 
 	// get plugin metadata
-	cmd := exec.Command("./"+pluginPath, "get-plugin-metadata")
+	cmd := exec.Command("pluginPath, "get-plugin-metadata")
 
 	output, err := cmd.Output()
 	if err != nil {
