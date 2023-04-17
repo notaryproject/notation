@@ -55,7 +55,7 @@ func pluginInstallCommand() *cobra.Command {
 		Long: `Install a plugin
 
 		Example - Install a Notation plugin:
-			notation plugin install <plugin package>
+			notation plugin install <path to plugin executable>
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return installPlugin(cmd, args, force)
