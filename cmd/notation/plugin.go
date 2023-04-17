@@ -115,12 +115,12 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 		return errors.New("missing plugin package")
 	}
 
-	pluginPath := args[0]
+	pluginSrcPath := args[0]
 
-	pluginBinary := filepath.Base(pluginPath)
+	pluginBinary := filepath.Base(pluginSrcPath)
 
 	// get plugin metadata
-	cmd := exec.Command(pluginPath, "get-plugin-metadata")
+	cmd := exec.Command(pluginSrcPath, "get-plugin-metadata")
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -156,23 +156,25 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 		}
 	}
 
+	pluginDestPath := pluginDir + "/" + pluginBinary
+
 	// Check if plugin exists
-	_, err = os.Stat(pluginDir + "/" + pluginBinary)
+	_, err = os.Stat(pluginDestPath)
 
 	// copy plugin, if not exist
 	if os.IsNotExist(err) {
-		copyPlugin(pluginPath, pluginDir+"/"+pluginBinary)
+		copyPlugin(pluginSrcPath, pluginDestPath)
 	}
 
 	// overwrite plugin, if force flag is set
 	if err == nil && force {
 		fmt.Printf("Overwriting plugin %s in directory %s\n", pluginBinary, pluginDir)
-		copyPlugin(pluginPath, pluginDir+"/"+pluginBinary)
+		copyPlugin(pluginSrcPath, pluginDestPath)
 	}
 
 	// if plugin exists and force flag is not set, get plugin metadata
 	if err == nil && !force {
-		cmd := exec.Command(pluginDir+"/"+pluginBinary, "get-plugin-metadata")
+		cmd := exec.Command(pluginDestPath, "get-plugin-metadata")
 
 		output, err := cmd.Output()
 		if err != nil {
@@ -205,7 +207,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 			}
 
 			fmt.Printf("Copying plugin %s to directory %s...\n", pluginName, pluginDir)
-			copyPlugin(pluginPath, pluginDir+"/"+pluginBinary)
+			copyPlugin(pluginSrcPath, pluginDestPath)
 		}
 
 		// do not copy plugin, if new plugin version is less than or equal to current plugin version
