@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 	"text/tabwriter"
 
 	"github.com/Masterminds/semver"
@@ -117,10 +117,10 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 
 	pluginPath := args[0]
 
-pluginName := filepath.Base(pluginPath)
+	pluginBinary := filepath.Base(pluginPath)
 
 	// get plugin metadata
-	cmd := exec.Command("pluginPath, "get-plugin-metadata")
+	cmd := exec.Command(pluginPath, "get-plugin-metadata")
 
 	output, err := cmd.Output()
 	if err != nil {
