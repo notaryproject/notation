@@ -239,12 +239,7 @@ func removePlugin(command *cobra.Command, args []string) error {
 	}
 
 	// remove plugin directory
-	err = os.RemoveAll(pluginDir)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return os.RemoveAll(pluginDir)
 }
 
 func copyPlugin(src, dest string) error {
