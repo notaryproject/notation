@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"unicode"
@@ -33,10 +32,7 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
 		}
 		tagOrDigestRef = ref.Reference
-		resolvedRef, err = url.JoinPath(ref.Registry, ref.Repository)
-		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
-		}
+		resolvedRef = ref.Registry + "/" + ref.Repository
 	case inputTypeOCILayout:
 		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
 		if err != nil {
