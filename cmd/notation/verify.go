@@ -113,13 +113,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 	// resolve the given reference and set the digest
-	_, originRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	_, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
 		return err
 	}
-	intendedRef := resolveArtifactReference(originRef, opts.trustPolicyScope)
+	intendedRef := resolveArtifactDigestReference(resolvedRef, opts.trustPolicyScope)
 	verifyOpts := notation.VerifyOptions{
 		ArtifactReference: intendedRef,
 		PluginConfig:      configs,
@@ -129,11 +129,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
-	err = checkVerificationFailure(outcomes, originRef, err)
+	err = checkVerificationFailure(outcomes, resolvedRef, err)
 	if err != nil {
 		return err
 	}
-	reportVerificationSuccess(outcomes, originRef)
+	reportVerificationSuccess(outcomes, resolvedRef)
 	return nil
 }
 

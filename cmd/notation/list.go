@@ -66,12 +66,12 @@ func runList(ctx context.Context, opts *listOpts) error {
 	if err != nil {
 		return err
 	}
-	targetDesc, originRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, nil)
+	targetDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, nil)
 	if err != nil {
 		return err
 	}
 	// print all signature manifest digests
-	return printSignatureManifestDigests(ctx, targetDesc, sigRepo, originRef)
+	return printSignatureManifestDigests(ctx, targetDesc, sigRepo, resolvedRef)
 }
 
 // printSignatureManifestDigests returns the signature manifest digests of

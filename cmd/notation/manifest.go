@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strings"
 	"unicode"
@@ -17,14 +18,14 @@ import (
 )
 
 // resolveReference resolves user input reference based on user input type.
-// Returns the resolved manifest descriptor and originRef in digest
+// Returns the resolved manifest descriptor and resolvedRef in digest
 func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
 	// sanity check
 	if reference == "" {
 		return ocispec.Descriptor{}, "", errors.New("missing user input reference")
 	}
 	var tagOrDigestRef string
-	var originRef string
+	var resolvedRef string
 	switch inputType {
 	case inputTypeRegistry:
 		ref, err := registry.ParseReference(reference)
@@ -32,7 +33,10 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
 		}
 		tagOrDigestRef = ref.Reference
-		originRef = ref.Registry + "/" + ref.Repository
+		resolvedRef, err = url.JoinPath(ref.Registry, ref.Repository)
+		if err != nil {
+			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
 	case inputTypeOCILayout:
 		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
 		if err != nil {
@@ -46,30 +50,30 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 			return ocispec.Descriptor{}, "", errors.New("failed to resolve user input reference: input path is not a dir")
 		}
 		tagOrDigestRef = layoutReference
-		originRef = layoutPath
+		resolvedRef = layoutPath
 	default:
-		return ocispec.Descriptor{}, "", errors.New("unsupported user input type")
+		return ocispec.Descriptor{}, "", fmt.Errorf("unsupported user inputType: %d", inputType)
 	}
 
 	manifestDesc, err := getManifestDescriptor(ctx, tagOrDigestRef, sigRepo)
 	if err != nil {
 		return ocispec.Descriptor{}, "", fmt.Errorf("failed to get manifest descriptor: %w", err)
 	}
-	originRef = originRef + "@" + manifestDesc.Digest.String()
+	resolvedRef = resolvedRef + "@" + manifestDesc.Digest.String()
 	if _, err := digest.Parse(tagOrDigestRef); err == nil {
 		// tagOrDigestRef is a digest reference
-		return manifestDesc, originRef, nil
+		return manifestDesc, resolvedRef, nil
 	}
 	// tagOrDigestRef is a tag reference
 	if fn != nil {
 		fn(tagOrDigestRef, manifestDesc)
 	}
-	return manifestDesc, originRef, nil
+	return manifestDesc, resolvedRef, nil
 }
 
-// resolveArtifactReference creates reference in Verification given user input
+// resolveArtifactDigestReference creates reference in Verification given user input
 // trust policy scope
-func resolveArtifactReference(reference, policyScope string) string {
+func resolveArtifactDigestReference(reference, policyScope string) string {
 	if policyScope != "" {
 		if _, digest, ok := strings.Cut(reference, "@"); ok {
 			return policyScope + "@" + digest
@@ -89,7 +93,7 @@ func parseOCILayoutReference(raw string) (string, string, error) {
 	} else {
 		// find `tag`
 		idx := strings.LastIndex(raw, ":")
-		if idx < 0 || (idx == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
+		if idx == -1 || (idx == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
 			return "", "", notationerrors.ErrorOCILayoutMissingReference{}
 		} else {
 			path, ref = raw[:idx], raw[idx+1:]

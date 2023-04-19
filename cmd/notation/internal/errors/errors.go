@@ -23,5 +23,5 @@ func (e ErrorOCILayoutMissingReference) Error() string {
 	if e.Msg != "" {
 		return e.Msg
 	}
-	return "reference is missing digest or tag"
+	return "reference is missing either digest or tag"
 }

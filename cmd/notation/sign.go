@@ -128,7 +128,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	manifestDesc, originRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	manifestDesc, resolvedRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {
@@ -147,13 +147,13 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 			if strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
 				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index is not supported by the remote registry. Garbage collection may be required.")
 				// write out
-				fmt.Println("Successfully signed", originRef)
+				fmt.Println("Successfully signed", resolvedRef)
 				return nil
 			}
 		}
 		return err
 	}
-	fmt.Println("Successfully signed", originRef)
+	fmt.Println("Successfully signed", resolvedRef)
 	return nil
 }
 
