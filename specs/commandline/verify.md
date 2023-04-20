@@ -41,7 +41,7 @@ Flags:
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plain-http                  registry access via plain HTTP
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-       --scope string                [Experimental] set trust policy scope for artifact verification, only required if flag "--oci-layout" is set
+       --scope string                [Experimental] set trust policy scope for artifact verification, required and can only be used when flag "--oci-layout" is set
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode

@@ -14,6 +14,13 @@ import (
 // vhost is the VirtualHost instance.
 type CoreTestFunc func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)
 
+// GeneralTestFunc is the test function running in a VirtualHost agnostic to
+// the Repository of the artifact.
+//
+// notation is an Executor isolated by $XDG_CONFIG_HOME.
+// vhost is the VirtualHost instance.
+type GeneralTestFunc func(notation *utils.ExecOpts, vhost *utils.VirtualHost)
+
 // Host creates a virtualized notation testing host by modify
 // the "XDG_CONFIG_HOME" environment variable of the Executor.
 //
@@ -31,6 +38,23 @@ func Host(options []utils.HostOption, fn CoreTestFunc) {
 
 	// run the main logic
 	fn(vhost.Executor, artifact, vhost)
+}
+
+// GeneralHost creates a virtualized notation testing host by modify
+// the "XDG_CONFIG_HOME" environment variable of the Executor. It's agnostic to
+// the Repository of the artifact.
+//
+// options is the required testing environment options
+// fn is the callback function containing the testing logic.
+func GeneralHost(options []utils.HostOption, fn GeneralTestFunc) {
+	// create a notation vhost
+	vhost, err := createNotationHost(NotationBinPath, options...)
+	if err != nil {
+		panic(err)
+	}
+
+	// run the main logic
+	fn(vhost.Executor, vhost)
 }
 
 // OldNotation create an old version notation ExecOpts in a VirtualHost
@@ -72,6 +96,16 @@ func BaseOptions() []utils.HostOption {
 		AddKeyOption("e2e.key", "e2e.crt"),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustPolicyOption("trustpolicy.json"),
+	)
+}
+
+func BaseOptionsWithExperimental() []utils.HostOption {
+	return Opts(
+		AuthOption("", ""),
+		AddKeyOption("e2e.key", "e2e.crt"),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTrustPolicyOption("trustpolicy.json"),
+		EnableExperimental(),
 	)
 }
 
@@ -172,5 +206,13 @@ func authEnv(username, password string) map[string]string {
 	return map[string]string{
 		"NOTATION_USERNAME": username,
 		"NOTATION_PASSWORD": password,
+	}
+}
+
+// EnableExperimental enables experimental features.
+func EnableExperimental() utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		vhost.UpdateEnv(map[string]string{"NOTATION_EXPERIMENTAL": "1"})
+		return nil
 	}
 }
