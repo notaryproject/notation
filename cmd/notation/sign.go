@@ -145,7 +145,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 				return fmt.Errorf("%v. Possible reason: OCI artifact manifest is not supported. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
 			}
 			if strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
-				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index is not supported by the remote registry. Garbage collection may be required.")
+				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
 				// write out
 				fmt.Println("Successfully signed", resolvedRef)
 				return nil
