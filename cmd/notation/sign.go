@@ -12,10 +12,10 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/slices"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"oras.land/oras-go/v2/registry"
 )
 
 const (
@@ -36,11 +36,15 @@ type signOpts struct {
 	userMetadata      []string
 	reference         string
 	signatureManifest string
+	ociLayout         bool
+	inputType         inputType
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
 	if opts == nil {
-		opts = &signOpts{}
+		opts = &signOpts{
+			inputType: inputTypeRegistry, // remote registry by default
+		}
 	}
 	command := &cobra.Command{
 		Use:   "sign [flags] <reference>",
@@ -64,6 +68,12 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
+Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
+  notation sign --oci-layout "<oci_layout_path>@<digest>"
+
+Example - [Experimental] Sign an OCI artifact identified by a tag and referenced in an OCI layout
+  notation sign --oci-layout "<oci_layout_path>:<tag>"
+
 Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to store the signature:
   notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 `,
@@ -73,6 +83,12 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 			}
 			opts.reference = args[0]
 			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if opts.ociLayout {
+				opts.inputType = inputTypeOCILayout
+			}
+			return experimental.CheckFlagsAndWarn(cmd, "signature-manifest", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// sanity check
@@ -89,6 +105,8 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
+	experimental.HideFlags(command, "signature-manifest", "oci-layout")
 	return command
 }
 
@@ -102,69 +120,65 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		return err
 	}
 	ociImageManifest := cmdOpts.signatureManifest == signatureManifestImage
-	sigRepo, err := getSignatureRepositoryForSign(ctx, &cmdOpts.SecureFlagOpts, cmdOpts.reference, ociImageManifest)
+	sigRepo, err := getRepositoryForSign(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, ociImageManifest)
 	if err != nil {
 		return err
 	}
-	opts, ref, err := prepareSigningContent(ctx, cmdOpts, sigRepo)
+	signOpts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
 	if err != nil {
 		return err
 	}
+	manifestDesc, resolvedRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
+	})
+	if err != nil {
+		return err
+	}
+	signOpts.ArtifactReference = manifestDesc.Digest.String()
 
 	// core process
-	_, err = notation.Sign(ctx, signer, sigRepo, opts)
+	_, err = notation.Sign(ctx, signer, sigRepo, signOpts)
 	if err != nil {
 		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
 		if errors.As(err, &errorPushSignatureFailed) {
 			if !ociImageManifest {
-				return fmt.Errorf("%v. Possible reason: target registry does not support OCI artifact manifest. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
+				return fmt.Errorf("%v. Possible reason: OCI artifact manifest is not supported. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
 			}
 			if strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
-				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index is not supported by the remote registry. Garbage collection may be required.")
+				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
 				// write out
-				fmt.Println("Successfully signed", ref)
+				fmt.Println("Successfully signed", resolvedRef)
 				return nil
 			}
 		}
 		return err
 	}
-
-	// write out
-	fmt.Println("Successfully signed", ref)
+	fmt.Println("Successfully signed", resolvedRef)
 	return nil
 }
 
-func prepareSigningContent(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.RemoteSignOptions, registry.Reference, error) {
-	ref, err := resolveReference(ctx, &opts.SecureFlagOpts, opts.reference, sigRepo, func(ref registry.Reference, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref.Reference)
-	})
-	if err != nil {
-		return notation.RemoteSignOptions{}, registry.Reference{}, err
-	}
-
+func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, error) {
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
-		return notation.RemoteSignOptions{}, registry.Reference{}, err
+		return notation.SignOptions{}, err
 	}
 	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
-		return notation.RemoteSignOptions{}, registry.Reference{}, err
+		return notation.SignOptions{}, err
 	}
 	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
-		return notation.RemoteSignOptions{}, registry.Reference{}, err
+		return notation.SignOptions{}, err
 	}
-
-	signOpts := notation.RemoteSignOptions{
-		SignOptions: notation.SignOptions{
-			ArtifactReference:  ref.String(),
+	signOpts := notation.SignOptions{
+		SignerSignOptions: notation.SignerSignOptions{
 			SignatureMediaType: mediaType,
 			ExpiryDuration:     opts.expiry,
 			PluginConfig:       pluginConfig,
 		},
 		UserMetadata: userMetadata,
 	}
-	return signOpts, ref, nil
+	return signOpts, nil
 }
 
 func validateSignatureManifest(signatureManifest string) bool {
