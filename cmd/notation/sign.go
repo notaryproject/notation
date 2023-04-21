@@ -51,13 +51,16 @@ func signCommand(opts *signOpts) *cobra.Command {
 		Short: "Sign artifacts",
 		Long: `Sign artifacts
 
-Prerequisite: a signing key needs to be configured using the command "notation key".
+Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
 Example - Sign an OCI artifact using the default signing key, with the default JWS envelope, and use OCI image manifest to store the signature:
   notation sign <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact using the default signing key, with the COSE envelope:
   notation sign --signature-format cose <registry>/<repository>@<digest> 
+
+Example - Sign an OCI artifact with a specified plugin and signing key stored in KMS 
+  notation sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact using a specified key
   notation sign --key <key_name> <registry>/<repository>@<digest>
