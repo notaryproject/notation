@@ -4,11 +4,10 @@ go 1.20
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.0-rc.2
-	github.com/notaryproject/notation/test/e2e/plugin v1.0.0
 	github.com/onsi/ginkgo/v2 v2.3.0
 	github.com/onsi/gomega v1.22.1
 	github.com/opencontainers/image-spec v1.1.0-rc2
-	oras.land/oras-go/v2 v2.0.0-rc.6
+	oras.land/oras-go/v2 v2.0.0
 )
 
 require (
