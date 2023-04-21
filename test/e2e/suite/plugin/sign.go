@@ -4,8 +4,6 @@ import (
 	"github.com/notaryproject/notation-core-go/signature/cose"
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
-
-	//"github.com/notaryproject/notation/test/e2e/plugin/mock"
 	. "github.com/notaryproject/notation/test/e2e/suite/common"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
