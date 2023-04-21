@@ -4,10 +4,21 @@ import (
 	"github.com/notaryproject/notation-core-go/signature/cose"
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
-	"github.com/notaryproject/notation/test/e2e/plugin/mock"
+
+	//"github.com/notaryproject/notation/test/e2e/plugin/mock"
 	. "github.com/notaryproject/notation/test/e2e/suite/common"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+)
+
+const (
+	TamperKeyID                 = "TAMPER_KEY_ID"
+	TamperSignature             = "TAMPER_SIGNATURE"
+	TamperSignatureAlgorithm    = "TAMPER_SIGNATURE_ALGORITHM"
+	TamperCertificateChain      = "TAMPER_CERTIFICATE_CHAIN"
+	TamperSignatureEnvelope     = "TAMPER_SIGNATURE_ENVELOPE"
+	TamperSignatureEnvelopeType = "TAMPER_SIGNATURE_ENVELOPE_TYPE"
+	TamperAnnotation            = "TAMPER_ANNOTATION"
 )
 
 var _ = Describe("notation plugin sign", func() {
@@ -103,7 +114,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
-				"--plugin-config", mock.TamperKeyID+"=key10").
+				"--plugin-config", TamperKeyID+"=key10").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -123,7 +134,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
-				"--plugin-config", mock.TamperSignature+"=invalid_sig").
+				"--plugin-config", TamperSignature+"=invalid_sig").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -144,7 +155,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
-				"--plugin-config", mock.TamperSignatureAlgorithm+"=invalid_alg").
+				"--plugin-config", TamperSignatureAlgorithm+"=invalid_alg").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -163,7 +174,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilitySignatureGenerator)+"=true",
-				"--plugin-config", mock.TamperCertificateChain+"=invalid_cert_chain").
+				"--plugin-config", TamperCertificateChain+"=invalid_cert_chain").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -183,7 +194,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
-				"--plugin-config", mock.TamperSignatureEnvelope+"={}").
+				"--plugin-config", TamperSignatureEnvelope+"={}").
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -203,7 +214,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
-				"--plugin-config", mock.TamperSignatureEnvelopeType+"="+cose.MediaTypeEnvelope).
+				"--plugin-config", TamperSignatureEnvelopeType+"="+cose.MediaTypeEnvelope).
 				MatchKeyWords("plugin-key")
 
 			// run signing
@@ -223,7 +234,7 @@ var _ = Describe("notation plugin sign", func() {
 			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
 				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
-				"--plugin-config", mock.TamperAnnotation+"=k1=v1").
+				"--plugin-config", TamperAnnotation+"=k1=v1").
 				MatchKeyWords("plugin-key")
 
 			// run signing
