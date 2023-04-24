@@ -3,7 +3,7 @@ module github.com/notaryproject/notation/test/e2e
 go 1.20
 
 require (
-	github.com/notaryproject/notation-core-go v1.0.0-rc.2
+	github.com/notaryproject/notation-core-go v1.0.0-rc.3
 	github.com/onsi/ginkgo/v2 v2.3.0
 	github.com/onsi/gomega v1.22.1
 	github.com/opencontainers/image-spec v1.1.0-rc2
