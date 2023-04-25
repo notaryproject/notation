@@ -1,7 +1,7 @@
-package examples
+package long
 
-// FullSignExamples are full examples for Sign command.
-const FullSignExamples = `Sign artifacts
+// FullSign is the full long message for Sign command.
+const FullSign = `Sign artifacts
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
@@ -33,9 +33,9 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
   notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 `
 
-// ExperimentalDisabledSignExamples are examples for Sign command when
+// ExperimentalDisabledSign is the long message for Sign command when
 // NOTATION_EXPERIMENTAL is not set.
-const ExperimentalDisabledSignExamples = `Sign artifacts
+const ExperimentalDisabledSign = `Sign artifacts
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
@@ -58,8 +58,8 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
   notation sign --expiry 24h <registry>/<repository>@<digest>
 `
 
-// FullVerifyExamples are full examples for Verify command.
-const FullVerifyExamples = `Verify OCI artifacts
+// FullVerify is the full long message for Verify command.
+const FullVerify = `Verify OCI artifacts
 
 Prerequisite: added a certificate into trust store and created a trust policy.
 
@@ -76,9 +76,9 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
   notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `
 
-// ExperimentalDisabledVerifyExamples are examples for Verify command when
+// ExperimentalDisabledVerify is the long message for Verify command when
 // NOTATION_EXPERIMENTAL is not set.
-const ExperimentalDisabledVerifyExamples = `Verify OCI artifacts
+const ExperimentalDisabledVerify = `Verify OCI artifacts
 
 Prerequisite: added a certificate into trust store and created a trust policy.
 

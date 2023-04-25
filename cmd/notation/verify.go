@@ -10,8 +10,8 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation/cmd/notation/internal/examples"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/long"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -41,7 +41,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "verify [reference]",
 		Short: "Verify OCI artifacts",
-		Long:  examples.FullVerifyExamples,
+		Long:  long.FullVerify,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -66,7 +66,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
-	experimental.HideFlags(command, examples.ExperimentalDisabledVerifyExamples, []string{"oci-layout", "scope"})
+	experimental.HideFlags(command, long.ExperimentalDisabledVerify, []string{"oci-layout", "scope"})
 	return command
 }
 
