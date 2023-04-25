@@ -10,9 +10,10 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/examples"
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/slices"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -49,37 +50,7 @@ func signCommand(opts *signOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "sign [flags] <reference>",
 		Short: "Sign artifacts",
-		Long: `Sign artifacts
-
-Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
-
-Example - Sign an OCI artifact using the default signing key, with the default JWS envelope, and use OCI image manifest to store the signature:
-  notation sign <registry>/<repository>@<digest>
-
-Example - Sign an OCI artifact using the default signing key, with the COSE envelope:
-  notation sign --signature-format cose <registry>/<repository>@<digest> 
-
-Example - Sign an OCI artifact with a specified plugin and signing key stored in KMS 
-  notation sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
-
-Example - Sign an OCI artifact using a specified key
-  notation sign --key <key_name> <registry>/<repository>@<digest>
-
-Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to digest)
-  notation sign <registry>/<repository>:<tag>
-
-Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
-  notation sign --expiry 24h <registry>/<repository>@<digest>
-
-Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
-  notation sign --oci-layout "<oci_layout_path>@<digest>"
-
-Example - [Experimental] Sign an OCI artifact identified by a tag and referenced in an OCI layout
-  notation sign --oci-layout "<oci_layout_path>:<tag>"
-
-Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to store the signature:
-  notation sign --signature-manifest artifact <registry>/<repository>@<digest>
-`,
+		Long:  examples.FullSignExamples,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -109,7 +80,7 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	experimental.HideFlags(command, "signature-manifest", "oci-layout")
+	experimental.HideFlags(command, examples.ExperimentalDisabledSignExamples, []string{"signature-manifest", "oci-layout"})
 	return command
 }
 

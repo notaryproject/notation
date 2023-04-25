@@ -13,7 +13,7 @@ const (
 	enabled = "1"
 )
 
-// IsDisabled determines whether an experimental feature is disabled.
+// IsDisabled determines whether experimental features are disabled.
 func IsDisabled() bool {
 	return os.Getenv(envName) != enabled
 }
@@ -62,9 +62,13 @@ func warn() error {
 	return err
 }
 
-// HideFlags hide experimental flags when NOTATION_EXPERIMENTAL is disabled.
-func HideFlags(cmd *cobra.Command, flags ...string) {
+// HideFlags hides experimental flags and updates the command's examples
+// accordingly when NOTATION_EXPERIMENTAL is disabled.
+func HideFlags(cmd *cobra.Command, experimentalDisabledExamples string, flags []string) {
 	if IsDisabled() {
+		if experimentalDisabledExamples != "" {
+			cmd.Long = experimentalDisabledExamples
+		}
 		flagsSet := cmd.Flags()
 		for _, flag := range flags {
 			flagsSet.MarkHidden(flag)
