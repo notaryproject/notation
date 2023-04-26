@@ -1,7 +1,7 @@
-package long
+package cmdutil
 
-// FullSign is the full long message for Sign command.
-const FullSign = `Sign artifacts
+// FullSignLong is the full long message for Sign command.
+const FullSignLong = `Sign artifacts
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
@@ -33,9 +33,9 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
   notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 `
 
-// ExperimentalDisabledSign is the long message for Sign command when
+// ExperimentalDisabledSignLong is the long message for Sign command when
 // NOTATION_EXPERIMENTAL is not set.
-const ExperimentalDisabledSign = `Sign artifacts
+const ExperimentalDisabledSignLong = `Sign artifacts
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
@@ -58,8 +58,8 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
   notation sign --expiry 24h <registry>/<repository>@<digest>
 `
 
-// FullVerify is the full long message for Verify command.
-const FullVerify = `Verify OCI artifacts
+// FullVerifyLong is the full long message for Verify command.
+const FullVerifyLong = `Verify OCI artifacts
 
 Prerequisite: added a certificate into trust store and created a trust policy.
 
@@ -76,9 +76,9 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
   notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `
 
-// ExperimentalDisabledVerify is the long message for Verify command when
+// ExperimentalDisabledVerifyLong is the long message for Verify command when
 // NOTATION_EXPERIMENTAL is not set.
-const ExperimentalDisabledVerify = `Verify OCI artifacts
+const ExperimentalDisabledVerifyLong = `Verify OCI artifacts
 
 Prerequisite: added a certificate into trust store and created a trust policy.
 

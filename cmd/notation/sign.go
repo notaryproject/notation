@@ -10,8 +10,8 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
-	"github.com/notaryproject/notation/cmd/notation/internal/long"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/slices"
@@ -50,7 +50,7 @@ func signCommand(opts *signOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "sign [flags] <reference>",
 		Short: "Sign artifacts",
-		Long:  long.FullSign,
+		Long:  cmdutil.FullSignLong,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -80,7 +80,7 @@ func signCommand(opts *signOpts) *cobra.Command {
 	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	experimental.HideFlags(command, long.ExperimentalDisabledSign, []string{"signature-manifest", "oci-layout"})
+	experimental.HideFlags(command, cmdutil.ExperimentalDisabledSignLong, []string{"signature-manifest", "oci-layout"})
 	return command
 }
 
