@@ -10,7 +10,6 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -38,10 +37,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
-	command := &cobra.Command{
-		Use:   "verify [reference]",
-		Short: "Verify OCI artifacts",
-		Long: `Verify OCI artifacts
+	longMessage := `Verify OCI artifacts
 
 Prerequisite: added a certificate into trust store and created a trust policy.
 
@@ -50,7 +46,18 @@ Example - Verify a signature on an OCI artifact identified by a digest:
 
 Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
   notation verify <registry>/<repository>:<tag>
-`,
+`
+	experimentalExamples := `
+Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
+  notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
+
+Example - [Experimental] Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
+  notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
+`
+	command := &cobra.Command{
+		Use:   "verify [reference]",
+		Short: "Verify OCI artifacts",
+		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -75,7 +82,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
-	experimental.HideFlags(command, cmdutil.ExperimentalExamplesVerify, []string{"oci-layout", "scope"})
+	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout", "scope"})
 	return command
 }
 
