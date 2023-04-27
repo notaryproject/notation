@@ -62,8 +62,9 @@ func warn() error {
 	return err
 }
 
-// HideFlags hides experimental flags and updates the command's long message
-// accordingly when NOTATION_EXPERIMENTAL is disabled.
+// HideFlags hides experimental flags when NOTATION_EXPERIMENTAL is disabled
+// and updates the command's long message accordingly when NOTATION_EXPERIMENTAL
+// is enabled.
 func HideFlags(cmd *cobra.Command, experimentalExamples string, flags []string) {
 	if IsDisabled() {
 		flagsSet := cmd.Flags()
