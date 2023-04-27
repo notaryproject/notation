@@ -199,6 +199,29 @@ func TestCopyToDir(t *testing.T) {
 		if err := WriteFile(filename, data); err != nil {
 			t.Fatal(err)
 		}
+		// forbid dest directory operation
+		if err := os.Chmod(destTempDir, 0000); err != nil {
+			t.Fatal(err)
+		}
+		defer os.Chmod(destTempDir, 0700)
+		if _, err := CopyToDir(filename, filepath.Join(destTempDir, "a")); err == nil {
+			t.Fatal("should have error")
+		}
+	})
+
+	t.Run("dest directory permission error 2", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
+		tempDir := t.TempDir()
+		destTempDir := t.TempDir()
+		data := []byte("data")
+		// prepare file
+		filename := filepath.Join(tempDir, "a", "file.txt")
+		if err := WriteFile(filename, data); err != nil {
+			t.Fatal(err)
+		}
 		// forbid writing to destTempDir
 		if err := os.Chmod(destTempDir, 0000); err != nil {
 			t.Fatal(err)
