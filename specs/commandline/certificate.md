@@ -208,7 +208,7 @@ A prompt is showed asking user to confirm the deletion. Upon successful deletion
 notation certificate delete --type <type> --store <name> <cert_fileName>
 ```
 
-A prompt is showed asking user to confirm the deletion. Upon successful deletion, the specific certificate is deleted from the trust store named `<name>` of type `<type>`. The output message is printed out as following:
+A prompt is displayed, asking the user to confirm the deletion. Upon successful deletion, the specific certificate is deleted from the trust store named `<name>` of type `<type>`. The output message is printed out as following:
 
 ```text
 Successfully deleted <cert_fileName> from the trust store. 
