@@ -41,7 +41,16 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "verify [reference]",
 		Short: "Verify OCI artifacts",
-		Long:  cmdutil.FullVerifyLong,
+		Long: `Verify OCI artifacts
+
+Prerequisite: added a certificate into trust store and created a trust policy.
+
+Example - Verify a signature on an OCI artifact identified by a digest:
+	notation verify <registry>/<repository>@<digest>
+
+Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
+	notation verify <registry>/<repository>:<tag>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
@@ -66,7 +75,7 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
-	experimental.HideFlags(command, cmdutil.ExperimentalDisabledVerifyLong, []string{"oci-layout", "scope"})
+	experimental.HideFlags(command, cmdutil.ExperimentalExamplesVerify, []string{"oci-layout", "scope"})
 	return command
 }
 
