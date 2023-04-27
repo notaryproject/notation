@@ -24,15 +24,15 @@ Building above binaries require [golang](https://golang.org/dl/) with version `>
 
   If you confront `notation not found`, please add `~/bin/` to your $PATH:
   ```sh
-  export PATH="$HOME/bin:$PATH"
+  PATH="$HOME/bin:$PATH"
   ```
-  If you would like to add the path permanently, add the command to your Bash `~/.profile` file:
+  If you would like to add the path permanently, add the command to your shell `profile`:
   ```sh
-  echo 'export PATH="$HOME/bin:$PATH"' >> ~/.profile
-  source ~/.profile
+  echo 'PATH="$HOME/bin:$PATH"' >> $profile_path
+  source $profile_path
   ```
-  For other shells, please add the command to the corresponding `profile` file.
-  - Bash: ~/.bash_profile or ~/.profile
-  - Zsh: ~/.zprofile
-  - Ksh: ~/.profile
+  The `profile_path` per shell:
+  - Bash: `~/.bash_profile` or `~/.profile`
+  - Zsh: `~/.zprofile`
+  - Ksh: `~/.profile`
 
