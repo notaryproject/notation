@@ -55,22 +55,22 @@ func signCommand(opts *signOpts) *cobra.Command {
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 		
 Example - Sign an OCI artifact using the default signing key, with the default JWS envelope, and use OCI image manifest to store the signature:
-	notation sign <registry>/<repository>@<digest>
+  notation sign <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact using the default signing key, with the COSE envelope:
-	notation sign --signature-format cose <registry>/<repository>@<digest> 
+  notation sign --signature-format cose <registry>/<repository>@<digest> 
 
 Example - Sign an OCI artifact with a specified plugin and signing key stored in KMS 
-	notation sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
+  notation sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact using a specified key
-	notation sign --key <key_name> <registry>/<repository>@<digest>
+  notation sign --key <key_name> <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to digest)
-	notation sign <registry>/<repository>:<tag>
+  notation sign <registry>/<repository>:<tag>
 
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
-	notation sign --expiry 24h <registry>/<repository>@<digest>
+  notation sign --expiry 24h <registry>/<repository>@<digest>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

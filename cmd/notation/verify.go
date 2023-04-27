@@ -46,10 +46,10 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 Prerequisite: added a certificate into trust store and created a trust policy.
 
 Example - Verify a signature on an OCI artifact identified by a digest:
-	notation verify <registry>/<repository>@<digest>
+  notation verify <registry>/<repository>@<digest>
 
 Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
-	notation verify <registry>/<repository>:<tag>
+  notation verify <registry>/<repository>:<tag>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
