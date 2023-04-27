@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/experimental"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -52,7 +52,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
 	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
 	cmd.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
-	experimental.HideFlags(cmd, "oci-layout")
+	experimental.HideFlags(cmd, "", []string{"oci-layout"})
 	return cmd
 }
 
