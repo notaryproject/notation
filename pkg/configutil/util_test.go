@@ -3,6 +3,7 @@ package configutil
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -71,6 +72,9 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 }
 
 func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on Windows")
+	}
 	configDir := "./testdata"
 	// for restore dir
 	defer func(oldDir string) error {
@@ -121,6 +125,9 @@ func TestResolveKey(t *testing.T) {
 	})
 
 	t.Run("signingkeys.json without read permission", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
 		dir.UserConfigDir = "./testdata/valid_signingkeys"
 		defer func() error {
 			// restore the permission
