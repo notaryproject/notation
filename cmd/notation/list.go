@@ -16,9 +16,10 @@ import (
 type listOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference string
-	ociLayout bool
-	inputType inputType
+	reference         string
+	allowReferrersAPI bool
+	ociLayout         bool
+	inputType         inputType
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
@@ -43,7 +44,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(cmd.Context(), opts)
@@ -51,8 +52,9 @@ func listCommand(opts *listOpts) *cobra.Command {
 	}
 	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
 	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
+	cmd.Flags().BoolVar(&opts.allowReferrersAPI, "allow-referrers-api", false, "[Experimental] use the Referrers API to list signatures, if not supported, fallback to the Referrers tag schema")
 	cmd.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
-	experimental.HideFlags(cmd, "", []string{"oci-layout"})
+	experimental.HideFlags(cmd, "", []string{"allow-referrers-api", "oci-layout"})
 	return cmd
 }
 
@@ -62,7 +64,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}

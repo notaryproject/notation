@@ -28,6 +28,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
+       --allow-referrers-api        [Experimental] use the Referrers API to store signatures in the registry, if not supported, fallback to the Referrers tag schema
   -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                       help for sign
@@ -39,23 +40,14 @@ Flags:
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --signature-manifest string  [Experimental] manifest type for signature, options: "image", "artifact" (default "image")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -v,  --verbose                    verbose mode
 ```
 
-## Use OCI image manifest to store signatures
-
-By default, Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. Users can use [OCI artifact manifest][oci-artifact-manifest] by enabling the `--signature-manifest artifact` flag. This is an experimental feature, which is not intended for production use and may change or be removed in future versions. When using OCI artifact manifest to store the signature, the registry is REQUIRED to support both `OCI artifact` and [Referrers API][oci-referers-api].
-
-Note that there is no deterministic way to determine whether a registry supports `OCI artifact` or not. The following response status contained in error messages MAY indicate that the registry doesn't support `OCI artifact`.
-
-- Response status `400 BAD Request` with error code `MANIFEST_INVALID` or `UNSUPPORTED`
-
 ### Set config property for OCI image manifest
 
-OCI image manifest requires additional property `config` of type `descriptor`, which is not required by OCI artifact manifest. When signing with OCI image manifest, Notation uses empty JSON object `{}` as the default configuration content, and thus the `config` property is fixed, as following:
+Notation uses [OCI image manifest][oci-image-spec] to store signatures in registries. The empty JSON object `{}` is used as the default configuration content, and thus the `config` property is fixed, as following:
 
 ```json
 "config": {
@@ -159,15 +151,6 @@ An example for a successful signing:
 $ notation sign localhost:5000/net-monitor:v1
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
-```
-
-### [Experimental] Sign an artifact and store the signature using OCI artifact manifest
-
-To access this flag `--signature-manifest`, set the environment variable `NOTATION_EXPERIMENTAL=1`.
-
-```shell
-export NOTATION_EXPERIMENTAL=1 
-notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory

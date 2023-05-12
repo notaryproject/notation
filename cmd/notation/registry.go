@@ -8,17 +8,15 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
 	loginauth "github.com/notaryproject/notation/pkg/auth"
 	"github.com/notaryproject/notation/pkg/configutil"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/sirupsen/logrus"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
-	"oras.land/oras-go/v2/registry/remote/errcode"
 )
 
 // inputType denotes the user input type
@@ -29,16 +27,12 @@ const (
 	inputTypeOCILayout                      // inputType oci-layout
 )
 
-const (
-	zeroDigest = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
-)
-
-// getRepository returns a notationregistry.Repository given user input type and
-// user input reference
-func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts) (notationregistry.Repository, error) {
+// getRepository returns a notationregistry.Repository given user input
+// type and user input reference
+func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, allowReferrersAPI bool) (notationregistry.Repository, error) {
 	switch inputType {
 	case inputTypeRegistry:
-		return getRemoteRepository(ctx, opts, reference)
+		return getRemoteRepository(ctx, opts, reference, allowReferrersAPI)
 	case inputTypeOCILayout:
 		layoutPath, _, err := parseOCILayoutReference(reference)
 		if err != nil {
@@ -50,44 +44,18 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 	}
 }
 
-// getRepositoryForSign returns a notationregistry.Repository given user input
-// type and user input reference during Sign process
-func getRepositoryForSign(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, ociImageManifest bool) (notationregistry.Repository, error) {
-	switch inputType {
-	case inputTypeRegistry:
-		return getRemoteRepositoryForSign(ctx, opts, reference, ociImageManifest)
-	case inputTypeOCILayout:
-		layoutPath, _, err := parseOCILayoutReference(reference)
-		if err != nil {
-			return nil, err
-		}
-		return notationregistry.NewOCIRepository(layoutPath, notationregistry.RepositoryOptions{OCIImageManifest: ociImageManifest})
-	default:
-		return nil, errors.New("unsupported input type")
-	}
-}
-
-func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference string) (notationregistry.Repository, error) {
-	ref, err := registry.ParseReference(reference)
-	if err != nil {
-		return nil, err
-	}
-
-	// generate notation repository
-	remoteRepo, err := getRepositoryClient(ctx, opts, ref)
-	if err != nil {
-		return nil, err
-	}
-	return notationregistry.NewRepository(remoteRepo), nil
-}
-
-// getRemoteRepositoryForSign returns a registry.Repository for Sign.
-// ociImageManifest denotes the type of manifest used to store signatures during
-// Sign process.
-// Setting ociImageManifest to true means using OCI image manifest and the
-// Referrers tag schema.
-// Otherwise, use OCI artifact manifest and requires the Referrers API.
-func getRemoteRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, reference string, ociImageManifest bool) (notationregistry.Repository, error) {
+// getRemoteRepository returns a registry.Repository.
+// When experimental feature is disabled OR allowReferrersAPI is not set,
+// Notation always uses referrers tag schema to store and consume signatures
+// by default.
+// When experimental feature is enabled AND allowReferrersAPI is set, Notation
+// tries the Referrers API, if not supported, fallback to use the Referrers
+// tag schema.
+//
+// References:
+// https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
+// https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
+func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference string, allowReferrersAPI bool) (notationregistry.Repository, error) {
 	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
@@ -100,24 +68,15 @@ func getRemoteRepositoryForSign(ctx context.Context, opts *SecureFlagOpts, refer
 		return nil, err
 	}
 
-	// Notation enforces the following two paths during Sign process:
-	// 1. OCI artifact manifest uses the Referrers API.
-	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
-	// 2. OCI image manifest uses the Referrers API and automatically fallback
-	// 	  to Referrers Tag Schema if Referrers API is not supported.
-	// Reference: https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
-	if !ociImageManifest {
-		logger.Info("Use OCI artifact manifest to store signature")
-		// ping Referrers API
-		if err := pingReferrersAPI(ctx, remoteRepo); err != nil {
+	if experimental.IsDisabled() || !allowReferrersAPI {
+		logger.Info("By default, using the Referrers tag schema")
+		if err := remoteRepo.SetReferrersCapability(false); err != nil {
 			return nil, err
 		}
-		logger.Info("Successfully pinged Referrers API on target registry")
+	} else {
+		logger.Info("Using the Referrers API, if not supported, automatically fallback to the Referrers tag schema")
 	}
-	repositoryOpts := notationregistry.RepositoryOptions{
-		OCIImageManifest: ociImageManifest,
-	}
-	return notationregistry.NewRepositoryWithOptions(remoteRepo, repositoryOpts), nil
+	return notationregistry.NewRepository(remoteRepo), nil
 }
 
 func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
@@ -217,41 +176,4 @@ func getSavedCreds(ctx context.Context, serverAddress string) (auth.Credential, 
 	}
 
 	return nativeStore.Get(serverAddress)
-}
-
-func pingReferrersAPI(ctx context.Context, remoteRepo *remote.Repository) error {
-	logger := log.GetLogger(ctx)
-	if err := remoteRepo.SetReferrersCapability(true); err != nil {
-		return err
-	}
-	var checkReferrerDesc ocispec.Descriptor
-	checkReferrerDesc.Digest = zeroDigest
-	// core process
-	err := remoteRepo.Referrers(ctx, checkReferrerDesc, "", func(referrers []ocispec.Descriptor) error {
-		return nil
-	})
-	if err != nil {
-		var errResp *errcode.ErrorResponse
-		if !errors.As(err, &errResp) || errResp.StatusCode != http.StatusNotFound {
-			return err
-		}
-		if isErrorCode(errResp, errcode.ErrorCodeNameUnknown) {
-			// The repository is not found in the target registry.
-			// This is triggered when putting signatures to an empty repository.
-			// For notation, this path should never be triggered.
-			return err
-		}
-		// A 404 returned by Referrers API indicates that Referrers API is
-		// not supported.
-		logger.Infof("failed to ping Referrers API with error: %v", err)
-		errMsg := "Target registry does not support the Referrers API. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest"
-		return notationerrors.ErrorReferrersAPINotSupported{Msg: errMsg}
-	}
-	return nil
-}
-
-// isErrorCode returns true if err is an Error and its Code equals to code.
-func isErrorCode(err error, code string) bool {
-	var ec errcode.Error
-	return errors.As(err, &ec) && ec.Code == code
 }
