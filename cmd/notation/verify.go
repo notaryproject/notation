@@ -50,7 +50,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
 `
 	experimentalExamples := `
 Example - [Experimental] Verify an OCI artifact using the Referrers API, if not supported, fallback to the Referrers tag schema
-	notation verify --allow-referrers-api <registry>/<repository>@<digest>
+  notation verify --allow-referrers-api <registry>/<repository>@<digest>
 
 Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>

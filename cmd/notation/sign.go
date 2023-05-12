@@ -61,8 +61,8 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
   notation sign --expiry 24h <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
-Example - [Experimental] Sign an OCI artifact and store signature using the Referrers API, if not supported, fallback to the Referrers tag schema
-	notation sign --allow-referrers-api <registry>/<repository>@<digest>
+Example - [Experimental] Sign an OCI artifact and store signature using the Referrers API. If it's not supported, fallback to the Referrers tag schema
+  notation sign --allow-referrers-api <registry>/<repository>@<digest>
 
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
   notation sign --oci-layout "<oci_layout_path>@<digest>"

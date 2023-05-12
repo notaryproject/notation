@@ -61,17 +61,17 @@ func inspectCommand(opts *inspectOpts) *cobra.Command {
 	longMessage := `Inspect all signatures associated with the signed artifact.
 
 Example - Inspect signatures on an OCI artifact identified by a digest:
-	notation inspect <registry>/<repository>@<digest>
+  notation inspect <registry>/<repository>@<digest>
 
 Example - Inspect signatures on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
-	notation inspect <registry>/<repository>:<tag>
+  notation inspect <registry>/<repository>:<tag>
 
 Example - Inspect signatures on an OCI artifact identified by a digest and output as json:
-	notation inspect --output json <registry>/<repository>@<digest>
+  notation inspect --output json <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
 Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported, fallback to the Referrers tag schema
-	notation inspect --allow-referrers-api <registry>/<repository>@<digest>
+  notation inspect --allow-referrers-api <registry>/<repository>@<digest>
 `
 	command := &cobra.Command{
 		Use:   "inspect [reference]",

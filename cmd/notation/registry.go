@@ -68,13 +68,13 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 		return nil, err
 	}
 
-	if experimental.IsDisabled() || !allowReferrersAPI {
-		logger.Info("By default, using the Referrers tag schema")
+	if !experimental.IsDisabled() && allowReferrersAPI {
+		logger.Info("Using the Referrers API, if not supported, automatically fallback to the Referrers tag schema")
+	} else {
+		logger.Info("Using the Referrers tag schema")
 		if err := remoteRepo.SetReferrersCapability(false); err != nil {
 			return nil, err
 		}
-	} else {
-		logger.Info("Using the Referrers API, if not supported, automatically fallback to the Referrers tag schema")
 	}
 	return notationregistry.NewRepository(remoteRepo), nil
 }
