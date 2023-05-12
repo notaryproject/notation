@@ -134,7 +134,6 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 
 	// core process
 	_, err = notation.Sign(ctx, signer, sigRepo, signOpts)
-
 	if err != nil {
 		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
 		if errors.As(err, &errorPushSignatureFailed) && strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
