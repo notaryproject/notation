@@ -31,11 +31,11 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 	})
 
 	It("with invalid trusted identity", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AddTrustPolicyOption("invalid_trusted_identity_trustpolicy.json"))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Failure reason: signing certificate from the digital signature does not match the X.509 trusted identities",
 					VerifyFailed)
 		})

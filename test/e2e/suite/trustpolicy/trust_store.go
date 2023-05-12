@@ -22,12 +22,12 @@ var _ = Describe("notation trust policy trust store test", func() {
 	})
 
 	It("invalid trust store", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AddTrustPolicyOption("invalid_trust_store_trustpolicy.json"))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("authenticity validation failed",
 					"truststore/x509/ca/invalid_store\\\" does not exist",
 					VerifyFailed)
