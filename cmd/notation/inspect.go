@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/notaryproject/notation/internal/arg"
 	"os"
 	"strconv"
 	"strings"
@@ -71,8 +72,8 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
   notation inspect --output json <registry>/<repository>@<digest>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("missing reference")
+			if err := arg.ValidateCount(args, 1, "missing reference"); err != nil {
+				return err
 			}
 			opts.reference = args[0]
 			return nil

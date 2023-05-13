@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/notaryproject/notation/internal/arg"
 	"math"
 	"os"
 	"reflect"
@@ -59,8 +60,8 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 		Short: "Verify OCI artifacts",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("missing reference")
+			if err := arg.ValidateCount(args, 1, "missing reference"); err != nil {
+				return err
 			}
 			opts.reference = args[0]
 			return nil

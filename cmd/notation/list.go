@@ -2,11 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
-
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/internal/arg"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -33,8 +32,8 @@ func listCommand(opts *listOpts) *cobra.Command {
 		Short:   "List signatures of the signed artifact",
 		Long:    "List all the signatures associated with signed artifact",
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("no reference specified")
+			if err := arg.ValidateCount(args, 1, "missing reference"); err != nil {
+				return err
 			}
 			opts.reference = args[0]
 			return nil

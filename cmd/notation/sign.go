@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/notaryproject/notation/internal/arg"
 	"os"
 	"strings"
 	"time"
@@ -84,8 +85,8 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 		Short: "Sign artifacts",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("missing reference")
+			if err := arg.ValidateCount(args, 1, "missing reference"); err != nil {
+				return err
 			}
 			opts.reference = args[0]
 			return nil
