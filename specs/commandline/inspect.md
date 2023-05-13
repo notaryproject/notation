@@ -31,7 +31,7 @@ Inspect all signatures associated with the signed artifact.
 
 Usage:
     notation inspect [flags] <reference>
-  
+
 Flags:
    -h, --help              help for describing the signature
    -o, --output json       output on command line sets the output to json
@@ -68,22 +68,22 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
     │   │   ├── signing scheme: notary.default.x509
     │   │   ├── signing time: Fri Jun 23 22:04:01 2023
     │   │   ├── expiry: Sat Jun 29 22:04:01 2024
-    │   │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin    //extended attributes 
+    │   │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin    //extended attributes
     │   ├── user defined attributes
     │   │   └── io.wabbit-networks.buildId: 123                             //user defined metadata
     │   ├── unsigned attributes
-    │   │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> //TSA response 
+    │   │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> //TSA response
     │   │   └── io.cncf.notary.signingAgent: notation/1.0.0                 //client version
     │   ├── certificates
-    │   │   ├── SHA1 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
+    │   │   ├── SHA256 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
     │   │   │   ├── issued to: wabbit-com Software
     │   │   │   ├── issued by: wabbit-com Software Root Certificate Authority
     │   │   │   └── expiry: Sun Jul 06 20:50:17 2025
-    │   │   ├── SHA1 fingerprint: 5DCC2147712B3C555B1C96CFCC00215403TF044D
+    │   │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
     │   │   │   ├── issued to: wabbit-com Software Code Signing PCA
     │   │   │   ├── issued by: wabbit-com Software Root Certificate Authority
     │   │   │   └── expiry: Sun Jul 06 20:50:17 2025
-    │   │   └── SHA1 fingerprint: 1GYA3107712B3C886B1C96AAEC89984914DC0A5A
+    │   │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
     │   │       ├── issued to: wabbit-com Software Root Certificate Authority
     │   │       ├── issued by: wabbit-com Software Root Certificate Authority
     │   │       └── expiry: Sat Jun 23 22:04:01 2035
@@ -103,19 +103,19 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
         │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
         │   └── io.cncf.notary.signingAgent: notation/1.0.0
         ├── certificates
-        │   ├── SHA1 fingerprint: 68C15B4C98AD91E051EE5AF5F524A8729040B1D
+        │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
         │   │   ├── issued to: wabbit-com Software
         │   │   ├── issued by: wabbit-com Software Root Certificate Authority
         │   │   └── expiry: Sun Jul 06 20:50:17 2025
-        │   ├── SHA1 fingerprint: 4ACC2147712B3C555B1C96CFCC00215403TE011C
+        │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
         │   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
         │   │   ├── issued by: wabbit-com Software Root Certificate Authority
         │   │   └── expiry: Sun Jul 06 20:50:17 2025
-        │   └── SHA1 fingerprint: A4YA1205512B3C886B1C96AAEC89984914DC012A
+        │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
         │       ├── issued to: wabbit-com Software Root Certificate Authority
         │       ├── issued by: wabbit-com Software Root Certificate Authority
         │       └── expiry: Sat Jun 23 22:04:01 2035
-        └── signed artifact 
+        └── signed artifact
             ├── media type: application/vnd.oci.image.manifest.v1+json
             ├── digest: sha256:b94d27b9934d3e08a52e52d7da7fac484efe37a5380ee9088f7ace2efcde9
             └── size: 16724
@@ -154,15 +154,15 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
     │   │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
     │   │   └── io.cncf.notary.signingAgent: notation/1.0.0
     │   ├── certificates
-    │   │   ├── SHA1 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
+    │   │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
     │   │   │   ├── issued to: wabbit-com Software
     │   │   │   ├── issued by: wabbit-com Software Root Certificate Authority
     │   │   │   └── expiry: Sun Jul 06 20:50:17 2025
-    │   │   ├── SHA1 fingerprint: 5DCC2147712B3C555B1C96CFCC00215403TF044D
+    │   │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
     │   │   │   ├── issued to: wabbit-com Software Code Signing PCA
     │   │   │   ├── issued by: wabbit-com Software Root Certificate Authority
     │   │   │   └── expiry: Sun Jul 06 20:50:17 2025
-    │   │   └── SHA1 fingerprint: 1GYA3107712B3C886B1C96AAEC89984914DC0A5A
+    │   │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
     │   │       ├── issued to: wabbit-com Software Root Certificate Authority
     │   │       ├── issued by: wabbit-com Software Root Certificate Authority
     │   │       └── expiry: Sat Jun 23 22:04:01 2035
@@ -182,15 +182,15 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
         │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
         │   └── io.cncf.notary.signingAgent: notation/1.0.0
         ├── certificates
-        │   ├── SHA1 fingerprint: 68C15B4C98AD91E051EE5AF5F524A8729040B1D
+        │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
         │   │   ├── issued to: wabbit-com Software
         │   │   ├── issued by: wabbit-com Software Root Certificate Authority
         │   │   └── expiry: Sun Jul 06 20:50:17 2025
-        │   ├── SHA1 fingerprint: 4ACC2147712B3C555B1C96CFCC00215403TE011C
+        │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
         │   │   ├── issued to: wabbit-com Software Code Signing PCA
         │   │   ├── issued by: wabbit-com Software Root Certificate Authority
         │   │   └── expiry: Sun Jul 06 20:50:17 2025
-        │   └── SHA1 fingerprint: A4YA1205512B3C886B1C96AAEC89984914DC012A
+        │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
         │       ├── issued to: wabbit-com Software Root Certificate Authority
         │       ├── issued by: wabbit-com Software Root Certificate Authority
         │       └── expiry: Sat Jun 23 22:04:01 2035
@@ -229,19 +229,19 @@ An example output:
       },
       "certificates": [
         {
-          "SHA1Fingerprint": "E8C15B4C98AD91E051EE5AF5F524A8729050B2A",
+          "SHA256Fingerprint": "b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d",
           "issuedTo": "wabbit-com Software",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
           "expiry": "2025-07-06T20:50:17Z"
         },
         {
-          "SHA1Fingerprint": "5DCC2147712B3C555B1C96CFCC00215403TF044D",
+          "SHA256Fingerprint": "4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89",
           "issuedTo": "wabbit-com Software Code Signing PCA",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
           "expiry": "2025-07-06T20:50:17Z"
         },
         {
-          "SHA1Fingerprint": "1GYA3107712B3C886B1C96AAEC89984914DC0A5A",
+          "SHA256Fingerprint": "ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536",
           "issuedTo": "wabbit-com Software Root Certificate Authority",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
           "expiry": "2035-07-06T20:50:17Z"
@@ -269,19 +269,19 @@ An example output:
       },
       "certificates": [
         {
-          "SHA1Fingerprint": "68C15B4C98AD91E051EE5AF5F524A8729040B1D",
+          "SHA256Fingerprint": "b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d",
           "issuedTo": "wabbit-com Software",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
           "expiry": "2025-07-06T20:50:17Z"
         },
         {
-          "SHA1Fingerprint": "4ACC2147712B3C555B1C96CFCC00215403TE011C",
+          "SHA256Fingerprint": "4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89",
           "issuedTo": "wabbit-com Software Code Signing PCA",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
           "expiry": "2025-07-06T20:50:17Z"
         },
         {
-          "SHA1Fingerprint": "A4YA1205512B3C886B1C96AAEC89984914DC012A",
+          "SHA256Fingerprint": "ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536",
           "issuedTo": "wabbit-com Software Root Certificate Authority",
           "issuedBy": "wabbit-com Software Root Certificate Authority",
           "expiry": "2035-07-06T20:50:17Z"
