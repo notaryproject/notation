@@ -13,8 +13,6 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-
 	"github.com/spf13/cobra"
 )
 
@@ -115,9 +113,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		return err
 	}
 	// resolve the given reference and set the digest
-	_, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
-	})
+	_, resolvedRef, err := resolveReferenceWithWarning(ctx, opts.inputType, reference, sigRepo, "verify")
 	if err != nil {
 		return err
 	}
