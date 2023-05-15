@@ -93,6 +93,17 @@ var (
 		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
 	}
 
+	PflagReferrersAPI = &pflag.Flag{
+		Name: "allow-referrers-api",
+	}
+	PflagReferrersAPISignUsage    = "[Experimental] use the Referrers API to store signatures in the registry, if not supported (returns 404), fallback to the Referrers tag schema"
+	PflagReferrersAPIVerifyUsage  = "[Experimental] use the Referrers API to verify signatures, if not supported (returns 404), fallback to the Referrers tag schema"
+	PflagReferrersAPIListUsage    = "[Experimental] use the Referrers API to list signatures, if not supported (returns 404), fallback to the Referrers tag schema"
+	PflagReferrersAPIInspectUsage = "[Experimental] use the Referrers API to inspect signatures, if not supported (returns 404), fallback to the Referrers tag schema"
+	SetPflagReferrersAPI          = func(fs *pflag.FlagSet, p *bool, usage string) {
+		fs.BoolVar(p, PflagReferrersAPI.Name, false, usage)
+	}
+
 	PflagOutput = &pflag.Flag{
 		Name:      "output",
 		Shorthand: "o",

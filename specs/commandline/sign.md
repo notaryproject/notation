@@ -28,7 +28,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-       --allow-referrers-api        [Experimental] use the Referrers API to store signatures in the registry, if not supported, fallback to the Referrers tag schema
+       --allow-referrers-api        [Experimental] use the Referrers API to store signatures in the registry, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                       help for sign

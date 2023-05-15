@@ -69,7 +69,7 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 	}
 
 	if !experimental.IsDisabled() && allowReferrersAPI {
-		logger.Info("Using the Referrers API, if not supported, automatically fallback to the Referrers tag schema")
+		logger.Info("Trying to use referrers API")
 	} else {
 		logger.Info("Using the Referrers tag schema")
 		if err := remoteRepo.SetReferrersCapability(false); err != nil {

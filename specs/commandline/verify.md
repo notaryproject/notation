@@ -35,7 +35,7 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
-       --allow-referrers-api         [Experimental] use the Referrers API to verify signatures, if not supported, fallback to the Referrers tag schema
+       --allow-referrers-api         [Experimental] use the Referrers API to verify signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                       debug mode
   -h,  --help                        help for verify
        --oci-layout                  [Experimental] verify the artifact stored as OCI image layout

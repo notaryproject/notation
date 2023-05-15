@@ -33,7 +33,7 @@ Usage:
     notation inspect [flags] <reference>
   
 Flags:
-      --allow-referrers-api   [Experimental] use the Referrers API to inspect signatures, if not supported, fallback to the Referrers tag schema
+      --allow-referrers-api   [Experimental] use the Referrers API to inspect signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d, --debug                 debug mode
   -h, --help                  help for inspect
   -o, --output string         output format, options: 'json', 'text' (default "text")

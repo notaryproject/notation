@@ -70,7 +70,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
   notation inspect --output json <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
-Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported, fallback to the Referrers tag schema
+Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
   notation inspect --allow-referrers-api <registry>/<repository>@<digest>
 `
 	command := &cobra.Command{
@@ -95,7 +95,7 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
-	command.Flags().BoolVar(&opts.allowReferrersAPI, "allow-referrers-api", false, "[Experimental] use the Referrers API to inspect signatures, if not supported, fallback to the Referrers tag schema")
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, cmd.PflagReferrersAPIInspectUsage)
 	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
 }

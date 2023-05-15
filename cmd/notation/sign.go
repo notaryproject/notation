@@ -61,7 +61,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
   notation sign --expiry 24h <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
-Example - [Experimental] Sign an OCI artifact and store signature using the Referrers API. If it's not supported, fallback to the Referrers tag schema
+Example - [Experimental] Sign an OCI artifact and store signature using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
   notation sign --allow-referrers-api <registry>/<repository>@<digest>
 
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
@@ -98,7 +98,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	command.Flags().BoolVar(&opts.allowReferrersAPI, "allow-referrers-api", false, "[Experimental] use the Referrers API to store signatures in the registry, if not supported, fallback to the Referrers tag schema")
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, cmd.PflagReferrersAPISignUsage)
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command

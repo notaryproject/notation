@@ -16,7 +16,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			vhost.SetOption(AddTrustPolicyOption("empty_registry_scope_trustpolicy.json"))
 
 			// test localhost:5000/test-repo
-			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("trust policy statement \"e2e\" has zero registry scopes")
 		})

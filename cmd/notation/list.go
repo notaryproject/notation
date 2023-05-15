@@ -28,7 +28,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
-	cmd := &cobra.Command{
+	command := &cobra.Command{
 		Use:     "list [flags] <reference>",
 		Aliases: []string{"ls"},
 		Short:   "List signatures of the signed artifact",
@@ -50,12 +50,12 @@ func listCommand(opts *listOpts) *cobra.Command {
 			return runList(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
-	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
-	cmd.Flags().BoolVar(&opts.allowReferrersAPI, "allow-referrers-api", false, "[Experimental] use the Referrers API to list signatures, if not supported, fallback to the Referrers tag schema")
-	cmd.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
-	experimental.HideFlags(cmd, "", []string{"allow-referrers-api", "oci-layout"})
-	return cmd
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, cmd.PflagReferrersAPIListUsage)
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
+	experimental.HideFlags(command, "", []string{"allow-referrers-api", "oci-layout"})
+	return command
 }
 
 func runList(ctx context.Context, opts *listOpts) error {

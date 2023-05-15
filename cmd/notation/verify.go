@@ -49,7 +49,7 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
   notation verify <registry>/<repository>:<tag>
 `
 	experimentalExamples := `
-Example - [Experimental] Verify an OCI artifact using the Referrers API, if not supported, fallback to the Referrers tag schema
+Example - [Experimental] Verify an OCI artifact using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
   notation verify --allow-referrers-api <registry>/<repository>@<digest>
 
 Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
@@ -83,7 +83,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	command.Flags().BoolVar(&opts.allowReferrersAPI, "allow-referrers-api", false, "[Experimental] use the Referrers API to verify signatures, if not supported, fallback to the Referrers tag schema")
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, cmd.PflagReferrersAPIVerifyUsage)
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
