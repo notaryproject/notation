@@ -27,7 +27,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			// update trustpolicy.json
 			vhost.SetOption(AddTrustPolicyOption("malformed_registry_scope_trustpolicy.json"))
 
-			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrKeyWords(`registry scope "localhost:5000\\test-repo" is not valid, make sure it is a fully qualified registry URL without the scheme/protocol, e.g domain.com/my/repository OR a local trust policy scope, e.g local/myOCILayout`)
 		})
@@ -93,7 +93,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact := GenerateArtifact("", "test-repo6")
 
 			// test localhost:5000/test-repo
-			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("registry scope \"localhost:5000/test-repo6\" is present in multiple trust policy statements")
 		})
@@ -107,7 +107,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact := GenerateArtifact("", "test-repo7")
 
 			// test localhost:5000/test-repo
-			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("trust policy statement \"e2e\" uses wildcard registry scope '*', a wildcard scope cannot be used in conjunction with other scope values")
 		})
@@ -119,7 +119,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			vhost.SetOption(AddTrustPolicyOption("invalid_registry_scope_trustpolicy.json"))
 
 			// test localhost:5000/test-repo
-			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable trust policy\n", artifact.ReferenceWithDigest()))
 		})
