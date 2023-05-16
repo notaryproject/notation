@@ -21,12 +21,13 @@ const maxSignatureAttempts = math.MaxInt64
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference        string
-	pluginConfig     []string
-	userMetadata     []string
-	ociLayout        bool
-	trustPolicyScope string
-	inputType        inputType
+	reference         string
+	pluginConfig      []string
+	userMetadata      []string
+	allowReferrersAPI bool
+	ociLayout         bool
+	trustPolicyScope  string
+	inputType         inputType
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -46,6 +47,9 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
   notation verify <registry>/<repository>:<tag>
 `
 	experimentalExamples := `
+Example - [Experimental] Verify an OCI artifact using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
+  notation verify --allow-referrers-api <registry>/<repository>@<digest>
+
 Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
 
@@ -67,7 +71,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "oci-layout", "scope")
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runVerify(cmd, opts)
@@ -77,10 +81,11 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
-	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout", "scope"})
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout", "scope"})
 	return command
 }
 
@@ -108,7 +113,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// core verify process
 	reference := opts.reference
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}
