@@ -102,9 +102,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
-	manifestDesc, resolvedRef, err := resolveReference(ctx, inputTypeRegistry, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always inspect the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
-	})
+	manifestDesc, resolvedRef, err := resolveReferenceWithWarning(ctx, inputTypeRegistry, reference, sigRepo, "inspect")
 	if err != nil {
 		return err
 	}
@@ -247,6 +245,11 @@ func getCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 func printOutput(outputFormat string, ref string, output inspectOutput) error {
 	if outputFormat == cmd.OutputJSON {
 		return ioutil.PrintObjectAsJSON(output)
+	}
+
+	if len(output.Signatures) == 0 {
+		fmt.Printf("%s has no associated signature\n", ref)
+		return nil
 	}
 
 	fmt.Println("Inspecting all signatures for signed artifact")

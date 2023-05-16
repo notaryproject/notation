@@ -66,7 +66,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 	if err != nil {
 		return err
 	}
-	targetDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, nil)
+	targetDesc, resolvedRef, err := resolveReferenceWithWarning(ctx, opts.inputType, reference, sigRepo, "list")
 	if err != nil {
 		return err
 	}
@@ -111,6 +111,10 @@ func printSignatureManifestDigests(ctx context.Context, targetDesc ocispec.Descr
 
 		// print last signature digest
 		fmt.Printf("    └── %s\n", prevDigest)
+	}
+
+	if !titlePrinted {
+		fmt.Printf("%s has no associated signature\n", ref)
 	}
 	return nil
 }
