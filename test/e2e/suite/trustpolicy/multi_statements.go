@@ -15,7 +15,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_the_same_registry_scope_trustpolicy.json"))
 
 			// test localhost:5000/test-repo
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrContent("Error: registry scope \"localhost:5000/test-repo8\" is present in multiple trust policy statements, one registry scope value can only be associated with one statement\n")
 		})
@@ -28,7 +28,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_wildcard_registry_scope_trustpolicy.json"))
 
 			// test localhost:5000/test-repo
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -41,7 +41,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_the_same_name_trustpolicy.json"))
 
 			// test localhost:5000/test-repo
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrContent("Error: multiple trust policy statements use the same name \"e2e\", statement names must be unique\n")
 		})
@@ -53,7 +53,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_multi_wildcard_registry_scope_trustpolicy.json"))
 
 			// test localhost:5000/test-repo
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchErrContent("Error: registry scope \"*\" is present in multiple trust policy statements, one registry scope value can only be associated with one statement\n")
 		})

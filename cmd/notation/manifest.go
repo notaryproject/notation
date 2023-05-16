@@ -110,7 +110,7 @@ func parseOCILayoutReference(raw string) (string, string, error) {
 	return path, ref, nil
 }
 
-// getManifestDescriptor returns target artifact manifest descriptor given
+// getManifestDescriptor returns target artifact's manifest descriptor given
 // reference (digest or tag) and Repository.
 func getManifestDescriptor(ctx context.Context, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, error) {
 	logger := log.GetLogger(ctx)

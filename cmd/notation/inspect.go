@@ -14,6 +14,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -25,8 +26,9 @@ import (
 type inspectOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference    string
-	outputFormat string
+	reference         string
+	outputFormat      string
+	allowReferrersAPI bool
 }
 
 type inspectOutput struct {
@@ -56,10 +58,7 @@ func inspectCommand(opts *inspectOpts) *cobra.Command {
 	if opts == nil {
 		opts = &inspectOpts{}
 	}
-	command := &cobra.Command{
-		Use:   "inspect [reference]",
-		Short: "Inspect all signatures associated with the signed artifact",
-		Long: `Inspect all signatures associated with the signed artifact.
+	longMessage := `Inspect all signatures associated with the signed artifact.
 
 Example - Inspect signatures on an OCI artifact identified by a digest:
   notation inspect <registry>/<repository>@<digest>
@@ -69,13 +68,24 @@ Example - Inspect signatures on an OCI artifact identified by a tag  (Notation w
 
 Example - Inspect signatures on an OCI artifact identified by a digest and output as json:
   notation inspect --output json <registry>/<repository>@<digest>
-`,
+`
+	experimentalExamples := `
+Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
+  notation inspect --allow-referrers-api <registry>/<repository>@<digest>
+`
+	command := &cobra.Command{
+		Use:   "inspect [reference]",
+		Short: "Inspect all signatures associated with the signed artifact",
+		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
 			}
 			opts.reference = args[0]
 			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInspect(cmd, opts)
@@ -85,6 +95,8 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
 }
 
@@ -98,7 +110,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}
