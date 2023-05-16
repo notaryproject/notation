@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	b64 "encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -48,10 +48,10 @@ type signatureOutput struct {
 }
 
 type certificateOutput struct {
-	SHA1Fingerprint string `json:"SHA1Fingerprint"`
-	IssuedTo        string `json:"issuedTo"`
-	IssuedBy        string `json:"issuedBy"`
-	Expiry          string `json:"expiry"`
+	SHA256Fingerprint string `json:"SHA256Fingerprint"`
+	IssuedTo          string `json:"issuedTo"`
+	IssuedBy          string `json:"issuedBy"`
+	Expiry            string `json:"expiry"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -201,7 +201,10 @@ func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeCont
 	signedAttributes := map[string]string{
 		"signingScheme": string(envContent.SignerInfo.SignedAttributes.SigningScheme),
 		"signingTime":   formatTimestamp(outputFormat, envContent.SignerInfo.SignedAttributes.SigningTime),
-		"expiry":        formatTimestamp(outputFormat, envContent.SignerInfo.SignedAttributes.Expiry),
+	}
+	expiry := envContent.SignerInfo.SignedAttributes.Expiry
+	if !expiry.IsZero() {
+		signedAttributes["expiry"] = formatTimestamp(outputFormat, expiry)
 	}
 
 	for _, attribute := range envContent.SignerInfo.SignedAttributes.ExtendedAttributes {
@@ -238,14 +241,14 @@ func getCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 	certificates := []certificateOutput{}
 
 	for _, cert := range envContent.SignerInfo.CertificateChain {
-		h := sha1.Sum(cert.Raw)
+		h := sha256.Sum256(cert.Raw)
 		fingerprint := strings.ToLower(hex.EncodeToString(h[:]))
 
 		certificate := certificateOutput{
-			SHA1Fingerprint: fingerprint,
-			IssuedTo:        cert.Subject.String(),
-			IssuedBy:        cert.Issuer.String(),
-			Expiry:          formatTimestamp(outputFormat, cert.NotAfter),
+			SHA256Fingerprint: fingerprint,
+			IssuedTo:          cert.Subject.String(),
+			IssuedBy:          cert.Issuer.String(),
+			Expiry:            formatTimestamp(outputFormat, cert.NotAfter),
 		}
 
 		certificates = append(certificates, certificate)
@@ -284,7 +287,7 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 
 		certListNode := sigNode.Add("certificates")
 		for _, cert := range signature.Certificates {
-			certNode := certListNode.AddPair("SHA1 fingerprint", cert.SHA1Fingerprint)
+			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
 			certNode.AddPair("issued to", cert.IssuedTo)
 			certNode.AddPair("issued by", cert.IssuedBy)
 			certNode.AddPair("expiry", cert.Expiry)
