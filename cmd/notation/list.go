@@ -52,7 +52,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, cmd.PflagReferrersAPIListUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
 	experimental.HideFlags(command, "", []string{"allow-referrers-api", "oci-layout"})
 	return command

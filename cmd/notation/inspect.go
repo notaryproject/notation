@@ -95,7 +95,7 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, cmd.PflagReferrersAPIInspectUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
 }
