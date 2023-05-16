@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/notaryproject/notation/internal/arg"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -72,7 +72,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
   notation inspect --output json <registry>/<repository>@<digest>
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := arg.ValidateCount(args, 1, "missing reference"); err != nil {
+			if err := cmdutil.ValidateArgsCount(args, 1, "missing reference"); err != nil {
 				return err
 			}
 			opts.reference = args[0]

@@ -1,4 +1,4 @@
-package arg
+package cmdutil
 
 import "testing"
 
@@ -53,8 +53,8 @@ func TestValidateCount(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ValidateCount(tt.args.args, tt.args.expLen, tt.args.missingErrMsg); (err != nil) != tt.wantErr {
-				t.Errorf("ValidateCount() error = %v, wantErr %v", err, tt.wantErr)
+			if err := ValidateArgsCount(tt.args.args, tt.args.expLen, tt.args.missingErrMsg); (err != nil) != tt.wantErr {
+				t.Errorf("ValidateArgsCount() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

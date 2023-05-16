@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/notaryproject/notation/internal/arg"
 	"math"
 	"os"
 	"reflect"
@@ -11,6 +10,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -60,7 +60,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 		Short: "Verify OCI artifacts",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if err := arg.ValidateCount(args, 1, "missing reference"); err != nil {
+			if err := cmdutil.ValidateArgsCount(args, 1, "missing reference"); err != nil {
 				return err
 			}
 			opts.reference = args[0]
