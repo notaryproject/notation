@@ -166,14 +166,11 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 	if !confirmed {
 		return nil
 	}
-	if _, err := os.Stat(path); err != nil {
-		return err
-	}
-	if err = os.Remove(path); err != nil {
+	if err = osutil.DeleteFile(path); err != nil {
 		return err
 	}
 	// write out on success
-	fmt.Printf("Successfully deleted %s\n", cert)
+	fmt.Printf("Successfully deleted %s from trust store\n", cert)
 	return nil
 }
 

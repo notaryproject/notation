@@ -1,6 +1,7 @@
 package osutil
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -80,4 +81,16 @@ func IsRegularFile(path string) (bool, error) {
 	}
 
 	return fileStat.Mode().IsRegular(), nil
+}
+
+// DeleteFile checks if file at path is a regular file and deletes it
+func DeleteFile(path string) error {
+	isRegular, err := IsRegularFile(path)
+	if err != nil {
+		return err
+	}
+	if !isRegular {
+		return errors.New("path is not a regular file")
+	}
+	return os.Remove(path)
 }
