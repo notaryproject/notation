@@ -23,7 +23,6 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
-		signatureManifest: "image",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -55,7 +54,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			SignatureFormat: envelope.COSE,
 		},
 		expiry:            24 * time.Hour,
-		signatureManifest: signatureManifestImage,
+		allowReferrersAPI: true,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -65,7 +64,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--plain-http",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
-		"--signature-manifest", signatureManifestImage}); err != nil {
+		"--allow-referrers-api"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -85,9 +84,8 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
 		},
-		expiry:            365 * 24 * time.Hour,
-		pluginConfig:      []string{"key0=val0", "key1=val1"},
-		signatureManifest: "image",
+		expiry:       365 * 24 * time.Hour,
+		pluginConfig: []string{"key0=val0", "key1=val1"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -137,7 +135,6 @@ func TestSignCommmand_OnDemandKeyOptions(t *testing.T) {
 			PluginName:      "pluginName",
 			SignatureFormat: envelope.JWS,
 		},
-		signatureManifest: "image",
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -171,7 +168,6 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
-			signatureManifest: "image",
 		}
 		if err := command.ParseFlags([]string{
 			expected.reference,
@@ -207,7 +203,6 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
-			signatureManifest: "image",
 		}
 		if err := command.ParseFlags([]string{
 			expected.reference,
@@ -242,7 +237,6 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
-			signatureManifest: "image",
 		}
 		if err := command.ParseFlags([]string{
 			expected.reference,
@@ -276,7 +270,6 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 				KeyID:           "keyID",
 				SignatureFormat: envelope.JWS,
 			},
-			signatureManifest: "image",
 		}
 		if err := command.ParseFlags([]string{
 			expected.reference,
@@ -309,7 +302,6 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 				PluginName:      "pluginName",
 				SignatureFormat: envelope.JWS,
 			},
-			signatureManifest: "image",
 		}
 		if err := command.ParseFlags([]string{
 			expected.reference,

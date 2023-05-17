@@ -12,7 +12,7 @@ import (
 var _ = Describe("notation verify", func() {
 	It("by digest", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -22,7 +22,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by tag", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithTag(), "-v").
@@ -32,7 +32,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with debug log", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
@@ -46,6 +46,26 @@ var _ = Describe("notation verify", func() {
 					"Validating authentic timestamp",
 					"Validating revocation",
 				).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("by digest with the Referrers API", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("by digest, sign with the Referrers tag schema, verify with the Referrers API", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

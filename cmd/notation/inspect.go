@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	b64 "encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -14,6 +14,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -25,8 +26,9 @@ import (
 type inspectOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference    string
-	outputFormat string
+	reference         string
+	outputFormat      string
+	allowReferrersAPI bool
 }
 
 type inspectOutput struct {
@@ -46,20 +48,17 @@ type signatureOutput struct {
 }
 
 type certificateOutput struct {
-	SHA1Fingerprint string `json:"SHA1Fingerprint"`
-	IssuedTo        string `json:"issuedTo"`
-	IssuedBy        string `json:"issuedBy"`
-	Expiry          string `json:"expiry"`
+	SHA256Fingerprint string `json:"SHA256Fingerprint"`
+	IssuedTo          string `json:"issuedTo"`
+	IssuedBy          string `json:"issuedBy"`
+	Expiry            string `json:"expiry"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
 	if opts == nil {
 		opts = &inspectOpts{}
 	}
-	command := &cobra.Command{
-		Use:   "inspect [reference]",
-		Short: "Inspect all signatures associated with the signed artifact",
-		Long: `Inspect all signatures associated with the signed artifact.
+	longMessage := `Inspect all signatures associated with the signed artifact.
 
 Example - Inspect signatures on an OCI artifact identified by a digest:
   notation inspect <registry>/<repository>@<digest>
@@ -69,13 +68,24 @@ Example - Inspect signatures on an OCI artifact identified by a tag  (Notation w
 
 Example - Inspect signatures on an OCI artifact identified by a digest and output as json:
   notation inspect --output json <registry>/<repository>@<digest>
-`,
+`
+	experimentalExamples := `
+Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
+  notation inspect --allow-referrers-api <registry>/<repository>@<digest>
+`
+	command := &cobra.Command{
+		Use:   "inspect [reference]",
+		Short: "Inspect all signatures associated with the signed artifact",
+		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")
 			}
 			opts.reference = args[0]
 			return nil
+		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInspect(cmd, opts)
@@ -85,6 +95,8 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
 }
 
@@ -98,13 +110,11 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}
-	manifestDesc, resolvedRef, err := resolveReference(ctx, inputTypeRegistry, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
-		fmt.Fprintf(os.Stderr, "Warning: Always inspect the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
-	})
+	manifestDesc, resolvedRef, err := resolveReferenceWithWarning(ctx, inputTypeRegistry, reference, sigRepo, "inspect")
 	if err != nil {
 		return err
 	}
@@ -191,7 +201,10 @@ func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeCont
 	signedAttributes := map[string]string{
 		"signingScheme": string(envContent.SignerInfo.SignedAttributes.SigningScheme),
 		"signingTime":   formatTimestamp(outputFormat, envContent.SignerInfo.SignedAttributes.SigningTime),
-		"expiry":        formatTimestamp(outputFormat, envContent.SignerInfo.SignedAttributes.Expiry),
+	}
+	expiry := envContent.SignerInfo.SignedAttributes.Expiry
+	if !expiry.IsZero() {
+		signedAttributes["expiry"] = formatTimestamp(outputFormat, expiry)
 	}
 
 	for _, attribute := range envContent.SignerInfo.SignedAttributes.ExtendedAttributes {
@@ -228,14 +241,14 @@ func getCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 	certificates := []certificateOutput{}
 
 	for _, cert := range envContent.SignerInfo.CertificateChain {
-		h := sha1.Sum(cert.Raw)
+		h := sha256.Sum256(cert.Raw)
 		fingerprint := strings.ToLower(hex.EncodeToString(h[:]))
 
 		certificate := certificateOutput{
-			SHA1Fingerprint: fingerprint,
-			IssuedTo:        cert.Subject.String(),
-			IssuedBy:        cert.Issuer.String(),
-			Expiry:          formatTimestamp(outputFormat, cert.NotAfter),
+			SHA256Fingerprint: fingerprint,
+			IssuedTo:          cert.Subject.String(),
+			IssuedBy:          cert.Issuer.String(),
+			Expiry:            formatTimestamp(outputFormat, cert.NotAfter),
 		}
 
 		certificates = append(certificates, certificate)
@@ -247,6 +260,11 @@ func getCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 func printOutput(outputFormat string, ref string, output inspectOutput) error {
 	if outputFormat == cmd.OutputJSON {
 		return ioutil.PrintObjectAsJSON(output)
+	}
+
+	if len(output.Signatures) == 0 {
+		fmt.Printf("%s has no associated signature\n", ref)
+		return nil
 	}
 
 	fmt.Println("Inspecting all signatures for signed artifact")
@@ -269,7 +287,7 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 
 		certListNode := sigNode.Add("certificates")
 		for _, cert := range signature.Certificates {
-			certNode := certListNode.AddPair("SHA1 fingerprint", cert.SHA1Fingerprint)
+			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
 			certNode.AddPair("issued to", cert.IssuedTo)
 			certNode.AddPair("issued by", cert.IssuedBy)
 			certNode.AddPair("expiry", cert.Expiry)

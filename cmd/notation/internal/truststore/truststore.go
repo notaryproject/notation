@@ -1,7 +1,7 @@
 package truststore
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"errors"
@@ -121,8 +121,8 @@ func showCert(cert *x509.Certificate) {
 	fmt.Println("Valid to:", cert.NotAfter)
 	fmt.Println("IsCA:", cert.IsCA)
 
-	h := sha1.Sum(cert.Raw)
-	fmt.Println("SHA1 Thumbprint:", strings.ToLower(hex.EncodeToString(h[:])))
+	h := sha256.Sum256(cert.Raw)
+	fmt.Println("SHA256 Thumbprint:", strings.ToLower(hex.EncodeToString(h[:])))
 }
 
 // DeleteAllCerts deletes all certificate files from the trust store

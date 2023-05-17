@@ -42,7 +42,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact := GenerateArtifact("", "test-repo")
 
 			// test localhost:5000/test-repo
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -57,11 +57,11 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact3 := GenerateArtifact("", "test-repo3")
 
 			// test localhost:5000/test-repo2
-			OldNotation().Exec("sign", artifact2.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact2.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact2.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 
 			// test localhost:5000/test-repo3
-			OldNotation().Exec("sign", artifact3.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact3.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact3.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -76,11 +76,11 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact5 := GenerateArtifact("", "test-repo5")
 
 			// test localhost:5000/test-repo4
-			OldNotation().Exec("sign", artifact4.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact4.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact4.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 
 			// test localhost:5000/test-repo5
-			OldNotation().Exec("sign", artifact5.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact5.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact5.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 		})
 	})
