@@ -16,9 +16,10 @@ import (
 type listOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference string
-	ociLayout bool
-	inputType inputType
+	reference         string
+	allowReferrersAPI bool
+	ociLayout         bool
+	inputType         inputType
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
@@ -27,7 +28,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
-	cmd := &cobra.Command{
+	command := &cobra.Command{
 		Use:     "list [flags] <reference>",
 		Aliases: []string{"ls"},
 		Short:   "List signatures of the signed artifact",
@@ -43,17 +44,18 @@ func listCommand(opts *listOpts) *cobra.Command {
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runList(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(cmd.Flags())
-	opts.SecureFlagOpts.ApplyFlags(cmd.Flags())
-	cmd.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
-	experimental.HideFlags(cmd, "", []string{"oci-layout"})
-	return cmd
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.SecureFlagOpts.ApplyFlags(command.Flags())
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
+	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
+	experimental.HideFlags(command, "", []string{"allow-referrers-api", "oci-layout"})
+	return command
 }
 
 func runList(ctx context.Context, opts *listOpts) error {
@@ -62,11 +64,11 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}
-	targetDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, nil)
+	targetDesc, resolvedRef, err := resolveReferenceWithWarning(ctx, opts.inputType, reference, sigRepo, "list")
 	if err != nil {
 		return err
 	}
@@ -111,6 +113,10 @@ func printSignatureManifestDigests(ctx context.Context, targetDesc ocispec.Descr
 
 		// print last signature digest
 		fmt.Printf("    └── %s\n", prevDigest)
+	}
+
+	if !titlePrinted {
+		fmt.Printf("%s has no associated signature\n", ref)
 	}
 	return nil
 }

@@ -16,6 +16,12 @@ import (
 	"oras.land/oras-go/v2/registry"
 )
 
+func resolveReferenceWithWarning(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, operation string) (ocispec.Descriptor, string, error) {
+	return resolveReference(ctx, inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+		fmt.Fprintf(os.Stderr, "Warning: Always %s the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", operation, ref)
+	})
+}
+
 // resolveReference resolves user input reference based on user input type.
 // Returns the resolved manifest descriptor and resolvedRef in digest
 func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
@@ -104,7 +110,7 @@ func parseOCILayoutReference(raw string) (string, string, error) {
 	return path, ref, nil
 }
 
-// getManifestDescriptor returns target artifact manifest descriptor given
+// getManifestDescriptor returns target artifact's manifest descriptor given
 // reference (digest or tag) and Repository.
 func getManifestDescriptor(ctx context.Context, reference string, sigRepo notationregistry.Repository) (ocispec.Descriptor, error) {
 	logger := log.GetLogger(ctx)

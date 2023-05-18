@@ -14,19 +14,11 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/internal/slices"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
-const (
-	signatureManifestArtifact = "artifact"
-	signatureManifestImage    = "image"
-)
-
 const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
-
-var supportedSignatureManifest = []string{signatureManifestArtifact, signatureManifestImage}
 
 type signOpts struct {
 	cmd.LoggingFlagOpts
@@ -36,7 +28,7 @@ type signOpts struct {
 	pluginConfig      []string
 	userMetadata      []string
 	reference         string
-	signatureManifest string
+	allowReferrersAPI bool
 	ociLayout         bool
 	inputType         inputType
 }
@@ -70,14 +62,14 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
   notation sign --expiry 24h <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
+Example - [Experimental] Sign an OCI artifact and store signature using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
+  notation sign --allow-referrers-api <registry>/<repository>@<digest>
+
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
   notation sign --oci-layout "<oci_layout_path>@<digest>"
 
 Example - [Experimental] Sign an OCI artifact identified by a tag and referenced in an OCI layout
   notation sign --oci-layout "<oci_layout_path>:<tag>"
-
-Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to store the signature:
-  notation sign --signature-manifest artifact <registry>/<repository>@<digest>
 `
 
 	command := &cobra.Command{
@@ -95,13 +87,9 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "signature-manifest", "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// sanity check
-			if !validateSignatureManifest(opts.signatureManifest) {
-				return fmt.Errorf("signature manifest must be one of the following %v but got %s", supportedSignatureManifest, opts.signatureManifest)
-			}
 			return runSign(cmd, opts)
 		},
 	}
@@ -110,10 +98,10 @@ Example - [Experimental] Sign an OCI artifact and use OCI artifact manifest to s
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	command.Flags().StringVar(&opts.signatureManifest, "signature-manifest", signatureManifestImage, "[Experimental] manifest type for signature. options: \"image\", \"artifact\"")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	experimental.HideFlags(command, experimentalExamples, []string{"signature-manifest", "oci-layout"})
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
 
@@ -126,8 +114,10 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	ociImageManifest := cmdOpts.signatureManifest == signatureManifestImage
-	sigRepo, err := getRepositoryForSign(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, ociImageManifest)
+	if cmdOpts.allowReferrersAPI {
+		fmt.Fprintln(os.Stderr, "Warning: using the Referrers API to store signature. On success, must set the `--allow-referrers-api` flag to list, inspect, and verify the signature.")
+	}
+	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}
@@ -147,16 +137,11 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	_, err = notation.Sign(ctx, signer, sigRepo, signOpts)
 	if err != nil {
 		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
-		if errors.As(err, &errorPushSignatureFailed) {
-			if !ociImageManifest {
-				return fmt.Errorf("%v. Possible reason: OCI artifact manifest is not supported. Try removing the flag `--signature-manifest artifact` to store signatures using OCI image manifest", err)
-			}
-			if strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
-				fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
-				// write out
-				fmt.Println("Successfully signed", resolvedRef)
-				return nil
-			}
+		if errors.As(err, &errorPushSignatureFailed) && strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
+			fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
+			// write out
+			fmt.Println("Successfully signed", resolvedRef)
+			return nil
 		}
 		return err
 	}
@@ -186,8 +171,4 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationreg
 		UserMetadata: userMetadata,
 	}
 	return signOpts, nil
-}
-
-func validateSignatureManifest(signatureManifest string) bool {
-	return slices.Contains(supportedSignatureManifest, signatureManifest)
 }
