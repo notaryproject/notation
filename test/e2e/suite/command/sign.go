@@ -66,7 +66,7 @@ var _ = Describe("notation sign", func() {
 	})
 
 	It("with specific key", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			const keyName = "sKey"
 			notation.Exec("cert", "generate-test", keyName).
 				MatchKeyWords(fmt.Sprintf("notation/localkeys/%s.crt", keyName))
