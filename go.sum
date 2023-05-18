@@ -19,8 +19,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/notaryproject/notation-core-go v1.0.0-rc.3 h1:ukRBOwctPF0bWLFs+ThDHwgj+L3+AHdyaOqmziLp8w0=
 github.com/notaryproject/notation-core-go v1.0.0-rc.3/go.mod h1:XWAlhOksW+c9AA/TyobkPv5Xoz8RWGwOAoDdybZLEiI=
-github.com/notaryproject/notation-go v1.0.0-rc.4.0.20230511062925-4e790cea6bad h1:g8pg9gtX82+i4ovfd3VWiCTcqdVktfrtpXWyXRWt6DE=
-github.com/notaryproject/notation-go v1.0.0-rc.4.0.20230511062925-4e790cea6bad/go.mod h1:Z362SLw4xyXXuWcmXbtxwFJq/lecVDlbdMfpHLKIa6c=
+github.com/notaryproject/notation-go v1.0.0-rc.5 h1:LduZJHOR9oONyL/CFgDg7lKudiQNKDT/lWEyVlVSN0c=
+github.com/notaryproject/notation-go v1.0.0-rc.5/go.mod h1:HTLaDq84hp2wAU2ZpeucH/9nJRg7PnufVtCU4dhz/X8=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc.3 h1:GT9Xon8YrLxz6N7sErbN81V8J4lOQKGUZQmI3ioviqU=
@@ -43,8 +43,8 @@ github.com/veraison/go-cose v1.0.0/go.mod h1:7ziE85vSq4ScFTg6wyoMXjucIGOf4JkFEZi
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
-golang.org/x/crypto v0.8.0 h1:pd9TJtTueMTVQXzk8E2XESSMQDj/U7OUu0PqJqPXQjQ=
-golang.org/x/crypto v0.8.0/go.mod h1:mRqEX+O9/h5TFCrQhkgjo2yKi0yYA+9ecGkdQoHrywE=
+golang.org/x/crypto v0.9.0 h1:LF6fAI+IutBocDJ2OT0Q1g8plpYljMZ4+lty+dsqw3g=
+golang.org/x/crypto v0.9.0/go.mod h1:yrmDGqONDYtNj3tH8X9dzUun2m2lzPa9ngI6/RUPGR0=
 golang.org/x/mod v0.10.0 h1:lFO9qtOdlre5W1jxS3r/4szv2/6iXxScdzjoBMXNhYk=
 golang.org/x/mod v0.10.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
