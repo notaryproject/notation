@@ -18,10 +18,10 @@ func Cmd() *cobra.Command {
 		certListCommand(nil),
 		certShowCommand(nil),
 		certDeleteCommand(nil),
-		certGenerateTestCommand(nil),
 	)
 	if !experimental.IsDisabled() {
 		command.AddCommand(
+			certGenerateTestCommand(nil),
 			certCleanupTestCommand(nil),
 		)
 	}
