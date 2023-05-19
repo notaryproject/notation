@@ -5,4 +5,7 @@
 bin/
 vendor/
 coverage.txt
+test/e2e/coverage.txt
+**/covcounters.*
+**/covmeta.*
 dist/
