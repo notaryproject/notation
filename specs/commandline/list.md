@@ -30,7 +30,7 @@ Flags:
       --allow-referrers-api   [Experimental] use the Referrers API to list signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d, --debug                 debug mode
   -h, --help                  help for list
-      --insecure-registry     use HTTP protocol while connecting to registries. Use it only for testing purposes
+      --insecure-registry     use HTTP protocol while connecting to registries. Use it only for testing purposes. (alias: --plain-http)
       --oci-layout            [Experimental] list signatures stored in OCI image layout
   -p, --password string       password for registry operations (default to $NOTATION_PASSWORD if not specified)
   -u, --username string       username for registry operations (default to $NOTATION_USERNAME if not specified)
