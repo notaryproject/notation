@@ -33,7 +33,7 @@ var (
 
 	flagInsecureRegistry = &pflag.Flag{
 		Name:     "insecure-registry",
-		Usage:    "use HTTP protocol while connecting to registries. Use it only for testing purposes",
+		Usage:    "use HTTP protocol while connecting to registries. Use it only for testing purposes. (alias: --plain-http)",
 		DefValue: "false",
 	}
 	setFlagInsecureRegistry = func(fs *pflag.FlagSet, p *bool) {
@@ -52,6 +52,15 @@ func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setflagUsername(fs, &opts.Username)
 	setFlagPassword(fs, &opts.Password)
 	setFlagInsecureRegistry(fs, &opts.InsecureRegistry)
+	fs.SetNormalizeFunc(aliasNormalizeFunc)
 	opts.Username = os.Getenv(defaultUsernameEnv)
 	opts.Password = os.Getenv(defaultPasswordEnv)
+}
+
+func aliasNormalizeFunc(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	switch name {
+	case "plain-http":
+		name = "insecure-registry"
+	}
+	return pflag.NormalizedName(name)
 }

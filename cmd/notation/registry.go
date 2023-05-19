@@ -120,7 +120,6 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 
 func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
 	var insecureRegistry bool
-
 	if opts.InsecureRegistry {
 		insecureRegistry = opts.InsecureRegistry
 	} else {
