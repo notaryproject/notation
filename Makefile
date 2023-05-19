@@ -80,6 +80,7 @@ install: install-notation ## install the notation cli
 
 .PHONY: install-notation
 install-notation: bin/notation ## installs the notation cli
+	mkdir -p ~/bin
 	cp $< ~/bin/
 
 .PHONY: install-docker-%
