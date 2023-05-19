@@ -13,13 +13,13 @@ Usage:
   notation login [flags] <server>
 
 Flags:
-  -d, --debug             debug mode
-  -h, --help              help for login
-  -p, --password string   password for registry operations (default to $NOTATION_PASSWORD if not specified)
-      --password-stdin    take the password from stdin
-      --plain-http        registry access via plain HTTP
-  -u, --username string   username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -v, --verbose           verbose mode
+  -d, --debug               debug mode
+  -h, --help                help for login
+      --insecure-registry   use HTTP protocol while connecting to registries. Use it only for testing purposes
+  -p, --password string     password for registry operations (default to $NOTATION_PASSWORD if not specified)
+      --password-stdin      take the password from stdin
+  -u, --username string     username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -v, --verbose             verbose mode
 ```
 
 ## Usage

@@ -80,7 +80,7 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 }
 
 func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
-	authClient, plainHTTP, err := getAuthClient(ctx, opts, ref)
+	authClient, insecureRegistry, err := getAuthClient(ctx, opts, ref)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 	return &remote.Repository{
 		Client:    authClient,
 		Reference: ref,
-		PlainHTTP: plainHTTP,
+		PlainHTTP: insecureRegistry,
 	}, nil
 }
 
@@ -119,15 +119,15 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 }
 
 func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*auth.Client, bool, error) {
-	var plainHTTP bool
+	var insecureRegistry bool
 
-	if opts.PlainHTTP {
-		plainHTTP = opts.PlainHTTP
+	if opts.InsecureRegistry {
+		insecureRegistry = opts.InsecureRegistry
 	} else {
-		plainHTTP = configutil.IsRegistryInsecure(ref.Registry)
-		if !plainHTTP {
+		insecureRegistry = configutil.IsRegistryInsecure(ref.Registry)
+		if !insecureRegistry {
 			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
-				plainHTTP = true
+				insecureRegistry = true
 			}
 		}
 	}
@@ -166,7 +166,7 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 	// update authClient
 	setHttpDebugLog(ctx, authClient)
 
-	return authClient, plainHTTP, nil
+	return authClient, insecureRegistry, nil
 }
 
 func getSavedCreds(ctx context.Context, serverAddress string) (auth.Credential, error) {
