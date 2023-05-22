@@ -33,7 +33,7 @@ var (
 
 	flagInsecureRegistry = &pflag.Flag{
 		Name:     "insecure-registry",
-		Usage:    "use HTTP protocol while connecting to registries. Use it only for testing purposes",
+		Usage:    "use HTTP protocol while connecting to registries. Should be used only for testing",
 		DefValue: "false",
 	}
 	setFlagInsecureRegistry = func(fs *pflag.FlagSet, p *bool) {

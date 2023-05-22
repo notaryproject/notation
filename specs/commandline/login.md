@@ -15,7 +15,7 @@ Usage:
 Flags:
   -d, --debug               debug mode
   -h, --help                help for login
-      --insecure-registry   use HTTP protocol while connecting to registries. Use it only for testing purposes
+      --insecure-registry   use HTTP protocol while connecting to registries. Should be used only for testing
   -p, --password string     password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --password-stdin      take the password from stdin
   -u, --username string     username for registry operations (default to $NOTATION_USERNAME if not specified)

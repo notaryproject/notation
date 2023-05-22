@@ -33,7 +33,7 @@ Flags:
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
-       --insecure-registry          use HTTP protocol while connecting to registries. Use it only for testing purposes
+       --insecure-registry          use HTTP protocol while connecting to registries. Should be used only for testing
   -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
        --oci-layout                 [Experimental] sign the artifact stored as OCI image layout
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
