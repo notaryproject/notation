@@ -94,7 +94,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
 	// initialize
-	verifier, err := verifier.NewFromConfig()
+	sigVerifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		MaxSignatureAttempts: maxSignatureAttempts,
 		UserMetadata:         userMetadata,
 	}
-	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
+	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
 	err = checkVerificationFailure(outcomes, resolvedRef, err)
 	if err != nil {
 		return err
