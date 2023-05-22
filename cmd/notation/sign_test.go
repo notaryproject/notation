@@ -45,9 +45,9 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 	expected := &signOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
-			Username:  "user",
-			Password:  "password",
-			PlainHTTP: true,
+			Username:         "user",
+			Password:         "password",
+			InsecureRegistry: true,
 		},
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:             "key",
@@ -61,7 +61,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"-u", expected.Username,
 		"-p", expected.Password,
 		"--key", expected.Key,
-		"--plain-http",
+		"--insecure-registry",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
 		"--allow-referrers-api"}); err != nil {

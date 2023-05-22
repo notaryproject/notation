@@ -10,16 +10,16 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 	expected := &listOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
-			Password:  "password",
-			PlainHTTP: true,
-			Username:  "user",
+			Password:         "password",
+			InsecureRegistry: true,
+			Username:         "user",
 		},
 	}
 	if err := cmd.ParseFlags([]string{
 		"--password", expected.Password,
 		expected.reference,
 		"-u", expected.Username,
-		"--plain-http"}); err != nil {
+		"--insecure-registry"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
