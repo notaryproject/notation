@@ -22,9 +22,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 		if err != nil {
 			panic(err)
 		}
-		vhost.SetOption(
-			AuthOption("", ""),
-		)
+		vhost.SetOption(AuthOption("", ""))
 		notation = vhost.Executor
 
 		// add an image to the OCI-compatible registry
