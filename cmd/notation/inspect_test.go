@@ -12,9 +12,9 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
-			Password:  "password",
-			PlainHTTP: true,
-			Username:  "user",
+			Password:         "password",
+			InsecureRegistry: true,
+			Username:         "user",
 		},
 		outputFormat: cmd.OutputPlaintext,
 	}
@@ -22,7 +22,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 		"--password", expected.Password,
 		expected.reference,
 		"-u", expected.Username,
-		"--plain-http",
+		"--insecure-registry",
 		"--output", "text"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
