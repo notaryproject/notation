@@ -19,8 +19,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/notaryproject/notation-core-go v1.0.0-rc.3 h1:ukRBOwctPF0bWLFs+ThDHwgj+L3+AHdyaOqmziLp8w0=
 github.com/notaryproject/notation-core-go v1.0.0-rc.3/go.mod h1:XWAlhOksW+c9AA/TyobkPv5Xoz8RWGwOAoDdybZLEiI=
-github.com/notaryproject/notation-go v1.0.0-rc.5 h1:LduZJHOR9oONyL/CFgDg7lKudiQNKDT/lWEyVlVSN0c=
-github.com/notaryproject/notation-go v1.0.0-rc.5/go.mod h1:HTLaDq84hp2wAU2ZpeucH/9nJRg7PnufVtCU4dhz/X8=
+github.com/notaryproject/notation-go v1.0.0-rc.5.0.20230519221619-15c8ff82d58a h1:WUoScbQP0rZty3ufjfkgsN/vrqxebpb7f+BIDue4vp8=
+github.com/notaryproject/notation-go v1.0.0-rc.5.0.20230519221619-15c8ff82d58a/go.mod h1:HTLaDq84hp2wAU2ZpeucH/9nJRg7PnufVtCU4dhz/X8=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc.3 h1:GT9Xon8YrLxz6N7sErbN81V8J4lOQKGUZQmI3ioviqU=
