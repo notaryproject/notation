@@ -24,7 +24,6 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 		}
 		vhost.SetOption(
 			AuthOption("", ""),
-			EnableExperimental(),
 		)
 		notation = vhost.Executor
 

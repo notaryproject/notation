@@ -1,8 +1,6 @@
 package cert
 
-import (
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
