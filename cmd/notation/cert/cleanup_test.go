@@ -6,8 +6,8 @@ import (
 )
 
 func TestCertCleanupTestCommand(t *testing.T) {
-	opts := &certGenerateTestOpts{}
-	cmd := certGenerateTestCommand(opts)
+	opts := &certCleanupTestOpts{}
+	cmd := certCleanupTestCommand(opts)
 	expected := &certCleanupTestOpts{
 		keyName: "name",
 	}
