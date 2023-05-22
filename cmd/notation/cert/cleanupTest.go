@@ -60,30 +60,44 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		keyPath := keySuite.X509KeyPair.KeyPath
 		err = osutil.DeleteFile(keyPath)
 		if err != nil {
-			finalError = append(finalError, fmt.Errorf("cannot delete the key file from %q during cleanup-test, %v", keyPath, err))
+			if os.IsNotExist(err) {
+				fmt.Printf("Success: key file %q does not exist. It is already been cleaned up.\n", keyPath)
+			} else {
+				finalError = append(finalError, fmt.Errorf("cannot delete the key file %q during cleanup-test, %v", keyPath, err))
+			}
 		} else {
-			fmt.Printf("Successfully deleted the key file from %q\n", keyPath)
+			fmt.Printf("Success: deleted the key file %q\n", keyPath)
 		}
 		// delete the certificate file from certPath
 		certPath := keySuite.X509KeyPair.CertificatePath
 		err = osutil.DeleteFile(certPath)
 		if err != nil {
-			finalError = append(finalError, fmt.Errorf("cannot delete the certificate file from %q during cleanup-test, %v", certPath, err))
+			if os.IsNotExist(err) {
+				fmt.Printf("Success: certificate file %q does not exist. It is already been cleaned up.\n", certPath)
+			} else {
+				finalError = append(finalError, fmt.Errorf("cannot delete the certificate file %q during cleanup-test, %v", certPath, err))
+			}
 		} else {
-			fmt.Printf("Successfully deleted the certificate file from %q\n", certPath)
+			fmt.Printf("Success: deleted the certificate file %q\n", certPath)
 		}
 		// delete the certificate from trust store
 		certFile := keyName + dir.LocalCertificateExtension
 		err = truststore.DeleteCert("ca", keyName, certFile, true)
 		if err != nil {
-			finalError = append(finalError, fmt.Errorf("cannot delete certificate from truststore/ca/%s/%s during cleanup-test, %v", keyName, certFile, err))
+			if os.IsNotExist(err) {
+				fmt.Printf("Success: certificate %q does not exist in trust store ca/%s. It is already been cleaned up.\n", certFile, keyName)
+			} else {
+				finalError = append(finalError, fmt.Errorf("cannot remove certificate %q from trust store ca/%s during cleanup-test, %v", certFile, keyName, err))
+			}
+		} else {
+			fmt.Printf("Success: removed %q from trust store ca/%s\n", certFile, keyName)
 		}
 		// remove the key from Notation's signing key list
 		_, err = keys.Remove(keyName)
 		if err != nil {
 			finalError = append(finalError, fmt.Errorf("cannot remove %q from notation signing key list during cleanup-test, %v", keyName, err))
 		} else {
-			fmt.Printf("Successfully removed %q from notation signing key list\n", keyName)
+			fmt.Printf("Success: removed %q from notation signing key list\n", keyName)
 		}
 		return nil
 	})
@@ -94,9 +108,9 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	// check if there is any error in the process of cleanup-test
 	if len(finalError) > 0 {
 		for _, err := range finalError {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Failed: %v\n", err)
 		}
-		return errors.New("failed to complete the cleanup-test, manual deletion may be required")
+		return errors.New("failed to complete the cleanup-test, manual deletion is required")
 	}
 	return nil
 }

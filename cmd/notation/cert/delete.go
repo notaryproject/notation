@@ -89,5 +89,7 @@ func deleteCerts(opts *certDeleteOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete the certificate file: %w", err)
 	}
+	// write out on success
+	fmt.Printf("Successfully deleted %s from trust store\n", cert)
 	return nil
 }
