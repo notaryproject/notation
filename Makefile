@@ -30,7 +30,7 @@ all: build
 FORCE:
 
 bin/%: cmd/% FORCE
-	go build $(GO_BUILD_FLAGS) -o $@ ./$<
+	go build $(GO_INSTRUMENT_FLAGS) $(GO_BUILD_FLAGS) -o $@ ./$<
 
 .PHONY: download
 download: ## download dependencies via go mod
@@ -48,7 +48,16 @@ test: vendor check-line-endings ## run unit tests
 e2e: build ## build notation cli and run e2e test
 	NOTATION_BIN_PATH=`pwd`/bin/$(COMMANDS); \
 	cd ./test/e2e; \
-	./run.sh zot $$NOTATION_BIN_PATH
+	./run.sh zot $$NOTATION_BIN_PATH; \
+
+.PHONY: e2e-covdata
+e2e-covdata:
+	export GOCOVERDIR=$(CURDIR)/test/e2e/.cover; \
+	rm -rf $$GOCOVERDIR; \
+	mkdir -p $$GOCOVERDIR; \
+	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/internal/...,github.com/notaryproject/notation/pkg/...,github.com/notaryproject/notation/cmd/..."'; \
+	$(MAKE) e2e; \
+	go tool covdata textfmt -i=$$GOCOVERDIR -o "$(CURDIR)/test/e2e/coverage.txt"
 
 .PHONY: clean
 clean:
@@ -71,6 +80,7 @@ install: install-notation ## install the notation cli
 
 .PHONY: install-notation
 install-notation: bin/notation ## installs the notation cli
+	mkdir -p ~/bin
 	cp $< ~/bin/
 
 .PHONY: install-docker-%
