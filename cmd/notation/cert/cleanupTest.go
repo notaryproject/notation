@@ -22,7 +22,7 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "cleanup-test <common_name>",
-		Short: "[Experimental] Clean up test key and its corresponding self-signed certificate created by the generate-test command.",
+		Short: "Clean up a test key and its corresponding self-signed certificate created by the generate-test command.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate common_name")
@@ -30,6 +30,11 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 			opts.keyName = args[0]
 			return nil
 		},
+		Long: `Clean up a test key and its corresponding self-signed certificate
+
+Example - Clean up a test key and its corresponding self-signed certificate named "wabbit-networks.io":
+  notation cert cleanup-test "wabbit-networks.io"
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cleanupTestCert(opts)
 		},
@@ -91,7 +96,7 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		for _, err := range finalError {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		}
-		return errors.New("failed to complete cleanup-test, manual deletion may be required")
+		return errors.New("failed to complete the cleanup-test, manual deletion may be required")
 	}
 	return nil
 }

@@ -1,23 +1,17 @@
 package cert
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
 
-func TestCertGenerateTestCommand(t *testing.T) {
+func TestCertCleanupTestCommand(t *testing.T) {
 	opts := &certGenerateTestOpts{}
 	cmd := certGenerateTestCommand(opts)
-	expected := &certGenerateTestOpts{
-		name:      "name",
-		bits:      2048,
-		isDefault: true,
+	expected := &certCleanupTestOpts{
+		keyName: "name",
 	}
-	if err := cmd.ParseFlags([]string{
-		"name",
-		"--bits", fmt.Sprint(expected.bits),
-		"--default"}); err != nil {
+	if err := cmd.ParseFlags([]string{"name"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
@@ -28,8 +22,8 @@ func TestCertGenerateTestCommand(t *testing.T) {
 	}
 }
 
-func TestCertGenerateTestCommand_MissingArgs(t *testing.T) {
-	cmd := certGenerateTestCommand(nil)
+func TestCertCleanupTestCommand_MissingArgs(t *testing.T) {
+	cmd := certCleanupTestCommand(nil)
 	if err := cmd.ParseFlags(nil); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}

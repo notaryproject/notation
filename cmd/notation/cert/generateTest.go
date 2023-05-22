@@ -40,7 +40,7 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "generate-test [flags] <common_name>",
-		Short: "[Experimental] Generate a test RSA key and a corresponding self-signed certificate.",
+		Short: "Generate a test RSA key and a corresponding self-signed certificate.",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate common_name")
@@ -48,12 +48,12 @@ func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
 			opts.name = args[0]
 			return nil
 		},
-		Long: `[Experimental] Generate a test RSA key and a corresponding self-signed certificate
+		Long: `Generate a test RSA key and a corresponding self-signed certificate
 
-Example - [Experimental] Generate a test RSA key and a corresponding self-signed certificate named "wabbit-networks.io":
+Example - Generate a test RSA key and a corresponding self-signed certificate named "wabbit-networks.io":
   notation cert generate-test "wabbit-networks.io"
 
-Example - [Experimental] Generate a test RSA key and a corresponding self-signed certificate, set RSA key as a default signing key:
+Example - Generate a test RSA key and a corresponding self-signed certificate, set RSA key as a default signing key:
   notation cert generate-test --default "wabbit-networks.io"
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {

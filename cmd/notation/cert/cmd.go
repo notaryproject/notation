@@ -1,7 +1,6 @@
 package cert
 
 import (
-	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/spf13/cobra"
 )
 
@@ -18,13 +17,8 @@ func Cmd() *cobra.Command {
 		certListCommand(nil),
 		certShowCommand(nil),
 		certDeleteCommand(nil),
+		certGenerateTestCommand(nil),
+		certCleanupTestCommand(nil),
 	)
-	if !experimental.IsDisabled() {
-		command.AddCommand(
-			certGenerateTestCommand(nil),
-			certCleanupTestCommand(nil),
-		)
-	}
-
 	return command
 }
