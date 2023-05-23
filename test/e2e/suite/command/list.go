@@ -22,7 +22,7 @@ var _ = Describe("notation list", func() {
 	})
 
 	It("all signatures of an image with TLS", func() {
-		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
@@ -35,7 +35,7 @@ var _ = Describe("notation list", func() {
 	})
 
 	It("all signatures of an image with --insecure-registry flag", func() {
-		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 

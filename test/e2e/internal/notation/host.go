@@ -41,11 +41,11 @@ func Host(options []utils.HostOption, fn CoreTestFunc) {
 	fn(vhost.Executor, artifact, vhost)
 }
 
-// HostWithTLS only run the test in GitHub Actions for testing TLS related
-// features.
+// HostInGithubAction only run the test in GitHub Actions.
 //
-// The booting script will setup TLS certificate for Github Actions environment.
-func HostWithTLS(options []utils.HostOption, fn CoreTestFunc) {
+// The booting script will setup TLS reverse proxy and TLS certificate
+// for Github Actions environment.
+func HostInGithubAction(options []utils.HostOption, fn CoreTestFunc) {
 	if os.Getenv("GITHUB_ACTIONS") != "true" {
 		Skip("only run in GitHub Actions")
 	}

@@ -123,7 +123,7 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with TLS by digest", func() {
-		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
@@ -133,7 +133,7 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with --insecure-registry by digest", func() {
-		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
