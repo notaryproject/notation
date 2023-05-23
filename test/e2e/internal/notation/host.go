@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
+	. "github.com/onsi/ginkgo/v2"
 )
 
 // CoreTestFunc is the test function running in a VirtualHost.
@@ -38,6 +39,14 @@ func Host(options []utils.HostOption, fn CoreTestFunc) {
 
 	// run the main logic
 	fn(vhost.Executor, artifact, vhost)
+}
+
+// HostWithTLS only run the test in GitHub Actions.
+func HostWithTLS(options []utils.HostOption, fn CoreTestFunc) {
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		Skip("only run in GitHub Actions")
+	}
+	Host(options, fn)
 }
 
 // GeneralHost creates a virtualized notation testing host by modify

@@ -66,6 +66,7 @@ func setUpRegistry() {
 	setValue(envKeyRegistryHost, &TestRegistry.Host)
 	setValue(envKeyRegistryUsername, &TestRegistry.Username)
 	setValue(envKeyRegistryPassword, &TestRegistry.Password)
+	setValue(envKeyDomainRegistryHost, &TestRegistry.DomainHost)
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)

@@ -12,7 +12,7 @@
 #   2. clean up registry
 #   3. call remove_docker_network
 # 
-# note: this script needs sudo permission to add TLS certificate to system and 
+# Note: this script needs sudo permission to add TLS certificate to system and 
 #       add domain registry host.
 
 NGINX_CONTAINER_NAME=nginx
@@ -45,7 +45,7 @@ function setup_tls {
 }
 
 function clean_up_tls {
-    docker container stop $NGINX_CONTAINER_NAME 1>/dev/null && echo "Nginx stopped"
+    docker container stop "$NGINX_CONTAINER_NAME" 1>/dev/null && echo "Nginx stopped"
     sudo sed -i "/${NOTATION_E2E_DOMAIN_REGISTRY_HOST}/d" /etc/hosts
     sudo rm /usr/local/share/ca-certificates/notation-e2e.registry.io.crt
     sudo update-ca-certificates

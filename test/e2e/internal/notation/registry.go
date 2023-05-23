@@ -25,7 +25,7 @@ type Registry struct {
 	Username string
 	// Password is the password to access the registry.
 	Password string
-	// DomainHost is an external registry host for testing --plain-http flag.
+	// DomainHost is an registry host for testing --plain-http flag.
 	// if the host is localhost, notation make all connection as plain http.
 	// if the host is not localhost, notation make all connection as https.
 	DomainHost string
@@ -106,6 +106,10 @@ func (r *Artifact) ReferenceWithTag() string {
 // ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
 func (r *Artifact) ReferenceWithDigest() string {
 	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
+}
+
+func (r *Artifact) DomainReferenceWithDigest() string {
+	return fmt.Sprintf("%s/%s@%s", r.DomainHost, r.Repo, r.Digest)
 }
 
 // SignatureManifest returns the manifest of the artifact.
