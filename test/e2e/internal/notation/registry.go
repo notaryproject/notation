@@ -19,9 +19,16 @@ import (
 const ArtifactTypeNotation = "application/vnd.cncf.notary.signature"
 
 type Registry struct {
-	Host     string
+	// Host is the registry host.
+	Host string
+	// Username is the username to access the registry.
 	Username string
+	// Password is the password to access the registry.
 	Password string
+	// DomainHost is an external registry host for testing --plain-http flag.
+	// if the host is localhost, notation make all connection as plain http.
+	// if the host is not localhost, notation make all connection as https.
+	DomainHost string
 }
 
 // CreateArtifact copies a local OCI layout to the registry to create
