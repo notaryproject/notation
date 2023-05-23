@@ -120,8 +120,8 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
 }
 
-// getAuthClient returns an *auth.Client and a bool indicating if plain HTTP
-// should be used.
+// getAuthClient returns an *auth.Client and a bool indicating if the registry
+// is insecure.
 //
 // If withCredential is true, the returned *auth.Client will have its Credential
 // function configured.
