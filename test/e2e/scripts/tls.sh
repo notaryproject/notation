@@ -18,7 +18,6 @@
 NGINX_CONTAINER_NAME=nginx
 DOMAIN=notation-e2e.registry.io
 DOCKER_NETWORK=notation-e2e
-TLS_PORT=5001
 
 function create_docker_network {
     docker network create "$DOCKER_NETWORK"
@@ -37,7 +36,7 @@ function setup_tls {
     sudo update-ca-certificates
 
     # start Nginx for TLS 
-    docker run -d -p "$TLS_PORT:443" \
+    docker run -d -p 80:80 -p 443:443 \
         --network "$DOCKER_NETWORK" \
         --mount type=bind,source="$(pwd)/testdata/nginx/",target=/etc/nginx \
         --name "$NGINX_CONTAINER_NAME" \

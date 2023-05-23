@@ -160,4 +160,14 @@ var _ = Describe("notation sign", func() {
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
+
+	It("with --insecure-registry by digest", func() {
+		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
 })

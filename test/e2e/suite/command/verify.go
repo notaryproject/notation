@@ -121,4 +121,24 @@ var _ = Describe("notation verify", func() {
 				MatchErrKeyWords(expectedErrMsg)
 		})
 	})
+
+	It("with TLS by digest", func() {
+		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", artifact.DomainReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with --insecure-registry by digest", func() {
+		HostWithTLS(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", "--insecure-registry", artifact.DomainReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
 })

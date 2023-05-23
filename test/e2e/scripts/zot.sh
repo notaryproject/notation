@@ -14,7 +14,7 @@ ZOT_CONTAINER_NAME=notation-e2e-registry
 export NOTATION_E2E_REGISTRY_HOST="$REG_HOST:$REG_PORT"
 export NOTATION_E2E_REGISTRY_USERNAME=testuser
 export NOTATION_E2E_REGISTRY_PASSWORD=testpassword
-export NOTATION_E2E_DOMAIN_REGISTRY_HOST="$DOMAIN:$TLS_PORT"
+export NOTATION_E2E_DOMAIN_REGISTRY_HOST="$DOMAIN"
 
 function setup_registry {
     create_docker_network
