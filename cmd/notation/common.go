@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
+	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 const (
@@ -54,4 +55,17 @@ func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setFlagInsecureRegistry(fs, &opts.InsecureRegistry)
 	opts.Username = os.Getenv(defaultUsernameEnv)
 	opts.Password = os.Getenv(defaultPasswordEnv)
+}
+
+// Credential returns an auth.Credential from opts.Username and opts.Password.
+func (opts *SecureFlagOpts) Credential() auth.Credential {
+	if opts.Username == "" {
+		return auth.Credential{
+			RefreshToken: opts.Password,
+		}
+	}
+	return auth.Credential{
+		Username: opts.Username,
+		Password: opts.Password,
+	}
 }

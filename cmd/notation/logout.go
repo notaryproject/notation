@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/notaryproject/notation/internal/auth"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/pkg/auth"
+	credentials "github.com/oras-project/oras-credentials-go"
 	"github.com/spf13/cobra"
 )
 
@@ -40,16 +41,12 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 func runLogout(ctx context.Context, opts *logoutOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
-
-	// initialize
-	serverAddress := opts.server
-	nativeStore, err := auth.GetCredentialsStore(ctx, serverAddress)
+	credsStore, err := auth.NewCredentialsStore()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get credentials store: %v", err)
 	}
-	err = nativeStore.Erase(serverAddress)
-	if err != nil {
-		return err
+	if err := credentials.Logout(ctx, credsStore, opts.server); err != nil {
+		return fmt.Errorf("failed to log out of %s: %v", opts.server, err)
 	}
 
 	fmt.Println("Logout Succeeded")
