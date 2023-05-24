@@ -25,9 +25,12 @@ type Registry struct {
 	Username string
 	// Password is the password to access the registry.
 	Password string
-	// DomainHost is an registry host for testing --plain-http flag.
+	// DomainHost is a registry host, separate from localhost, used for testing
+	// the --insecure-registry flag.
+	//
 	// if the host is localhost, notation make all connection as plain http.
-	// if the host is not localhost, notation make all connection as https.
+	// if the host is not localhost, notation make all connection as https
+	// by default.
 	DomainHost string
 }
 

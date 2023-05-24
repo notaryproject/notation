@@ -13,7 +13,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("list", artifact.ReferenceWithDigest()).
+			notation.Exec("list", "-d", artifact.ReferenceWithDigest()).
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",
@@ -26,7 +26,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("list", artifact.DomainReferenceWithDigest()).
+			notation.Exec("list", "-d", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",
@@ -39,7 +39,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("list", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+			notation.Exec("list", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",

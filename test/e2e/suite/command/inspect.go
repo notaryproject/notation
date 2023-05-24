@@ -36,7 +36,7 @@ var _ = Describe("notation inspect", func() {
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("inspect", artifact.ReferenceWithDigest()).
+			notation.Exec("inspect", "-d", artifact.ReferenceWithDigest()).
 				MatchKeyWords(inspectSuccessfully...)
 		})
 	})
@@ -46,7 +46,7 @@ var _ = Describe("notation inspect", func() {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("inspect", artifact.DomainReferenceWithDigest()).
+			notation.Exec("inspect", "-d", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(inspectSuccessfully...)
 		})
 	})
@@ -56,7 +56,7 @@ var _ = Describe("notation inspect", func() {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("inspect", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+			notation.Exec("inspect", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(inspectSuccessfully...)
 		})
 	})

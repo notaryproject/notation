@@ -127,7 +127,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.DomainReferenceWithDigest(), "-v").
+			notation.Exec("verify", "-d", artifact.DomainReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -137,7 +137,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", "--insecure-registry", artifact.DomainReferenceWithDigest(), "-v").
+			notation.Exec("verify", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
