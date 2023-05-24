@@ -28,9 +28,9 @@ type Registry struct {
 	// DomainHost is a registry host, separate from localhost, used for testing
 	// the --insecure-registry flag.
 	//
-	// if the host is localhost, notation make all connection as plain http.
-	// if the host is not localhost, notation make all connection as https
-	// by default.
+	// If the host is localhost, Notation connects via plain HTTP. For
+	// non-localhost hosts, Notation defaults to HTTPS. However, users can
+	// enforce HTTP by setting the --insecure-registry flag.
 	DomainHost string
 }
 
