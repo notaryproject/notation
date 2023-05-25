@@ -31,6 +31,7 @@ Flags:
   -d, --debug                 debug mode
   -h, --help                  help for list
       --insecure-registry     use HTTP protocol while connecting to registries. Should be used only for testing
+      --max-signatures int    maximum number of signatures to evaluate or examine (default 100)
       --oci-layout            [Experimental] list signatures stored in OCI image layout
   -p, --password string       password for registry operations (default to $NOTATION_PASSWORD if not specified)
   -u, --username string       username for registry operations (default to $NOTATION_USERNAME if not specified)
