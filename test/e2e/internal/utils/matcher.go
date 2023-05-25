@@ -48,6 +48,13 @@ func (m *Matcher) MatchErrKeyWords(keywords ...string) *Matcher {
 	return m
 }
 
+func (m *Matcher) NotMatchErrKeyWords(keywords ...string) *Matcher {
+	for _, w := range keywords {
+		Expect(m.stdout).ShouldNot(ContainSubstring(w))
+	}
+	return m
+}
+
 // MatchErrKeyWords matches given keywords with the stderr.
 func matchKeyWords(content string, keywords []string) {
 	var missed []string

@@ -47,7 +47,9 @@ var _ = Describe("notation inspect", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("inspect", "-d", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(inspectSuccessfully...)
+				MatchKeyWords(inspectSuccessfully...).
+				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
+				NotMatchErrKeyWords("http://notation-e2e.registry.io")
 		})
 	})
 
@@ -57,7 +59,9 @@ var _ = Describe("notation inspect", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("inspect", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(inspectSuccessfully...)
+				MatchKeyWords(inspectSuccessfully...).
+				MatchErrKeyWords(HTTPRequest).
+				NotMatchErrKeyWords(HTTPSRequest)
 		})
 	})
 })

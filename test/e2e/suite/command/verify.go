@@ -128,7 +128,11 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", "-d", artifact.DomainReferenceWithDigest(), "-v").
-				MatchKeyWords(VerifySuccessfully)
+				MatchKeyWords(
+					VerifySuccessfully,
+				).
+				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
+				NotMatchErrKeyWords("http://notation-e2e.registry.io")
 		})
 	})
 
@@ -138,7 +142,11 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest(), "-v").
-				MatchKeyWords(VerifySuccessfully)
+				MatchKeyWords(
+					VerifySuccessfully,
+				).
+				MatchErrKeyWords(HTTPRequest).
+				NotMatchErrKeyWords(HTTPSRequest)
 		})
 	})
 })
