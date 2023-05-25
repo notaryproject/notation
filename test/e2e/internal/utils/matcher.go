@@ -5,8 +5,14 @@ import (
 	"strings"
 
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/format"
 	"github.com/onsi/gomega/gexec"
 )
+
+func init() {
+	// expand the length limit for the gomega matcher
+	format.MaxLength = 1000000
+}
 
 // Matcher contains the execution result for matching.
 type Matcher struct {
@@ -52,7 +58,7 @@ func (m *Matcher) MatchErrKeyWords(keywords ...string) *Matcher {
 // the stderr.
 func (m *Matcher) NotMatchErrKeyWords(keywords ...string) *Matcher {
 	for _, w := range keywords {
-		Expect(m.stdout).ShouldNot(ContainSubstring(w))
+		Expect(m.stderr).ShouldNot(ContainSubstring(w))
 	}
 	return m
 }
