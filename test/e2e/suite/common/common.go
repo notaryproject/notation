@@ -1,11 +1,26 @@
 package common
 
+import (
+	"fmt"
+
+	. "github.com/notaryproject/notation/test/e2e/internal/notation"
+)
+
 const (
 	LoginSuccessfully  = "Login Succeeded"
 	LogoutSuccessfully = "Logout Succeeded"
 	SignSuccessfully   = "Successfully signed"
 	VerifySuccessfully = "Successfully verified"
 	VerifyFailed       = "signature verification failed"
+)
+
+var (
+	// HTTPRequest is the base URL for HTTP requests for testing
+	// --insecure-registry flag
+	HTTPRequest = fmt.Sprintf("http://%s", TestRegistry.DomainHost)
+
+	// HTTPSRequest is the base URL for HTTPS requests for testing TLS request.
+	HTTPSRequest = fmt.Sprintf("https://%s", TestRegistry.DomainHost)
 )
 
 const (
