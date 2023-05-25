@@ -23,6 +23,7 @@ const (
 	envKeyRegistryHost       = "NOTATION_E2E_REGISTRY_HOST"
 	envKeyRegistryUsername   = "NOTATION_E2E_REGISTRY_USERNAME"
 	envKeyRegistryPassword   = "NOTATION_E2E_REGISTRY_PASSWORD"
+	envKeyDomainRegistryHost = "NOTATION_E2E_DOMAIN_REGISTRY_HOST"
 	envKeyNotationBinPath    = "NOTATION_E2E_BINARY_PATH"
 	envKeyNotationOldBinPath = "NOTATION_E2E_OLD_BINARY_PATH"
 	envKeyNotationPluginPath = "NOTATION_E2E_PLUGIN_PATH"
@@ -65,6 +66,7 @@ func setUpRegistry() {
 	setValue(envKeyRegistryHost, &TestRegistry.Host)
 	setValue(envKeyRegistryUsername, &TestRegistry.Username)
 	setValue(envKeyRegistryPassword, &TestRegistry.Password)
+	setValue(envKeyDomainRegistryHost, &TestRegistry.DomainHost)
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)

@@ -150,4 +150,28 @@ var _ = Describe("notation sign", func() {
 				MatchErrContent(expectedErrMsg)
 		})
 	})
+
+	It("with TLS by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "-d", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully).
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with --insecure-registry by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully).
+				MatchErrKeyWords(HTTPRequest).
+				NoMatchErrKeyWords(HTTPSRequest)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
 })
