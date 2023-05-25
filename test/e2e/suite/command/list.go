@@ -32,7 +32,7 @@ var _ = Describe("notation list", func() {
 					"└── sha256:",
 				).
 				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
-				NotMatchErrKeyWords("http://notation-e2e.registry.io")
+				NoMatchErrKeyWords("http://notation-e2e.registry.io")
 		})
 	})
 
@@ -47,7 +47,7 @@ var _ = Describe("notation list", func() {
 					"└── sha256:",
 				).
 				MatchErrKeyWords(HTTPRequest).
-				NotMatchErrKeyWords(HTTPSRequest)
+				NoMatchErrKeyWords(HTTPSRequest)
 		})
 	})
 })

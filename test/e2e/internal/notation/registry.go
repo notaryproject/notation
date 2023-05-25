@@ -111,6 +111,8 @@ func (r *Artifact) ReferenceWithDigest() string {
 	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
 }
 
+// DomainReferenceWithDigest returns the <domainHost>/<Repository>@<alg>:<digest>
+// for testing --insecure-registry flag and TLS request.
 func (r *Artifact) DomainReferenceWithDigest() string {
 	return fmt.Sprintf("%s/%s@%s", r.DomainHost, r.Repo, r.Digest)
 }

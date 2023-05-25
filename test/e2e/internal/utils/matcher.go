@@ -54,9 +54,9 @@ func (m *Matcher) MatchErrKeyWords(keywords ...string) *Matcher {
 	return m
 }
 
-// NotMatchKeyWords guarantees that the given keywords do not match with
+// NoMatchErrKeyWords guarantees that the given keywords do not match with
 // the stderr.
-func (m *Matcher) NotMatchErrKeyWords(keywords ...string) *Matcher {
+func (m *Matcher) NoMatchErrKeyWords(keywords ...string) *Matcher {
 	for _, w := range keywords {
 		Expect(m.stderr).ShouldNot(ContainSubstring(w))
 	}

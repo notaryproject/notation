@@ -156,7 +156,7 @@ var _ = Describe("notation sign", func() {
 			notation.Exec("sign", "-d", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully).
 				MatchErrKeyWords(HTTPSRequest).
-				NotMatchErrKeyWords(HTTPRequest)
+				NoMatchErrKeyWords(HTTPRequest)
 
 			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
@@ -168,7 +168,7 @@ var _ = Describe("notation sign", func() {
 			notation.Exec("sign", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully).
 				MatchErrKeyWords(HTTPRequest).
-				NotMatchErrKeyWords(HTTPSRequest)
+				NoMatchErrKeyWords(HTTPSRequest)
 
 			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
