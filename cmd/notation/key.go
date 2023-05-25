@@ -227,7 +227,11 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 
 	// core process
 	var deletedNames []string
+	var prevDefault string
 	exec := func(s *config.SigningKeys) error {
+		if s.Default != nil {
+			prevDefault = *s.Default
+		}
 		var err error
 		deletedNames, err = s.Remove(opts.names...)
 		if err != nil {
@@ -241,11 +245,20 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 
 	// write out
 	if len(deletedNames) == 1 {
-		fmt.Printf("Removed %s from Notation signing key list. The source key still exists.\n", deletedNames[0])
+		name := deletedNames[0]
+		if name == prevDefault {
+			fmt.Printf("Removed default key %s from Notation signing key list. The source key still exists.\n", name)
+		} else {
+			fmt.Printf("Removed %s from Notation signing key list. The source key still exists.\n", name)
+		}
 	} else if len(deletedNames) > 1 {
 		fmt.Println("Removed the following keys from Notation signing key list. The source keys still exist.")
 		for _, name := range deletedNames {
-			fmt.Println(name)
+			if name == prevDefault {
+				fmt.Println(name, "(default)")
+			} else {
+				fmt.Println(name)
+			}
 		}
 	}
 	return nil
