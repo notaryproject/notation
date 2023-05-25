@@ -121,4 +121,32 @@ var _ = Describe("notation verify", func() {
 				MatchErrKeyWords(expectedErrMsg)
 		})
 	})
+
+	It("with TLS by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", "-d", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(
+					VerifySuccessfully,
+				).
+				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
+				NoMatchErrKeyWords("http://notation-e2e.registry.io")
+		})
+	})
+
+	It("with --insecure-registry by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(
+					VerifySuccessfully,
+				).
+				MatchErrKeyWords(HTTPRequest).
+				NoMatchErrKeyWords(HTTPSRequest)
+		})
+	})
 })
