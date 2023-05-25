@@ -132,6 +132,12 @@ Removed <key_name> from Notation signing key list. The source key still exists.
 Removed <key_name> from Notation signing key list. The source key still exists.
 ```
 
+- Upon successful removal of the default key, the output message is printed out as follows:
+
+```text
+Removed default key <key_name> from Notation signing key list. The source key still exists.
+```
+
 ### Remove two keys from Notation signing key list
 
 ```shell
@@ -143,5 +149,5 @@ Upon successful execution, the output message is printed out as follows. Please 
 ```text
 Removed the following keys from Notation signing key list. The source keys still exist.
 <key_name_1>
-<key_name_2>
+<key_name_2> (default)
 ```
