@@ -100,6 +100,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
+	command.MarkFlagsMutuallyExclusive("oci-layout", "allow-referrers-api")
 	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
