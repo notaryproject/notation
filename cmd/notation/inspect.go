@@ -14,6 +14,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
+	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -29,6 +30,7 @@ type inspectOpts struct {
 	reference         string
 	outputFormat      string
 	allowReferrersAPI bool
+	maxSignatures     int
 }
 
 type inspectOutput struct {
@@ -88,6 +90,9 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.maxSignatures <= 0 {
+				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
+			}
 			return runInspect(cmd, opts)
 		},
 	}
@@ -95,6 +100,7 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
+	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
@@ -120,70 +126,72 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	}
 	output := inspectOutput{MediaType: manifestDesc.MediaType, Signatures: []signatureOutput{}}
 	skippedSignatures := false
-	err = sigRepo.ListSignatures(ctx, manifestDesc, func(signatureManifests []ocispec.Descriptor) error {
-		for _, sigManifestDesc := range signatureManifests {
-			sigBlob, sigDesc, err := sigRepo.FetchSignatureBlob(ctx, sigManifestDesc)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: unable to fetch signature %s due to error: %v\n", sigManifestDesc.Digest.String(), err)
-				skippedSignatures = true
-				continue
-			}
-
-			sigEnvelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
-			if err != nil {
-				logSkippedSignature(sigManifestDesc, err)
-				skippedSignatures = true
-				continue
-			}
-
-			envelopeContent, err := sigEnvelope.Content()
-			if err != nil {
-				logSkippedSignature(sigManifestDesc, err)
-				skippedSignatures = true
-				continue
-			}
-
-			signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
-			if err != nil {
-				logSkippedSignature(sigManifestDesc, err)
-				skippedSignatures = true
-				continue
-			}
-
-			signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
-			if err != nil {
-				logSkippedSignature(sigManifestDesc, err)
-				skippedSignatures = true
-				continue
-			}
-
-			sig := signatureOutput{
-				MediaType:             sigDesc.MediaType,
-				Digest:                sigManifestDesc.Digest.String(),
-				SignatureAlgorithm:    string(signatureAlgorithm),
-				SignedAttributes:      getSignedAttributes(opts.outputFormat, envelopeContent),
-				UserDefinedAttributes: signedArtifactDesc.Annotations,
-				UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
-				Certificates:          getCertificates(opts.outputFormat, envelopeContent),
-				SignedArtifact:        *signedArtifactDesc,
-			}
-
-			// clearing annotations from the SignedArtifact field since they're already
-			// displayed as UserDefinedAttributes
-			sig.SignedArtifact.Annotations = nil
-
-			output.Signatures = append(output.Signatures, sig)
+	err = listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
+		sigBlob, sigDesc, err := sigRepo.FetchSignatureBlob(ctx, sigManifestDesc)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: unable to fetch signature %s due to error: %v\n", sigManifestDesc.Digest.String(), err)
+			skippedSignatures = true
+			return nil
 		}
+
+		sigEnvelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
+		if err != nil {
+			logSkippedSignature(sigManifestDesc, err)
+			skippedSignatures = true
+			return nil
+		}
+
+		envelopeContent, err := sigEnvelope.Content()
+		if err != nil {
+			logSkippedSignature(sigManifestDesc, err)
+			skippedSignatures = true
+			return nil
+		}
+
+		signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
+		if err != nil {
+			logSkippedSignature(sigManifestDesc, err)
+			skippedSignatures = true
+			return nil
+		}
+
+		signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
+		if err != nil {
+			logSkippedSignature(sigManifestDesc, err)
+			skippedSignatures = true
+			return nil
+		}
+
+		sig := signatureOutput{
+			MediaType:             sigDesc.MediaType,
+			Digest:                sigManifestDesc.Digest.String(),
+			SignatureAlgorithm:    string(signatureAlgorithm),
+			SignedAttributes:      getSignedAttributes(opts.outputFormat, envelopeContent),
+			UserDefinedAttributes: signedArtifactDesc.Annotations,
+			UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
+			Certificates:          getCertificates(opts.outputFormat, envelopeContent),
+			SignedArtifact:        *signedArtifactDesc,
+		}
+
+		// clearing annotations from the SignedArtifact field since they're already
+		// displayed as UserDefinedAttributes
+		sig.SignedArtifact.Annotations = nil
+
+		output.Signatures = append(output.Signatures, sig)
+
 		return nil
 	})
-
-	if err != nil {
+	var errorExceedMaxSignatures cmderr.ErrorExceedMaxSignatures
+	if err != nil && !errors.As(err, &errorExceedMaxSignatures) {
 		return err
 	}
 
-	err = printOutput(opts.outputFormat, resolvedRef, output)
-	if err != nil {
+	if err := printOutput(opts.outputFormat, resolvedRef, output); err != nil {
 		return err
+	}
+
+	if errorExceedMaxSignatures.MaxSignatures > 0 {
+		fmt.Println("Warning:", errorExceedMaxSignatures)
 	}
 
 	if skippedSignatures {
