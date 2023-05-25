@@ -31,16 +31,14 @@ func showCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "show [flags]",
 		Short: "Show trust policy configuration",
-		Long: `Show trust policy configuration.
+		Long: `Show trust policy configuration
 
-** This command is in preview and under development. **
+** This command is in preview and under development. **`,
+		Example: `# Show current trust policy configuration:
+notation policy show
 
-Example - Show current trust policy configuration:
-  notation policy show
-
-Example - Save current trust policy configuration to a file:
-  notation policy show > my_policy.json
-`,
+# Save current trust policy configuration to a file:
+notation policy show > my_policy.json`,
 		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runShow(cmd, opts)

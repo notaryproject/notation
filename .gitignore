@@ -22,3 +22,4 @@ test/e2e/coverage.txt
 **/covcounters.*
 **/covmeta.*
 dist/
+**/.DS_Store

@@ -39,7 +39,7 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "show --type <type> --store <name> [flags] <cert_fileName>",
-		Short: "Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed.",
+		Short: "Show certificate details given trust store type, named store, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate file name")
@@ -50,14 +50,12 @@ func certShowCommand(opts *certShowOpts) *cobra.Command {
 			opts.cert = args[0]
 			return nil
 		},
-		Long: `Show certificate details of given trust store name, trust store type, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed
+		Long: `Show certificate details of given trust store name, trust store type, and certificate file name. If the certificate file contains multiple certificates, then all certificates are displayed`,
+		Example: `# Show details of certificate "cert1.pem" with type "ca" from trust store "acme-rockets":
+notation cert show --type ca --store acme-rockets cert1.pem
 
-Example - Show details of certificate "cert1.pem" with type "ca" from trust store "acme-rockets":
-  notation cert show --type ca --store acme-rockets cert1.pem
-
-Example - Show details of certificate "cert2.pem" with type "signingAuthority" from trust store "wabbit-networks":
-  notation cert show --type signingAuthority --store wabbit-networks cert2.pem
-`,
+# Show details of certificate "cert2.pem" with type "signingAuthority" from trust store "wabbit-networks":
+notation cert show --type signingAuthority --store wabbit-networks cert2.pem`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return showCerts(cmd.Context(), opts)
 		},
