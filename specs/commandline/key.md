@@ -130,6 +130,7 @@ Removed <key_name> from Notation signing key list. The source key still exists.
 
 ```text
 Removed <key_name> from Notation signing key list. The source key still exists.
+```
 
 - Upon successful removal of the default key, the output message is printed out as follows:
 
