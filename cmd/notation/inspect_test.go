@@ -16,7 +16,8 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 			InsecureRegistry: true,
 			Username:         "user",
 		},
-		outputFormat: cmd.OutputPlaintext,
+		outputFormat:  cmd.OutputPlaintext,
+		maxSignatures: 100,
 	}
 	if err := command.ParseFlags([]string{
 		"--password", expected.Password,
@@ -44,7 +45,8 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 			Password: "password",
 			Username: "user",
 		},
-		outputFormat: cmd.OutputJSON,
+		outputFormat:  cmd.OutputJSON,
+		maxSignatures: 100,
 	}
 	command := inspectCommand(opts)
 	if err := command.ParseFlags([]string{

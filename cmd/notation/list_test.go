@@ -14,6 +14,7 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 			InsecureRegistry: true,
 			Username:         "user",
 		},
+		maxSignatures: 100,
 	}
 	if err := cmd.ParseFlags([]string{
 		"--password", expected.Password,
@@ -40,6 +41,7 @@ func TestListCommand_SecretsFromEnv(t *testing.T) {
 			Password: "password",
 			Username: "user",
 		},
+		maxSignatures: 100,
 	}
 	cmd := listCommand(opts)
 	if err := cmd.ParseFlags([]string{

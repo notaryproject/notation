@@ -1,5 +1,7 @@
 package errors
 
+import "fmt"
+
 // ErrorReferrersAPINotSupported is used when the target registry does not
 // support the Referrers API
 type ErrorReferrersAPINotSupported struct {
@@ -24,4 +26,14 @@ func (e ErrorOCILayoutMissingReference) Error() string {
 		return e.Msg
 	}
 	return "reference is missing either digest or tag"
+}
+
+// ErrorExceedMaxSignatures is used when the number of signatures has surpassed
+// the maximum limit that can be evaluated.
+type ErrorExceedMaxSignatures struct {
+	MaxSignatures int
+}
+
+func (e ErrorExceedMaxSignatures) Error() string {
+	return fmt.Sprintf("exceeded configured limit of max signatures %d to examine", e.MaxSignatures)
 }
