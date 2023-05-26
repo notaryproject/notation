@@ -15,8 +15,8 @@ import (
 // vhost is the VirtualHost instance.
 type CoreTestFunc func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)
 
-// OCILayoutTestFunc is the test function running in a VirtualHost agnostic to
-// the Repository of the artifact.
+// OCILayoutTestFunc is the test function running in a VirtualHost with isolated
+// OCI layout for each test case.
 //
 // notation is an Executor isolated by $XDG_CONFIG_HOME.
 // vhost is the VirtualHost instance.
@@ -53,8 +53,8 @@ func HostInGithubAction(options []utils.HostOption, fn CoreTestFunc) {
 }
 
 // HostWithOCILayout creates a virtualized notation testing host by modify
-// the "XDG_CONFIG_HOME" environment variable of the Executor. It's agnostic to
-// the Repository of the artifact.
+// the "XDG_CONFIG_HOME" environment variable of the Executor. It generates
+// isolated OCI layout in the testing host.
 //
 // options is the required testing environment options
 // fn is the callback function containing the testing logic.
