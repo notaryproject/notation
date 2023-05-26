@@ -56,7 +56,6 @@ var (
 func init() {
 	RegisterFailHandler(Fail)
 	setUpRegistry()
-	setUpOCILayout()
 	setUpNotationValues()
 }
 
@@ -69,9 +68,6 @@ func setUpRegistry() {
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)
-}
-
-func setUpOCILayout() {
 }
 
 func setUpNotationValues() {
