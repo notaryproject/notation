@@ -48,8 +48,8 @@ var _ = Describe("notation inspect", func() {
 
 			notation.Exec("inspect", "-d", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(inspectSuccessfully...).
-				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
-				NoMatchErrKeyWords("http://notation-e2e.registry.io")
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
 		})
 	})
 

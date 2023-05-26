@@ -31,8 +31,8 @@ var _ = Describe("notation list", func() {
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",
 				).
-				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
-				NoMatchErrKeyWords("http://notation-e2e.registry.io")
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
 		})
 	})
 
