@@ -92,7 +92,6 @@ trap cleanup EXIT
 # set environment variable for E2E testing
 export NOTATION_E2E_CONFIG_PATH=$CWD/testdata/config
 export NOTATION_E2E_OCI_LAYOUT_PATH=$CWD/testdata/registry/oci_layout
-export NOTATION_E2E_OCI_LAYOUT_TEST_PATH=$CWD/testdata/oci-layout/e2e
 export NOTATION_E2E_TEST_REPO=e2e
 export NOTATION_E2E_TEST_TAG=v1
 export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME

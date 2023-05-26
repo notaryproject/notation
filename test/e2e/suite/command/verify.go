@@ -71,52 +71,45 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("by digest with oci layout", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
-			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
-			notation.Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayoutReference).
+			notation.Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords(experimentalMsg)
 		})
 	})
 
 	It("by tag with oci layout and COSE format", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
-			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithTag()).
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
-			notation.Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayoutReference).
+			notation.Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayout.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords(experimentalMsg)
 		})
 	})
 
 	It("by digest with oci layout but without experimental", func() {
-		GeneralHost(BaseOptions(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+		HostWithOCILayout(BaseOptions(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
 			expectedErrMsg := "Error: flag(s) --oci-layout,--scope in \"notation verify\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
-			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.ExpectFailure().Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayoutReference).
+			notation.ExpectFailure().Exec("verify", "--oci-layout", "--scope", "local/e2e", ociLayout.ReferenceWithDigest()).
 				MatchErrContent(expectedErrMsg)
 		})
 	})
 
 	It("by digest with oci layout but missing scope", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
-			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
 			expectedErrMsg := "Error: if any flags in the group [oci-layout scope] are set they must all be set; missing [scope]"
-			notation.ExpectFailure().Exec("verify", "--oci-layout", ociLayoutReference).
+			notation.ExpectFailure().Exec("verify", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchErrKeyWords(experimentalMsg).
 				MatchErrKeyWords(expectedErrMsg)
 		})
@@ -131,8 +124,8 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(
 					VerifySuccessfully,
 				).
-				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
-				NoMatchErrKeyWords("http://notation-e2e.registry.io")
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
 		})
 	})
 
