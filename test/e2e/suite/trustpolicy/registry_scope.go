@@ -9,6 +9,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 )
 
+// trustPolicyLink is a tutorial link for creating Notation's trust policy.
+const trustPolicyLink = "https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
+
 var _ = Describe("notation trust policy registryScope test", func() {
 	It("empty registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -121,7 +124,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			// test localhost:5000/test-repo
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable trust policy\n", artifact.ReferenceWithDigest()))
+				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable trust policy. Trust policy applicability for a given artifact is determined by registryScopes. To create a trust policy, see: %s\n", artifact.ReferenceWithDigest(), trustPolicyLink))
 		})
 	})
 })
