@@ -12,8 +12,11 @@ import (
 
 // OCILayout is a OCI layout directory for
 type OCILayout struct {
-	Path   string
-	Tag    string
+	// Path is the path of the OCI layout directory.
+	Path string
+	// Tag is the tag of artifact in the OCI layout.
+	Tag string
+	// Digest is the digest of artifact in the OCI layout.
 	Digest string
 }
 
