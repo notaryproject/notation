@@ -50,4 +50,24 @@ var _ = Describe("notation list", func() {
 				NoMatchErrKeyWords(HTTPSRequest)
 		})
 	})
+
+	It("all signatures of an oci-layout", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(
+					"└── application/vnd.cncf.notary.signature",
+					"└── sha256:",
+				)
+		})
+	})
+
+	It("none signature of an oci-layout", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords("has no associated signature")
+		})
+	})
 })
