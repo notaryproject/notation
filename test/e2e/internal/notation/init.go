@@ -20,17 +20,18 @@ const (
 )
 
 const (
-	envKeyRegistryHost       = "NOTATION_E2E_REGISTRY_HOST"
-	envKeyRegistryUsername   = "NOTATION_E2E_REGISTRY_USERNAME"
-	envKeyRegistryPassword   = "NOTATION_E2E_REGISTRY_PASSWORD"
-	envKeyDomainRegistryHost = "NOTATION_E2E_DOMAIN_REGISTRY_HOST"
-	envKeyNotationBinPath    = "NOTATION_E2E_BINARY_PATH"
-	envKeyNotationOldBinPath = "NOTATION_E2E_OLD_BINARY_PATH"
-	envKeyNotationPluginPath = "NOTATION_E2E_PLUGIN_PATH"
-	envKeyNotationConfigPath = "NOTATION_E2E_CONFIG_PATH"
-	envKeyOCILayoutPath      = "NOTATION_E2E_OCI_LAYOUT_PATH"
-	envKeyTestRepo           = "NOTATION_E2E_TEST_REPO"
-	envKeyTestTag            = "NOTATION_E2E_TEST_TAG"
+	envKeyRegistryHostWithReferrersAPI    = "NOTATION_E2E_REGISTRY_HOST_WITH_REFERRERS_API"
+	envKeyRegistryHostWithoutReferrersAPI = "NOTATION_E2E_REGISTRY_HOST_WITHOUT_REFERRERS_API"
+	envKeyRegistryHostForDomain           = "NOTATION_E2E_REGISTRY_HOST_FOR_DOMAIN"
+	envKeyRegistryUsername                = "NOTATION_E2E_REGISTRY_USERNAME"
+	envKeyRegistryPassword                = "NOTATION_E2E_REGISTRY_PASSWORD"
+	envKeyNotationBinPath                 = "NOTATION_E2E_BINARY_PATH"
+	envKeyNotationOldBinPath              = "NOTATION_E2E_OLD_BINARY_PATH"
+	envKeyNotationPluginPath              = "NOTATION_E2E_PLUGIN_PATH"
+	envKeyNotationConfigPath              = "NOTATION_E2E_CONFIG_PATH"
+	envKeyOCILayoutPath                   = "NOTATION_E2E_OCI_LAYOUT_PATH"
+	envKeyTestRepo                        = "NOTATION_E2E_TEST_REPO"
+	envKeyTestTag                         = "NOTATION_E2E_TEST_TAG"
 )
 
 var (
@@ -60,10 +61,17 @@ func init() {
 }
 
 func setUpRegistry() {
-	setValue(envKeyRegistryHost, &TestRegistry.Host)
-	setValue(envKeyRegistryUsername, &TestRegistry.Username)
-	setValue(envKeyRegistryPassword, &TestRegistry.Password)
-	setValue(envKeyDomainRegistryHost, &TestRegistry.DomainHost)
+	setValue(envKeyRegistryHostWithReferrersAPI, &RegistryWithReferrersAPI.Host)
+	setValue(envKeyRegistryUsername, &RegistryWithReferrersAPI.Username)
+	setValue(envKeyRegistryPassword, &RegistryWithReferrersAPI.Password)
+
+	setValue(envKeyRegistryHostWithoutReferrersAPI, &RegistryWithoutReferrersAPI.Host)
+	setValue(envKeyRegistryUsername, &RegistryWithoutReferrersAPI.Username)
+	setValue(envKeyRegistryPassword, &RegistryWithoutReferrersAPI.Password)
+
+	setValue(envKeyRegistryHostForDomain, &RegistryWithDomainHost.Host)
+	setValue(envKeyRegistryUsername, &RegistryWithDomainHost.Username)
+	setValue(envKeyRegistryPassword, &RegistryWithDomainHost.Password)
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)

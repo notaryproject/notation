@@ -116,11 +116,10 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with TLS by digest", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("e2e-valid-signature", "")
 
-			notation.Exec("verify", "-d", artifact.DomainReferenceWithDigest()).
+			notation.Exec("verify", "-d", artifact.ReferenceWithDigest()).
 				MatchKeyWords(
 					VerifySuccessfully,
 				).
@@ -130,11 +129,10 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with --insecure-registry by digest", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("e2e-valid-signature", "")
 
-			notation.Exec("verify", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+			notation.Exec("verify", "-d", "--insecure-registry", artifact.ReferenceWithDigest()).
 				MatchKeyWords(
 					VerifySuccessfully,
 				).

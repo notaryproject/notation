@@ -65,10 +65,7 @@ func HostWithOCILayout(options []utils.HostOption, fn OCILayoutTestFunc) {
 		panic(err)
 	}
 
-	ocilayout, err := GenerateOCILayout("")
-	if err != nil {
-		panic(err)
-	}
+	ocilayout := GenerateOCILayout("")
 
 	// run the main logic
 	fn(vhost.Executor, ocilayout, vhost)
@@ -147,10 +144,10 @@ func CreateNotationDirOption() utils.HostOption {
 // AuthOption sets the auth environment variables for notation.
 func AuthOption(username, password string) utils.HostOption {
 	if username == "" {
-		username = TestRegistry.Username
+		username = RegistryWithReferrersAPI.Username
 	}
 	if password == "" {
-		password = TestRegistry.Password
+		password = RegistryWithReferrersAPI.Password
 	}
 	return func(vhost *utils.VirtualHost) error {
 		vhost.UpdateEnv(authEnv(username, password))

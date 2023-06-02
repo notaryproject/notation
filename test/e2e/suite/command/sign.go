@@ -144,25 +144,27 @@ var _ = Describe("notation sign", func() {
 	})
 
 	It("with TLS by digest", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "-d", artifact.DomainReferenceWithDigest()).
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("", "")
+			notation.Exec("sign", "-d", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully).
 				MatchErrKeyWords(HTTPSRequest).
 				NoMatchErrKeyWords(HTTPRequest)
 
-			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+			OldNotation().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
 	It("with --insecure-registry by digest", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("", "")
+			notation.Exec("sign", "-d", "--insecure-registry", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully).
 				MatchErrKeyWords(HTTPRequest).
 				NoMatchErrKeyWords(HTTPSRequest)
 
-			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+			OldNotation().Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

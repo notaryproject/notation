@@ -17,10 +17,10 @@ const (
 var (
 	// HTTPRequest is the base URL for HTTP requests for testing
 	// --insecure-registry flag
-	HTTPRequest = fmt.Sprintf("http://%s", TestRegistry.DomainHost)
+	HTTPRequest = fmt.Sprintf("http://%s", RegistryWithDomainHost.Host)
 
 	// HTTPSRequest is the base URL for HTTPS requests for testing TLS request.
-	HTTPSRequest = fmt.Sprintf("https://%s", TestRegistry.DomainHost)
+	HTTPSRequest = fmt.Sprintf("https://%s", RegistryWithDomainHost.Host)
 )
 
 const (

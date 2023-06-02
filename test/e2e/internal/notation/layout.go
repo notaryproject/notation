@@ -21,36 +21,36 @@ type OCILayout struct {
 }
 
 // GenerateOCILayout creates a new OCI layout in a temporary directory.
-func GenerateOCILayout(srcRepoName string) (*OCILayout, error) {
+func GenerateOCILayout(srcRepo string) *OCILayout {
 	ctx := context.Background()
 
-	if srcRepoName == "" {
-		srcRepoName = TestRepoUri
+	if srcRepo == "" {
+		srcRepo = TestRepoUri
 	}
 
 	destPath := filepath.Join(GinkgoT().TempDir(), newRepoName())
 	// create a local store from OCI layout directory.
-	srcStore, err := oci.NewFromFS(ctx, os.DirFS(filepath.Join(OCILayoutPath, srcRepoName)))
+	srcStore, err := oci.NewFromFS(ctx, os.DirFS(filepath.Join(OCILayoutPath, srcRepo)))
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// create a dest store for store the generated oci layout.
 	destStore, err := oci.New(destPath)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// copy data
 	desc, err := oras.ExtendedCopy(ctx, srcStore, TestTag, destStore, "", oras.DefaultExtendedCopyOptions)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	return &OCILayout{
 		Path:   destPath,
 		Tag:    TestTag,
 		Digest: desc.Digest.String(),
-	}, nil
+	}
 }
 
 // ReferenceWithTag returns the reference with tag.

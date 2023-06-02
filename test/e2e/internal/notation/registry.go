@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	. "github.com/onsi/ginkgo/v2"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/content/oci"
@@ -25,24 +26,32 @@ type Registry struct {
 	Username string
 	// Password is the password to access the registry.
 	Password string
-	// DomainHost is a registry host, separate from localhost, used for testing
-	// the --insecure-registry flag.
-	//
-	// If the host is localhost, Notation connects via plain HTTP. For
-	// non-localhost hosts, Notation defaults to HTTPS. However, users can
-	// enforce HTTP by setting the --insecure-registry flag.
-	DomainHost string
 }
 
 // CreateArtifact copies a local OCI layout to the registry to create
 // a new artifact with a new repository.
 //
-// srcRepoName is the repo name in ./testdata/registry/oci_layout folder.
-// destRepoName is the repo name to be created in the registry.
-func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, error) {
+// srcRepo is the repo name in ./testdata/registry/oci_layout folder.
+// destRepo is the repo name to be created in the registry.
+// forceTagSchema is the flag to force the tag schema for pre-signed signature
+// of the artifact.
+func (r *Registry) CreateArtifact(srcRepo, newRepo string, forceTagSchema bool) (*Artifact, error) {
 	ctx := context.Background()
+	if r.Host == "" {
+		Skip("The registry host is not set. The registry may not be available for the test case.")
+	}
+
+	if srcRepo == "" {
+		srcRepo = TestRepoUri
+	}
+
+	if newRepo == "" {
+		// generate new repo
+		newRepo = newRepoName()
+	}
+
 	// create a local store from OCI layout directory.
-	srcStore, err := oci.NewFromFS(ctx, os.DirFS(filepath.Join(OCILayoutPath, srcRepoName)))
+	srcStore, err := oci.NewFromFS(ctx, os.DirFS(filepath.Join(OCILayoutPath, srcRepo)))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +59,7 @@ func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, 
 	// create the artifact struct
 	artifact := &Artifact{
 		Registry: r,
-		Repo:     destRepoName,
+		Repo:     newRepo,
 		Tag:      TestTag,
 	}
 
@@ -59,6 +68,7 @@ func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, 
 	if err != nil {
 		return nil, err
 	}
+	destRepo.SetReferrersCapability(!forceTagSchema)
 
 	// copy data
 	desc, err := oras.ExtendedCopy(ctx, srcStore, artifact.Tag, destRepo, "", oras.DefaultExtendedCopyOptions)
@@ -69,7 +79,16 @@ func (r *Registry) CreateArtifact(srcRepoName, destRepoName string) (*Artifact, 
 	return artifact, err
 }
 
-var TestRegistry = Registry{}
+// RegistryWithReferrersAPI is a registry for testing with referrers API enabled.
+var RegistryWithReferrersAPI Registry
+
+// RegistryWithoutReferrersAPI is a registry for testing with referrers
+// API disabled.
+var RegistryWithoutReferrersAPI Registry
+
+// RegistryWithDomainHost is a registry with a domain host name for testing
+// TLS and --insecure-registry feature. The referrer API is disabled.
+var RegistryWithDomainHost Registry
 
 // Artifact describes an artifact in a repository.
 type Artifact struct {
@@ -83,18 +102,46 @@ type Artifact struct {
 }
 
 // GenerateArtifact generates a new artifact with a new repository by copying
-// the source repository in the OCILayoutPath to be a new repository.
+// the source repository in the OCILayoutPath to be a new repository and disable
+// the referrers API.
+//
+// srcRepo is the repo name in ./testdata/registry/oci_layout folder.
+// newRepo is the repo name to be created in the registry.
 func GenerateArtifact(srcRepo, newRepo string) *Artifact {
-	if srcRepo == "" {
-		srcRepo = TestRepoUri
+	// registry without referrers API will add tag schema to the pre-signed
+	// signature of the artifact.
+	artifact, err := RegistryWithoutReferrersAPI.CreateArtifact(srcRepo, newRepo, true)
+	if err != nil {
+		panic(err)
 	}
+	return artifact
+}
 
-	if newRepo == "" {
-		// generate new repo
-		newRepo = newRepoName()
+// GenerateArtifactWithReferrersAPI generates a new artifact with a new repository by copying
+// the source repository in the OCILayoutPath to be a new repository and enable
+// the referrers API.
+//
+// srcRepo is the repo name in ./testdata/registry/oci_layout folder.
+// newRepo is the repo name to be created in the registry.
+func GenerateArtifactWithReferrersAPI(srcRepo, newRepo string) *Artifact {
+	artifact, err := RegistryWithReferrersAPI.CreateArtifact(srcRepo, newRepo, false)
+	if err != nil {
+		panic(err)
 	}
+	return artifact
+}
 
-	artifact, err := TestRegistry.CreateArtifact(srcRepo, newRepo)
+// GenerateArtifactWithDomainHost generates a new artifact with a new
+// repository by copying the source repository in the OCILayoutPath to be a
+// new repository and enable the referrers API. The registry host is a domain
+// host name, separate from localhost, used for testing the --insecure-registry.
+//
+// srcRepo is the repo name in ./testdata/registry/oci_layout folder.
+// newRepo is the repo name to be created in the registry.
+func GenerateArtifactWithDomainHost(srcRepo, newRepo string) *Artifact {
+	// the domain host registry support Referrers API, but the pre-signed
+	// signature of the artifact will add tag schema by default.
+	artifact, err := RegistryWithDomainHost.CreateArtifact(srcRepo, newRepo, true)
 	if err != nil {
 		panic(err)
 	}
@@ -109,12 +156,6 @@ func (r *Artifact) ReferenceWithTag() string {
 // ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
 func (r *Artifact) ReferenceWithDigest() string {
 	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
-}
-
-// DomainReferenceWithDigest returns the <domainHost>/<Repository>@<alg>:<digest>
-// for testing --insecure-registry flag and TLS request.
-func (r *Artifact) DomainReferenceWithDigest() string {
-	return fmt.Sprintf("%s/%s@%s", r.DomainHost, r.Repo, r.Digest)
 }
 
 // SignatureManifest returns the manifest of the artifact.
@@ -173,8 +214,8 @@ func authClient(ref registry.Reference) *auth.Client {
 			switch registry {
 			case ref.Host():
 				return auth.Credential{
-					Username: TestRegistry.Username,
-					Password: TestRegistry.Password,
+					Username: RegistryWithReferrersAPI.Username,
+					Password: RegistryWithReferrersAPI.Password,
 				}, nil
 			default:
 				return auth.EmptyCredential, nil

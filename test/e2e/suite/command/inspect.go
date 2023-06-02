@@ -42,11 +42,10 @@ var _ = Describe("notation inspect", func() {
 	})
 
 	It("all signatures of an image with TLS", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("e2e-valid-signature", "")
 
-			notation.Exec("inspect", "-d", artifact.DomainReferenceWithDigest()).
+			notation.Exec("inspect", "-d", artifact.ReferenceWithDigest()).
 				MatchKeyWords(inspectSuccessfully...).
 				MatchErrKeyWords(HTTPSRequest).
 				NoMatchErrKeyWords(HTTPRequest)
@@ -54,11 +53,10 @@ var _ = Describe("notation inspect", func() {
 	})
 
 	It("all signatures of an image with --insecure-registry flag", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("e2e-valid-signature", "")
 
-			notation.Exec("inspect", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+			notation.Exec("inspect", "-d", "--insecure-registry", artifact.ReferenceWithDigest()).
 				MatchKeyWords(inspectSuccessfully...).
 				MatchErrKeyWords(HTTPRequest).
 				NoMatchErrKeyWords(HTTPSRequest)

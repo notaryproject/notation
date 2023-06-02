@@ -16,7 +16,7 @@ var _ = Describe("notation login", func() {
 	})
 	It("should sign an image after successfully logging in the registry by prompt with a correct credential", func() {
 		Host(TestLoginOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.WithInput(gbytes.BufferWithBytes([]byte(fmt.Sprintf("%s\n%s\n", TestRegistry.Username, TestRegistry.Password)))).
+			notation.WithInput(gbytes.BufferWithBytes([]byte(fmt.Sprintf("%s\n%s\n", RegistryWithReferrersAPI.Username, RegistryWithReferrersAPI.Password)))).
 				Exec("login", artifact.Host).
 				MatchKeyWords(LoginSuccessfully)
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
