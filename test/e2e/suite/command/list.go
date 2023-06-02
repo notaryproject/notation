@@ -66,7 +66,7 @@ var _ = Describe("notation list", func() {
 		})
 	})
 
-	It("none signature of an oci-layout", func() {
+	It("oci-layout with no signature", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
 			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords("has no associated signature")
