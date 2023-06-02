@@ -3,7 +3,7 @@
     "trustPolicies": [
         {
             "name": "e2e",
-            "registryScopes": [ "localhost:5000/test-repo3", "localhost:5000/test-repo2" ],
+            "registryScopes": [ "localhost:5001/test-repo3", "localhost:5001/test-repo2" ],
             "signatureVerification": {
                 "level" : "strict" 
             },
