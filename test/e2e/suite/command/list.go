@@ -31,8 +31,8 @@ var _ = Describe("notation list", func() {
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",
 				).
-				MatchErrKeyWords("https://notation-e2e.registry.io/v2/e2e").
-				NoMatchErrKeyWords("http://notation-e2e.registry.io")
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
 		})
 	})
 
@@ -48,6 +48,28 @@ var _ = Describe("notation list", func() {
 				).
 				MatchErrKeyWords(HTTPRequest).
 				NoMatchErrKeyWords(HTTPSRequest)
+		})
+	})
+
+	It("all signatures of an oci-layout", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *OCILayout, vhost *utils.VirtualHost) {
+			ociLayout, err := GenerateOCILayout("e2e-valid-signature")
+			if err != nil {
+				Fail(err.Error())
+			}
+
+			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(
+					"└── application/vnd.cncf.notary.signature",
+					"└── sha256:273243a7a64e9312761ca0aa8f43b6ba805e677a561558143b6e92981c487339",
+				)
+		})
+	})
+
+	It("oci-layout with no signature", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords("has no associated signature")
 		})
 	})
 })
