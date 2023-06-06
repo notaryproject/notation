@@ -115,7 +115,13 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 		// ErrPlaintextPutDisabled returned by Login() indicates that the
 		// credential is validated but is not saved because there is no native
 		// credentials store available
-		if savedCred, err := credsStore.Get(ctx, registryName); err != nil || savedCred != cred {
+		credKeyName := registryName
+		if registryName == "docker.io" {
+			// it's as expected that credentials for "docker.io" are stored
+			// under the key "https://index.docker.io/v1/"
+			credKeyName = "https://index.docker.io/v1/"
+		}
+		if savedCred, err := credsStore.Get(ctx, credKeyName); err != nil || savedCred != cred {
 			if err != nil {
 				// if we fail to get the saved credential, log a warning
 				// but do not throw the GET error, as the error could be
