@@ -30,3 +30,5 @@ require (
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 )
+
+replace github.com/notaryproject/notation-go => github.com/JeyJeyGao/notation-go v1.0.0

@@ -131,18 +131,18 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		MaxSignatureAttempts: opts.maxSignatureAttempts,
 		UserMetadata:         userMetadata,
 	}
-	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
-	err = checkVerificationFailure(outcomes, resolvedRef, err)
+	_, outcome, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
+	err = checkVerificationFailure(outcome, resolvedRef, err)
 	if err != nil {
 		return err
 	}
-	reportVerificationSuccess(outcomes, resolvedRef)
+	reportVerificationSuccess(outcome, resolvedRef)
 	return nil
 }
 
-func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
+func checkVerificationFailure(outcome *notation.VerificationOutcome, printOut string, err error) error {
 	// write out on failure
-	if err != nil || len(outcomes) == 0 {
+	if err != nil || outcome == nil {
 		if err != nil {
 			var errorVerificationFailed notation.ErrorVerificationFailed
 			if !errors.As(err, &errorVerificationFailed) {
@@ -154,9 +154,8 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 	return nil
 }
 
-func reportVerificationSuccess(outcomes []*notation.VerificationOutcome, printout string) {
+func reportVerificationSuccess(outcome *notation.VerificationOutcome, printout string) {
 	// write out on success
-	outcome := outcomes[0]
 	// print out warning for any failed result with logged verification action
 	for _, result := range outcome.VerificationResults {
 		if result.Error != nil {
