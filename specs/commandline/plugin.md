@@ -54,7 +54,7 @@ Aliases:
   install, add
 ```
 
-### notation plugin remove 
+### notation plugin remove
 
 ```text
 Removes a plugin
@@ -98,6 +98,7 @@ Upon successful execution, a list of plugins are printed out with information of
 An example of output from `notation plugin list`:
 
 ```text
-NAME       DESCRIPTION                                   VERSION             CAPABILITIES                ERROR
-azure-kv   Sign artifacts with keys in Azure Key Vault   v0.5.0-rc.1     [SIGNATURE_GENERATOR.RAW]   <nil>
+NAME                                   DESCRIPTION                                   VERSION       CAPABILITIES                                                                                            ERROR
+azure-kv                               Sign artifacts with keys in Azure Key Vault   v0.5.0-rc.1   [SIGNATURE_GENERATOR.RAW]                                                                                <nil>
+com.amazonaws.signer.notation.plugin   AWS Signer plugin for Notation                1.0.290       [SIGNATURE_GENERATOR.ENVELOPE SIGNATURE_VERIFIER.TRUSTED_IDENTITY SIGNATURE_VERIFIER.REVOCATION_CHECK]   <nil>
 ```
