@@ -1,14 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"text/tabwriter"
+	"strings"
 
 	"github.com/Masterminds/semver"
 	"github.com/notaryproject/notation-go/dir"
@@ -116,26 +115,18 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 	}
 
 	pluginSrcPath := args[0]
-
 	pluginBinary := filepath.Base(pluginSrcPath)
+	pluginName := splitPluginName(pluginBinary)
 
 	// get plugin metadata
-	cmd := exec.Command(pluginSrcPath, "get-plugin-metadata")
-
-	output, err := cmd.Output()
-	if err != nil {
-		return err
+	pl, err := plugin.NewCLIPlugin(command.Context(), pluginName, pluginSrcPath)
+	newPluginMetadata := &proto.GetMetadataResponse{}
+	resp, err := pl.GetMetadata(command.Context(), &proto.GetMetadataRequest{})
+	if err == nil {
+		newPluginMetadata = resp
 	}
 
-	var newPlugin map[string]interface{}
-	err = json.Unmarshal([]byte(output), &newPlugin)
-	if err != nil {
-		return err
-	}
-
-	pluginName := newPlugin["name"].(string)
-	newPluginVersion := newPlugin["version"].(string)
-	newSemVersion, err := semver.NewVersion(newPluginVersion)
+	newVersion, err := semver.NewVersion(newPluginMetadata.Version)
 	if err != nil {
 		return err
 	}
@@ -174,29 +165,26 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 
 	// if plugin exists and force flag is not set, get plugin metadata
 	if err == nil && !force {
-		cmd := exec.Command(pluginDestPath, "get-plugin-metadata")
+		mgr := plugin.NewCLIManager(dir.PluginFS())
+		currentPlugin, err := mgr.Get(command.Context(), pluginName)
 
-		output, err := cmd.Output()
-		if err != nil {
-			return err
+		currentPluginMetadata := &proto.GetMetadataResponse{}
+		if err == nil {
+			resp, err := currentPlugin.GetMetadata(command.Context(), &proto.GetMetadataRequest{})
+			if err == nil {
+				 currentPluginMetadata = resp
+			}
 		}
 
-		var currentPlugin map[string]interface{}
-		err = json.Unmarshal([]byte(output), &currentPlugin)
-		if err != nil {
-			return err
-		}
-
-		// check if new plugin version is greater than current plugin version
-		currentPluginVersion := currentPlugin["version"].(string)
-		currentVersion, err := semver.NewVersion(currentPluginVersion)
+		// convert version to semver
+		currentVersion, err := semver.NewVersion(currentPluginMetadata.Version)
 		if err != nil {
 			return err
 		}
 
 		// copy plugin, if new plugin version is greater than current plugin version
-		if newSemVersion.GreaterThan(currentVersion) {
-			prompt := fmt.Sprintf("Are you sure you want to overwrite plugin %s v%s with v%s?", pluginName, currentVersion.String(), newSemVersion.String())
+		if newVersion.GreaterThan(currentVersion) {
+			prompt := fmt.Sprintf("Are you sure you want to overwrite plugin %s v%s with v%s?", pluginName, currentVersion.String(), newVersion.String())
 			confimred, err := cmdutil.AskForConfirmation(os.Stdin, prompt, false)
 			if err != nil {
 				return err
@@ -211,7 +199,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 		}
 
 		// do not copy plugin, if new plugin version is less than or equal to current plugin version
-		if newSemVersion.LessThan(currentVersion) || newSemVersion.Equal(currentVersion) {
+		if newVersion.LessThan(currentVersion) || newVersion.Equal(currentVersion) {
 			fmt.Println("Current version is greater than or equal to new version. Skipping plugin installation.\nUse --force flag to overwrite the plugin.")
 		}
 	}
@@ -265,4 +253,16 @@ func copyPlugin(src, dest string) error {
 		return err
 	}
 	return nil
+}
+
+func splitPluginName (p string) string {
+	parts := strings.Split(p, "-")
+	result := strings.Join(parts[1:3], "-")
+	ext := filepath.Ext(p)
+
+	if ext != "" {
+		result = strings.TrimSuffix(result, ".exe")
+	}
+
+	return result
 }
