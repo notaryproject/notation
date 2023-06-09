@@ -9,12 +9,12 @@ import (
 	"text/tabwriter"
 	"strings"
 
-	"github.com/Masterminds/semver"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/spf13/cobra"
+	"golang.org/x/mod/semver"
 )
 
 func pluginCommand() *cobra.Command {
@@ -126,11 +126,6 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 		newPluginMetadata = resp
 	}
 
-	newVersion, err := semver.NewVersion(newPluginMetadata.Version)
-	if err != nil {
-		return err
-	}
-
 	// get plugin directory
 	pluginDir, err := dir.PluginFS().SysPath(pluginName)
 	if err != nil {
@@ -176,15 +171,12 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 			}
 		}
 
-		// convert version to semver
-		currentVersion, err := semver.NewVersion(currentPluginMetadata.Version)
-		if err != nil {
-			return err
-		}
+		// Compare plugin versions
+		compare := semver.Compare("v"+newPluginMetadata.Version, "v"+currentPluginMetadata.Version) 
 
 		// copy plugin, if new plugin version is greater than current plugin version
-		if newVersion.GreaterThan(currentVersion) {
-			prompt := fmt.Sprintf("Are you sure you want to overwrite plugin %s v%s with v%s?", pluginName, currentVersion.String(), newVersion.String())
+		if compare == 1 {
+			prompt := fmt.Sprintf("Are you sure you want to overwrite plugin %s_v%s with v%s?", pluginName, currentPluginMetadata.Version, newPluginMetadata.Version)
 			confimred, err := cmdutil.AskForConfirmation(os.Stdin, prompt, false)
 			if err != nil {
 				return err
@@ -199,8 +191,8 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 		}
 
 		// do not copy plugin, if new plugin version is less than or equal to current plugin version
-		if newVersion.LessThan(currentVersion) || newVersion.Equal(currentVersion) {
-			fmt.Println("Current version is greater than or equal to new version. Skipping plugin installation.\nUse --force flag to overwrite the plugin.")
+		if compare == -1 || compare == 0 {
+			fmt.Println("Skipping plugin installation. The current version is equal to or higher than the new version.\nTo overwrite the plugin, use the --force flag.") 
 		}
 	}
 
