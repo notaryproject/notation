@@ -35,6 +35,11 @@ jobs:
       - name: Run unit tests
         run: make test
       - name: Run e2e tests
-        run:  make e2e
+        run:  |
+          if [[ $GITHUB_REF_NAME == v* && $GITHUB_REF_TYPE == tag ]]; then
+            make e2e
+          else
+            make e2e-covdata
+          fi
       - name: Upload coverage to codecov.io
         uses: codecov/codecov-action@v3

@@ -52,6 +52,8 @@ Example - Show details of certificate "cert2.pem" with type "signingAuthority" f
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	command.MarkFlagRequired("type")
+	command.MarkFlagRequired("store")
 	return command
 }
 

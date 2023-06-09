@@ -22,12 +22,12 @@ var _ = Describe("notation trust policy trust store test", func() {
 	})
 
 	It("invalid trust store", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AddTrustPolicyOption("invalid_trust_store_trustpolicy.json"))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("authenticity validation failed",
 					"truststore/x509/ca/invalid_store\\\" does not exist",
 					VerifyFailed)
@@ -70,14 +70,15 @@ var _ = Describe("notation trust policy trust store test", func() {
 			vhost.SetOption(AuthOption("", ""),
 				AddTrustPolicyOption("multiple_trust_store_trustpolicy.json"),
 				AddTrustStoreOption("e2e-new", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
-				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")))
+				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+				EnableExperimental())
 
 			notation.WithDescription("verify artifact1 with trust store ca/e2e-new").
-				Exec("verify", artifact1.ReferenceWithDigest(), "-v").
+				Exec("verify", "--allow-referrers-api", artifact1.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 
 			notation.WithDescription("verify artifact2 with trust store ca/e2e").
-				Exec("verify", artifact2.ReferenceWithDigest(), "-v").
+				Exec("verify", "--allow-referrers-api", artifact2.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -86,7 +87,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 		Skip("overlapped trust stores were not checked")
 		Host(nil, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			// artifact signed with new_e2e.crt
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("sign", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(SignSuccessfully)
 
 			// setup overlapped trust store

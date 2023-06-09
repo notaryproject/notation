@@ -32,7 +32,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 
 	It("list the signatures associated with the container image", func() {
 		notation.Exec("ls", artifact.ReferenceWithTag()).
-			MatchContent("")
+			MatchKeyWords("has no associated signature")
 	})
 
 	It("generate a test key and self-signed certificate", func() {

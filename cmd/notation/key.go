@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/notaryproject/notation-go/config"
 	"os"
+
+	"github.com/notaryproject/notation-go/config"
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -74,7 +75,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "add --plugin <plugin_name> [flags] <key_name>",
-		Short: "Add key to signing key list",
+		Short: "Add key to Notation signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("either missing key name or unnecessary parameters passed")
@@ -105,7 +106,7 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "update [flags] <key_name>",
 		Aliases: []string{"set"},
-		Short:   "Update key in signing key list",
+		Short:   "Update key in Notation signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key name")
@@ -142,7 +143,7 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 
 	command := &cobra.Command{
 		Use:   "delete [flags] <key_name>...",
-		Short: "Delete key from signing key list",
+		Short: "Remove key from Notation signing key list",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key names")
@@ -243,11 +244,21 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	}
 
 	// write out
-	for _, name := range deletedNames {
-		if prevDefault == name {
-			fmt.Printf("%s: unmarked as default\n", name)
+	if len(deletedNames) == 1 {
+		name := deletedNames[0]
+		if name == prevDefault {
+			fmt.Printf("Removed default key %s from Notation signing key list. The source key still exists.\n", name)
 		} else {
-			fmt.Println(name)
+			fmt.Printf("Removed %s from Notation signing key list. The source key still exists.\n", name)
+		}
+	} else if len(deletedNames) > 1 {
+		fmt.Println("Removed the following keys from Notation signing key list. The source keys still exist.")
+		for _, name := range deletedNames {
+			if name == prevDefault {
+				fmt.Println(name, "(default)")
+			} else {
+				fmt.Println(name)
+			}
 		}
 	}
 	return nil

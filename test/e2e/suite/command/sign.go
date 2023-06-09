@@ -106,4 +106,64 @@ var _ = Describe("notation sign", func() {
 				MatchErrKeyWords("signature verification failed for all the signatures")
 		})
 	})
+
+	It("by digest with oci layout", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by digest with oci layout and COSE format", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by tag with oci layout", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by tag with oci layout and COSE format", func() {
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by digest with oci layout but without experimental", func() {
+		HostWithOCILayout(BaseOptions(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			expectedErrMsg := "Error: flag(s) --oci-layout in \"notation sign\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
+			notation.ExpectFailure().Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
+				MatchErrContent(expectedErrMsg)
+		})
+	})
+
+	It("with TLS by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "-d", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully).
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with --insecure-registry by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully).
+				MatchErrKeyWords(HTTPRequest).
+				NoMatchErrKeyWords(HTTPSRequest)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
 })
