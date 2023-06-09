@@ -133,7 +133,7 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 				registryName, urlDocHowToAuthenticate)
 		}
 
-		// the credential already exists somewhere, ignore the saving error
+		// the credential already exists but is in plaintext, ignore the saving error
 		fmt.Fprintf(os.Stderr, "Warning: The credentials store is not set up. It is recommended to configure the credentials store to securely store your credentials. See %s.\n", urlDocHowToAuthenticate)
 		fmt.Println("Authenticated with existing credentials")
 	}
