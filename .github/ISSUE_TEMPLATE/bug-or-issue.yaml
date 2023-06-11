@@ -19,14 +19,6 @@ body:
     attributes:
       value: |
         Thank you for taking the time to fill out this issue report. 🛑 Please check existing issues first before continuing: https://github.com/notaryproject/notation/issues
-  - type: dropdown
-    id: area
-    validations:
-      required: true
-    attributes:
-      label: "What is the areas you experience the issue in?"
-      options: 
-        - Notation CLI
   - type: textarea
     id: verbatim
     validations:
