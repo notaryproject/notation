@@ -13,7 +13,7 @@ This spec contains reference information on using notation commands. Each comman
 | [login](./commandline/login.md)             | Login to registries                                                    |
 | [logout](./commandline/logout.md)           | Log out from the logged in registries                                  |
 | [plugin](./commandline/plugin.md)           | Manage plugins                                                         |
-| [policy](./commandline/policy.md)           | [Preview] Manage trust policy configuration for signature verification |
+| [policy](./commandline/policy.md)           | Manage trust policy configuration for signature verification |
 | [sign](./commandline/sign.md)               | Sign artifacts                                                         |
 | [verify](./commandline/verify.md)           | Verify artifacts                                                       |
 | [version](./commandline/version.md)         | Print the version of notation CLI                                      |
@@ -21,7 +21,7 @@ This spec contains reference information on using notation commands. Each comman
 ## Notation Outline
 
 ```text
-Notation - Notary V2 - a tool to sign and verify artifacts
+Notation - a tool to sign and verify artifacts
 
 Usage:
   notation [command]
@@ -34,7 +34,7 @@ Available Commands:
   login       Login to registry
   logout      Log out from the logged in registries
   plugin      Manage plugins
-  policy      [Preview] Manage trust policy configuration for signature verification
+  policy      Manage trust policy configuration for signature verification
   sign        Sign artifacts
   verify      Verify artifacts
   version     Show the notation version information

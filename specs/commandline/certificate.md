@@ -208,7 +208,17 @@ A prompt is showed asking user to confirm the deletion. Upon successful deletion
 notation certificate delete --type <type> --store <name> <cert_fileName>
 ```
 
-A prompt is showed asking user to confirm the deletion. Upon successful deletion, the specific certificate is deleted in trust store named `<name>` of type `<type>`. If deletion fails, an error message with specific reasons is printed out.
+A prompt is displayed, asking the user to confirm the deletion. Upon successful deletion, the specific certificate is deleted from the trust store named `<name>` of type `<type>`. The output message is printed out as following:
+
+```text
+Successfully deleted <cert_fileName> from the trust store. 
+```
+
+If users execute the deletion without specifying required flags using `notation cert delete <cert_fileName>`, the deletion fails and the error output message is printed out as follows:
+
+```text
+Error: required flag(s) "store", "type" not set
+```
 
 ### Generate a local RSA key and a corresponding self-generated certificate for testing purpose and add the certificate into trust store
 

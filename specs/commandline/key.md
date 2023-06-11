@@ -2,7 +2,7 @@
 
 ## Description
 
-Use ```notation key``` command to manage keys used for signing. User can add/update/list/remove key to/from signing key list. Please be noted this command doesn't manage the lifecycle of signing key itself, it manages the signing key list only.
+Use ```notation key``` command to manage keys used for signing. User can add/update/list/remove key to/from Notation signing key list. Please be noted this command doesn't manage the lifecycle of signing key itself, it manages the Notation signing key list only.
 
 ## Outline
 
@@ -15,10 +15,10 @@ Usage:
   notation key [command]
 
 Available Commands:
-  add         Add key to signing key list
-  delete      Delete key from signing key list
+  add         Add key to Notation signing key list
+  delete      Remove key from Notation signing key list
   list        List keys used for signing
-  update      Update key in signing key list
+  update      Update key in Notation signing key list
 
 Flags:
   -h, --help  help for key
@@ -27,7 +27,7 @@ Flags:
 ### notation key add
 
 ```text
-Add key to signing key list
+Add key to Notation signing key list
 
 Usage:
   notation key add --plugin <plugin_name> [flags] <key_name>
@@ -45,7 +45,7 @@ Flags:
 ### notation key delete
 
 ```text
-Delete key from signing key list
+Remove key from Notation signing key list
 
 Usage:
   notation key delete [flags] <key_name>...
@@ -74,7 +74,7 @@ Flags:
 ### notation key update
 
 ```text
-Update key in signing key list
+Update key in Notation signing key list
 
 Usage:
   notation key update [flags] <key_name>
@@ -115,10 +115,39 @@ notation key list
 
 Upon successful execution, a list of keys is printed out with information of name, key path, certificate path, key id and plugin name. The default signing key name is preceded by an asterisk. The key id and plugin name are used together to provide the information of the key identifier for the remote key and the plugin associated with it.
 
-### Delete two keys from signing key list
+### Remove a specified key from Notation signing key list
+
+```shell
+notation key delete <key_name>
+```
+
+- Upon successful removal of a local testing key created by notation, the output message is printed out as follows:
+
+```text
+Removed <key_name> from Notation signing key list. The source key still exists.
+```
+- Upon successful removal of a key associated with a KMS, the output message is printed out as follows:
+
+```text
+Removed <key_name> from Notation signing key list. The source key still exists.
+```
+
+- Upon successful removal of the default key, the output message is printed out as follows:
+
+```text
+Removed default key <key_name> from Notation signing key list. The source key still exists.
+```
+
+### Remove two keys from Notation signing key list
 
 ```shell
 notation key delete <key_name_1> <key_name_2>
 ```
 
-Upon successful execution, the names of deleted signing keys are printed out. Please be noted if default signing key is deleted, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+Upon successful execution, the output message is printed out as follows. Please be noted if default signing key is removed, Notation will not automatically assign a new default signing key. User needs to update the default signing key explicitly.
+
+```text
+Removed the following keys from Notation signing key list. The source keys still exist.
+<key_name_1>
+<key_name_2> (default)
+```

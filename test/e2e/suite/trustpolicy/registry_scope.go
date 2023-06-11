@@ -9,6 +9,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 )
 
+// trustPolicyLink is a tutorial link for creating Notation's trust policy.
+const trustPolicyLink = "https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
+
 var _ = Describe("notation trust policy registryScope test", func() {
 	It("empty registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -29,7 +32,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords(`registry scope "localhost:5000\\test-repo" is not valid, make sure it is the fully qualified registry URL without the scheme/protocol. e.g domain.com/my/repository`)
+				MatchErrKeyWords(`registry scope "localhost:5000\\test-repo" is not valid, make sure it is a fully qualified registry URL without the scheme/protocol, e.g domain.com/my/repository OR a local trust policy scope, e.g local/myOCILayout`)
 		})
 	})
 
@@ -42,7 +45,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact := GenerateArtifact("", "test-repo")
 
 			// test localhost:5000/test-repo
-			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -57,11 +60,11 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact3 := GenerateArtifact("", "test-repo3")
 
 			// test localhost:5000/test-repo2
-			OldNotation().Exec("sign", artifact2.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact2.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact2.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 
 			// test localhost:5000/test-repo3
-			OldNotation().Exec("sign", artifact3.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact3.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact3.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -76,11 +79,11 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			artifact5 := GenerateArtifact("", "test-repo5")
 
 			// test localhost:5000/test-repo4
-			OldNotation().Exec("sign", artifact4.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact4.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact4.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 
 			// test localhost:5000/test-repo5
-			OldNotation().Exec("sign", artifact5.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
+			notation.Exec("sign", artifact5.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.Exec("verify", artifact5.ReferenceWithDigest()).MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -121,7 +124,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			// test localhost:5000/test-repo
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable trust policy\n", artifact.ReferenceWithDigest()))
+				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable trust policy. Trust policy applicability for a given artifact is determined by registryScopes. To create a trust policy, see: %s\n", artifact.ReferenceWithDigest(), trustPolicyLink))
 		})
 	})
 })

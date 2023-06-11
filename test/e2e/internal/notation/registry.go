@@ -19,9 +19,19 @@ import (
 const ArtifactTypeNotation = "application/vnd.cncf.notary.signature"
 
 type Registry struct {
-	Host     string
+	// Host is the registry host.
+	Host string
+	// Username is the username to access the registry.
 	Username string
+	// Password is the password to access the registry.
 	Password string
+	// DomainHost is a registry host, separate from localhost, used for testing
+	// the --insecure-registry flag.
+	//
+	// If the host is localhost, Notation connects via plain HTTP. For
+	// non-localhost hosts, Notation defaults to HTTPS. However, users can
+	// enforce HTTP by setting the --insecure-registry flag.
+	DomainHost string
 }
 
 // CreateArtifact copies a local OCI layout to the registry to create
@@ -99,6 +109,12 @@ func (r *Artifact) ReferenceWithTag() string {
 // ReferenceWithDigest returns the <registryHost>/<Repository>@<alg>:<digest>
 func (r *Artifact) ReferenceWithDigest() string {
 	return fmt.Sprintf("%s/%s@%s", r.Host, r.Repo, r.Digest)
+}
+
+// DomainReferenceWithDigest returns the <domainHost>/<Repository>@<alg>:<digest>
+// for testing --insecure-registry flag and TLS request.
+func (r *Artifact) DomainReferenceWithDigest() string {
+	return fmt.Sprintf("%s/%s@%s", r.DomainHost, r.Repo, r.Digest)
 }
 
 // SignatureManifest returns the manifest of the artifact.

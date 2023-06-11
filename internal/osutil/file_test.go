@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -29,6 +30,10 @@ func TestWriteFile(t *testing.T) {
 	})
 
 	t.Run("write file with directory permission error", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
 		tempDir := t.TempDir()
 		data := []byte("data")
 		// forbid writing to tempDir
@@ -80,6 +85,10 @@ func TestWriteFileWithPermission(t *testing.T) {
 	})
 
 	t.Run("write with directory permission error", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
 		tempDir := t.TempDir()
 		data := []byte("data")
 		filename := filepath.Join(tempDir, "a", "file.txt")
@@ -124,6 +133,10 @@ func TestCopyToDir(t *testing.T) {
 	})
 
 	t.Run("source directory permission error", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
 		tempDir := t.TempDir()
 		destDir := t.TempDir()
 		data := []byte("data")
@@ -151,6 +164,10 @@ func TestCopyToDir(t *testing.T) {
 	})
 
 	t.Run("source file permission error", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
 		tempDir := t.TempDir()
 		destDir := t.TempDir()
 		data := []byte("data")
@@ -170,6 +187,10 @@ func TestCopyToDir(t *testing.T) {
 	})
 
 	t.Run("dest directory permission error", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
 		tempDir := t.TempDir()
 		destTempDir := t.TempDir()
 		data := []byte("data")
@@ -189,6 +210,10 @@ func TestCopyToDir(t *testing.T) {
 	})
 
 	t.Run("dest directory permission error 2", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+
 		tempDir := t.TempDir()
 		destTempDir := t.TempDir()
 		data := []byte("data")
@@ -197,7 +222,7 @@ func TestCopyToDir(t *testing.T) {
 		if err := WriteFile(filename, data); err != nil {
 			t.Fatal(err)
 		}
-		// forbid dest directory operation
+		// forbid writing to destTempDir
 		if err := os.Chmod(destTempDir, 0000); err != nil {
 			t.Fatal(err)
 		}
@@ -207,7 +232,7 @@ func TestCopyToDir(t *testing.T) {
 		}
 	})
 
-	t.Run("valid file content", func(t *testing.T) {
+	t.Run("copy file and check content", func(t *testing.T) {
 		tempDir := t.TempDir()
 		data := []byte("data")
 		filename := filepath.Join(tempDir, "a", "file.txt")

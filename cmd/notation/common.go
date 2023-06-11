@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/spf13/pflag"
+	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 const (
@@ -31,27 +32,40 @@ var (
 		fs.StringVarP(p, flagPassword.Name, flagPassword.Shorthand, "", flagPassword.Usage)
 	}
 
-	flagPlainHTTP = &pflag.Flag{
-		Name:     "plain-http",
-		Usage:    "registry access via plain HTTP",
+	flagInsecureRegistry = &pflag.Flag{
+		Name:     "insecure-registry",
+		Usage:    "use HTTP protocol while connecting to registries. Should be used only for testing",
 		DefValue: "false",
 	}
-	setFlagPlainHTTP = func(fs *pflag.FlagSet, p *bool) {
-		fs.BoolVar(p, flagPlainHTTP.Name, false, flagPlainHTTP.Usage)
+	setFlagInsecureRegistry = func(fs *pflag.FlagSet, p *bool) {
+		fs.BoolVar(p, flagInsecureRegistry.Name, false, flagInsecureRegistry.Usage)
 	}
 )
 
 type SecureFlagOpts struct {
-	Username  string
-	Password  string
-	PlainHTTP bool
+	Username         string
+	Password         string
+	InsecureRegistry bool
 }
 
 // ApplyFlags set flags and their default values for the FlagSet
 func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setflagUsername(fs, &opts.Username)
 	setFlagPassword(fs, &opts.Password)
-	setFlagPlainHTTP(fs, &opts.PlainHTTP)
+	setFlagInsecureRegistry(fs, &opts.InsecureRegistry)
 	opts.Username = os.Getenv(defaultUsernameEnv)
 	opts.Password = os.Getenv(defaultPasswordEnv)
+}
+
+// Credential returns an auth.Credential from opts.Username and opts.Password.
+func (opts *SecureFlagOpts) Credential() auth.Credential {
+	if opts.Username == "" {
+		return auth.Credential{
+			RefreshToken: opts.Password,
+		}
+	}
+	return auth.Credential{
+		Username: opts.Username,
+		Password: opts.Password,
+	}
 }

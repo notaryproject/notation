@@ -4,13 +4,14 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation/cmd/notation/cert"
+	"github.com/notaryproject/notation/cmd/notation/policy"
 	"github.com/spf13/cobra"
 )
 
 func main() {
 	cmd := &cobra.Command{
 		Use:          "notation",
-		Short:        "Notation - Notary V2 - a tool to sign and verify artifacts",
+		Short:        "Notation - a tool to sign and verify artifacts",
 		SilenceUsage: true,
 	}
 	cmd.AddCommand(
@@ -18,6 +19,7 @@ func main() {
 		verifyCommand(nil),
 		listCommand(nil),
 		cert.Cmd(),
+		policy.Cmd(),
 		keyCommand(),
 		pluginCommand(),
 		loginCommand(nil),
