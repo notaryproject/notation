@@ -19,14 +19,6 @@ body:
     attributes:
       value: |
         Thank you for taking the time to suggest a useful feature for the project!
-  - type: dropdown
-    id: area
-    validations:
-      required: true
-    attributes:
-      label: "What is the areas you would like to add the new feature to?"
-      options: 
-        - Notation CLI
   - type: textarea
     id: problem
     validations:
