@@ -56,6 +56,12 @@ func pluginInstallCommand() *cobra.Command {
 		Example - Install a Notation plugin:
 			notation plugin install <path to plugin executable>
 `,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return errors.New("missing plugin package")
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return installPlugin(cmd, args, force)
 		},
@@ -76,6 +82,12 @@ func pluginRemoveCommand() *cobra.Command {
 		Example - Remove a Notation plugin:
 			notation plugin remove <plugin>
 `,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+			return errors.New("missing plugin name")
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return removePlugin(cmd, args)
 		},
@@ -110,9 +122,6 @@ func listPlugins(command *cobra.Command) error {
 }
 
 func installPlugin(command *cobra.Command, args []string, force bool) error {
-	if len(args) != 1 {
-		return errors.New("missing plugin package")
-	}
 
 	pluginSrcPath := args[0]
 	pluginBinary := filepath.Base(pluginSrcPath)
@@ -200,9 +209,6 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 }
 
 func removePlugin(command *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return errors.New("missing plugin name")
-	}
 
 	pluginName := args[0]
 
