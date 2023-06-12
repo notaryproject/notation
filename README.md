@@ -6,6 +6,8 @@
 
 Notation is a CLI project to add signatures as standard items in the registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary project specifications][notaryv2-specs].
 
+> **Note** The documentation for using `notation` is available [here](https://notaryproject.dev/docs/).
+
 ## Table of Contents
 
   - [Documents](#documents)
@@ -20,8 +22,7 @@ Notation is a CLI project to add signatures as standard items in the registry ec
 ## Documents
 
 - [Quick start: Sign and validate a container image](https://notaryproject.dev/docs/quickstart/)
-- [Build, sign, and verify container images using Notary and Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push)
-
+- Build, sign, and verify container images using Notation with [Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push?wt.mc_id=azurelearn_inproduct_oss_notaryproject) or [AWS Signer](https://docs.aws.amazon.com/signer/latest/developerguide/container-workflow.html)
 ## Community
 
 ### Development and Contributing

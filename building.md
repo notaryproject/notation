@@ -4,9 +4,9 @@ The notation repo contains the following:
 
 - `notation` - A CLI for signing and verifying artifacts with Notation
 
-Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.17`.
+Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.20`.
 
-## Windows with WSL
+## Windows with WSL or Linux
 
 - Build the binaries, installing them to:
   - `~/bin/notation`
@@ -17,13 +17,22 @@ Building above binaries require [golang](https://golang.org/dl/) with version `>
   ```
 - Verify binaries are installed
   ```sh
-  docker --help
-  # look for 
-  Management Commands:
-    generate*   Generate artifacts (CNCF Notary Project, 0.1.0)
-    notation*   Manage signatures on Docker images (CNCF Notary Project, 0.5.3-alpha)
-  
   which notation
-  # output
+  # expected output
   /home/<user>/bin/notation
   ```
+
+  If you confront `notation not found`, please add `~/bin/` to your $PATH:
+  ```sh
+  PATH="$HOME/bin:$PATH"
+  ```
+  If you would like to add the path permanently, add the command to your shell `profile`:
+  ```sh
+  echo 'PATH="$HOME/bin:$PATH"' >> $profile_path
+  source $profile_path
+  ```
+  The `profile_path` per shell:
+  - Bash: `~/.bash_profile` or `~/.profile`
+  - Zsh: `~/.zprofile`
+  - Ksh: `~/.profile`
+

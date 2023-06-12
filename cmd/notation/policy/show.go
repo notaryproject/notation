@@ -17,8 +17,8 @@ func showCmd() *cobra.Command {
 	var opts showOpts
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "[Preview] Show trust policy configuration",
-		Long: `[Preview] Show trust policy configuration.
+		Short: "Show trust policy configuration",
+		Long: `Show trust policy configuration.
 
 ** This command is in preview and under development. **
 

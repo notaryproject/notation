@@ -40,7 +40,7 @@ if [ ! -f "$NOTATION_E2E_OLD_BINARY_PATH" ]; then
     echo "Try to use old notation binary at $NOTATION_E2E_OLD_BINARY_PATH"
 
     if [ ! -f $NOTATION_E2E_OLD_BINARY_PATH ]; then
-        TAG=1.0.0-rc.2 # without 'v'
+        TAG=1.0.0-rc.5 # without 'v'
         echo "Didn't find old notation binary locally. Try to download notation v$TAG."
 
         TAR_NAME=notation_${TAG}_linux_amd64.tar.gz
