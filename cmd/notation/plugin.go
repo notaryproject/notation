@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"text/tabwriter"
@@ -13,6 +12,7 @@ import (
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
+	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -140,35 +140,23 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 	if err != nil {
 		return err
 	}
+	//pluginDestPath := pluginDir + "\\" + pluginBinary
 
-	// Check if plugin directory exists
-	_, err = os.Stat(pluginDir)
+	pluginExists, err := exists(pluginDir+"/"+pluginBinary)
+	if err != nil {
+		return err
+	}
 
-	// create the directory, if not exist
-	if os.IsNotExist(err) {
-		if err := os.MkdirAll(pluginDir, 0755); err != nil {
-			return err
+	if pluginExists {
+		// if force == true, overwrite plugin
+		if force {
+			fmt.Printf("Overwriting plugin %s in directory %s\n", pluginBinary, pluginDir)
+			if _, err := osutil.CopyToDir(pluginSrcPath,pluginDir); err != nil {
+				return err
+			}
+			return nil
 		}
-	}
-
-	pluginDestPath := pluginDir + "/" + pluginBinary
-
-	// Check if plugin exists
-	_, err = os.Stat(pluginDestPath)
-
-	// copy plugin, if not exist
-	if os.IsNotExist(err) {
-		copyPlugin(pluginSrcPath, pluginDestPath)
-	}
-
-	// overwrite plugin, if force flag is set
-	if err == nil && force {
-		fmt.Printf("Overwriting plugin %s in directory %s\n", pluginBinary, pluginDir)
-		copyPlugin(pluginSrcPath, pluginDestPath)
-	}
-
-	// if plugin exists and force flag is not set, get plugin metadata
-	if err == nil && !force {
+		// get existing plugin metadata 
 		mgr := plugin.NewCLIManager(dir.PluginFS())
 		currentPlugin, err := mgr.Get(command.Context(), pluginName)
 
@@ -176,7 +164,7 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 		if err == nil {
 			resp, err := currentPlugin.GetMetadata(command.Context(), &proto.GetMetadataRequest{})
 			if err == nil {
-				 currentPluginMetadata = resp
+				currentPluginMetadata = resp
 			}
 		}
 
@@ -196,12 +184,22 @@ func installPlugin(command *cobra.Command, args []string, force bool) error {
 			}
 
 			fmt.Printf("Copying plugin %s to directory %s...\n", pluginName, pluginDir)
-			copyPlugin(pluginSrcPath, pluginDestPath)
+			if _, err := osutil.CopyToDir(pluginSrcPath,pluginDir); err != nil {
+				return err
+			}
 		}
 
 		// do not copy plugin, if new plugin version is less than or equal to current plugin version
 		if compare == -1 || compare == 0 {
 			fmt.Println("Skipping plugin installation. The current version is equal to or higher than the new version.\nTo overwrite the plugin, use the --force flag.") 
+		}
+	}
+
+	if !pluginExists {
+		fmt.Printf("Copying plugin %s to directory %s...\n", pluginName, pluginDir)
+		_, err :=osutil.CopyToDir(pluginSrcPath,pluginDir)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -218,39 +216,18 @@ func removePlugin(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Check if plugin directory exists
-	_, err = os.Stat(pluginDir)
-	if os.IsNotExist(err) {
+	// Check if plugin directory exists 
+	pluginExists, err := exists(pluginDir)
+	if err != nil {
+		return err
+	}
+
+	if !pluginExists {
 		return errors.New("plugin does not exist")
 	}
 
 	// remove plugin directory
 	return os.RemoveAll(pluginDir)
-}
-
-func copyPlugin(src, dest string) error {
-	sourceFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-
-	sourceFileInfo, err := sourceFile.Stat()
-	if err != nil {
-		return err
-	}
-	fileMode := sourceFileInfo.Mode()
-
-	destFile, err := os.OpenFile(dest, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileMode)
-	if err != nil {
-		return err
-	}
-	defer destFile.Close()
-
-	_, err = io.Copy(destFile, sourceFile)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func splitPluginName (p string) string {
@@ -263,4 +240,15 @@ func splitPluginName (p string) string {
 	}
 
 	return result
+}
+
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
