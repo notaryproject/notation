@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
+	. "github.com/onsi/ginkgo/v2"
 )
 
 // CoreTestFunc is the test function running in a VirtualHost.
@@ -14,12 +15,12 @@ import (
 // vhost is the VirtualHost instance.
 type CoreTestFunc func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost)
 
-// GeneralTestFunc is the test function running in a VirtualHost agnostic to
-// the Repository of the artifact.
+// OCILayoutTestFunc is the test function running in a VirtualHost with isolated
+// OCI layout for each test case.
 //
 // notation is an Executor isolated by $XDG_CONFIG_HOME.
 // vhost is the VirtualHost instance.
-type GeneralTestFunc func(notation *utils.ExecOpts, vhost *utils.VirtualHost)
+type OCILayoutTestFunc func(notation *utils.ExecOpts, ocilayout *OCILayout, vhost *utils.VirtualHost)
 
 // Host creates a virtualized notation testing host by modify
 // the "XDG_CONFIG_HOME" environment variable of the Executor.
@@ -40,21 +41,37 @@ func Host(options []utils.HostOption, fn CoreTestFunc) {
 	fn(vhost.Executor, artifact, vhost)
 }
 
-// GeneralHost creates a virtualized notation testing host by modify
-// the "XDG_CONFIG_HOME" environment variable of the Executor. It's agnostic to
-// the Repository of the artifact.
+// HostInGithubAction only run the test in GitHub Actions.
+//
+// The booting script will setup TLS reverse proxy and TLS certificate
+// for Github Actions environment.
+func HostInGithubAction(options []utils.HostOption, fn CoreTestFunc) {
+	if os.Getenv("GITHUB_ACTIONS") != "true" {
+		Skip("only run in GitHub Actions")
+	}
+	Host(options, fn)
+}
+
+// HostWithOCILayout creates a virtualized notation testing host by modify
+// the "XDG_CONFIG_HOME" environment variable of the Executor. It generates
+// isolated OCI layout in the testing host.
 //
 // options is the required testing environment options
 // fn is the callback function containing the testing logic.
-func GeneralHost(options []utils.HostOption, fn GeneralTestFunc) {
+func HostWithOCILayout(options []utils.HostOption, fn OCILayoutTestFunc) {
 	// create a notation vhost
 	vhost, err := createNotationHost(NotationBinPath, options...)
 	if err != nil {
 		panic(err)
 	}
 
+	ocilayout, err := GenerateOCILayout("")
+	if err != nil {
+		panic(err)
+	}
+
 	// run the main logic
-	fn(vhost.Executor, vhost)
+	fn(vhost.Executor, ocilayout, vhost)
 }
 
 // OldNotation create an old version notation ExecOpts in a VirtualHost

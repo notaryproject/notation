@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"math"
 	"os"
 	"reflect"
 
@@ -17,18 +16,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const maxSignatureAttempts = math.MaxInt64
-
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference         string
-	pluginConfig      []string
-	userMetadata      []string
-	allowReferrersAPI bool
-	ociLayout         bool
-	trustPolicyScope  string
-	inputType         inputType
+	reference            string
+	pluginConfig         []string
+	userMetadata         []string
+	allowReferrersAPI    bool
+	ociLayout            bool
+	trustPolicyScope     string
+	inputType            inputType
+	maxSignatureAttempts int
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -75,6 +73,9 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if opts.maxSignatureAttempts <= 0 {
+				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatureAttempts)
+			}
 			return runVerify(cmd, opts)
 		},
 	}
@@ -82,6 +83,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
@@ -95,7 +97,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
 
 	// initialize
-	verifier, err := verifier.NewFromConfig()
+	sigVerifier, err := verifier.NewFromConfig()
 	if err != nil {
 		return err
 	}
@@ -125,14 +127,12 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 	intendedRef := resolveArtifactDigestReference(resolvedRef, opts.trustPolicyScope)
 	verifyOpts := notation.VerifyOptions{
-		ArtifactReference: intendedRef,
-		PluginConfig:      configs,
-		// TODO: need to change MaxSignatureAttempts as a user input flag or
-		// a field in config.json
-		MaxSignatureAttempts: maxSignatureAttempts,
+		ArtifactReference:    intendedRef,
+		PluginConfig:         configs,
+		MaxSignatureAttempts: opts.maxSignatureAttempts,
 		UserMetadata:         userMetadata,
 	}
-	_, outcomes, err := notation.Verify(ctx, verifier, sigRepo, verifyOpts)
+	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
 	err = checkVerificationFailure(outcomes, resolvedRef, err)
 	if err != nil {
 		return err

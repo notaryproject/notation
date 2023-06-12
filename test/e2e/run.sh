@@ -40,7 +40,7 @@ if [ ! -f "$NOTATION_E2E_OLD_BINARY_PATH" ]; then
     echo "Try to use old notation binary at $NOTATION_E2E_OLD_BINARY_PATH"
 
     if [ ! -f $NOTATION_E2E_OLD_BINARY_PATH ]; then
-        TAG=1.0.0-rc.2 # without 'v'
+        TAG=1.0.0-rc.5 # without 'v'
         echo "Didn't find old notation binary locally. Try to download notation v$TAG."
 
         TAR_NAME=notation_${TAG}_linux_amd64.tar.gz
@@ -92,7 +92,6 @@ trap cleanup EXIT
 # set environment variable for E2E testing
 export NOTATION_E2E_CONFIG_PATH=$CWD/testdata/config
 export NOTATION_E2E_OCI_LAYOUT_PATH=$CWD/testdata/registry/oci_layout
-export NOTATION_E2E_OCI_LAYOUT_TEST_PATH=$CWD/testdata/oci-layout/e2e
 export NOTATION_E2E_TEST_REPO=e2e
 export NOTATION_E2E_TEST_TAG=v1
 export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME

@@ -23,12 +23,12 @@ const (
 	envKeyRegistryHost       = "NOTATION_E2E_REGISTRY_HOST"
 	envKeyRegistryUsername   = "NOTATION_E2E_REGISTRY_USERNAME"
 	envKeyRegistryPassword   = "NOTATION_E2E_REGISTRY_PASSWORD"
+	envKeyDomainRegistryHost = "NOTATION_E2E_DOMAIN_REGISTRY_HOST"
 	envKeyNotationBinPath    = "NOTATION_E2E_BINARY_PATH"
 	envKeyNotationOldBinPath = "NOTATION_E2E_OLD_BINARY_PATH"
 	envKeyNotationPluginPath = "NOTATION_E2E_PLUGIN_PATH"
 	envKeyNotationConfigPath = "NOTATION_E2E_CONFIG_PATH"
 	envKeyOCILayoutPath      = "NOTATION_E2E_OCI_LAYOUT_PATH"
-	envKeyOCILayoutTestPath  = "NOTATION_E2E_OCI_LAYOUT_TEST_PATH"
 	envKeyTestRepo           = "NOTATION_E2E_TEST_REPO"
 	envKeyTestTag            = "NOTATION_E2E_TEST_TAG"
 )
@@ -48,7 +48,6 @@ var (
 
 var (
 	OCILayoutPath       string
-	OCILayoutTestPath   string
 	TestRepoUri         string
 	TestTag             string
 	RegistryStoragePath string
@@ -57,7 +56,6 @@ var (
 func init() {
 	RegisterFailHandler(Fail)
 	setUpRegistry()
-	setUpOCILayout()
 	setUpNotationValues()
 }
 
@@ -65,14 +63,11 @@ func setUpRegistry() {
 	setValue(envKeyRegistryHost, &TestRegistry.Host)
 	setValue(envKeyRegistryUsername, &TestRegistry.Username)
 	setValue(envKeyRegistryPassword, &TestRegistry.Password)
+	setValue(envKeyDomainRegistryHost, &TestRegistry.DomainHost)
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)
-}
-
-func setUpOCILayout() {
-	setPathValue(envKeyOCILayoutTestPath, &OCILayoutTestPath)
 }
 
 func setUpNotationValues() {

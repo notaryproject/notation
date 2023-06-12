@@ -108,46 +108,62 @@ var _ = Describe("notation sign", func() {
 	})
 
 	It("by digest with oci layout", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
-			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
 
 	It("by digest with oci layout and COSE format", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
-			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
 
 	It("by tag with oci layout", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
-			notation.Exec("sign", "--oci-layout", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
 
 	It("by tag with oci layout and COSE format", func() {
-		GeneralHost(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			ociLayoutReference := OCILayoutTestPath + ":" + TestTag
-			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayoutReference).
+		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
 
 	It("by digest with oci layout but without experimental", func() {
-		GeneralHost(BaseOptions(), func(notation *utils.ExecOpts, vhost *utils.VirtualHost) {
-			const digest = "sha256:cc2ae4e91a31a77086edbdbf4711de48e5fa3ebdacad3403e61777a9e1a53b6f"
+		HostWithOCILayout(BaseOptions(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
 			expectedErrMsg := "Error: flag(s) --oci-layout in \"notation sign\" is experimental and not enabled by default. To use, please set NOTATION_EXPERIMENTAL=1 environment variable\n"
-			ociLayoutReference := OCILayoutTestPath + "@" + digest
-			notation.ExpectFailure().Exec("sign", "--oci-layout", ociLayoutReference).
+			notation.ExpectFailure().Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchErrContent(expectedErrMsg)
+		})
+	})
+
+	It("with TLS by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "-d", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully).
+				MatchErrKeyWords(HTTPSRequest).
+				NoMatchErrKeyWords(HTTPRequest)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with --insecure-registry by digest", func() {
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully).
+				MatchErrKeyWords(HTTPRequest).
+				NoMatchErrKeyWords(HTTPSRequest)
+
+			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 })
