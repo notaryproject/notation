@@ -19,7 +19,7 @@ The rest of the doc will cover the release process for the following kinds of re
 
 ### Major Releases
 
-The Notation project has reached a stable target version of 1.0.0 and all previous RC, BETA and ALPHA releases will no longer be supported.
+The Notation project has reached a stable target version of 1.0.0 and all previous RC, BETA, and ALPHA releases will no longer be supported. It's recommended to upgrade the Notation version to v1.0.0 if you are still using a previous version.
 
 ### Minor Releases
 
