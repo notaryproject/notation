@@ -1,8 +1,5 @@
 name: golangci-lint
 on:
-  push:
-    branches:
-      - poc-golang-ci-lint
   pull_request:
 
 permissions:
