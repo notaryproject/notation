@@ -61,7 +61,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
-					"└── sha256:273243a7a64e9312761ca0aa8f43b6ba805e677a561558143b6e92981c487339",
+					"└── sha256:90ceaff260d657d797c408ac73564a9c7bb9d86055877c2a811f0e63b8c6524f",
 				)
 		})
 	})

@@ -57,7 +57,7 @@ if [ ! -f "$NOTATION_E2E_OLD_BINARY_PATH" ]; then
 fi
 
 # install dependency
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.3.0
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.9.5
 
 # build e2e plugin
 PLUGIN_NAME=e2e-plugin
