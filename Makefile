@@ -56,8 +56,7 @@ e2e-covdata:
 	rm -rf $$GOCOVERDIR; \
 	mkdir -p $$GOCOVERDIR; \
 	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/internal/...,github.com/notaryproject/notation/pkg/...,github.com/notaryproject/notation/cmd/..."'; \
-	$(MAKE) e2e; \
-	go tool covdata textfmt -i=$$GOCOVERDIR -o "$(CURDIR)/test/e2e/coverage.txt"
+	$(MAKE) e2e && go tool covdata textfmt -i=$$GOCOVERDIR -o "$(CURDIR)/test/e2e/coverage.txt"
 
 .PHONY: clean
 clean:
