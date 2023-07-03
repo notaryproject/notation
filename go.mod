@@ -6,7 +6,7 @@ require (
 	github.com/notaryproject/notation-core-go v1.0.0-rc.4
 	github.com/notaryproject/notation-go v1.0.0-rc.6
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0-rc3
+	github.com/opencontainers/image-spec v1.1.0-rc4
 	github.com/oras-project/oras-credentials-go v0.2.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
