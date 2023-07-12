@@ -11,20 +11,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+name: License Checker
+
 on:
-  issues:
-    types:
-      - opened
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request:
+    branches:
+      - main
+      - release-*
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
-  add-to-project:
-    name: Add issue to project
+  check-license:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@0da8e46333d7b6e01d0e857452a1e99cb47be205 # main
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Check license header
+        uses: apache/skywalking-eyes/header@v0.4.0
         with:
-          project-url: https://github.com/orgs/notaryproject/projects/10
-          github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
+          mode: check
+          config: .github/licenserc.yml
+      - name: Check dependencies license
+        uses: apache/skywalking-eyes/dependency@v0.4.0
+        with:
+          config: .github/licenserc.yml
