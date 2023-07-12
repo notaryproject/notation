@@ -28,5 +28,5 @@ permissions:
   pull-requests: write
 
 jobs:
-  license-check:
-    uses: Two-Hearts/notation-core-go/.github/workflows/reusable-license-checker.yml@license
+  check-license:
+    uses: notaryproject/notation-core-go/.github/workflows/reusable-license-checker.yml@main
