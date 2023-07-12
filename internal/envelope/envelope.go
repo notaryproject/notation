@@ -46,7 +46,7 @@ func ValidatePayloadContentType(payload *signature.Payload) error {
 	}
 }
 
-// DescriptorFromPayload parses a signature payload and returns the descriptor
+// DescriptorFromSignaturePayload DescriptorFromPayload parses a signature payload and returns the descriptor
 // that was signed. Note: the descriptor was signed but may not be trusted
 func DescriptorFromSignaturePayload(payload *signature.Payload) (*ocispec.Descriptor, error) {
 	if payload == nil {

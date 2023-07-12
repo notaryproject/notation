@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation-go/signingkeys"
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -170,10 +170,10 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	}
 
 	// core process
-	exec := func(s *config.SigningKeys) error {
+	exec := func(s *signingkeys.SigningKeys) error {
 		return s.AddPlugin(ctx, opts.name, opts.id, opts.plugin, pluginConfig, opts.isDefault)
 	}
-	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+	if err := signingkeys.LoadExecSave(exec); err != nil {
 		return err
 	}
 
@@ -197,10 +197,10 @@ func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	}
 
 	// core process
-	exec := func(s *config.SigningKeys) error {
+	exec := func(s *signingkeys.SigningKeys) error {
 		return s.UpdateDefault(opts.name)
 	}
-	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+	if err := signingkeys.LoadExecSave(exec); err != nil {
 		return err
 	}
 
@@ -211,7 +211,7 @@ func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 
 func listKeys() error {
 	// core process
-	signingKeys, err := config.LoadSigningKeys()
+	signingKeys, err := signingkeys.LoadFromCache()
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	// core process
 	var deletedNames []string
 	var prevDefault string
-	exec := func(s *config.SigningKeys) error {
+	exec := func(s *signingkeys.SigningKeys) error {
 		if s.Default != nil {
 			prevDefault = *s.Default
 		}
@@ -239,7 +239,7 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 		}
 		return err
 	}
-	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+	if err := signingkeys.LoadExecSave(exec); err != nil {
 		return err
 	}
 

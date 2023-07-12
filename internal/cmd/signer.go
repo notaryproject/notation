@@ -8,7 +8,7 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/signer"
-	"github.com/notaryproject/notation/pkg/configutil"
+	"github.com/notaryproject/notation-go/signingkeys"
 )
 
 // GetSigner returns a signer according to the CLI context.
@@ -26,7 +26,11 @@ func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, erro
 
 	// Construct a signer from preconfigured key pair in config.json
 	// if key name is provided as the CLI argument
-	key, err := configutil.ResolveKey(opts.Key)
+	sKeys, err := signingkeys.LoadFromCache()
+	if err != nil {
+		return nil, err
+	}
+	key, err := sKeys.Resolve(opts.Key)
 	if err != nil {
 		return nil, err
 	}

@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-core-go/testhelper"
-	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/signingkeys"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
@@ -110,10 +110,10 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	fmt.Println("wrote certificate:", certPath)
 
 	// update signingkeys.json config
-	exec := func(s *config.SigningKeys) error {
+	exec := func(s *signingkeys.SigningKeys) error {
 		return s.Add(opts.name, keyPath, certPath, opts.isDefault)
 	}
-	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+	if err := signingkeys.LoadExecSave(exec); err != nil {
 		return err
 	}
 
