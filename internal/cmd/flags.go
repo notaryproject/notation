@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
@@ -33,7 +33,7 @@ var (
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
 		defaultSignatureFormat := envelope.JWS
 		// load config to get signatureFormat
-		config, err := configutil.LoadConfigOnce()
+		config, err := config.LoadFromCache()
 		if err == nil && config.SignatureFormat != "" {
 			defaultSignatureFormat = config.SignatureFormat
 		}

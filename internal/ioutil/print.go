@@ -6,14 +6,14 @@ import (
 	"io"
 	"text/tabwriter"
 
-	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation-go/signingkeys"
 )
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
 	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
 }
 
-func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
+func PrintKeyMap(w io.Writer, target *string, v []signingkeys.KeySuite) error {
 	tw := newTabWriter(w)
 	fmt.Fprintln(tw, "NAME\tKEY PATH\tCERTIFICATE PATH\tID\tPLUGIN NAME\t")
 	for _, key := range v {
@@ -23,11 +23,11 @@ func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
 		}
 		kp := key.X509KeyPair
 		if kp == nil {
-			kp = &config.X509KeyPair{}
+			kp = &signingkeys.X509KeyPair{}
 		}
 		ext := key.ExternalKey
 		if ext == nil {
-			ext = &config.ExternalKey{}
+			ext = &signingkeys.ExternalKey{}
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
 	}

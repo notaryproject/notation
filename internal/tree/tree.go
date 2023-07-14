@@ -11,30 +11,30 @@ const (
 	subTreePrefixLast  = "    "
 )
 
-// represents a Node in a tree
+// Node represents a Node in a tree
 type Node struct {
 	Value    string
 	Children []*Node
 }
 
-// creates a new Node with the given value
+// New creates a new Node with the given value
 func New(value string) *Node {
 	return &Node{Value: value}
 }
 
-// adds a new child node with the given value
+// Add adds a new child node with the given value
 func (parent *Node) Add(value string) *Node {
 	node := New(value)
 	parent.Children = append(parent.Children, node)
 	return node
 }
 
-// adds a new child node with the formatted pair as the value
+// AddPair adds a new child node with the formatted pair as the value
 func (parent *Node) AddPair(key string, value string) *Node {
 	return parent.Add(key + ": " + value)
 }
 
-// prints the tree represented by the root node
+// Print prints the tree represented by the root node
 func (root *Node) Print() {
 	print("", "", "", root)
 }

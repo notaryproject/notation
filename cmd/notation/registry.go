@@ -7,18 +7,19 @@ import (
 	"net"
 	"net/http"
 
+	"oras.land/oras-go/v2/registry"
+	"oras.land/oras-go/v2/registry/remote"
+	"oras.land/oras-go/v2/registry/remote/auth"
+
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	notationauth "github.com/notaryproject/notation/internal/auth"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
-	"github.com/notaryproject/notation/pkg/configutil"
 	credentials "github.com/oras-project/oras-credentials-go"
 	"github.com/sirupsen/logrus"
-	"oras.land/oras-go/v2/registry"
-	"oras.land/oras-go/v2/registry/remote"
-	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 // inputType denotes the user input type
@@ -133,7 +134,11 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 	if opts.InsecureRegistry {
 		insecureRegistry = opts.InsecureRegistry
 	} else {
-		insecureRegistry = configutil.IsRegistryInsecure(ref.Registry)
+		cfg, err := config.LoadFromCache()
+		if err != nil {
+			return nil, false, err
+		}
+		insecureRegistry = cfg.IsRegistryInsecure(ref.Registry)
 		if !insecureRegistry {
 			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
 				insecureRegistry = true

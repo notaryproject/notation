@@ -8,9 +8,9 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	"github.com/notaryproject/notation-go/signingkeys"
 	"github.com/notaryproject/notation/test/e2e/plugin/internal/io"
 	"github.com/spf13/cobra"
 )
@@ -81,7 +81,7 @@ func loadCertChain(keyID string) (crypto.PrivateKey, []*x509.Certificate, error)
 }
 
 func getKeyPairPath(keyId string) (string, string, error) {
-	cfg := &config.SigningKeys{}
+	cfg := &signingkeys.SigningKeys{}
 	file, err := dir.ConfigFS().Open("pluginkeys.json")
 	if err != nil {
 		return "", "", err
