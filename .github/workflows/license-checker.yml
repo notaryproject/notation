@@ -11,25 +11,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-root = true
+name: License Checker
 
-[*]
-charset = utf-8
-trim_trailing_whitespace = true
-insert_final_newline = true
-end_of_line = lf
-indent_style = space
-indent_size = 2
-tab_width = 2
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
 
-[*.go]
-indent_size = 4
-tab_width = 4
-indent_style = tab
-# required for multiline strings in test cases
-trim_trailing_whitespace = false
+permissions:
+  contents: write
+  pull-requests: write
 
-[Makefile]
-indent_size = 4
-tab_width = 4
-indent_style = tab
+jobs:
+  check-license:
+    uses: notaryproject/notation-core-go/.github/workflows/reusable-license-checker.yml@main
