@@ -33,7 +33,6 @@ func main() {
 			os.Unsetenv(defaultPasswordEnv)
 		},
 	}
-
 	cmd.AddCommand(
 		signCommand(nil),
 		verifyCommand(nil),
@@ -47,7 +46,6 @@ func main() {
 		versionCommand(),
 		inspectCommand(nil),
 	)
-
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
