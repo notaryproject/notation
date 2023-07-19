@@ -27,10 +27,10 @@ func main() {
 		Short:        "Notation - a tool to sign and verify artifacts",
 		SilenceUsage: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			// unset environment registry credentials after read the value
+			// unset registry credentials after read the value from environment
 			// to avoid leaking credentials
-			// os.Unsetenv(defaultUsernameEnv)
-			// os.Unsetenv(defaultPasswordEnv)
+			os.Unsetenv(defaultUsernameEnv)
+			os.Unsetenv(defaultPasswordEnv)
 		},
 	}
 

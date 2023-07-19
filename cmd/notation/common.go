@@ -68,10 +68,6 @@ func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	setFlagInsecureRegistry(fs, &opts.InsecureRegistry)
 	opts.Username = os.Getenv(defaultUsernameEnv)
 	opts.Password = os.Getenv(defaultPasswordEnv)
-
-	// unset to avoid leaking credentials
-	os.Unsetenv(defaultUsernameEnv)
-	os.Unsetenv(defaultPasswordEnv)
 }
 
 // Credential returns an auth.Credential from opts.Username and opts.Password.
