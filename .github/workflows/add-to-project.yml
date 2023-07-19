@@ -24,7 +24,7 @@ jobs:
     name: Add issue to project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@edc057aef96b993afe5d68104418f68a536264aa # main
+      - uses: actions/add-to-project@31b3f3ccdc584546fc445612dec3f38ff5edb41c # v0.5.0
         with:
           project-url: https://github.com/orgs/notaryproject/projects/10
           github-token: ${{ secrets.ADD_TO_PROJECT_PAT }}
