@@ -76,20 +76,22 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 }
 
 func TestCredentialsUnset(t *testing.T) {
+	const notationUsername = "NOTATION_USERNAME"
+	const notationPassword = "NOTATION_PASSWORD"
 	// Set environment variables for testing
-	os.Setenv(defaultUsernameEnv, "testuser")
-	os.Setenv(defaultPasswordEnv, "testpassword")
+	os.Setenv(notationUsername, "testuser")
+	os.Setenv(notationPassword, "testpassword")
 
 	secureFlagOpts := &SecureFlagOpts{}
 	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
 	secureFlagOpts.ApplyFlags(fs)
 
 	// check credentials environment variables are unset
-	if os.Getenv(defaultUsernameEnv) != "" {
-		t.Errorf("expected %s to be unset", defaultUsernameEnv)
+	if os.Getenv(notationUsername) != "" {
+		t.Errorf("expected %s to be unset", notationUsername)
 	}
 
-	if os.Getenv(defaultPasswordEnv) != "" {
-		t.Errorf("expected %s to be unset", defaultPasswordEnv)
+	if os.Getenv(notationPassword) != "" {
+		t.Errorf("expected %s to be unset", notationPassword)
 	}
 }
