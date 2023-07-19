@@ -14,9 +14,11 @@
 package main
 
 import (
+	"os"
 	"reflect"
 	"testing"
 
+	"github.com/spf13/pflag"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -70,5 +72,24 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 				t.Errorf("SecureFlagOpts.Credential() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestCredentialsUnset(t *testing.T) {
+	// Set environment variables for testing
+	os.Setenv(defaultUsernameEnv, "testuser")
+	os.Setenv(defaultPasswordEnv, "testpassword")
+
+	secureFlagOpts := &SecureFlagOpts{}
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	secureFlagOpts.ApplyFlags(fs)
+
+	// check credentials environment variables are unset
+	if os.Getenv(defaultUsernameEnv) != "" {
+		t.Errorf("expected %s to be unset", defaultUsernameEnv)
+	}
+
+	if os.Getenv(defaultPasswordEnv) != "" {
+		t.Errorf("expected %s to be unset", defaultPasswordEnv)
 	}
 }
