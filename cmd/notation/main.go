@@ -26,7 +26,14 @@ func main() {
 		Use:          "notation",
 		Short:        "Notation - a tool to sign and verify artifacts",
 		SilenceUsage: true,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// unset environment registry credentials after read the value
+			// to avoid leaking credentials
+			// os.Unsetenv(defaultUsernameEnv)
+			// os.Unsetenv(defaultPasswordEnv)
+		},
 	}
+
 	cmd.AddCommand(
 		signCommand(nil),
 		verifyCommand(nil),
@@ -40,6 +47,7 @@ func main() {
 		versionCommand(),
 		inspectCommand(nil),
 	)
+
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
