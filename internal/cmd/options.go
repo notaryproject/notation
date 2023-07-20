@@ -5,7 +5,7 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/trace"
-	executableTrace "github.com/oras-project/oras-credentials-go/trace"
+	executabletrace "github.com/oras-project/oras-credentials-go/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -45,19 +45,29 @@ func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 
 // SetLoggerLevel sets up the logger based on common options.
 func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) context.Context {
-	logger := log.GetLogger(ctx)
-	ctx = executableTrace.WithExecutableTrace(ctx, &executableTrace.ExecutableTrace{
-		ExecuteStart: func(executableName, action string) {
-			logger.Info("started executing credential helper program %s with action %s", executableName, action)
-		},
-		ExecuteDone: func(executableName, action string, err error) {
-			logger.Info("finished executing credential helper program %s with action %s and erro %v", executableName, action, err)
-		},
-	})
 	if opts.Debug {
 		return trace.WithLoggerLevel(ctx, logrus.DebugLevel)
 	} else if opts.Verbose {
 		return trace.WithLoggerLevel(ctx, logrus.InfoLevel)
 	}
+	ctx = withExecutableTrace(ctx)
+	return ctx
+}
+
+// withExecutableTrace adds tracing for credential helper executables.
+func withExecutableTrace(ctx context.Context) context.Context {
+	logger := log.GetLogger(ctx)
+	ctx = executabletrace.WithExecutableTrace(ctx, &executabletrace.ExecutableTrace{
+		ExecuteStart: func(executableName, action string) {
+			logger.Debugf("started executing credential helper program %s with action %s", executableName, action)
+		},
+		ExecuteDone: func(executableName, action string, err error) {
+			if err != nil {
+				logger.Errorf("finished executing credential helper program %s with action %s and got error %w", executableName, action, err)
+			} else {
+				logger.Debugf("finished executing credential helper program %s with action %s", executableName, action)
+			}
+		},
+	})
 	return ctx
 }
