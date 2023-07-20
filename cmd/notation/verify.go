@@ -93,7 +93,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
 	sigVerifier, err := verifier.NewFromConfig()

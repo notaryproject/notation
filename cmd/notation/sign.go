@@ -107,7 +107,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 
 func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	// set log level
-	ctx := cmdOpts.LoggingFlagOpts.SetLoggerLevel(command.Context())
+	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
 	signer, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)

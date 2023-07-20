@@ -59,7 +59,7 @@ Example - Show details of certificate "cert2.pem" with type "signingAuthority" f
 
 func showCerts(ctx context.Context, opts *certShowOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	storeType := opts.storeType
