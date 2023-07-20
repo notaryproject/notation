@@ -15,16 +15,31 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 
+	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/spf13/cobra"
 )
+
+const NOTATION_USERNAME = "NOTATION_USERNAME"
+const NOTATION_PASSWORD = "NOTATION_PASSWORD"
 
 func main() {
 	cmd := &cobra.Command{
 		Use:           "plugin for Notation E2E test",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// check registry credentials are eliminated
+			if os.Getenv(NOTATION_USERNAME) != "" || os.Getenv(NOTATION_PASSWORD) != "" {
+				return &proto.RequestError{
+					Code: proto.ErrorCodeValidation,
+					Err:  errors.New("registry credentials are not eliminated"),
+				}
+			}
+			return nil
+		},
 	}
 
 	cmd.AddCommand(
