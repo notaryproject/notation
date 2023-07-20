@@ -46,12 +46,11 @@ func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 // SetLoggerLevel sets up the logger based on common options.
 func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) context.Context {
 	if opts.Debug {
-		return trace.WithLoggerLevel(ctx, logrus.DebugLevel)
+		ctx = trace.WithLoggerLevel(ctx, logrus.DebugLevel)
 	} else if opts.Verbose {
-		return trace.WithLoggerLevel(ctx, logrus.InfoLevel)
+		ctx = trace.WithLoggerLevel(ctx, logrus.InfoLevel)
 	}
-	ctx = withExecutableTrace(ctx)
-	return ctx
+	return withExecutableTrace(ctx)
 }
 
 // withExecutableTrace adds tracing for credential helper executables.
