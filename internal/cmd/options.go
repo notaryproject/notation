@@ -5,7 +5,7 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/trace"
-	executabletrace "github.com/oras-project/oras-credentials-go/trace"
+	credentialstrace "github.com/oras-project/oras-credentials-go/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -56,7 +56,7 @@ func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) context.Context
 // withExecutableTrace adds tracing for credential helper executables.
 func withExecutableTrace(ctx context.Context) context.Context {
 	logger := log.GetLogger(ctx)
-	ctx = executabletrace.WithExecutableTrace(ctx, &executabletrace.ExecutableTrace{
+	ctx = credentialstrace.WithExecutableTrace(ctx, &credentialstrace.ExecutableTrace{
 		ExecuteStart: func(executableName, action string) {
 			logger.Debugf("started executing credential helper program %s with action %s", executableName, action)
 		},
