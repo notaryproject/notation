@@ -66,7 +66,7 @@ func withExecutableTrace(ctx context.Context) context.Context {
 			if err != nil {
 				logger.Errorf("finished executing credential helper program %s with action %s and got error %w", executableName, action, err)
 			} else {
-				logger.Debugf("finished executing credential helper program %s with action %s", executableName, action)
+				logger.Debugf("successfully finished executing credential helper program %s with action %s", executableName, action)
 			}
 		},
 	})
