@@ -79,7 +79,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 
 func runList(ctx context.Context, opts *listOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 
 	// initialize
 	reference := opts.reference

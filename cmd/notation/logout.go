@@ -53,7 +53,7 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 
 func runLogout(ctx context.Context, opts *logoutOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 	credsStore, err := auth.NewCredentialsStore()
 	if err != nil {
 		return fmt.Errorf("failed to get credentials store: %v", err)

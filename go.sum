@@ -23,8 +23,8 @@ github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc4 h1:oOxKUJWnFC4YGHCCMNql1x4YaDfYBTS5Y4x/Cgeo1E0=
 github.com/opencontainers/image-spec v1.1.0-rc4/go.mod h1:X4pATf0uXsnn3g5aiGIsVnJBR4mxhKzfwmvK/B2NTm8=
-github.com/oras-project/oras-credentials-go v0.2.0 h1:BvWAXo0e5unWR6Hfxyb0K04mHNHreQz/Zclw6IzCYJo=
-github.com/oras-project/oras-credentials-go v0.2.0/go.mod h1:JVdg7a5k7hzTrEeeouwag0aCv7OLrS77r7/6w3gVirU=
+github.com/oras-project/oras-credentials-go v0.3.0 h1:Bg1d9iAmgo50RlaIy2XI5MQs7qL00DB3R9Q4JRP1VWs=
+github.com/oras-project/oras-credentials-go v0.3.0/go.mod h1:fFCebDQo0Do+gnM96uV9YUnRay0pwuRQupypvofsp4s=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

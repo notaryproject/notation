@@ -16,7 +16,9 @@ package cmd
 import (
 	"context"
 
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/trace"
+	credentialstrace "github.com/oras-project/oras-credentials-go/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -54,12 +56,32 @@ func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose mode")
 }
 
-// SetLoggerLevel sets up the logger based on common options.
-func (opts *LoggingFlagOpts) SetLoggerLevel(ctx context.Context) context.Context {
+// InitializeLogger sets up the logger based on common options.
+func (opts *LoggingFlagOpts) InitializeLogger(ctx context.Context) context.Context {
 	if opts.Debug {
-		return trace.WithLoggerLevel(ctx, logrus.DebugLevel)
+		ctx = trace.WithLoggerLevel(ctx, logrus.DebugLevel)
 	} else if opts.Verbose {
-		return trace.WithLoggerLevel(ctx, logrus.InfoLevel)
+		ctx = trace.WithLoggerLevel(ctx, logrus.InfoLevel)
+	} else {
+		return ctx
 	}
+	return withExecutableTrace(ctx)
+}
+
+// withExecutableTrace adds tracing for credential helper executables.
+func withExecutableTrace(ctx context.Context) context.Context {
+	logger := log.GetLogger(ctx)
+	ctx = credentialstrace.WithExecutableTrace(ctx, &credentialstrace.ExecutableTrace{
+		ExecuteStart: func(executableName, action string) {
+			logger.Debugf("started executing credential helper program %s with action %s", executableName, action)
+		},
+		ExecuteDone: func(executableName, action string, err error) {
+			if err != nil {
+				logger.Errorf("finished executing credential helper program %s with action %s and got error %w", executableName, action, err)
+			} else {
+				logger.Debugf("successfully finished executing credential helper program %s with action %s", executableName, action)
+			}
+		},
+	})
 	return ctx
 }
