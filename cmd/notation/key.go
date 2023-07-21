@@ -175,7 +175,7 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 
 func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 
 	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
@@ -201,7 +201,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 
 func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	if !opts.isDefault {
@@ -235,7 +235,7 @@ func listKeys() error {
 
 func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	// core process

@@ -65,7 +65,7 @@ Example - List all certificate files from trust store "wabbit-networks" of type 
 
 func listCerts(ctx context.Context, opts *certListOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	namedStore := opts.namedStore

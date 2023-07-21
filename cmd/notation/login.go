@@ -78,7 +78,7 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 
 func runLogin(ctx context.Context, opts *loginOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.SetLoggerLevel(ctx)
+	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 
 	// initialize
 	serverAddress := opts.server
