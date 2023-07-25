@@ -15,8 +15,8 @@ github.com/golang-jwt/jwt/v4 v4.5.0 h1:7cYmW1XlMY7h7ii7UhUyChSgS5wUJEnm9uZVTGqOW
 github.com/golang-jwt/jwt/v4 v4.5.0/go.mod h1:m21LjoU+eqJr34lmDMbreY2eSTRJ1cv77w39/MY0Ch0=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/notaryproject/notation-core-go v1.0.0-rc.4 h1:gzo4JzKRMLGoOeOhPXxoudjL79Mi9X6flS8qJbRtZ+k=
-github.com/notaryproject/notation-core-go v1.0.0-rc.4/go.mod h1:PEHrnhW0mEIVpyYdXqAJoJAaUgfz757tqxB3LG4qcag=
+github.com/notaryproject/notation-core-go v1.0.0 h1:FgOAihtFW4XU9JYyTzItg1xW3OaN4eCasw5Bp00Ydu4=
+github.com/notaryproject/notation-core-go v1.0.0/go.mod h1:eoHFJ2e6b31GZO9hckCms5kfXvHLTySvJ1QwRLB9ZCk=
 github.com/notaryproject/notation-go v1.0.0-rc.6 h1:Wu9PiCzf2v75iBsKanJTgd91jgvpTzMX5kvnKjximi4=
 github.com/notaryproject/notation-go v1.0.0-rc.6/go.mod h1:SV0kfsy8O9RfH8xW1hhDN1Ly3nvQTFNi5X1f7rDX7/U=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
@@ -43,8 +43,8 @@ github.com/veraison/go-cose v1.1.0/go.mod h1:7ziE85vSq4ScFTg6wyoMXjucIGOf4JkFEZi
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
-golang.org/x/crypto v0.9.0 h1:LF6fAI+IutBocDJ2OT0Q1g8plpYljMZ4+lty+dsqw3g=
-golang.org/x/crypto v0.9.0/go.mod h1:yrmDGqONDYtNj3tH8X9dzUun2m2lzPa9ngI6/RUPGR0=
+golang.org/x/crypto v0.11.0 h1:6Ewdq3tDic1mg5xRO4milcWCfMVQhI4NkqWWvqejpuA=
+golang.org/x/crypto v0.11.0/go.mod h1:xgJhtzW8F9jGdVFWZESrid1U1bjeNy4zgy5cRr/CIio=
 golang.org/x/mod v0.10.0 h1:lFO9qtOdlre5W1jxS3r/4szv2/6iXxScdzjoBMXNhYk=
 golang.org/x/mod v0.10.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
