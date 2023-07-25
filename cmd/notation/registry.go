@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -127,6 +128,8 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 	if authClient.Client == nil {
 		authClient.Client = http.DefaultClient
 	}
+	authClient.Client.Timeout = 20 * time.Second
+
 	if authClient.Client.Transport == nil {
 		authClient.Client.Transport = http.DefaultTransport
 	}
