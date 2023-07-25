@@ -93,13 +93,10 @@ case $REGISTRY_NAME in
     ;;
 esac
 
-setup_registry
-
 # defer cleanup registry
-function cleanup {
-    cleanup_registry
-}
-trap cleanup EXIT
+trap cleanup_registry EXIT
+
+setup_registry
 
 # set environment variable for E2E testing
 export NOTATION_E2E_CONFIG_PATH=$CWD/testdata/config
@@ -107,6 +104,7 @@ export NOTATION_E2E_OCI_LAYOUT_PATH=$CWD/testdata/registry/oci_layout
 export NOTATION_E2E_TEST_REPO=e2e
 export NOTATION_E2E_TEST_TAG=v1
 export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME
+export NOTATION_EXPERIMENTAL=0
 
 # run tests
 ginkgo -r -p -v

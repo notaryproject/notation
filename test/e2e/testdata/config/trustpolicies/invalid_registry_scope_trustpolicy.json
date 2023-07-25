@@ -3,7 +3,7 @@
     "trustPolicies": [
         {
             "name": "e2e",
-            "registryScopes": [ "localhost:5000/invalid-test-repo"],
+            "registryScopes": [ "localhost:5001/invalid-test-repo"],
             "signatureVerification": {
                 "level" : "strict" 
             },

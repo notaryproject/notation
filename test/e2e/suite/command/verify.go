@@ -25,7 +25,7 @@ import (
 var _ = Describe("notation verify", func() {
 	It("by digest", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.ReferenceWithDigest()).
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -35,7 +35,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by tag", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.ReferenceWithDigest()).
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithTag(), "-v").
@@ -45,7 +45,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with debug log", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.ReferenceWithDigest()).
+			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
@@ -65,7 +65,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by digest with the Referrers API", func() {
 		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
+			OldNotation(BaseOptionsWithExperimental()...).Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
@@ -75,7 +75,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by digest, sign with the Referrers tag schema, verify with the Referrers API", func() {
 		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.ReferenceWithDigest()).
+			OldNotation(BaseOptionsWithExperimental()...).Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
@@ -85,7 +85,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by digest with oci layout", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
+			OldNotation(BaseOptionsWithExperimental()...).Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
@@ -97,7 +97,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by tag with oci layout and COSE format", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithTag()).
+			OldNotation(BaseOptionsWithExperimental()...).Exec("sign", "--oci-layout", "--signature-format", "cose", ociLayout.ReferenceWithTag()).
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
@@ -117,7 +117,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by digest with oci layout but missing scope", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
+			OldNotation(BaseOptionsWithExperimental()...).Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			experimentalMsg := "Warning: This feature is experimental and may not be fully tested or completed and may be deprecated. Report any issues to \"https://github/notaryproject/notation\"\n"
@@ -129,11 +129,10 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with TLS by digest", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("e2e-valid-signature", "")
 
-			notation.Exec("verify", "-d", artifact.DomainReferenceWithDigest()).
+			notation.Exec("verify", "-d", artifact.ReferenceWithDigest()).
 				MatchKeyWords(
 					VerifySuccessfully,
 				).
@@ -143,11 +142,10 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with --insecure-registry by digest", func() {
-		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.DomainReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
+		HostInGithubAction(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifactWithDomainHost("e2e-valid-signature", "")
 
-			notation.Exec("verify", "-d", "--insecure-registry", artifact.DomainReferenceWithDigest()).
+			notation.Exec("verify", "-d", "--insecure-registry", artifact.ReferenceWithDigest()).
 				MatchKeyWords(
 					VerifySuccessfully,
 				).
