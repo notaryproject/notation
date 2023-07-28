@@ -45,7 +45,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords(`registry scope "localhost:5000\\test-repo" is not valid, make sure it is a fully qualified registry URL without the scheme/protocol, e.g domain.com/my/repository OR a local trust policy scope, e.g local/myOCILayout`)
+				MatchErrKeyWords(`registry scope "localhost:5000\\test-repo" is not valid, make sure it is a fully qualified repository without the scheme, protocol or tag. For example domain.com/my/repository or a local scope like local/myOCILayout`)
 		})
 	})
 
