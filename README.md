@@ -6,11 +6,13 @@
 
 Notation is a CLI project to add signatures as standard items in the OCI registry ecosystem, and to build a set of simple tooling for signing and verifying these signatures. This should be viewed as similar security to checking git commit signatures, although the signatures are generic and can be used for additional purposes. Notation is an implementation of the [Notary Project specifications][notaryproject-specs].
 
-> **Note** The documentation for installing and using `notation` is available [here](https://notaryproject.dev/docs/). You can also find the Notary Project [README](https://github.com/notaryproject/.github/blob/main/README.md) to learn about the overall Notary Project.
+You can find the Notary Project [README](https://github.com/notaryproject/.github/blob/main/README.md) to learn about the overall Notary Project.
+
+> **Note** The documentation for installing Notation CLI is available [here](https://notaryproject.dev/docs/installation/cli/).
 
 ## Table of Contents
 
-  - [Documents](#documents)
+  - [Quick Start](#quick-start)
   - [Community](#community)
     - [Development and Contributing](#development-and-contributing)
     - [Notary Project Community Meeting](#notary-project-community-meeting)
