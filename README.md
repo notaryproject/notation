@@ -8,7 +8,8 @@ Notation is a CLI project to add signatures as standard items in the OCI registr
 
 You can find the Notary Project [README](https://github.com/notaryproject/.github/blob/main/README.md) to learn about the overall Notary Project.
 
-> **Note** The documentation for installing Notation CLI is available [here](https://notaryproject.dev/docs/installation/cli/).
+> [!NOTE]
+> The documentation for installing Notation CLI is available [here](https://notaryproject.dev/docs/installation/cli/).
 
 ## Table of Contents
 
