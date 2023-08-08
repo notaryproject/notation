@@ -43,6 +43,7 @@ jobs:
         uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
           go-version: ${{ matrix.go-version }}
+          cache: false
           check-latest: true
       - name: Initialize CodeQL
         uses: github/codeql-action/init@1813ca74c3faaa3a2da2070b9b8a0b3e7373a0d8 # v2.21.0
