@@ -72,7 +72,6 @@ func runShow(command *cobra.Command, opts showOpts) error {
 	}
 
 	// show policy content
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "    ")
-	return enc.Encode(&doc)
+	_, err = os.Stdout.Write(policyJSON)
+	return err
 }
