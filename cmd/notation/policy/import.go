@@ -65,7 +65,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintf(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
 	}
 
 	// read configuration
