@@ -59,7 +59,7 @@ Flags:
        --oci-layout                  [Experimental] verify the artifact stored as OCI image layout
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-       --scope string                [Experimental] set trust policy scope for artifact verification, required and can only be used when flag "--oci-layout" is set
+       --scope string                [Experimental] set trust policy scope for artifact verification, required when flag "--oci-layout" is set, can only be used when "--oci-layout" or "--file" is set
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
        --signature stringArray       path of signatures when verifying a file, required and used if and only if the target file is stored in file system
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
@@ -221,6 +221,7 @@ the [global trust policy](https://github.com/notaryproject/specifications/blob/m
 # Trust policy with scope "file/myFile" is used, if it does not exist, the global trust policy is used
 notation verify --file --signature ./mySignature1.sig --signature ./mySignature2.sig ./myFile.txt
 
+export NOTATION_EXPERIMENTAL=1
 # Use flag "--file" to enable verifying a file
 # Use flag "--signature" to speicfy path where the signatures are stored
 # Trust policy with scope "example/myPolicy" is used, if it does not exist, the global trust policy is used
