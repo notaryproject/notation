@@ -4,7 +4,8 @@
 
 Use `notation sign` to sign artifacts.
 
-Signs an OCI artifact stored in the registry. Always sign artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
+### Sign an OCI artifact stored in registry
+Always sign artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
 
 Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
 
@@ -19,6 +20,15 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed <registry>/<repository>@<digest>
 ```
 
+### Sign an arbitrary file stored in file system
+The file content, i.e. the file blob, is signed.
+
+Upon successful signing, the generated signature is stored to user specified signature path in file system. The output message is printed out as following:
+
+```text
+Successfully signed <target_file>
+```
+
 ## Outline
 
 ```text
@@ -31,6 +41,7 @@ Flags:
        --allow-referrers-api        [Experimental] use the Referrers API to store signatures in the registry, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
+       --file                       enable signing a file located in file system, if set, the reference argument is the file path (required if --signature is set)
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
        --insecure-registry          use HTTP protocol while connecting to registries. Should be used only for testing
@@ -39,6 +50,7 @@ Flags:
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
+       --signature string           output path of generated signature when signing a file (required if --file is set)
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
@@ -151,6 +163,22 @@ An example for a successful signing:
 $ notation sign localhost:5000/net-monitor:v1
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Sign an arbitrary file located in file system
+Notation supports signing a file located in user's file system. The file's content (blob) gets signed and the generated signature is stored in the same file system.
+```shell
+# Prerequisites:
+# A default signing key is configured using CLI "notation key"
+
+# Use flag "--file" to enable signing a file
+# Use flag "--signature" to specify path where the generated signature is stored
+notation sign --file --signature <signature_path> <target_file_path>
+```
+An example of a successful signing:
+```console
+$ notation sign --file --signature ./mySignature.sig ./myFile.txt 
+Successfully signed ./myFile.txt
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory
