@@ -26,7 +26,7 @@ The file content, i.e. the file blob, is signed.
 Upon successful signing, the generated signature is stored to user specified signature path in file system. The output message is printed out as following:
 
 ```text
-Successfully signed <target_file>
+Successfully signed <target_file>, stored signature at <signature_file>
 ```
 
 ## Outline
@@ -178,7 +178,7 @@ notation sign --file --signature <signature_path> <target_file_path>
 An example of a successful signing:
 ```console
 $ notation sign --file --signature ./mySignature.sig ./myFile.txt 
-Successfully signed ./myFile.txt
+Successfully signed ./myFile.txt, stored signature at ./mySignature.sig
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory

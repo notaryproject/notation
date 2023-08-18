@@ -31,7 +31,7 @@ KEY    VALUE
 Verify the file content (blob) against signatures stored in file system. Upon successful verification, the output message is printed out as follows:
 
 ```text
-Successfully verified signature for <target_file>
+Successfully verified <target_file> with signature <signature_file>
 ```
 
 ### Verify an arbitrary file stored in registry
@@ -224,12 +224,12 @@ notation verify --file --signature ./mySignature1.sig --signature ./mySignature2
 # Use flag "--file" to enable verifying a file
 # Use flag "--signature" to speicfy path where the signatures are stored
 # Trust policy with scope "example/myPolicy" is used, if it does not exist, the global trust policy is used
-notation verify --file --signature ./mySignature1.sig --scope example/myPolicy ./myFile.txt
+notation verify --file --signature ./mySignature.sig --scope example/myPolicy ./myFile.txt
 ```
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature for ./myFile.txt
+Successfully verified ./myFile.txt with signature ./mySignature.sig
 ```
 
 ### [Experimental] Verify container images in OCI layout directory
