@@ -61,7 +61,7 @@ Flags:
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
        --scope string                [Experimental] set trust policy scope for artifact verification, required and can only be used when flag "--oci-layout" is set
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
-       --signature string            path of signatures when verifying a file, required and used if and only if the target file is stored in file system
+       --signature stringArray       path of signatures when verifying a file, required and used if and only if the target file is stored in file system
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode
 ```
