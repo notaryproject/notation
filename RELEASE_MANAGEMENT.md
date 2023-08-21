@@ -19,7 +19,7 @@ The rest of the doc will cover the release process for the following kinds of re
 
 ### Major Releases
 
-The Notation project is under active development to reach a stable target version of 1.0.0
+The Notation project has reached a stable target version of 1.0.0 and all previous RC, BETA, and ALPHA releases will no longer be supported. It's recommended to upgrade the Notation version to v1.0.0 if you are still using a previous version.
 
 ### Minor Releases
 
@@ -53,9 +53,7 @@ The Notation project is under active development to reach a stable target versio
 
 ## Supported Releases
 
-There aren't any stable releases of the Notation project currently. Once a stable version of Notation is released, that version will be supported as follow.
-
-We expect to "support" n (current) and n-1 major.minor releases. "Support" means we expect users to be running that version in production. For example, when v1.3.0 comes out, v1.1.x will no longer be supported for patches and we encourage users to upgrade to a supported version as soon as possible. Support will be provided best effort by the maintainers via GitHub issues and pull requests.
+We expect to "support" n (current) and n-1 major.minor releases. "Support" means we expect users to be running that version in production. For example, when v1.3.0 comes out, v1.1.x will no longer be supported for patches, and we encourage users to upgrade to a supported version as soon as possible. Support will be provided best effort by the maintainers via GitHub issues and pull requests.
 
 We expect users to stay up-to-date with the versions of Notation they use in production, but understand that it may take time to upgrade. We expect users to be running approximately the latest patch release of a given minor release and encourage users to upgrade as soon as possible.
 
