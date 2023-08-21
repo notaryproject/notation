@@ -50,7 +50,7 @@ Flags:
   -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
-       --signature string           output path of generated signature when signing a file (required if --file is set)
+       --signature string           output path of generated signature when signing a file, can only be used when --file is set
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
@@ -172,11 +172,19 @@ Notation supports signing a file located in user's file system. The file's conte
 # A default signing key is configured using CLI "notation key"
 
 # Use flag "--file" to enable signing a file
+# The generated signature is saved at the same dir as the target file with name
+# <target_file>.sig
+notation sign --file <target_file_path>
+
+# Use flag "--file" to enable signing a file
 # Use flag "--signature" to specify path where the generated signature is stored
 notation sign --file --signature <signature_path> <target_file_path>
 ```
-An example of a successful signing:
+Examples of successful signing:
 ```console
+$ notation sign --file ./myFile.txt 
+Successfully signed ./myFile.txt, stored signature at ./myFile.sig
+
 $ notation sign --file --signature ./mySignature.sig ./myFile.txt 
 Successfully signed ./myFile.txt, stored signature at ./mySignature.sig
 ```

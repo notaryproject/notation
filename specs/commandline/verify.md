@@ -52,7 +52,7 @@ Usage:
 Flags:
        --allow-referrers-api         [Experimental] use the Referrers API to verify signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                       debug mode
-        --file                       enable verifying a file, if set, the reference argument is the file path or full URI reference of the file artifact in registry (required if --signature is set)
+       --file                        enable verifying a file, if set, the reference argument is the file path or full URI reference of the file artifact in registry (required if --signature is set)
   -h,  --help                        help for verify
        --insecure-registry           use HTTP protocol while connecting to registries. Should be used only for testing
        --max-signatures int          maximum number of signatures to evaluate or examine (default 100)
@@ -193,7 +193,7 @@ Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b993
 ### Verify an arbitrary file located in OCI-compliant registry
 A user wants to verify a file stored as an OCI artifact in an OCI-compliant registry.
 ```shell
-# Prerequisites: Signatures are stored in a registry referencing the file artifact
+# Prerequisites: Signatures are stored in the registry referencing the file artifact
 
 # Use flag "--file" to enable verifying a file
 notation verify --file localhost:5000/myFile@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
@@ -211,14 +211,13 @@ A verifier wants to verify a file against its signatures located in file system.
 Trust policy to be used follows the rule below:
 1. User MAY pass in a trust policy scope via `--scope` flag. The value MUST follow Notation's trust policy [spec](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#registry-scopes-constraints). If the user specified trust policy does not exist in Notation's `trustpolicy.json` (use command `notation policy show` to check existence), then
 the [global trust policy](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#registry-scopes-constraints) is used.
-2. If user ignores the `--scope` flag, then the trust policy with scope `file/<target_file_name>` will be used as default. If this trust policy does not exist in Notation's `trustpolicy.json` (use command `notation policy show` to check existence), then
-the [global trust policy](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#registry-scopes-constraints) is used.
+2. If user ignores the `--scope` flag, then the [global trust policy](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#registry-scopes-constraints) is used as default.
 ```shell
 # Prerequisites: Both target file and signatures are stored in user's file system
 
 # Use flag "--file" to enable verifying a file
 # Use flag "--signature" to speicfy path where the signatures are stored
-# Trust policy with scope "file/myFile" is used, if it does not exist, the global trust policy is used
+# The global trust policy is used by default
 notation verify --file --signature ./mySignature1.sig --signature ./mySignature2.sig ./myFile.txt
 
 export NOTATION_EXPERIMENTAL=1
