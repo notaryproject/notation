@@ -41,7 +41,7 @@ Flags:
        --allow-referrers-api        [Experimental] use the Referrers API to store signatures in the registry, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
-       --file                       enable signing a file located in file system, if set, the reference argument is the file path (required if --signature is set)
+       --file                       enable signing a file's content, if set, the reference argument is the file path in the file system (required if --signature is set)
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
        --insecure-registry          use HTTP protocol while connecting to registries. Should be used only for testing
