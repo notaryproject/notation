@@ -3,6 +3,7 @@
 ## Description
 
 ### Verify an OCI artifact stored in registry
+
 Use `notation verify` command to verify signatures associated with the artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
 
 ```text
@@ -28,6 +29,7 @@ KEY    VALUE
 ```
 
 ### Verify an arbitrary file stored in file system
+
 Verify the file content (blob) against signatures stored in file system. Upon successful verification, the output message is printed out as follows:
 
 ```text
@@ -35,6 +37,7 @@ Successfully verified <target_file> with signature <signature_file>
 ```
 
 ### Verify an arbitrary file stored in registry
+
 Verify the file content (blob) against signatures stored in registry. Upon successful verification, the output message is printed out as follows:
 
 ```text
@@ -61,7 +64,7 @@ Flags:
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
        --scope string                [Experimental] set trust policy scope for artifact verification, required when flag "--oci-layout" is set, can only be used when "--oci-layout" or "--file" is set
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
-       --signature stringArray       path of signatures when verifying a file, required and used if and only if the target file is stored in file system
+       --signature string            path of signature when verifying a file, required and used if and only if the target file is stored in file system
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v,  --verbose                     verbose mode
 ```
@@ -191,6 +194,7 @@ Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b993
 ```
 
 ### Verify an arbitrary file located in OCI-compliant registry
+
 A user wants to verify a file stored as an OCI artifact in an OCI-compliant registry.
 ```shell
 # Prerequisites: Signatures are stored in the registry referencing the file artifact
@@ -206,6 +210,7 @@ Successfully verified signature for localhost:5000/myFile@sha256:b94d27b9934d3e0
 ```
 
 ### Verify an arbitrary file located in file system
+
 A verifier wants to verify a file against its signatures located in file system.
 
 Trust policy to be used follows the rule below:
@@ -218,13 +223,13 @@ the [global trust policy](https://github.com/notaryproject/specifications/blob/m
 # Use flag "--file" to enable verifying a file
 # Use flag "--signature" to speicfy path where the signatures are stored
 # The global trust policy is used by default
-notation verify --file --signature ./mySignature1.sig --signature ./mySignature2.sig ./myFile.txt
+notation verify --file --signature mySignature1.sig myFile.txt
 
 export NOTATION_EXPERIMENTAL=1
 # Use flag "--file" to enable verifying a file
 # Use flag "--signature" to speicfy path where the signatures are stored
 # Trust policy with scope "example/myPolicy" is used, if it does not exist, the global trust policy is used
-notation verify --file --signature ./mySignature.sig --scope example/myPolicy ./myFile.txt
+notation verify --file --signature mySignature.sig --scope example/myPolicy myFile.txt
 ```
 An example of output messages for a successful verification:
 

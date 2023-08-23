@@ -5,6 +5,7 @@
 Use `notation sign` to sign artifacts.
 
 ### Sign an OCI artifact stored in registry
+
 Always sign artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
 
 Upon successful signing, the generated signature is pushed to the registry and associated with the signed OCI artifact. The output message is printed out as following:
@@ -21,6 +22,7 @@ Successfully signed <registry>/<repository>@<digest>
 ```
 
 ### Sign an arbitrary file stored in file system
+
 The file content, i.e. the file blob, is signed.
 
 Upon successful signing, the generated signature is stored to user specified signature path in file system. The output message is printed out as following:
@@ -41,7 +43,7 @@ Flags:
        --allow-referrers-api        [Experimental] use the Referrers API to store signatures in the registry, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                      debug mode
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
-       --file                       enable signing a file's content, if set, the reference argument is the file path in the file system (required if --signature is set)
+       --file                       enable signing file content, if set, the reference argument is the file path in the file system (required if --signature is set)
   -h,  --help                       help for sign
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
        --insecure-registry          use HTTP protocol while connecting to registries. Should be used only for testing
@@ -166,7 +168,8 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 ```
 
 ### Sign an arbitrary file located in file system
-Notation supports signing a file located in user's file system. The file's content (blob) gets signed and the generated signature is stored in the same file system.
+
+Notation supports signing files located in file systems.
 ```shell
 # Prerequisites:
 # A default signing key is configured using CLI "notation key"
@@ -182,11 +185,11 @@ notation sign --file --signature <signature_path> <target_file_path>
 ```
 Examples of successful signing:
 ```console
-$ notation sign --file ./myFile.txt 
-Successfully signed ./myFile.txt and created signature at ./myFile.sig
+$ notation sign --file myFile.txt 
+Successfully signed myFile.txt and created signature at myFile.sig
 
 $ notation sign --file --signature ./mySignature.sig ./myFile.txt 
-Successfully signed ./myFile.txt and created signature at ./mySignature.sig
+Successfully signed myFile.txt and created signature at mySignature.sig
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory
