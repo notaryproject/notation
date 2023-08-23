@@ -186,10 +186,10 @@ notation sign --file --signature <signature_path> <target_file_path>
 Examples of successful signing:
 ```console
 $ notation sign --file myFile.txt 
-Successfully signed myFile.txt and created signature at myFile.sig
+Successfully signed myFile.txt and created signature at myFile.txt.sig
 
-$ notation sign --file --signature ./mySignature.sig ./myFile.txt 
-Successfully signed myFile.txt and created signature at mySignature.sig
+$ notation sign --file --signature mySignature.sig myFile 
+Successfully signed myFile and created signature at mySignature.sig
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory

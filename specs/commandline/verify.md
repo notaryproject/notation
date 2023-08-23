@@ -218,16 +218,16 @@ Trust policy to be used follows the rule below:
 the [global trust policy](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#registry-scopes-constraints) is used.
 2. If user ignores the `--scope` flag, then the [global trust policy](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#registry-scopes-constraints) is used as default.
 ```shell
-# Prerequisites: Both target file and signatures are stored in user's file system
+# Prerequisites: Both target and signature files are stored in file system
 
 # Use flag "--file" to enable verifying a file
-# Use flag "--signature" to speicfy path where the signatures are stored
+# Use flag "--signature" to speicfy path where the signature is stored
 # The global trust policy is used by default
-notation verify --file --signature mySignature1.sig myFile.txt
+notation verify --file --signature mySignature.sig myFile.txt
 
 export NOTATION_EXPERIMENTAL=1
 # Use flag "--file" to enable verifying a file
-# Use flag "--signature" to speicfy path where the signatures are stored
+# Use flag "--signature" to speicfy path where the signature is stored
 # Trust policy with scope "example/myPolicy" is used, if it does not exist, the global trust policy is used
 notation verify --file --signature mySignature.sig --scope example/myPolicy myFile.txt
 ```
