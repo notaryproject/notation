@@ -41,8 +41,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
-				MatchErrKeyWords("authenticity validation failed",
-					"truststore/x509/ca/invalid_store\\\" does not exist",
+				MatchErrKeyWords("the trust store \"invalid_store\" of type \"ca\" doesn't exist",
 					VerifyFailed)
 		})
 	})
