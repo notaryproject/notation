@@ -158,12 +158,12 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 	// write out on failure
 	if err != nil {
 		for _, outcome := range outcomes {
-			fmt.Printf("Failed to verify signature with digest %v,\n", outcome.SignatureManifestDescriptor.Digest)
+			fmt.Fprintf(os.Stderr, "Failed to verify signature with digest %v,\n", outcome.SignatureManifestDescriptor.Digest)
 			var errorNonExistence truststore.ErrorNonExistence
 			if errors.As(outcome.Error, &errorNonExistence) {
-				fmt.Printf("%s. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", errorNonExistence)
+				fmt.Fprintf(os.Stderr, "%s. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", errorNonExistence)
 			} else {
-				fmt.Println(outcome.Error)
+				fmt.Fprintln(os.Stderr, outcome.Error)
 			}
 		}
 		var errorVerificationFailed notation.ErrorVerificationFailed
