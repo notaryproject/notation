@@ -1,5 +1,7 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
+github.com/Two-Hearts/notation-go v0.0.0-20230825065312-48e71bc7361c h1:3ciLIDf2bmFZShEyJ4S1y8VKBh0emMr1Wj39XvXieIw=
+github.com/Two-Hearts/notation-go v0.0.0-20230825065312-48e71bc7361c/go.mod h1:NpfUnDt94vLSCJ8fAWplgTbf3fmq3JLSEnjDFl7j16U=
 github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74 h1:Kk6a4nehpJ3UuJRqlA3JxYxBZEqCeOmATOvrbT4p9RA=
 github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
@@ -18,8 +20,6 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/notaryproject/notation-core-go v1.0.0 h1:FgOAihtFW4XU9JYyTzItg1xW3OaN4eCasw5Bp00Ydu4=
 github.com/notaryproject/notation-core-go v1.0.0/go.mod h1:eoHFJ2e6b31GZO9hckCms5kfXvHLTySvJ1QwRLB9ZCk=
-github.com/notaryproject/notation-go v1.0.0 h1:pH+0NVmZu1IhE8zUhK9Oxna3OlHNdy+crNntnuCiThs=
-github.com/notaryproject/notation-go v1.0.0/go.mod h1:NpfUnDt94vLSCJ8fAWplgTbf3fmq3JLSEnjDFl7j16U=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0-rc4 h1:oOxKUJWnFC4YGHCCMNql1x4YaDfYBTS5Y4x/Cgeo1E0=

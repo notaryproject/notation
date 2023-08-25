@@ -22,6 +22,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -155,12 +156,19 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
 	// write out on failure
-	if err != nil || len(outcomes) == 0 {
-		if err != nil {
-			var errorVerificationFailed notation.ErrorVerificationFailed
-			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", err)
+	if err != nil {
+		for _, outcome := range outcomes {
+			fmt.Printf("Failed to verify signature with digest %v,\n", outcome.SignatureManifestDescriptor.Digest)
+			var errorNonExistence truststore.ErrorNonExistence
+			if errors.As(outcome.Error, &errorNonExistence) {
+				fmt.Printf("%s. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", errorNonExistence)
+			} else {
+				fmt.Println(outcome.Error)
 			}
+		}
+		var errorVerificationFailed notation.ErrorVerificationFailed
+		if !errors.As(err, &errorVerificationFailed) {
+			return fmt.Errorf("signature verification failed: %w", err)
 		}
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
 	}
