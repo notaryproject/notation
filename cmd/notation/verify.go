@@ -16,6 +16,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"reflect"
 
@@ -158,12 +159,13 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 	// write out on failure
 	if err != nil {
 		for _, outcome := range outcomes {
-			fmt.Fprintf(os.Stderr, "Error: Failed to verify signature with digest %v, ", outcome.SignatureManifestDescriptor.Digest)
-			var errorNonExistence truststore.ErrorNonExistence
-			if errors.As(outcome.Error, &errorNonExistence) {
-				fmt.Fprintf(os.Stderr, "%s. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", errorNonExistence)
+			var errTrustStore truststore.ErrorTrustStore
+			var errCertificate truststore.ErrorCertificate
+			if (errors.As(outcome.Error, &errTrustStore) && errors.Is(errTrustStore, fs.ErrNotExist)) ||
+				(errors.As(outcome.Error, &errCertificate) && errors.Is(errCertificate, fs.ErrNotExist)) {
+				fmt.Fprintf(os.Stderr, "Error: %v. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", outcome.Error)
 			} else {
-				fmt.Fprintln(os.Stderr, outcome.Error)
+				fmt.Fprintf(os.Stderr, "Error: %v\n", outcome.Error)
 			}
 		}
 		var errorVerificationFailed notation.ErrorVerificationFailed
