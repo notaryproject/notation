@@ -27,6 +27,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -93,8 +94,8 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 		Short: "Inspect all signatures associated with the signed artifact",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("missing reference")
+			if err := cmdutil.ValidateArgsCount(args, 1, "missing reference"); err != nil {
+				return err
 			}
 			opts.reference = args[0]
 			return nil
