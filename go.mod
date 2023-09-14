@@ -30,4 +30,4 @@ require (
 	golang.org/x/sys v0.11.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20230830040707-06b9ea427f0e
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20230914064925-33af9c76fdc9

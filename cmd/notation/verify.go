@@ -158,16 +158,24 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
 	// write out on failure
 	if err != nil {
-		for _, outcome := range outcomes {
-			var errTrustStore truststore.ErrorTrustStore
-			var errCertificate truststore.ErrorCertificate
-			if (errors.As(outcome.Error, &errTrustStore) && errors.Is(errTrustStore, fs.ErrNotExist)) ||
-				(errors.As(outcome.Error, &errCertificate) && errors.Is(errCertificate, fs.ErrNotExist)) {
-				fmt.Fprintf(os.Stderr, "Error: %v. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", outcome.Error)
-			} else {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", outcome.Error)
+		// reference: https://pkg.go.dev/errors#Join
+		if joinedError, ok := err.(interface{ Unwrap() []error }); ok {
+			errArray := joinedError.Unwrap()
+			// if err is a joined error, then there are at least 2 errors in the
+			// array, always starting with a general error message followed by
+			// indivisual notation.VerificationOutcome errors.
+			for _, outcomeError := range errArray[1:] {
+				var errTrustStore truststore.ErrorTrustStore
+				var errCertificate truststore.ErrorCertificate
+				if (errors.As(outcomeError, &errTrustStore) && errors.Is(errTrustStore, fs.ErrNotExist)) ||
+					(errors.As(outcomeError, &errCertificate) && errors.Is(errCertificate, fs.ErrNotExist)) {
+					fmt.Fprintf(os.Stderr, "Error: %v. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", outcomeError)
+				} else {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", outcomeError)
+				}
 			}
 		}
+
 		var errorVerificationFailed notation.ErrorVerificationFailed
 		if !errors.As(err, &errorVerificationFailed) {
 			return fmt.Errorf("signature verification failed: %w", err)
