@@ -161,12 +161,12 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 		// reference: https://pkg.go.dev/errors#Join
 		if joinedError, ok := err.(interface{ Unwrap() []error }); ok {
 			errArray := joinedError.Unwrap()
-			// if err is a joined error, then there are at least 2 errors in the
-			// array, always starting with a general error message followed by
-			// indivisual notation.VerificationOutcome errors.
+			// if err is a joined error, then it always starts with a general
+			// error message followed by indivisual notation.VerificationOutcome
+			// errors.
 			for _, outcomeError := range errArray[1:] {
-				var errTrustStore truststore.ErrorTrustStore
-				var errCertificate truststore.ErrorCertificate
+				var errTrustStore truststore.TrustStoreError
+				var errCertificate truststore.CertificateError
 				if (errors.As(outcomeError, &errTrustStore) && errors.Is(errTrustStore, fs.ErrNotExist)) ||
 					(errors.As(outcomeError, &errCertificate) && errors.Is(errCertificate, fs.ErrNotExist)) {
 					fmt.Fprintf(os.Stderr, "Error: %v. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", outcomeError)

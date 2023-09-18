@@ -11,8 +11,8 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/term v0.11.0
-	oras.land/oras-go/v2 v2.2.1
+	golang.org/x/term v0.12.0
+	oras.land/oras-go/v2 v2.3.0
 )
 
 require (
@@ -24,10 +24,10 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/veraison/go-cose v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20230914064925-33af9c76fdc9
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20230918053234-a1e4faf1a800
