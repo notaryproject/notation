@@ -24,7 +24,7 @@ You can find the Notary Project [README](https://github.com/notaryproject/.githu
 
 ## Quick Start
 
-- [Quick start: Sign and validate a container image](https://notaryproject.dev/docs/quickstart/)
+- [Quick start: Sign and validate a container image](https://notaryproject.dev/docs/quickstart-guides/quickstart/)
 - [Try out Notation in this Killercoda interactive sandbox environment](https://killercoda.com/notaryproject/scenario/notation)
 - Build, sign, and verify container images using Notation with [Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push?wt.mc_id=azurelearn_inproduct_oss_notaryproject) or [AWS Signer](https://docs.aws.amazon.com/signer/latest/developerguide/container-workflow.html)
  
