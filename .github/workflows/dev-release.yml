@@ -57,7 +57,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Delete old dev release
-        uses: dev-drprasad/delete-older-releases@653dc03d96473ac9e585c68c8bf5aaccb0dadb61 # v0.2.1
+        uses: dev-drprasad/delete-older-releases@5494cd8b61c31b3c7a15f6267901195ec7df64e8 # v0.3.2
         with:
           keep_latest: 1
           delete_tag_pattern: ".dev."
