@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"path/filepath"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/config"
@@ -55,6 +56,20 @@ func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
 		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
 	}
 
+	return tw.Flush()
+}
+
+func PrintCertMap(w io.Writer, certPaths []string) error {
+	tw := newTabWriter(w)
+	fmt.Fprintln(tw, "STORE TYPE\tNAMED STORE\tCERTIFICATE\t")
+	for _, cert := range certPaths {
+		fileName := filepath.Base(cert)
+		dir := filepath.Dir(cert)
+		namedStore := filepath.Base(dir)
+		dir = filepath.Dir(dir)
+		storeType := filepath.Base(dir)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t\n", storeType, namedStore, fileName)
+	}
 	return tw.Flush()
 }
 
