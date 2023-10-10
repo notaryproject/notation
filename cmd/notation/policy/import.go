@@ -53,21 +53,6 @@ Example - Import trust policy configuration from a file:
 }
 
 func runImport(command *cobra.Command, opts importOpts) error {
-	// optional confirmation
-	if !opts.force {
-		if _, err := trustpolicy.LoadDocument(); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "Existing trust policy configuration found, do you want to overwrite it?", opts.force)
-			if err != nil {
-				return err
-			}
-			if !confirmed {
-				return nil
-			}
-		}
-	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
-	}
-
 	// read configuration
 	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
@@ -81,6 +66,21 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	}
 	if err = doc.Validate(); err != nil {
 		return fmt.Errorf("failed to validate trust policy: %w", err)
+	}
+
+	// optional confirmation
+	if !opts.force {
+		if _, err := trustpolicy.LoadDocument(); err == nil {
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "Existing trust policy configuration found, do you want to overwrite it?", opts.force)
+			if err != nil {
+				return err
+			}
+			if !confirmed {
+				return nil
+			}
+		}
+	} else {
+		fmt.Fprintln(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
 	}
 
 	// write
