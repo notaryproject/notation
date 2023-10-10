@@ -46,7 +46,7 @@ jobs:
           pre_tag=`git tag --sort=-creatordate --list 'v*' | grep -v dev | head -2 | tail -1`
           echo "GORELEASER_PREVIOUS_TAG=$pre_tag" >> $GITHUB_ENV
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@5fdedb94abba051217030cc86d4523cf3f02243d # v4.6.0
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
         with:
           distribution: goreleaser
           version: latest
