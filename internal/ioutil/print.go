@@ -61,7 +61,7 @@ func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
 
 func PrintCertMap(w io.Writer, certPaths []string) error {
 	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "STORE TYPE\tNAMED STORE\tCERTIFICATE\t")
+	fmt.Fprintln(tw, "STORE TYPE\tSTORE NAME\tCERTIFICATE\t")
 	for _, cert := range certPaths {
 		fileName := filepath.Base(cert)
 		dir := filepath.Dir(cert)
