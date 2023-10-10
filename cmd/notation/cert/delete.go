@@ -35,7 +35,7 @@ func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "delete --type <type> --store <name> [flags] (--all | <cert_fileName>)",
-		Short: "Delete certificates from the trust store.",
+		Short: "Delete certificates from the trust store",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if opts.all {
 				if len(args) != 0 {
@@ -49,17 +49,15 @@ func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
 			opts.cert = args[0]
 			return nil
 		},
-		Long: `Delete certificates from the trust store
+		Long: `Delete certificates from the trust store`,
+		Example: `# Delete all certificates with "ca" type from the trust store "acme-rockets":
+notation cert delete --type ca --store acme-rockets --all
 
-Example - Delete all certificates with "ca" type from the trust store "acme-rockets":
-  notation cert delete --type ca --store acme-rockets --all
+# Delete certificate "cert1.pem" with "signingAuthority" type from trust store wabbit-networks:
+notation cert delete --type signingAuthority --store wabbit-networks cert1.pem
 
-Example - Delete certificate "cert1.pem" with "signingAuthority" type from trust store wabbit-networks:
-  notation cert delete --type signingAuthority --store wabbit-networks cert1.pem
-
-Example - Delete all certificates with "ca" type from the trust store "acme-rockets", without prompt for confirmation:
-  notation cert delete --type ca --store acme-rockets -y --all 
-`,
+# Delete all certificates with "ca" type from the trust store "acme-rockets", without prompt for confirmation:
+notation cert delete --type ca --store acme-rockets -y --all`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return deleteCerts(opts)
 		},

@@ -73,25 +73,29 @@ func inspectCommand(opts *inspectOpts) *cobra.Command {
 	if opts == nil {
 		opts = &inspectOpts{}
 	}
-	longMessage := `Inspect all signatures associated with the signed artifact.
+	longMessage := `Inspect all signatures associated with the signed artifact`
+	exampleMessage := `# Inspect signatures on an OCI artifact identified by a digest:
+notation inspect <registry>/<repository>@<digest>
 
-Example - Inspect signatures on an OCI artifact identified by a digest:
-  notation inspect <registry>/<repository>@<digest>
+# Inspect signatures on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
+notation inspect <registry>/<repository>:<tag>
 
-Example - Inspect signatures on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
-  notation inspect <registry>/<repository>:<tag>
-
-Example - Inspect signatures on an OCI artifact identified by a digest and output as json:
-  notation inspect --output json <registry>/<repository>@<digest>
+# Inspect signatures on an OCI artifact identified by a digest and output as json:
+notation inspect --output json <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
-Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
-  notation inspect --allow-referrers-api <registry>/<repository>@<digest>
+# [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
+notation inspect --allow-referrers-api <registry>/<repository>@<digest>
 `
+	if(!experimental.IsDisabled())	{
+		exampleMessage += experimentalExamples
+	}
+
 	command := &cobra.Command{
 		Use:   "inspect [reference]",
 		Short: "Inspect all signatures associated with the signed artifact",
 		Long:  longMessage,
+		Example: exampleMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")

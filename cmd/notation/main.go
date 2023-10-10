@@ -45,6 +45,7 @@ func main() {
 		logoutCommand(nil),
 		versionCommand(),
 		inspectCommand(nil),
+		generateDocsCommand(nil),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

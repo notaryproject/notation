@@ -33,7 +33,7 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 	}
 	command := &cobra.Command{
 		Use:   "add --type <type> --store <name> [flags] <cert_path>...",
-		Short: "Add certificates to the trust store.",
+		Short: "Add certificates to the trust store",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing certificate path")
@@ -41,14 +41,12 @@ func certAddCommand(opts *certAddOpts) *cobra.Command {
 			opts.path = args
 			return nil
 		},
-		Long: `Add certificates to the trust store
+		Long: `Add certificates to the trust store`,
+		Example: `# Add a certificate to the "ca" type of a named store "acme-rockets":
+notation cert add --type ca --store acme-rockets acme-rockets.crt
 
-Example - Add a certificate to the "ca" type of a named store "acme-rockets":
-  notation cert add --type ca --store acme-rockets acme-rockets.crt
-
-Example - Add a certificate to the "signingAuthority" type of a named store "wabbit-networks":
-  notation cert add --type signingAuthority --store wabbit-networks wabbit-networks.pem
-`,
+# Add a certificate to the "signingAuthority" type of a named store "wabbit-networks":
+notation cert add --type signingAuthority --store wabbit-networks wabbit-networks.pem`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return addCerts(opts)
 		},

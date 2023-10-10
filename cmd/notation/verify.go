@@ -49,28 +49,32 @@ func verifyCommand(opts *verifyOpts) *cobra.Command {
 	}
 	longMessage := `Verify OCI artifacts
 
-Prerequisite: added a certificate into trust store and created a trust policy.
+Prerequisite: added a certificate into trust store and created a trust policy.`
+	exampleMessage := `# Verify a signature on an OCI artifact identified by a digest:
+notation verify <registry>/<repository>@<digest>
 
-Example - Verify a signature on an OCI artifact identified by a digest:
-  notation verify <registry>/<repository>@<digest>
-
-Example - Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
-  notation verify <registry>/<repository>:<tag>
+# Verify a signature on an OCI artifact identified by a tag  (Notation will resolve tag to digest):
+notation verify <registry>/<repository>:<tag>
 `
 	experimentalExamples := `
-Example - [Experimental] Verify an OCI artifact using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
-  notation verify --allow-referrers-api <registry>/<repository>@<digest>
+# [Experimental] Verify an OCI artifact using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
+notation verify --allow-referrers-api <registry>/<repository>@<digest>
 
-Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
-  notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
+# [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
+notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
 
-Example - [Experimental] Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
-  notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
+# [Experimental] Verify a signature on an OCI artifact identified by a tag and referenced in an OCI layout using trust policy statement specified by scope.
+notation verify --oci-layout <registry>/<repository>:<tag> --scope <trust_policy_scope>
 `
+	if(!experimental.IsDisabled())	{
+		exampleMessage += experimentalExamples
+	}
+
 	command := &cobra.Command{
 		Use:   "verify [reference]",
 		Short: "Verify OCI artifacts",
 		Long:  longMessage,
+		Example: exampleMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing reference")

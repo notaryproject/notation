@@ -46,13 +46,12 @@ func loginCommand(opts *loginOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "login [flags] <server>",
 		Short: "Login to registry",
-		Long: `Log in to an OCI registry
+		Long: `Log in to an OCI registry`,
+		Example: `# Login with provided username and password:
+notation login -u <user> -p <password> registry.example.com
 
-Example - Login with provided username and password:
-	notation login -u <user> -p <password> registry.example.com
-
-Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
-	notation login registry.example.com`,
+# Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
+notation login registry.example.com`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("no hostname specified")
