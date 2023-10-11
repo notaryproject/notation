@@ -151,15 +151,23 @@ Upon successful adding, the certificate files are added into directory`{NOTATION
 notation certificate list
 ```
 
-Upon successful listing, all the certificate files in the trust store are printed out in a format of absolute filepath. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
+Upon successful listing, all the certificate files in the trust store are printed out with information of store type, store name and certificate file name. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
 
+An example of the output:
+```
+STORE TYPE         STORE NAME   CERTIFICATE   
+ca                 myStore1     cert1.pem    
+ca                 myStore2     cert2.crt       
+signingAuthority   myStore1     cert3.crt    
+signingAuthority   myStore2     cert4.pem
+```
 ### List all certificate files of a certain named store
 
 ```bash
 notation cert list --store <name>
 ```
 
-Upon successful listing, all the certificate files in the trust store named `<name>` are printed out in a format of absolute filepath. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
+Upon successful listing, all the certificate files in the trust store named `<name>` are printed out with information of store type, store name and certificate file name. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
 
 ### List all certificate files of a certain type of store
 
@@ -167,7 +175,7 @@ Upon successful listing, all the certificate files in the trust store named `<na
 notation cert list --type <type>
 ```
 
-Upon successful listing, all the certificate files in the trust store of type `<type>` are printed out in a format of absolute filepath. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
+Upon successful listing, all the certificate files in the trust store of type `<type>` are printed out with information of store type, store name and certificate file name. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
 
 ### List all certificate files of a certain named store of a certain type
 
@@ -175,7 +183,7 @@ Upon successful listing, all the certificate files in the trust store of type `<
 notation cert list --type <type> --store <name>
 ```
 
-Upon successful listing, all the certificate files in the trust store named `<name>` of type `<type>` are printed out in a format of absolute filepath. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
+Upon successful listing, all the certificate files in the trust store named `<name>` of type `<type>` are printed out with information of store type, store name and certificate file name. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
 
 ### Show details of a certain certificate file
 
