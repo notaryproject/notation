@@ -78,41 +78,51 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 	// List all certificates under truststore/x509, display empty if there's
 	// no certificate yet
 	if namedStore == "" && storeType == "" {
-		path, err := configFS.SysPath(dir.TrustStoreDir, "x509")
-		if err := truststore.CheckNonErrNotExistError(err); err != nil {
-			return err
+		for _, t := range notationgoTruststore.Types {
+			path, err := configFS.SysPath(dir.TrustStoreDir, "x509", string(t))
+			if err := truststore.CheckNonErrNotExistError(err); err != nil {
+				return err
+			}
+			certs, err := truststore.ListCerts(path, 1)
+			if err := truststore.CheckNonErrNotExistError(err); err != nil {
+				logger.Debugln("Failed to complete list at path:", path)
+				return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
+			}
+			certPaths = append(certPaths, certs...)
 		}
-		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 2, &certPaths)); err != nil {
-			logger.Debugln("Failed to complete list at path:", path)
-			return fmt.Errorf("failed to list all certificates stored in the trust store, with error: %s", err.Error())
-		}
-
 		return ioutil.PrintCertMap(os.Stdout, certPaths)
 	}
 
 	// List all certificates under truststore/x509/storeType/namedStore,
-	// display empty if there's no certificate yet
+	// display empty if store type is invalid or there's no certificate yet
 	if namedStore != "" && storeType != "" {
+		if !truststore.IsValidStoreType(storeType) {
+			return nil
+		}
 		path, err := configFS.SysPath(dir.TrustStoreDir, "x509", storeType, namedStore)
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
-		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0, &certPaths)); err != nil {
+		certPaths, err := truststore.ListCerts(path, 0)
+		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			logger.Debugln("Failed to complete list at path:", path)
 			return fmt.Errorf("failed to list all certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
-
 		return ioutil.PrintCertMap(os.Stdout, certPaths)
 	}
 
-	// List all certificates under x509/storeType, display empty if
-	// there's no certificate yet
+	// List all certificates under x509/storeType, display empty if store type
+	// is invalid or there's no certificate yet
 	if storeType != "" {
+		if !truststore.IsValidStoreType(storeType) {
+			return nil
+		}
 		path, err := configFS.SysPath(dir.TrustStoreDir, "x509", storeType)
 		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			return err
 		}
-		if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 1, &certPaths)); err != nil {
+		certPaths, err = truststore.ListCerts(path, 1)
+		if err := truststore.CheckNonErrNotExistError(err); err != nil {
 			logger.Debugln("Failed to complete list at path:", path)
 			return fmt.Errorf("failed to list all certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
@@ -124,10 +134,12 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			if err := truststore.CheckNonErrNotExistError(err); err != nil {
 				return err
 			}
-			if err := truststore.CheckNonErrNotExistError(truststore.ListCerts(path, 0, &certPaths)); err != nil {
+			certs, err := truststore.ListCerts(path, 0)
+			if err := truststore.CheckNonErrNotExistError(err); err != nil {
 				logger.Debugln("Failed to complete list at path:", path)
 				return fmt.Errorf("failed to list all certificates stored in the named store %s, with error: %s", namedStore, err.Error())
 			}
+			certPaths = append(certPaths, certs...)
 		}
 	}
 

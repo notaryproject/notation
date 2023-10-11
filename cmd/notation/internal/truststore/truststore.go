@@ -85,14 +85,12 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	return nil
 }
 
-// ListCerts walks through root and lists all x509 certificates in it,
+// ListCerts walks through root and returns all x509 certificates in it,
 // sub-dirs are ignored.
-func ListCerts(root string, depth int, certPaths *[]string) error {
+func ListCerts(root string, depth int) ([]string, error) {
 	maxDepth := strings.Count(root, string(os.PathSeparator)) + depth
-	if certPaths == nil {
-		return errors.New("certPaths cannot be nil")
-	}
-	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	var certPaths []string
+	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -109,11 +107,15 @@ func ListCerts(root string, depth int, certPaths *[]string) error {
 				return err
 			}
 			if len(certs) != 0 {
-				*certPaths = append(*certPaths, path)
+				certPaths = append(certPaths, path)
 			}
 		}
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
+
+	return certPaths, nil
 }
 
 // ShowCerts writes out details of certificates

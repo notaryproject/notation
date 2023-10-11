@@ -153,6 +153,14 @@ notation certificate list
 
 Upon successful listing, all the certificate files in the trust store are printed out with information of store type, store name and certificate file name. If the listing fails, an error message is printed out with specific reasons. Nothing is printed out if the trust store is empty.
 
+An example of the output:
+```
+STORE TYPE         STORE NAME   CERTIFICATE   
+ca                 myStore1     cert1.pem    
+ca                 myStore2     cert2.crt       
+signingAuthority   myStore1     cert3.crt    
+signingAuthority   myStore2     cert4.pem
+```
 ### List all certificate files of a certain named store
 
 ```bash
