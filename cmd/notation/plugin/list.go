@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
 	"fmt"
@@ -23,15 +23,6 @@ import (
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/spf13/cobra"
 )
-
-func pluginCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "plugin",
-		Short: "Manage plugins",
-	}
-	cmd.AddCommand(pluginListCommand())
-	return cmd
-}
 
 func pluginListCommand() *cobra.Command {
 	return &cobra.Command{
