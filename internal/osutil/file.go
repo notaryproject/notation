@@ -17,8 +17,10 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // WriteFile writes to a path with all parent directories created.
@@ -93,4 +95,70 @@ func IsRegularFile(path string) (bool, error) {
 	}
 
 	return fileStat.Mode().IsRegular(), nil
+}
+
+// DetectFileType returns a file's content type given path
+func DetectFileType(path string) (string, error) {
+	f, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return http.DetectContentType(f), nil
+}
+
+// ExtractTarGz decompress and untar a tar.gz file to destination directory,
+// all files in the tar.gz must be regular files.
+// func ExtractTarGz(tarGzPath string, dstDir string) error {
+// 	r, err := os.Open(tarGzPath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer r.Close()
+// 	uncompressedStream, err := gzip.NewReader(r)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer uncompressedStream.Close()
+// 	tarReader := tar.NewReader(uncompressedStream)
+// 	if err := os.MkdirAll(dstDir, 0700); err != nil {
+// 		return err
+// 	}
+// 	for {
+// 		header, err := tarReader.Next()
+// 		if err != nil {
+// 			if err == io.EOF {
+// 				break
+// 			}
+// 			return err
+// 		}
+// 		switch header.Typeflag {
+// 		case tar.TypeReg:
+// 			filePath := filepath.Join(dstDir, header.Name)
+// 			dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, header.FileInfo().Mode())
+// 			if err != nil {
+// 				return err
+// 			}
+// 			defer dstFile.Close()
+// 			if _, err := io.Copy(dstFile, tarReader); err != nil {
+// 				return err
+// 			}
+// 		default:
+// 			return errors.New("regular file required")
+// 		}
+// 	}
+// 	return nil
+// }
+
+// FileNameWithoutExtension returns the file name without extension.
+// For example,
+// when input is xyz.exe, output is xyz
+// when input is xyz.tar.gz, output is xyz.tar
+func FileNameWithoutExtension(inputName string) string {
+	fileName := filepath.Base(inputName)
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
+// IsOwnerExecutalbeFile checks whether file is owner executable
+func IsOwnerExecutalbeFile(mode fs.FileMode) bool {
+	return mode&0100 != 0
 }
