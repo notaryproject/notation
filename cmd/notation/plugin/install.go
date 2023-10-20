@@ -14,7 +14,9 @@
 package plugin
 
 import (
+	"archive/tar"
 	"archive/zip"
+	"compress/gzip"
 	"context"
 	"errors"
 	"fmt"
@@ -91,6 +93,10 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		if err := installPluginFromZip(command.Context(), inputPath, opts.forced); err != nil {
 			return fmt.Errorf("failed to install the plugin, %w", err)
 		}
+	case TypeGzip:
+		if err := installPluginFromTarGz(command.Context(), inputPath, opts.forced); err != nil {
+			return fmt.Errorf("failed to install the plugin, %w", err)
+		}
 	default:
 		return errors.New("failed to install the plugin, invalid file type. Only support tar.gz and zip")
 	}
@@ -114,8 +120,8 @@ func validateCheckSum(path string, checkSum string) error {
 	return nil
 }
 
-// installPluginFromZip extracts a plugin zip file, validate and
-// install the plugin
+// installPluginFromZip extracts a plugin zip file, validates and
+// installs the plugin
 func installPluginFromZip(ctx context.Context, zipPath string, forced bool) error {
 	archive, err := zip.OpenReader(zipPath)
 	if err != nil {
@@ -131,8 +137,7 @@ func installPluginFromZip(ctx context.Context, zipPath string, forced bool) erro
 		fileMode := f.Mode()
 		// only consider regular executable files in the zip
 		if fileMode.IsRegular() && osutil.IsOwnerExecutalbeFile(fileMode) {
-			pluginName, err := getPluginNameFromExecutableFileName(f.Name)
-			// if error is not nil, continue to next file
+			pluginName, err := extractPluginNameFromExecutableFileName(f.Name)
 			// if error is nil, we find the plugin executable file
 			if err == nil {
 				// check plugin existence
@@ -183,9 +188,85 @@ func installPluginFromZip(ctx context.Context, zipPath string, forced bool) erro
 	return errors.New("plugin executable file not found in zip")
 }
 
-// getPluginNameFromExecutableFileName gets plugin name from plugin executable
+// installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
+// installs the plugin
+func installPluginFromTarGz(ctx context.Context, tarGzPath string, forced bool) error {
+	r, err := os.Open(tarGzPath)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	decompressedStream, err := gzip.NewReader(r)
+	if err != nil {
+		return err
+	}
+	defer decompressedStream.Close()
+	tarReader := tar.NewReader(decompressedStream)
+	tmpDir, err := os.MkdirTemp(".", "untarGzTmpDir")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
+	for {
+		header, err := tarReader.Next()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		fileMode := header.FileInfo().Mode()
+		// only consider regular executable files
+		if fileMode.IsRegular() && osutil.IsOwnerExecutalbeFile(fileMode) {
+			pluginName, err := extractPluginNameFromExecutableFileName(header.Name)
+			// if error is nil, we find the plugin executable file
+			if err == nil {
+				// check plugin existence
+				if !forced {
+					existed, err := checkPluginExistence(ctx, pluginName)
+					if err != nil {
+						return fmt.Errorf("failed to check plugin existence, %w", err)
+					}
+					if existed {
+						return fmt.Errorf("plugin %s already existed", pluginName)
+					}
+				}
+				// extract to tmp dir
+				tmpFilePath := filepath.Join(tmpDir, header.Name)
+				pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, header.FileInfo().Mode())
+				if err != nil {
+					return err
+				}
+				if _, err := io.Copy(pluginFile, tarReader); err != nil {
+					return err
+				}
+				if err := pluginFile.Close(); err != nil {
+					return err
+				}
+				// validate plugin metadata
+				if err := validatePluginMetadata(ctx, pluginName, tmpFilePath); err != nil {
+					return err
+				}
+				// install plugin
+				pluginPath, err := dir.PluginFS().SysPath(pluginName)
+				if err != nil {
+					return nil
+				}
+				_, err = osutil.CopyToDir(tmpFilePath, pluginPath)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Succussefully installed plugin %s\n", pluginName)
+				return nil
+			}
+		}
+	}
+	return nil
+}
+
+// extractPluginNameFromExecutableFileName gets plugin name from plugin executable
 // file name based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
-func getPluginNameFromExecutableFileName(execFileName string) (string, error) {
+func extractPluginNameFromExecutableFileName(execFileName string) (string, error) {
 	fileName := osutil.FileNameWithoutExtension(execFileName)
 	_, pluginName, found := strings.Cut(fileName, "-")
 	if !found || !strings.HasPrefix(fileName, proto.Prefix) {

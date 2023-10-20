@@ -106,49 +106,6 @@ func DetectFileType(path string) (string, error) {
 	return http.DetectContentType(f), nil
 }
 
-// ExtractTarGz decompress and untar a tar.gz file to destination directory,
-// all files in the tar.gz must be regular files.
-// func ExtractTarGz(tarGzPath string, dstDir string) error {
-// 	r, err := os.Open(tarGzPath)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer r.Close()
-// 	uncompressedStream, err := gzip.NewReader(r)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer uncompressedStream.Close()
-// 	tarReader := tar.NewReader(uncompressedStream)
-// 	if err := os.MkdirAll(dstDir, 0700); err != nil {
-// 		return err
-// 	}
-// 	for {
-// 		header, err := tarReader.Next()
-// 		if err != nil {
-// 			if err == io.EOF {
-// 				break
-// 			}
-// 			return err
-// 		}
-// 		switch header.Typeflag {
-// 		case tar.TypeReg:
-// 			filePath := filepath.Join(dstDir, header.Name)
-// 			dstFile, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, header.FileInfo().Mode())
-// 			if err != nil {
-// 				return err
-// 			}
-// 			defer dstFile.Close()
-// 			if _, err := io.Copy(dstFile, tarReader); err != nil {
-// 				return err
-// 			}
-// 		default:
-// 			return errors.New("regular file required")
-// 		}
-// 	}
-// 	return nil
-// }
-
 // FileNameWithoutExtension returns the file name without extension.
 // For example,
 // when input is xyz.exe, output is xyz
