@@ -50,3 +50,16 @@ type ErrorExceedMaxSignatures struct {
 func (e ErrorExceedMaxSignatures) Error() string {
 	return fmt.Sprintf("exceeded configured limit of max signatures %d to examine", e.MaxSignatures)
 }
+
+// ErrorInvalidPluginName is used when a plugin executable file name does not
+// follow the spec.
+type ErrorInvalidPluginName struct {
+	Msg string
+}
+
+func (e ErrorInvalidPluginName) Error() string {
+	if e.Msg != "" {
+		return e.Msg
+	}
+	return "invalid plugin file name"
+}

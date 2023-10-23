@@ -21,13 +21,17 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
@@ -39,9 +43,10 @@ const (
 )
 
 type pluginInstallOpts struct {
+	cmd.LoggingFlagOpts
 	inputPath     string
 	inputCheckSum string
-	forced        bool
+	force         bool
 }
 
 func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
@@ -54,34 +59,36 @@ func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
 		Long: `Install a Notation plugin
 
 Example - Install plugin from file system:
-  notation plugin install myPlugin.zip
+  notation plugin install --file myPlugin.tar.gz --checksum 123abcd
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return installPlugin(cmd, opts)
 		},
 	}
-	command.Flags().StringVar(&opts.inputPath, "file", "", "file path of the plugin to be installed, only supports tar.gz or zip format")
+	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	command.Flags().StringVar(&opts.inputPath, "file", "", "file path of the plugin to be installed, only supports tar.gz and zip format")
 	command.Flags().StringVar(&opts.inputCheckSum, "checksum", "", "if set, must match the SHA256 of the plugin tar.gz/zip to be installed")
-	command.Flags().BoolVar(&opts.forced, "forced", false, "do not force to install and overwrite the plugin")
+	command.Flags().BoolVar(&opts.force, "force", false, "force to install and overwrite the plugin")
 	command.MarkFlagRequired("file")
+	command.MarkFlagRequired("checksum")
 	return command
 }
 
 func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
+	// set log level
+	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 	inputPath := opts.inputPath
 	// sanity check
-	iputFileStat, err := os.Stat(inputPath)
+	inputFileStat, err := os.Stat(inputPath)
 	if err != nil {
 		return fmt.Errorf("failed to install the plugin, %w", err)
 	}
-	if !iputFileStat.Mode().IsRegular() {
+	if !inputFileStat.Mode().IsRegular() {
 		return fmt.Errorf("failed to install the plugin, %s is not a regular file", inputPath)
 	}
 	// checkSum check
-	if opts.inputCheckSum != "" {
-		if err := validateCheckSum(inputPath, opts.inputCheckSum); err != nil {
-			return fmt.Errorf("failed to install the plugin, %w", err)
-		}
+	if err := validateCheckSum(inputPath, opts.inputCheckSum); err != nil {
+		return fmt.Errorf("failed to install the plugin, %w", err)
 	}
 	// install the plugin based on file type
 	fileType, err := osutil.DetectFileType(inputPath)
@@ -90,11 +97,11 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 	}
 	switch fileType {
 	case TypeZip:
-		if err := installPluginFromZip(command.Context(), inputPath, opts.forced); err != nil {
+		if err := installPluginFromZip(ctx, inputPath, opts.force); err != nil {
 			return fmt.Errorf("failed to install the plugin, %w", err)
 		}
 	case TypeGzip:
-		if err := installPluginFromTarGz(command.Context(), inputPath, opts.forced); err != nil {
+		if err := installPluginFromTarGz(ctx, inputPath, opts.force); err != nil {
 			return fmt.Errorf("failed to install the plugin, %w", err)
 		}
 	default:
@@ -114,83 +121,46 @@ func validateCheckSum(path string, checkSum string) error {
 	if err != nil {
 		return err
 	}
-	if dgst.Encoded() != checkSum {
-		return errors.New("plugin checkSum does not match user input")
+	enc := dgst.Encoded()
+	if enc != checkSum {
+		return fmt.Errorf("plugin checkSum does not match user input. User input is %s, got %s", checkSum, enc)
 	}
 	return nil
 }
 
 // installPluginFromZip extracts a plugin zip file, validates and
 // installs the plugin
-func installPluginFromZip(ctx context.Context, zipPath string, forced bool) error {
+func installPluginFromZip(ctx context.Context, zipPath string, force bool) error {
+	logger := log.GetLogger(ctx)
 	archive, err := zip.OpenReader(zipPath)
 	if err != nil {
 		return err
 	}
 	defer archive.Close()
-	tmpDir, err := os.MkdirTemp(".", "unzipTmpDir")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tmpDir)
 	for _, f := range archive.File {
-		fileMode := f.Mode()
+		fmode := f.Mode()
 		// only consider regular executable files in the zip
-		if fileMode.IsRegular() && osutil.IsOwnerExecutalbeFile(fileMode) {
-			pluginName, err := extractPluginNameFromExecutableFileName(f.Name)
-			// if error is nil, we find the plugin executable file
-			if err == nil {
-				// check plugin existence
-				if !forced {
-					existed, err := checkPluginExistence(ctx, pluginName)
-					if err != nil {
-						return fmt.Errorf("failed to check plugin existence, %w", err)
-					}
-					if existed {
-						return fmt.Errorf("plugin %s already existed", pluginName)
-					}
-				}
-				// extract to tmp dir
-				tmpFilePath := filepath.Join(tmpDir, filepath.Base(f.Name))
-				pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
-				if err != nil {
-					return err
-				}
-				fileInArchive, err := f.Open()
-				if err != nil {
-					return err
-				}
-				defer fileInArchive.Close()
-				if _, err := io.Copy(pluginFile, fileInArchive); err != nil {
-					return err
-				}
-				if err := pluginFile.Close(); err != nil {
-					return err
-				}
-				// validate plugin metadata
-				if err := validatePluginMetadata(ctx, pluginName, tmpFilePath); err != nil {
-					return err
-				}
-				// install plugin
-				pluginPath, err := dir.PluginFS().SysPath(pluginName)
-				if err != nil {
-					return nil
-				}
-				_, err = osutil.CopyToDir(tmpFilePath, pluginPath)
-				if err != nil {
-					return err
-				}
-				fmt.Printf("Succussefully installed plugin %s\n", pluginName)
-				return nil
+		if fmode.IsRegular() && osutil.IsOwnerExecutalbeFile(fmode) {
+			fileInArchive, err := f.Open()
+			if err != nil {
+				return err
 			}
+			defer fileInArchive.Close()
+			err = installPluginExecutable(ctx, f.Name, fileInArchive, fmode, force)
+			if errors.As(err, &notationerrors.ErrorInvalidPluginName{}) {
+				logger.Warnln(err)
+				continue
+			}
+			return err
 		}
 	}
-	return errors.New("plugin executable file not found in zip")
+	return errors.New("valid plugin executable file not found in zip")
 }
 
 // installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
 // installs the plugin
-func installPluginFromTarGz(ctx context.Context, tarGzPath string, forced bool) error {
+func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) error {
+	logger := log.GetLogger(ctx)
 	r, err := os.Open(tarGzPath)
 	if err != nil {
 		return err
@@ -202,11 +172,6 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, forced bool) 
 	}
 	defer decompressedStream.Close()
 	tarReader := tar.NewReader(decompressedStream)
-	tmpDir, err := os.MkdirTemp(".", "untarGzTmpDir")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tmpDir)
 	for {
 		header, err := tarReader.Next()
 		if err != nil {
@@ -215,62 +180,86 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, forced bool) 
 			}
 			return err
 		}
-		fileMode := header.FileInfo().Mode()
+		fmode := header.FileInfo().Mode()
 		// only consider regular executable files
-		if fileMode.IsRegular() && osutil.IsOwnerExecutalbeFile(fileMode) {
-			pluginName, err := extractPluginNameFromExecutableFileName(header.Name)
-			// if error is nil, we find the plugin executable file
-			if err == nil {
-				// check plugin existence
-				if !forced {
-					existed, err := checkPluginExistence(ctx, pluginName)
-					if err != nil {
-						return fmt.Errorf("failed to check plugin existence, %w", err)
-					}
-					if existed {
-						return fmt.Errorf("plugin %s already existed", pluginName)
-					}
-				}
-				// extract to tmp dir
-				tmpFilePath := filepath.Join(tmpDir, header.Name)
-				pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, header.FileInfo().Mode())
-				if err != nil {
-					return err
-				}
-				if _, err := io.Copy(pluginFile, tarReader); err != nil {
-					return err
-				}
-				if err := pluginFile.Close(); err != nil {
-					return err
-				}
-				// validate plugin metadata
-				if err := validatePluginMetadata(ctx, pluginName, tmpFilePath); err != nil {
-					return err
-				}
-				// install plugin
-				pluginPath, err := dir.PluginFS().SysPath(pluginName)
-				if err != nil {
-					return nil
-				}
-				_, err = osutil.CopyToDir(tmpFilePath, pluginPath)
-				if err != nil {
-					return err
-				}
-				fmt.Printf("Succussefully installed plugin %s\n", pluginName)
-				return nil
+		if fmode.IsRegular() && osutil.IsOwnerExecutalbeFile(fmode) {
+			err := installPluginExecutable(ctx, header.Name, tarReader, fmode, force)
+			if errors.As(err, &notationerrors.ErrorInvalidPluginName{}) {
+				logger.Warnln(err)
+				continue
 			}
+			return err
 		}
 	}
+	return errors.New("valid plugin executable file not found in tar.gz")
+}
+
+// installPluginExecutable extracts, validates, and installs a plugin from
+// reader
+func installPluginExecutable(ctx context.Context, fileName string, fileReader io.Reader, fmode fs.FileMode, force bool) error {
+	pluginName, err := extractPluginNameFromExecutableFileName(fileName)
+	if err != nil {
+		return err
+	}
+	// check plugin existence
+	if !force {
+		existed, err := checkPluginExistence(ctx, pluginName)
+		if err != nil {
+			return fmt.Errorf("failed to check plugin existence, %w", err)
+		}
+		if existed {
+			return fmt.Errorf("plugin %s already installed", pluginName)
+		}
+	}
+	// extract to tmp dir
+	tmpDir, err := os.MkdirTemp(".", "pluginTmpDir")
+	if err != nil {
+		return fmt.Errorf("failed to create pluginTmpDir, %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+	tmpFilePath := filepath.Join(tmpDir, fileName)
+	pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fmode)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(pluginFile, fileReader); err != nil {
+		return err
+	}
+	if err := pluginFile.Close(); err != nil {
+		return err
+	}
+	// validate plugin metadata
+	pluginVersion, err := validatePluginMetadata(ctx, pluginName, tmpFilePath)
+	if err != nil {
+		return err
+	}
+	// install plugin
+	pluginPath, err := dir.PluginFS().SysPath(pluginName)
+	if err != nil {
+		return err
+	}
+	_, err = osutil.CopyToDir(tmpFilePath, pluginPath)
+	if err != nil {
+		return err
+	}
+	// plugin is always executable
+	pluginFilePath := filepath.Join(pluginPath, filepath.Base(tmpFilePath))
+	err = os.Chmod(pluginFilePath, 0700)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Succussefully installed plugin %s, version %s\n", pluginName, pluginVersion)
 	return nil
 }
 
-// extractPluginNameFromExecutableFileName gets plugin name from plugin executable
-// file name based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
+// extractPluginNameFromExecutableFileName gets plugin name from plugin
+// executable file name based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
 func extractPluginNameFromExecutableFileName(execFileName string) (string, error) {
 	fileName := osutil.FileNameWithoutExtension(execFileName)
 	_, pluginName, found := strings.Cut(fileName, "-")
 	if !found || !strings.HasPrefix(fileName, proto.Prefix) {
-		return "", fmt.Errorf("invalid plugin executable file name. file name requires format notation-{plugin-name}, got %s", fileName)
+		return "", notationerrors.ErrorInvalidPluginName{Msg: fmt.Sprintf("invalid plugin executable file name. file name requires format notation-{plugin-name}, got %s", fileName)}
 	}
 	return pluginName, nil
 }
@@ -289,14 +278,15 @@ func checkPluginExistence(ctx context.Context, pluginName string) (bool, error) 
 }
 
 // validatePluginMetadata validates plugin metadata before installation
-func validatePluginMetadata(ctx context.Context, pluginName, path string) error {
+// returns the plugin version on success
+func validatePluginMetadata(ctx context.Context, pluginName, path string) (string, error) {
 	plugin, err := plugin.NewCLIPlugin(ctx, pluginName, path)
 	if err != nil {
-		return err
+		return "", err
 	}
-	_, err = plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
+	metadata, err := plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return metadata.Version, nil
 }
