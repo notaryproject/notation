@@ -74,8 +74,8 @@ func CopyToDir(src, dst string) (int64, error) {
 	if err := os.MkdirAll(dst, 0700); err != nil {
 		return 0, err
 	}
-	certFile := filepath.Join(dst, filepath.Base(src))
-	destination, err := os.Create(certFile)
+	dstFile := filepath.Join(dst, filepath.Base(src))
+	destination, err := os.Create(dstFile)
 	if err != nil {
 		return 0, err
 	}
@@ -116,6 +116,6 @@ func FileNameWithoutExtension(inputName string) string {
 }
 
 // IsOwnerExecutalbeFile checks whether file is owner executable
-func IsOwnerExecutalbeFile(mode fs.FileMode) bool {
-	return mode&0100 != 0
+func IsOwnerExecutalbeFile(fmode fs.FileMode) bool {
+	return fmode&0100 != 0
 }
