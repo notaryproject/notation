@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,9 +43,12 @@ const (
 	TypeGzip = "application/x-gzip"
 )
 
+const notationPluginTmp = "notationPluginTmp"
+
 type pluginInstallOpts struct {
 	cmd.LoggingFlagOpts
 	inputPath     string
+	inputURL      string
 	inputCheckSum string
 	force         bool
 }
@@ -54,13 +58,28 @@ func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
 		opts = &pluginInstallOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "install [flags] <plugin_path>",
+		Use:   "install [flags] <plugin_src>",
 		Short: "Install plugin",
 		Long: `Install a Notation plugin
 
 Example - Install plugin from file system:
-  notation plugin install --file myPlugin.tar.gz --checksum abcdef
+  notation plugin install --file myPlugin.zip --checksum abcdef
+
+Example - Install plugin from URL:
+  notation plugin install https://wabbit-networks.com/intaller/linux/amd64/wabbit-plugin-v1.0.tar.gz --checksum abcxyz
 `,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 && opts.inputPath == "" {
+				return errors.New("missing plugin URL or file path")
+			}
+			if len(args) != 0 && opts.inputPath != "" {
+				return errors.New("can install from either plugin URL or file path, got both")
+			}
+			if len(args) != 0 {
+				opts.inputURL = args[0]
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return installPlugin(cmd, opts)
 		},
@@ -69,7 +88,6 @@ Example - Install plugin from file system:
 	command.Flags().StringVar(&opts.inputPath, "file", "", "file path of the plugin to be installed, only supports tar.gz and zip format")
 	command.Flags().StringVar(&opts.inputCheckSum, "checksum", "", "if set, must match the SHA256 of the plugin tar.gz/zip to be installed")
 	command.Flags().BoolVar(&opts.force, "force", false, "force to install and overwrite the plugin")
-	command.MarkFlagRequired("file")
 	command.MarkFlagRequired("checksum")
 	return command
 }
@@ -77,7 +95,17 @@ Example - Install plugin from file system:
 func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+
 	inputPath := opts.inputPath
+	// install from URL
+	if opts.inputURL != "" {
+		inputPath = notationPluginTmp
+		if err := downloadFromURL(ctx, inputPath, opts.inputURL); err != nil {
+			return err
+		}
+		defer os.Remove(inputPath)
+	}
+
 	// sanity check
 	inputFileStat, err := os.Stat(inputPath)
 	if err != nil {
@@ -108,6 +136,7 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		return errors.New("failed to install the plugin, invalid file type. Only support tar.gz and zip")
 	}
 	return nil
+
 }
 
 // validateCheckSum returns nil if SHA256 of file at path equals to checkSum.
@@ -212,9 +241,9 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 		}
 	}
 	// extract to tmp dir
-	tmpDir, err := os.MkdirTemp(".", "pluginTmpDir")
+	tmpDir, err := os.MkdirTemp(".", notationPluginTmp)
 	if err != nil {
-		return fmt.Errorf("failed to create pluginTmpDir, %w", err)
+		return fmt.Errorf("failed to create notationPluginTmp, %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 	tmpFilePath := filepath.Join(tmpDir, fileName)
@@ -289,4 +318,33 @@ func validatePluginMetadata(ctx context.Context, pluginName, path string) (strin
 		return "", err
 	}
 	return metadata.Version, nil
+}
+
+func downloadFromURL(ctx context.Context, filePath, url string) error {
+	// Create the file
+	out, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("bad status: %s", resp.Status)
+	}
+
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
