@@ -59,7 +59,7 @@ func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
 		Long: `Install a Notation plugin
 
 Example - Install plugin from file system:
-  notation plugin install --file myPlugin.tar.gz --checksum 123abcd
+  notation plugin install --file myPlugin.tar.gz --checksum abcdef
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return installPlugin(cmd, opts)
@@ -139,7 +139,7 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 	defer archive.Close()
 	for _, f := range archive.File {
 		fmode := f.Mode()
-		// only consider regular executable files in the zip
+		// only consider regular executable files
 		if fmode.IsRegular() && osutil.IsOwnerExecutalbeFile(fmode) {
 			fileInArchive, err := f.Open()
 			if err != nil {
