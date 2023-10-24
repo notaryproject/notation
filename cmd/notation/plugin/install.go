@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -230,10 +231,18 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 // installPluginExecutable extracts, validates, and installs a plugin from
 // reader
 func installPluginExecutable(ctx context.Context, fileName string, fileReader io.Reader, fmode fs.FileMode, force bool) error {
+	// sanity check
 	pluginName, err := extractPluginNameFromExecutableFileName(fileName)
 	if err != nil {
 		return err
 	}
+	if runtime.GOOS == "windows" && filepath.Ext(fileName) != ".exe" {
+		return fmt.Errorf("on Windows, plugin executable file name %s is missing the '.exe' extension", fileName)
+	}
+	if runtime.GOOS != "windows" && filepath.Ext(fileName) == ".exe" {
+		return fmt.Errorf("on %s, plugin executable file name %s cannot have the '.exe' extension", runtime.GOOS, fileName)
+	}
+
 	// check plugin existence
 	if !force {
 		existed, err := checkPluginExistence(ctx, pluginName)
