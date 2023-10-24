@@ -43,7 +43,7 @@ const (
 	TypeGzip = "application/x-gzip"
 )
 
-const notationPluginTmp = "notationPluginTmp"
+const notationPluginTmpDir = "notationPluginTmpDir"
 
 type pluginInstallOpts struct {
 	cmd.LoggingFlagOpts
@@ -99,11 +99,15 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 	inputPath := opts.inputPath
 	// install from URL
 	if opts.inputURL != "" {
-		inputPath = notationPluginTmp
-		if err := downloadFromURL(ctx, inputPath, opts.inputURL); err != nil {
+		tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
+		if err != nil {
+			return fmt.Errorf("failed to create notationPluginTmpDir, %w", err)
+		}
+		defer os.RemoveAll(tmpDir)
+		inputPath, err = downloadPluginFromURL(ctx, opts.inputURL, tmpDir)
+		if err != nil {
 			return err
 		}
-		defer os.Remove(inputPath)
 	}
 
 	// sanity check
@@ -183,7 +187,7 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 			return err
 		}
 	}
-	return errors.New("valid plugin executable file not found in zip")
+	return errors.New("no valid plugin executable file was found in zip")
 }
 
 // installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
@@ -220,7 +224,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			return err
 		}
 	}
-	return errors.New("valid plugin executable file not found in tar.gz")
+	return errors.New("no valid plugin executable file was found in tar.gz")
 }
 
 // installPluginExecutable extracts, validates, and installs a plugin from
@@ -241,9 +245,9 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 		}
 	}
 	// extract to tmp dir
-	tmpDir, err := os.MkdirTemp(".", notationPluginTmp)
+	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 	if err != nil {
-		return fmt.Errorf("failed to create notationPluginTmp, %w", err)
+		return fmt.Errorf("failed to create notationPluginTmpDir, %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 	tmpFilePath := filepath.Join(tmpDir, fileName)
@@ -320,31 +324,32 @@ func validatePluginMetadata(ctx context.Context, pluginName, path string) (strin
 	return metadata.Version, nil
 }
 
-func downloadFromURL(ctx context.Context, filePath, url string) error {
+func downloadPluginFromURL(ctx context.Context, url, dir string) (string, error) {
 	// Create the file
-	out, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	tmpFilePath := filepath.Join(dir, "notationPluginTmp")
+	out, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer out.Close()
 
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", resp.Status)
+		return "", fmt.Errorf("bad status: %s", resp.Status)
 	}
 
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return tmpFilePath, err
 }
