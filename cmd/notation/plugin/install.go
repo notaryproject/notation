@@ -110,7 +110,6 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 			return err
 		}
 	}
-
 	// sanity check
 	inputFileStat, err := os.Stat(inputPath)
 	if err != nil {
@@ -141,7 +140,6 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		return errors.New("failed to install the plugin, invalid file type. Only support tar.gz and zip")
 	}
 	return nil
-
 }
 
 // validateCheckSum returns nil if SHA256 of file at path equals to checkSum.
@@ -173,7 +171,8 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 	defer archive.Close()
 	for _, f := range archive.File {
 		fmode := f.Mode()
-		// only consider regular executable files
+		// requires one and only one executable file, with name in format
+		// notation-{plugin-name}, exists in the zip file
 		if fmode.IsRegular() && osutil.IsOwnerExecutalbeFile(fmode) {
 			fileInArchive, err := f.Open()
 			if err != nil {
@@ -188,7 +187,7 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 			return err
 		}
 	}
-	return errors.New("no valid plugin executable file was found in zip")
+	return fmt.Errorf("no valid plugin executable file was found in %s", zipPath)
 }
 
 // installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
@@ -215,7 +214,8 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			return err
 		}
 		fmode := header.FileInfo().Mode()
-		// only consider regular executable files
+		// requires one and only one executable file, with name in format
+		// notation-{plugin-name}, exists in the tar.gz file
 		if fmode.IsRegular() && osutil.IsOwnerExecutalbeFile(fmode) {
 			err := installPluginExecutable(ctx, header.Name, tarReader, fmode, force)
 			if errors.As(err, &notationerrors.ErrorInvalidPluginName{}) {
@@ -225,7 +225,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			return err
 		}
 	}
-	return errors.New("no valid plugin executable file was found in tar.gz")
+	return fmt.Errorf("no valid plugin executable file was found in %s", tarGzPath)
 }
 
 // installPluginExecutable extracts, validates, and installs a plugin from
@@ -285,7 +285,7 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 		return err
 	}
 	// plugin is always executable
-	pluginFilePath := filepath.Join(pluginPath, filepath.Base(tmpFilePath))
+	pluginFilePath := filepath.Join(pluginPath, fileName)
 	err = os.Chmod(pluginFilePath, 0700)
 	if err != nil {
 		return err
@@ -319,7 +319,7 @@ func checkPluginExistence(ctx context.Context, pluginName string) (bool, error) 
 	return true, nil
 }
 
-// validatePluginMetadata validates plugin metadata before installation
+// validatePluginMetadata validates plugin metadata given plugin name and path
 // returns the plugin version on success
 func validatePluginMetadata(ctx context.Context, pluginName, path string) (string, error) {
 	plugin, err := plugin.NewCLIPlugin(ctx, pluginName, path)
@@ -333,32 +333,30 @@ func validatePluginMetadata(ctx context.Context, pluginName, path string) (strin
 	return metadata.Version, nil
 }
 
-func downloadPluginFromURL(ctx context.Context, url, dir string) (string, error) {
+// downloadPluginFromURL downloads plugin file from url to a tmp directory
+// it returns the tmp file path of the downloaded file
+func downloadPluginFromURL(ctx context.Context, url, tmpDir string) (string, error) {
 	// Create the file
-	tmpFilePath := filepath.Join(dir, "notationPluginTmp")
+	tmpFilePath := filepath.Join(tmpDir, "notationPluginTmp")
 	out, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return "", err
 	}
 	defer out.Close()
-
 	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("bad status: %s", resp.Status)
 	}
-
 	// Writer the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		return "", err
 	}
-
 	return tmpFilePath, err
 }
