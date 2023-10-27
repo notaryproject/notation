@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation plugin` to manage plugins. See notation [plugin documentation](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details. The `notation plugin` command by itself performs no action. In order to operate on a plugin, one of the subcommands must be used.
+Use `notation plugin` to manage plugins. See notation [plugin documentation](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details. The `notation plugin` command by itself performs no action. In order to manage notation plugins, one of the subcommands must be used.
 
 ## Outline
 
@@ -17,7 +17,8 @@ Usage:
 Available Commands:
   list        List installed plugins
   install     Installs a plugin
-  remove      Removes a plugin
+  uninstall   Uninstall a plugin
+  upgrade     Upgrade a plugin
 
 Flags:
   -h, --help          help for plugin
@@ -41,51 +42,87 @@ Aliases:
 ### notation plugin install
 
 ```text
-Installs a plugin
+Install a plugin
 
 Usage:
-  notation plugin install [flags] <plugin path>
+  notation plugin install [flags] <plugin location>
 
 Flags:
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
-
+      --checksum                verify the checksum digest of a plugin
+      --source string           the location of plugin installation file, options: "file", "url","registry" (default "file")                  
 Aliases:
   install, add
 ```
 
-### notation plugin remove
+### notation plugin uninstall
 
 ```text
-Removes a plugin
+Uninstall a plugin
 
 Usage:
-  notation plugin remove [flags] <plugin name>
+  notation plugin uninstall [flags] <plugin name>
 
 Flags:
   -h, --help          help for remove
 
 Aliases:
-  remove, rm, uninstall, delete
+  remove, rm, uninstall
 ```
 
 ## Usage
 
-### Install a plugin
+## Install a plugin 
+
+### Install a plugin from a local file
 
 ```shell
-notation plugin install <plugin path>
+$ notation plugin install <path> --checksum <digest>
 ```
 
-Upon successful execution, the plugin is copied to plugins directory and name+version of plugin is displayed. If the plugin directory does not exist, it will be created. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
+Upon successful execution, the plugin is copied to plugin directory. The name and version of the installed plugin is displayed as follows. 
+
+```console
+Successfully installed plugin <plugin name>, version <x.y.z>
+```
+
+If the plugin directory does not exist, it will be created. When an existing plugin is detected and the version is the same as the installing plugin, it fails to install and returns the error as follows. Users can use a flag `--force` to skip version check and force the installation a specified version.
+
+```console
+Error: failed to install the plugin, <plugin name> already installed
+```
+
+### Install a plugin from URL
+
+```shell
+$ notation plugin install --source url <path> --checksum <digest>
+```
+
+### Install a plugin as an OCI artifact from a registry
+
+```shell
+$ notation plugin install --source registry <artifact reference>
+```
 
 ### Uninstall a plugin
 
 ```shell
-notation plugin remove <plugin name>
+notation plugin uninstall <plugin name>
 ```
 
-Upon successful execution, the plugin is removed from the plugins directory. If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
+Upon successful execution, the plugin is uninstalled from the plugin directory. 
+
+```
+Are you sure you want to uninstall plugin "<plugin name>"? [y/N] y
+Successfully uninstalled <plugin name> 
+```
+
+If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
+
+```
+Error: <plugin name> does not exist
+```
 
 ### List installed plugins
 
