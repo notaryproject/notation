@@ -20,9 +20,11 @@ on:
     branches: main
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   check-license:
+    permissions:
+      contents: write
+      pull-requests: write
     uses: notaryproject/notation-core-go/.github/workflows/reusable-license-checker.yml@main

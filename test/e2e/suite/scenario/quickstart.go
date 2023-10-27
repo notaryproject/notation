@@ -62,7 +62,11 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 			)
 
 		notation.Exec("cert", "ls").
-			MatchKeyWords("notation/truststore/x509/ca/wabbit-networks.io/wabbit-networks.io.crt")
+			MatchKeyWords(
+				"ca",
+				"wabbit-networks.io",
+				"wabbit-networks.io.crt",
+			)
 	})
 
 	It("sign the container image with jws format (by default)", func() {
