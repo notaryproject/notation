@@ -50,7 +50,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 		Long:    "List all the signatures associated with signed artifact",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("no reference specified")
+				return errors.New("missing reference to the artifact. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>")
 			}
 			opts.reference = args[0]
 			return nil

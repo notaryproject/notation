@@ -75,7 +75,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference")
+				return errors.New("missing reference to the artifact. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>")
 			}
 			opts.reference = args[0]
 			return nil
@@ -158,28 +158,29 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
-		// reference: https://pkg.go.dev/errors#Join
-		if joinedError, ok := err.(interface{ Unwrap() []error }); ok {
-			errArray := joinedError.Unwrap()
-			if len(errArray) > 1 {
-				// the joined error always starts with a general error message
-				// followed by indivisual notation.VerificationOutcome errors.
-				for _, outcomeError := range errArray[1:] {
-					var errTrustStore truststore.TrustStoreError
-					var errCertificate truststore.CertificateError
-					if errors.Is(outcomeError, fs.ErrNotExist) &&
-						(errors.As(outcomeError, &errTrustStore) || errors.As(outcomeError, &errCertificate)) {
-						fmt.Fprintf(os.Stderr, "Error: %v. Use command 'notation cert add' to create and add trusted certificates to the trust store.\n", outcomeError)
-					} else {
-						fmt.Fprintf(os.Stderr, "Error: %v\n", outcomeError)
-					}
+		if err != nil {
+			var errTrustStore truststore.TrustStoreError
+			if errors.As(err, &errTrustStore) {
+				if errors.Is(err, fs.ErrNotExist) {
+					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
+				} else {
+					return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
 				}
 			}
-		}
 
-		var errorVerificationFailed notation.ErrorVerificationFailed
-		if !errors.As(err, &errorVerificationFailed) {
-			return fmt.Errorf("signature verification failed: %w", err)
+			var errCertificate truststore.CertificateError
+			if errors.As(err, &errCertificate) {
+				if errors.Is(err, fs.ErrNotExist) {
+					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
+				} else {
+					return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
+				}
+			}
+
+			var errorVerificationFailed notation.ErrorVerificationFailed
+			if !errors.As(err, &errorVerificationFailed) {
+				return fmt.Errorf("signature verification failed: %w", err)
+			}
 		}
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
 	}

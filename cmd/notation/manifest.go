@@ -48,7 +48,10 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 	case inputTypeRegistry:
 		ref, err := registry.ParseReference(reference)
 		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+			return ocispec.Descriptor{}, "", fmt.Errorf("%q: %w. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference, err)
+		}
+		if ref.Reference == "" {
+			return ocispec.Descriptor{}, "", fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repo>:<tag> or <registry>/<repo>@<digest>", reference)
 		}
 		tagOrDigestRef = ref.Reference
 		resolvedRef = ref.Registry + "/" + ref.Repository
