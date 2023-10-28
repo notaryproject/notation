@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation list` to list all the signatures associated with signed artifact.
+Use `notation list` to list all the signatures associated with a signed OCI artifact.
 
 `Tags` are mutable, but `Digests` uniquely and immutably identify an artifact. If a tag is used to identify a signed artifact, notation resolves the tag to the `digest` first.
 
@@ -18,7 +18,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
 ## Outline
 
 ```text
-List all the signatures associated with signed artifact
+List all the signatures associated with a signed OCI artifact
 
 Usage:
   notation list [flags] <reference>

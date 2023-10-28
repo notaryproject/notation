@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation sign` to sign artifacts.
+Use `notation sign` to sign OCI artifacts.
 
 Signs an OCI artifact stored in the registry. Always sign artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed. If a tag is used, notation resolves the tag to the `digest` before signing.
 
