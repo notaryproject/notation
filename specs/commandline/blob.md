@@ -282,7 +282,7 @@ notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 # Create a JSON file named "trustpolicy.json" under directory "{NOTATION_CONFIG}".
 
 # Verify the detached signature
-notation blob verify /tmp/my-blob-signature.sig
+notation blob verify --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
@@ -297,7 +297,7 @@ Use the `--user-metadata` flag to verify that provided key-value pairs are prese
 
 ```shell
 # Verify the signature and verify that io.wabbit-networks.buildId=123 is present in the signed payload
-notation blob verify --user-metadata io.wabbit-networks.buildId=123 /tmp/my-blob-signature.sig
+notation blob verify --user-metadata io.wabbit-networks.buildId=123 --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
@@ -323,7 +323,7 @@ Use the `--media-type` flag to verify that signature is for the provided media-t
 
 ```shell
 # Verify the signature and verify that io.wabbit-networks.buildId=123 is present in the signed payload
-notation blob verify --media-type application/my-media-octet-stream /tmp/my-blob-signature.sig
+notation blob verify --media-type application/my-media-octet-stream --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
@@ -346,15 +346,13 @@ Error: signature verification failed: The blob is not of media type `application
 Use the `--policy-scope` flag to select a Policy scope to verify the signature against.
 
 ```shell
-notation blob verify --policy-scope my-blob-verification-selector /tmp/my-blob-signature.sig
+notation blob verify --policy-scope my-blob-verification-selector --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
 Successfully verified signature /tmp/my-blob-signature.sig using policy scope `my-blob-verification-selector`
-
-The blob is of media type `application/my-media-octet-stream`.
 
 ```
 An example of output messages for an unsuccessful verification:
