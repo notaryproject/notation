@@ -7,6 +7,7 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
+	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +46,7 @@ Example - Uninstall plugin:
 
 func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	pluginName := opts.pluginName
-	existed, err := checkPluginExistence(command.Context(), pluginName)
+	existed, err := notationplugin.CheckPluginExistence(command.Context(), pluginName)
 	if err != nil {
 		return fmt.Errorf("failed to check plugin existence, %w", err)
 	}

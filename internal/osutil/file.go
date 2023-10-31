@@ -17,10 +17,8 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // WriteFile writes to a path with all parent directories created.
@@ -95,27 +93,4 @@ func IsRegularFile(path string) (bool, error) {
 	}
 
 	return fileStat.Mode().IsRegular(), nil
-}
-
-// DetectFileType returns a file's content type given path
-func DetectFileType(path string) (string, error) {
-	f, err := os.ReadFile(path)
-	if err != nil {
-		return "", err
-	}
-	return http.DetectContentType(f), nil
-}
-
-// FileNameWithoutExtension returns the file name without extension.
-// For example,
-// when input is xyz.exe, output is xyz
-// when input is xyz.tar.gz, output is xyz.tar
-func FileNameWithoutExtension(inputName string) string {
-	fileName := filepath.Base(inputName)
-	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
-}
-
-// IsOwnerExecutalbeFile checks whether file is owner executable
-func IsOwnerExecutalbeFile(fmode fs.FileMode) bool {
-	return fmode&0100 != 0
 }
