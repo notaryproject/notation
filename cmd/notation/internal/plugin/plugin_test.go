@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 
 func TestCheckPluginExistence(t *testing.T) {
 	dir.UserConfigDir = "testdata"
+	fmt.Println(dir.PluginFS())
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping test on Windows")
 	}
