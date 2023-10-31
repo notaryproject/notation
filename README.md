@@ -9,7 +9,7 @@ Notation is a CLI project to add signatures as standard items in the OCI registr
 You can find the Notary Project [README](https://github.com/notaryproject/.github/blob/main/README.md) to learn about the overall Notary Project.
 
 > [!NOTE]
-> The documentation for installing Notation CLI is available [here](https://notaryproject.dev/docs/installation/cli/).
+> The documentation for installing Notation CLI is available [here](https://notaryproject.dev/docs/user-guides/installation/cli/).
 
 ## Table of Contents
 
@@ -24,7 +24,7 @@ You can find the Notary Project [README](https://github.com/notaryproject/.githu
 
 ## Quick Start
 
-- [Quick start: Sign and validate a container image](https://notaryproject.dev/docs/quickstart/)
+- [Quick start: Sign and validate a container image](https://notaryproject.dev/docs/quickstart-guides/quickstart/)
 - [Try out Notation in this Killercoda interactive sandbox environment](https://killercoda.com/notaryproject/scenario/notation)
 - Build, sign, and verify container images using Notation with [Azure Key Vault](https://docs.microsoft.com/azure/container-registry/container-registry-tutorial-sign-build-push?wt.mc_id=azurelearn_inproduct_oss_notaryproject) or [AWS Signer](https://docs.aws.amazon.com/signer/latest/developerguide/container-workflow.html)
  
