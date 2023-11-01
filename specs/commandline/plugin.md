@@ -76,8 +76,16 @@ Aliases:
 
 ### Install a plugin from file system
 
+Install a Notation plugin from file system and verify the plugin checksum.
+
 ```shell
-$ notation plugin install --file <file_path> --checksum <digest>
+$ notation plugin install --source file <file_path> --checksum <digest>
+```
+
+If the user doesn't specify the `--source` flag, Notation will install the plugin from file system by default.
+
+```shell
+$ notation plugin install <file_path> --checksum <digest>
 ```
 
 Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
@@ -94,11 +102,15 @@ Error: failed to install the plugin, <plugin name> already installed
 
 ### Install a plugin from URL
 
+Install a Notation plugin from a remote shared address and verify the plugin checksum.
+
 ```shell
-$ notation plugin install --source <URL> --checksum <digest>
+$ notation plugin install --source url <URL> --checksum <digest>
 ```
 
 ### Install a plugin as an OCI artifact from a registry (for future iteration)
+
+Install a Notation plugin from a registry. Users can verify the plugin's signature with `notation verify` before the plugin installation.
 
 ```shell
 $ notation plugin install --source registry <artifact_reference>
