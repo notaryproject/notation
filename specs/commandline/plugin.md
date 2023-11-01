@@ -74,7 +74,7 @@ Aliases:
 
 ## Install a plugin 
 
-### Install a plugin from a file system
+### Install a plugin from file system
 
 ```shell
 $ notation plugin install --file <file_path> --checksum <digest>
@@ -107,26 +107,26 @@ $ notation plugin install --source registry <artifact_reference>
 ### Uninstall a plugin
 
 ```shell
-notation plugin uninstall <plugin name>
+notation plugin uninstall <plugin_name>
 ```
 
 Upon successful execution, the plugin is uninstalled from the plugin directory. 
 
 ```shell
 Are you sure you want to uninstall plugin "<plugin name>"? [y/N] y
-Successfully uninstalled <plugin name> 
+Successfully uninstalled <plugin_name> 
 ```
 
 Uninstall the plugin without prompt for confirmation.
 
 ```shell
-notation plugin uninstall <plugin name> --yes
+notation plugin uninstall <plugin_name> --yes
 ```
 
 If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
 ```shell
-Error: <plugin name> does not exist
+Error: <plugin_name> does not exist
 ```
 
 ### List installed plugins
