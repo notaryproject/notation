@@ -18,7 +18,6 @@ Available Commands:
   list        List installed plugins
   install     Installs a plugin
   uninstall   Uninstall a plugin
-  upgrade     Upgrade a plugin
 
 Flags:
   -h, --help          help for plugin
@@ -45,12 +44,12 @@ Aliases:
 Install a plugin
 
 Usage:
-  notation plugin install [flags] <plugin location>
+  notation plugin install [flags] <plugin_source>
 
 Flags:
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
-      --checksum                verify the checksum digest of a plugin
+      --checksum string         must match SHA256 of the plugin source
       --source string           the location of plugin installation file, options: "file", "url","registry" (default "file")                  
 Aliases:
   install, add
@@ -62,11 +61,11 @@ Aliases:
 Uninstall a plugin
 
 Usage:
-  notation plugin uninstall [flags] <plugin name>
+  notation plugin uninstall [flags] <plugin_name>
 
 Flags:
   -h, --help          help for remove
-
+  -y, --yes           do not prompt for confirmation
 Aliases:
   remove, rm, uninstall
 ```
@@ -75,10 +74,10 @@ Aliases:
 
 ## Install a plugin 
 
-### Install a plugin from a local file
+### Install a plugin from a file system
 
 ```shell
-$ notation plugin install <path> --checksum <digest>
+$ notation plugin install --file <file_path> --checksum <digest>
 ```
 
 Upon successful execution, the plugin is copied to plugin directory. The name and version of the installed plugin is displayed as follows. 
@@ -87,7 +86,7 @@ Upon successful execution, the plugin is copied to plugin directory. The name an
 Successfully installed plugin <plugin name>, version <x.y.z>
 ```
 
-If the plugin directory does not exist, it will be created. When an existing plugin is detected and the version is the same as the installing plugin, it fails to install and returns the error as follows. Users can use a flag `--force` to skip version check and force the installation a specified version.
+If the plugin directory does not exist, it will be created. When an existing plugin is detected and the version is the same as the installing plugin, it fails to install and returns the error as follows. Users can use a flag `--force` to skip existence check and force the installation with a specified version.
 
 ```console
 Error: failed to install the plugin, <plugin name> already installed
@@ -96,13 +95,13 @@ Error: failed to install the plugin, <plugin name> already installed
 ### Install a plugin from URL
 
 ```shell
-$ notation plugin install --source url <path> --checksum <digest>
+$ notation plugin install --source <URL> --checksum <digest>
 ```
 
-### Install a plugin as an OCI artifact from a registry
+### Install a plugin as an OCI artifact from a registry (for future iteration)
 
 ```shell
-$ notation plugin install --source registry <artifact reference>
+$ notation plugin install --source registry <artifact_reference>
 ```
 
 ### Uninstall a plugin
@@ -113,14 +112,20 @@ notation plugin uninstall <plugin name>
 
 Upon successful execution, the plugin is uninstalled from the plugin directory. 
 
-```
+```shell
 Are you sure you want to uninstall plugin "<plugin name>"? [y/N] y
 Successfully uninstalled <plugin name> 
 ```
 
+Uninstall the plugin without prompt for confirmation.
+
+```shell
+notation plugin uninstall <plugin name> --yes
+```
+
 If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
-```
+```shell
 Error: <plugin name> does not exist
 ```
 
