@@ -16,7 +16,8 @@ Usage:
 
 Available Commands:
   list        List installed plugins
-  install     Installs a plugin
+  install     Install a plugin
+  upgrade     Upgrade a plugin
   uninstall   Uninstall a plugin
 
 Flags:
