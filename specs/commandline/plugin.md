@@ -80,7 +80,7 @@ Aliases:
 $ notation plugin install --file <file_path> --checksum <digest>
 ```
 
-Upon successful execution, the plugin is copied to plugin directory. The name and version of the installed plugin is displayed as follows. 
+Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
 
 ```console
 Successfully installed plugin <plugin name>, version <x.y.z>
