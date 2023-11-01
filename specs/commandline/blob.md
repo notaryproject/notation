@@ -29,11 +29,11 @@ Flags:
 Produce a detached signature for a given blob
 
 Usage:
-  notation blob sign [flags] <blob_path>
+  notation blob sign [flags] -n my-blob-signature <blob_path>
 
 Flags:
-  -s,  --signature path             output location of the detached signature
-       --media-type string          media type of the blob. If not provided, notation uses `application/octet-stream`
+  -n,  --signature-name string      friendly name for the detached signature. Signature file will be written to the currently working directory with this name and signature format as the file extension
+       --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
   -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
@@ -67,13 +67,13 @@ Flags:
 Verify a signature associated with a blob
 
 Usage:
-  notation blob verify [flags] <blob_path>
+  notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
   -s, --signature path        location of the detached signature
       --media-type string     optional media type of the blob to verify
       --policy-scope string   optional policy scope to verify against. If not provided, notation verifies against wildcard policy if it exists.
-  -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -o, --output string         output format, options: 'json', 'text' (default "text")
   -d, --debug                 debug mode
   -v, --verbose               verbose mode
@@ -95,21 +95,21 @@ Flags:
 notation key add --default --name <key_name> --plugin <plugin_name> --id <remote_key_id>
 
 # sign a blob
-notation blob sign --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 An example for a successful signing:
 
 ```console
-$ notation blob sign --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+$ notation blob sign --signature-name my-blob-signature /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature written to /tmp/my-blob-signature.sig
+Signature written to ./my-blob-signature.sig.jws
 ```
 
 ### Sign a blob with on-demand remote key
 
 ```shell
-notation blob sign --plugin <plugin_name> --id <remote_key_id> --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --plugin <plugin_name> --id <remote_key_id> --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ### Sign a blob using COSE signature format
@@ -119,7 +119,7 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> --signature /tmp/
 # A default signing key is configured using CLI "notation key"
 
 # Use option "--signature-format" to set the signature format to COSE.
-notation blob sign --signature-format cose --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --signature-format cose --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ### Sign a blob using the default signing key
@@ -128,7 +128,7 @@ notation blob sign --signature-format cose --signature /tmp/my-blob-signature.si
 # Prerequisites:
 # A default signing key is configured using CLI "notation key"
 
-notation blob sign --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ### Sign a blob with user metadata
@@ -138,22 +138,22 @@ notation blob sign --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
 # A default signing key is configured using CLI "notation key"
 
 # sign a blob and add user-metadata io.wabbit-networks.buildId=123 to the payload
-notation blob sign --user-metadata io.wabbit-networks.buildId=123 --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --user-metadata io.wabbit-networks.buildId=123 --signature-name my-blob-signature /tmp/my-blob.bin
 
 # sign a blob and add user-metadata io.wabbit-networks.buildId=123 and io.wabbit-networks.buildTime=1672944615 to the payload
-notation blob sign --user-metadata io.wabbit-networks.buildId=123 --user-metadata io.wabbit-networks.buildTime=1672944615 --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --user-metadata io.wabbit-networks.buildId=123 --user-metadata io.wabbit-networks.buildTime=1672944615 --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ### Sign a blob with media type
 
 ```shell
-notation blob sign --media-type <media type> --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --media-type <media type> --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ### Sign a blob and specify the signature expiry duration, for example 24 hours
 
 ```shell
-notation blob sign --expiry 24h --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --expiry 24h --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ### Sign a blob using a specified signing key
@@ -163,7 +163,7 @@ notation blob sign --expiry 24h --signature /tmp/my-blob-signature.sig /tmp/my-b
 notation key list
 
 # Sign a container image using the specified key name
-notation blob sign --key <key_name> --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob sign --key <key_name> --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
 ## Inspect detached blob signatures
@@ -172,23 +172,24 @@ notation blob sign --key <key_name> --signature /tmp/my-blob-signature.sig /tmp/
 
 
 ```text
-notation blob inspect [flags] /tmp/my-blob-signature.sig
+notation blob inspect [flags] /tmp/my-blob-signature.sig.jws
 ```
 
 ### Inspect the given detached blob signature
 
 ```shell
 # Prerequisites: Signatures is produced by notation blob sign command
-notation blob inspect /tmp/my-blob-signature.sig
+notation blob inspect /tmp/my-blob-signature.sig.jws
 ```
 
 An example output:
 ```shell
-Inspecting /tmp/my-blob-signature.sig
-/tmp/my-blob-signature.sig
+Inspecting /tmp/my-blob-signature.sig.jws
+/tmp/my-blob-signature.sig.jws
 └── application/octet-stream
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         ├── signature algorithm: RSASSA-PSS-SHA-256
+        ├── signature format: jws
         ├── signed attributes
         │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.signingAuthority.x509
@@ -220,7 +221,7 @@ Inspecting /tmp/my-blob-signature.sig
 ### Inspect the given detached blob signature with JSON Output
 
 ```shell
-notation blob inspect -o json /tmp/my-blob-signature.sig
+notation blob inspect -o json /tmp/my-blob-signature.sig.jws
 ```
 
 ## Verify detached blob signatures
@@ -282,13 +283,13 @@ notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 # Create a JSON file named "trustpolicy.json" under directory "{NOTATION_CONFIG}".
 
 # Verify the detached signature
-notation blob verify --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob verify --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob-signature.sig
+Successfully verified signature /tmp/my-blob-signature.sig.jws
 ```
 
 ### Verify the signature with user metadata
@@ -297,13 +298,13 @@ Use the `--user-metadata` flag to verify that provided key-value pairs are prese
 
 ```shell
 # Verify the signature and verify that io.wabbit-networks.buildId=123 is present in the signed payload
-notation blob verify --user-metadata io.wabbit-networks.buildId=123 --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob verify --user-metadata io.wabbit-networks.buildId=123 --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob-signature.sig
+Successfully verified signature /tmp/my-blob-signature.sig.jws
 
 The blob signature is having the following user metadata.
 
@@ -323,13 +324,13 @@ Use the `--media-type` flag to verify that signature is for the provided media-t
 
 ```shell
 # Verify the signature and verify that io.wabbit-networks.buildId=123 is present in the signed payload
-notation blob verify --media-type application/my-media-octet-stream --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob verify --media-type application/my-media-octet-stream --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob-signature.sig
+Successfully verified signature /tmp/my-blob-signature.sig.jws
 
 The blob is of media type `application/my-media-octet-stream`.
 
@@ -346,13 +347,13 @@ Error: signature verification failed: The blob is not of media type `application
 Use the `--policy-scope` flag to select a Policy scope to verify the signature against.
 
 ```shell
-notation blob verify --policy-scope my-blob-verification-selector --signature /tmp/my-blob-signature.sig /tmp/my-blob.bin
+notation blob verify --policy-scope my-blob-verification-selector --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob-signature.sig using policy scope `my-blob-verification-selector`
+Successfully verified signature /tmp/my-blob-signature.sig.jws using policy scope `my-blob-verification-selector`
 
 ```
 An example of output messages for an unsuccessful verification:
