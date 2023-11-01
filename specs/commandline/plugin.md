@@ -55,6 +55,20 @@ Aliases:
   install, add
 ```
 
+### notation plugin upgrade
+
+```text
+Upgrade a plugin
+
+Usage:
+  notation plugin upgrade [flags] <plugin_source>
+
+Flags:
+  -h, --help                    help for install
+      --checksum string         must match SHA256 of the plugin source
+      --source string           the location of plugin installation file, options: "file", "url","registry" (default "file")                  
+```
+
 ### notation plugin uninstall
 
 ```text
@@ -97,7 +111,13 @@ Successfully installed plugin <plugin name>, version <x.y.z>
 If the plugin directory does not exist, it will be created. When an existing plugin is detected and the version is the same as the installing plugin, it fails to install and returns the error as follows. Users can use a flag `--force` to skip existence check and force the installation with a specified version.
 
 ```console
-Error: failed to install the plugin, <plugin name> already installed
+Error: failed to install the plugin, <plugin_name> already installed
+```
+
+If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
+
+```console
+Error: failed to install the plugin, input checksum does not match the published checksum, expected <digest>
 ```
 
 ### Install a plugin from URL
@@ -114,6 +134,26 @@ Install a Notation plugin from a registry. Users can verify the plugin's signatu
 
 ```shell
 $ notation plugin install --source registry <artifact_reference>
+```
+
+### Upgrade a plugin to a higher version from file system 
+
+Upgrade a Notation plugin to a higher version from file system and verify the plugin checksum.
+
+```shell
+$ notation plugin upgrade --source file <file_path> --checksum <digest>
+```
+
+Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
+
+```console
+Successfully upgraded plugin <plugin name> to version <x.y.z>
+```
+
+If the upgrade version is equal to or lower than an existing plugin, Notation will return an error message and will not start upgrade.
+
+```console
+Error: failed to upgrade the plugin, <plugin name> version should be higher than <x.y.z>
 ```
 
 ### Uninstall a plugin
@@ -153,6 +193,6 @@ An example of output from `notation plugin list`:
 
 ```text
 NAME                                   DESCRIPTION                                   VERSION       CAPABILITIES                                                                                            ERROR
-azure-kv                               Sign artifacts with keys in Azure Key Vault   v0.5.0-rc.1   [SIGNATURE_GENERATOR.RAW]                                                                                <nil>
-com.amazonaws.signer.notation.plugin   AWS Signer plugin for Notation                1.0.290       [SIGNATURE_GENERATOR.ENVELOPE SIGNATURE_VERIFIER.TRUSTED_IDENTITY SIGNATURE_VERIFIER.REVOCATION_CHECK]   <nil>
+azure-kv                               Sign artifacts with keys in Azure Key Vault   v1.0.0   Signature generation                                                                                <nil>
+com.amazonaws.signer.notation.plugin   AWS Signer plugin for Notation                1.0.290       Signature envelope generation, Trusted Identity validation, Certificate chain revocation check   <nil>
 ```
