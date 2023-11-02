@@ -32,7 +32,7 @@ Usage:
   notation blob sign [flags] -n my-blob-signature <blob_path>
 
 Flags:
-  -n,  --signature-name string      friendly name for the detached signature. Signature file will be written to the currently working directory with this name and signature format as the file extension
+  -n,  --signature-name string      friendly name for the detached signature. Signature file will be written to the currently working directory with this name plus ".sig" plus signature format as the file extension
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -120,6 +120,8 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> --signature-name 
 
 # Use option "--signature-format" to set the signature format to COSE.
 notation blob sign --signature-format cose --signature-name my-blob-signature /tmp/my-blob.bin
+Successfully signed /tmp/my-blob.bin
+Signature written to ./my-blob-signature.sig.cose
 ```
 
 ### Sign a blob using the default signing key
@@ -323,7 +325,7 @@ Error: signature verification failed: unable to find specified metadata in the g
 Use the `--media-type` flag to verify that signature is for the provided media-type.
 
 ```shell
-# Verify the signature and verify that io.wabbit-networks.buildId=123 is present in the signed payload
+# Verify the signature and verify that application/my-media-octet-stream is the media type
 notation blob verify --media-type application/my-media-octet-stream --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
 ```
 
@@ -347,17 +349,17 @@ Error: signature verification failed: The blob is not of media type `application
 Use the `--policy-scope` flag to select a Policy scope to verify the signature against.
 
 ```shell
-notation blob verify --policy-scope my-blob-verification-selector --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
+notation blob verify --policy-scope blob-verification-selector --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob-signature.sig.jws using policy scope `my-blob-verification-selector`
+Successfully verified signature /tmp/my-blob-signature.sig.jws using policy scope `blob-verification-selector`
 
 ```
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed for Policy scope `my-blob-verification-selector`
+Error: signature verification failed for Policy scope `blob-verification-selector`
 ```
