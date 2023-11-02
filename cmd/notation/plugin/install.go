@@ -26,16 +26,13 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/plugin/proto"
 	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
+	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/opencontainers/go-digest"
 	"github.com/spf13/cobra"
 )
 
@@ -119,7 +116,7 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		return fmt.Errorf("failed to install the plugin, %s is not a regular file", inputPath)
 	}
 	// checkSum check
-	if err := validateCheckSum(inputPath, opts.inputCheckSum); err != nil {
+	if err := notationplugin.ValidateCheckSum(inputPath, opts.inputCheckSum); err != nil {
 		return fmt.Errorf("failed to install the plugin, %w", err)
 	}
 	// install the plugin based on file type
@@ -138,24 +135,6 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 	default:
 		return errors.New("failed to install the plugin, invalid file type. Only support tar.gz and zip")
-	}
-	return nil
-}
-
-// validateCheckSum returns nil if SHA256 of file at path equals to checkSum.
-func validateCheckSum(path string, checkSum string) error {
-	r, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer r.Close()
-	dgst, err := digest.FromReader(r)
-	if err != nil {
-		return err
-	}
-	enc := dgst.Encoded()
-	if enc != checkSum {
-		return fmt.Errorf("plugin checkSum does not match user input. User input is %s, got %s", checkSum, enc)
 	}
 	return nil
 }
@@ -232,7 +211,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 // reader
 func installPluginExecutable(ctx context.Context, fileName string, fileReader io.Reader, fmode fs.FileMode, force bool) error {
 	// sanity check
-	pluginName, err := extractPluginNameFromExecutableFileName(fileName)
+	pluginName, err := notationplugin.ExtractPluginNameFromExecutableFileName(fileName)
 	if err != nil {
 		return err
 	}
@@ -245,7 +224,7 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 
 	// check plugin existence
 	if !force {
-		existed, err := checkPluginExistence(ctx, pluginName)
+		existed, err := notationplugin.CheckPluginExistence(ctx, pluginName)
 		if err != nil {
 			return fmt.Errorf("failed to check plugin existence, %w", err)
 		}
@@ -271,7 +250,7 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 		return err
 	}
 	// validate plugin metadata
-	pluginVersion, err := validatePluginMetadata(ctx, pluginName, tmpFilePath)
+	pluginVersion, err := notationplugin.ValidatePluginMetadata(ctx, pluginName, tmpFilePath)
 	if err != nil {
 		return err
 	}
@@ -293,44 +272,6 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 
 	fmt.Printf("Succussefully installed plugin %s, version %s\n", pluginName, pluginVersion)
 	return nil
-}
-
-// extractPluginNameFromExecutableFileName gets plugin name from plugin
-// executable file name based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
-func extractPluginNameFromExecutableFileName(execFileName string) (string, error) {
-	fileName := osutil.FileNameWithoutExtension(execFileName)
-	_, pluginName, found := strings.Cut(fileName, "-")
-	if !found || !strings.HasPrefix(fileName, proto.Prefix) {
-		return "", notationerrors.ErrorInvalidPluginName{Msg: fmt.Sprintf("invalid plugin executable file name. file name requires format notation-{plugin-name}, got %s", fileName)}
-	}
-	return pluginName, nil
-}
-
-// checkPluginExistence returns true if a plugin already exists
-func checkPluginExistence(ctx context.Context, pluginName string) (bool, error) {
-	mgr := plugin.NewCLIManager(dir.PluginFS())
-	_, err := mgr.Get(ctx, pluginName)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
-}
-
-// validatePluginMetadata validates plugin metadata given plugin name and path
-// returns the plugin version on success
-func validatePluginMetadata(ctx context.Context, pluginName, path string) (string, error) {
-	plugin, err := plugin.NewCLIPlugin(ctx, pluginName, path)
-	if err != nil {
-		return "", err
-	}
-	metadata, err := plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
-	if err != nil {
-		return "", err
-	}
-	return metadata.Version, nil
 }
 
 // downloadPluginFromURL downloads plugin file from url to a tmp directory
