@@ -75,7 +75,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference to the artifact. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>")
+				return errors.New("missing reference to the artifact: use `notation verify --help` to see what parameters are required")
 			}
 			opts.reference = args[0]
 			return nil
