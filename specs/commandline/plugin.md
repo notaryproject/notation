@@ -15,10 +15,11 @@ Usage:
   notation plugin [command]
 
 Available Commands:
-  list        List installed plugins
   install     Install a plugin
-  upgrade     Upgrade a plugin
+  list        List installed plugins
   uninstall   Uninstall a plugin
+  upgrade     Upgrade a plugin
+  
 
 Flags:
   -h, --help          help for plugin
@@ -51,7 +52,7 @@ Flags:
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
       --checksum string         must match SHA256 of the plugin source
-      --source string           the location of plugin installation file, options: "file", "url","registry" (default "file")                  
+      --source string           the plugin installation source, options: "file", "url","registry" (default "file")                  
 Aliases:
   install, add
 ```
@@ -65,9 +66,9 @@ Usage:
   notation plugin upgrade [flags] <plugin_source>
 
 Flags:
-  -h, --help                    help for install
+  -h, --help                    help for upgrade
       --checksum string         must match SHA256 of the plugin source
-      --source string           the location of plugin installation file, options: "file", "url","registry" (default "file")                  
+      --source string           the plugin installation source, options: "file", "url","registry" (default "file")                  
 ```
 
 ### notation plugin uninstall
@@ -94,13 +95,13 @@ Aliases:
 Install a Notation plugin from file system and verify the plugin checksum.
 
 ```shell
-$ notation plugin install --source file <file_path> --checksum <digest>
+$ notation plugin install --source file --checksum <digest> <file_path>
 ```
 
 If the user doesn't specify the `--source` flag, Notation will install the plugin from file system by default.
 
 ```shell
-$ notation plugin install <file_path> --checksum <digest>
+$ notation plugin install --checksum <digest> <file_path>
 ```
 
 Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
@@ -109,7 +110,7 @@ Upon successful execution, the plugin is copied to Notation's plugin directory. 
 Successfully installed plugin <plugin name>, version <x.y.z>
 ```
 
-If the plugin directory does not exist, it will be created. When an existing plugin is detected and the version is the same as the installing plugin, it fails to install and returns the error as follows. Users can use a flag `--force` to skip existence check and force the installation with a specified version.
+If the plugin directory does not exist, it will be created. When an existing plugin is detected, it fails to install and returns the error as follows. Users can use a flag `--force` to skip existence check and force the installation.
 
 ```console
 Error: failed to install the plugin, <plugin_name> already installed
@@ -157,6 +158,12 @@ If the upgrade version is equal to or lower than an existing plugin, Notation wi
 Error: failed to upgrade the plugin, <plugin name> version should be higher than <x.y.z>
 ```
 
+If the plugin does not exist, Notation will return an error message and will not start upgrade.
+
+```
+Error: failed to upgrade the plugin, <plugin name> version 
+```
+
 ### Uninstall a plugin
 
 ```shell
@@ -179,7 +186,7 @@ notation plugin uninstall <plugin_name> --yes
 If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
 ```shell
-Error: <plugin_name> does not exist
+Error: <plugin_name> does not exist. Please install the plugin using 'notation plugin install' first.
 ```
 
 ### List installed plugins
