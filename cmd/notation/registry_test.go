@@ -33,7 +33,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
 		t.Fatal("failed to enable experimental")
 	}
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/referrers/"+zeroDigest {
+		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/v1/referrers/"+zeroDigest {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{ "test": "TEST" }`))
 			return
@@ -49,7 +49,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
 	secureOpts := SecureFlagOpts{
 		InsecureRegistry: true,
 	}
-	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test", true)
+	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
 	if err != nil {
 		t.Errorf("getRemoteRepository() expected nil error, but got error: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) 
 		t.Fatal("failed to enable experimental")
 	}
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/referrers/"+zeroDigest {
+		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/v1/referrers/"+zeroDigest {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -76,7 +76,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) 
 	secureOpts := SecureFlagOpts{
 		InsecureRegistry: true,
 	}
-	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test", true)
+	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
 	if err != nil {
 		t.Errorf("getRemoteRepository() expected nil error, but got error: %v", err)
 	}
@@ -84,7 +84,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) 
 
 func TestRegistry_getRemoteRepositoryWithReferrersTagSchema(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/referrers/"+zeroDigest {
+		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/v1/referrers/"+zeroDigest {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{ "test": "TEST" }`))
 			return
@@ -100,7 +100,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersTagSchema(t *testing.T) {
 	secureOpts := SecureFlagOpts{
 		InsecureRegistry: true,
 	}
-	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test", false)
+	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", false)
 	if err != nil {
 		t.Errorf("getRemoteRepository() expected nil error, but got error: %v", err)
 	}

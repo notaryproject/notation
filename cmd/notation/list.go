@@ -43,14 +43,32 @@ func listCommand(opts *listOpts) *cobra.Command {
 			inputType: inputTypeRegistry, // remote registry by default
 		}
 	}
+	longMessage := `List all the signatures associated with signed artifact
+
+Example - List signatures of an OCI artifact:
+  notation list <registry>/<repository>@<digest>
+
+Example - List signatures of an OCI artifact identified by a tag (Notation will resolve tag to digest)
+  notation list <registry>/<repository>:<tag>
+`
+	experimentalExamples := `
+Example - [Experimental] List signatures of an OCI artifact using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
+  notation list --allow-referrers-api <registry>/<repository>@<digest>
+
+Example - [Experimental] List signatures of an OCI artifact referenced in an OCI layout
+  notation list --oci-layout "<oci_layout_path>@<digest>"
+
+Example - [Experimental] List signatures of an OCI artifact identified by a tag and referenced in an OCI layout
+  notation list --oci-layout "<oci_layout_path>:<tag>"
+`
 	command := &cobra.Command{
 		Use:     "list [flags] <reference>",
 		Aliases: []string{"ls"},
 		Short:   "List signatures of the signed artifact",
-		Long:    "List all the signatures associated with signed artifact",
+		Long:    longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("no reference specified")
+				return errors.New("missing reference to the artifact: use `notation list --help` to see what parameters are required")
 			}
 			opts.reference = args[0]
 			return nil
@@ -74,6 +92,7 @@ func listCommand(opts *listOpts) *cobra.Command {
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
 	experimental.HideFlags(command, "", []string{"allow-referrers-api", "oci-layout"})
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
 
