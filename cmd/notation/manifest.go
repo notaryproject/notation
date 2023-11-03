@@ -48,7 +48,10 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 	case inputTypeRegistry:
 		ref, err := registry.ParseReference(reference)
 		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
+			return ocispec.Descriptor{}, "", fmt.Errorf("%q: %w. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference, err)
+		}
+		if ref.Reference == "" {
+			return ocispec.Descriptor{}, "", fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repo>:<tag> or <registry>/<repo>@<digest>", reference)
 		}
 		tagOrDigestRef = ref.Reference
 		resolvedRef = ref.Registry + "/" + ref.Repository
@@ -113,16 +116,16 @@ func parseOCILayoutReference(raw string) (string, string, error) {
 		// find `tag`
 		idx := strings.LastIndex(raw, ":")
 		if idx == -1 || (idx == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
-			return "", "", notationerrors.ErrorOCILayoutMissingReference{}
+			return "", "", notationerrors.ErrorOCILayoutMissingReference{Msg: fmt.Sprintf("%q: invalid reference: missing tag or digest. Expecting <file_path>:<tag> or <file_path>@<digest>", raw)}
 		} else {
 			path, ref = raw[:idx], raw[idx+1:]
 		}
 	}
 	if path == "" {
-		return "", "", fmt.Errorf("found empty file path in %q", raw)
+		return "", "", fmt.Errorf("%q: invalid reference: missing oci-layout file path. Expecting <file_path>:<tag> or <file_path>@<digest>", raw)
 	}
 	if ref == "" {
-		return "", "", fmt.Errorf("found empty reference in %q", raw)
+		return "", "", notationerrors.ErrorOCILayoutMissingReference{Msg: fmt.Sprintf("%q: invalid reference: missing tag or digest. Expecting <file_path>:<tag> or <file_path>@<digest>", raw)}
 	}
 	return path, ref, nil
 }

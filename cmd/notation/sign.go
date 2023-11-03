@@ -90,7 +90,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference")
+				return errors.New("missing reference to the artifact: use `notation sign --help` to see what parameters are required")
 			}
 			opts.reference = args[0]
 			return nil
