@@ -74,9 +74,11 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%q: %w. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference, err)
 	}
-
+	if ref.Reference == "" {
+		return nil, fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference)
+	}
 	// generate notation repository
 	remoteRepo, err := getRepositoryClient(ctx, opts, ref)
 	if err != nil {
