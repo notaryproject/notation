@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -83,6 +86,34 @@ func ValidatePluginMetadata(ctx context.Context, pluginName, path string) (strin
 		return "", err
 	}
 	return metadata.Version, nil
+}
+
+// DownloadPluginFromURL downloads plugin file from url to a tmp directory
+// it returns the tmp file path of the downloaded file
+func DownloadPluginFromURL(ctx context.Context, url, tmpDir string) (string, error) {
+	// Create the file
+	tmpFilePath := filepath.Join(tmpDir, "notationPluginTmp")
+	out, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("bad status: %s", resp.Status)
+	}
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return tmpFilePath, err
 }
 
 // ExtractPluginNameFromExecutableFileName gets plugin name from plugin
