@@ -16,12 +16,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"reflect"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -73,7 +75,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference")
+				return errors.New("missing reference to the artifact: use `notation verify --help` to see what parameters are required")
 			}
 			opts.reference = args[0]
 			return nil
@@ -157,6 +159,24 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 	// write out on failure
 	if err != nil || len(outcomes) == 0 {
 		if err != nil {
+			var errTrustStore truststore.TrustStoreError
+			if errors.As(err, &errTrustStore) {
+				if errors.Is(err, fs.ErrNotExist) {
+					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
+				} else {
+					return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
+				}
+			}
+
+			var errCertificate truststore.CertificateError
+			if errors.As(err, &errCertificate) {
+				if errors.Is(err, fs.ErrNotExist) {
+					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
+				} else {
+					return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
+				}
+			}
+
 			var errorVerificationFailed notation.ErrorVerificationFailed
 			if !errors.As(err, &errorVerificationFailed) {
 				return fmt.Errorf("signature verification failed: %w", err)
