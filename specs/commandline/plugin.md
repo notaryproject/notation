@@ -178,7 +178,7 @@ notation plugin uninstall <plugin_name> --yes
 If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
 ```shell
-Error: <plugin_name> does not exist. Please install the plugin using 'notation plugin install' first.
+Error: <plugin_name> does not exist. Please check the plugin information using 'notation plugin list' first.
 ```
 
 ### List installed plugins
