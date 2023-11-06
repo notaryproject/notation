@@ -19,7 +19,6 @@ Available Commands:
   list        List installed plugins
   uninstall   Uninstall a plugin
   upgrade     Upgrade a plugin
-  
 
 Flags:
   -h, --help          help for plugin
@@ -51,8 +50,8 @@ Usage:
 Flags:
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
-      --checksum string         must match SHA256 of the plugin source
-      --source string           the plugin installation source, options: "file", "url","registry" (default "file")                  
+      --checksum string         must match SHA256 of the plugin source               
+
 Aliases:
   install, add
 ```
@@ -67,8 +66,7 @@ Usage:
 
 Flags:
   -h, --help                    help for upgrade
-      --checksum string         must match SHA256 of the plugin source
-      --source string           the plugin installation source, options: "file", "url","registry" (default "file")                  
+      --checksum string         must match SHA256 of the plugin source                 
 ```
 
 ### notation plugin uninstall
@@ -83,7 +81,7 @@ Flags:
   -h, --help          help for remove
   -y, --yes           do not prompt for confirmation
 Aliases:
-  remove, rm, uninstall
+  uninstall, remove, rm
 ```
 
 ## Usage
@@ -92,16 +90,10 @@ Aliases:
 
 ### Install a plugin from file system
 
-Install a Notation plugin from file system and verify the plugin checksum.
+Install a Notation plugin from file system. 
 
 ```shell
-$ notation plugin install --source file --checksum <digest> <file_path>
-```
-
-If the user doesn't specify the `--source` flag, Notation will install the plugin from file system by default.
-
-```shell
-$ notation plugin install --checksum <digest> <file_path>
+$ notation plugin install <file_path>
 ```
 
 Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
@@ -124,10 +116,10 @@ Error: failed to install the plugin, input checksum does not match the published
 
 ### Install a plugin from URL
 
-Install a Notation plugin from a remote shared address and verify the plugin checksum.
+Install a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL.
 
 ```shell
-$ notation plugin install --source url <URL> --checksum <digest>
+$ notation plugin install --checksum <digest>
 ```
 
 ### Install a plugin as an OCI artifact from a registry (for future iteration)
@@ -135,7 +127,7 @@ $ notation plugin install --source url <URL> --checksum <digest>
 Install a Notation plugin from a registry. Users can verify the plugin's signature with `notation verify` before the plugin installation.
 
 ```shell
-$ notation plugin install --source registry <artifact_reference>
+$ notation plugin install <registry>/<repository>@<digest>
 ```
 
 ### Upgrade a plugin to a higher version from file system 
@@ -143,7 +135,7 @@ $ notation plugin install --source registry <artifact_reference>
 Upgrade a Notation plugin to a higher version from file system and verify the plugin checksum.
 
 ```shell
-$ notation plugin upgrade --source file <file_path> --checksum <digest>
+$ notation plugin upgrade <file_path> --checksum <digest>
 ```
 
 Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
