@@ -73,7 +73,7 @@ go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.9.5
 
 # build e2e plugin
 PLUGIN_NAME=e2e-plugin
-( cd $CWD/plugin && go build -o ./bin/$PLUGIN_NAME . && echo "e2e plugin built." )
+( cd $CWD/plugin && go build -o ./bin/$PLUGIN_NAME . && echo "e2e plugin built." && tar -czvf $PLUGIN_NAME.tar.gz ./bin/$PLUGIN_NAME)
 
 # setup registry
 case $REGISTRY_NAME in
@@ -107,6 +107,7 @@ export NOTATION_E2E_OCI_LAYOUT_PATH=$CWD/testdata/registry/oci_layout
 export NOTATION_E2E_TEST_REPO=e2e
 export NOTATION_E2E_TEST_TAG=v1
 export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME
+export NOTATION_E2E_PLUGIN_TAR_GZ_PATH=$CWD/plugin/bin/$PLUGIN_NAME.tar.gz
 
 # run tests
 ginkgo -r -p -v
