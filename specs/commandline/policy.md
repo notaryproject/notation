@@ -166,6 +166,22 @@ Below is a sample Policy configuration file that verifies OCI artifacts using `s
             "trustedIdentities": [                                    
                 "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, CN=SecureBuilder"
             ]
+        },
+        {
+            "name": "skip-blob-verification-policy",
+            "scopes": [ "blob:skip-blob-verification-selector" ],
+            "signatureVerification": {
+              "level" : "skip" 
+            }
+        },
+        {
+            "name": "wildcard-blob-verification-policy",
+            "scopes": [ "blob:*" ],
+            "signatureVerification": {
+              "level" : "audit"
+            },
+            "trustStores": ["ca:acme-rockets"],
+            "trustedIdentities": ["*"]
         }
     ]
 }

@@ -9,14 +9,14 @@ Use `notation blob` command to sign, verify, and inspect signatures associated w
 ### notation blob command
 
 ```text
-Sign, Inspect, and Verify signatures associates with arbitrary blobs.
+Sign, inspect, and verify signatures associated with arbitrary blobs.
 
 Usage:
   notation blob [command]
 
 Available Commands:
-  sign      produce a detached signature for a given blob
   inspect   inspect a signature associated with a blob
+  sign      produce a detached signature for a given blob
   verify    verify a signature associated with a blob
 
 Flags:
@@ -32,7 +32,7 @@ Usage:
   notation blob sign [flags] -n my-blob-signature <blob_path>
 
 Flags:
-  -n,  --signature-name string      friendly name for the detached signature. Signature file will be written to the currently working directory with this name plus ".sig" plus signature format as the file extension
+  -n,  --signature-name string      friendly name for the detached signature. Signature file will be written to the currently working directory with this name plus ".sig" plus signature format as the file extension. For example,  "mySignature.sig.jws", "mySignature.sig.cose"
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -146,7 +146,7 @@ notation blob sign --user-metadata io.wabbit-networks.buildId=123 --signature-na
 notation blob sign --user-metadata io.wabbit-networks.buildId=123 --user-metadata io.wabbit-networks.buildTime=1672944615 --signature-name my-blob-signature /tmp/my-blob.bin
 ```
 
-### Sign a blob with media type
+### Sign a blob and specify the media type for the blob
 
 ```shell
 notation blob sign --media-type <media type> --signature-name my-blob-signature /tmp/my-blob.bin
@@ -346,7 +346,7 @@ Error: signature verification failed: The blob is not of media type `application
 
 ### Verify the signature using a policy scope
 
-Use the `--policy-scope` flag to select a Policy scope to verify the signature against.
+Use the `--policy-scope` flag to select a policy scope to verify the signature against.
 
 ```shell
 notation blob verify --policy-scope blob-verification-selector --signature /tmp/my-blob-signature.sig.jws /tmp/my-blob.bin
