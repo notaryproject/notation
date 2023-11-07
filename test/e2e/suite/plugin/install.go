@@ -35,7 +35,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath).
-				MatchErrContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
@@ -77,7 +77,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", PluginURL, "--checksum", PluginCheckSum).
-				MatchErrContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
+				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 })
