@@ -25,10 +25,10 @@ const (
 )
 
 var _ = Describe("notation plugin install", func() {
-	It("with invalid plugin source type", func() {
+	It("with invalid plugin file type", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", NotationE2EPluginPath).
-				MatchKeyWords("unknown plugin source")
+				MatchContent("Error: failed to install the plugin, invalid file format. Only support .tar.gz and .zip")
 		})
 	})
 
