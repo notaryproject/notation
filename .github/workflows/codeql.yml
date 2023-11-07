@@ -15,9 +15,13 @@ name: "CodeQL"
 
 on:
   push:
-    branches: main
+    branches: 
+      - main
+      - release-*
   pull_request:
-    branches: main
+    branches: 
+      - main
+      - release-*
   schedule:
     - cron: '38 21 * * 1'
 
@@ -45,8 +49,8 @@ jobs:
           go-version: ${{ matrix.go-version }}
           check-latest: true
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@2cb752a87e96af96708ab57187ab6372ee1973ab # v2.22.0
+        uses: github/codeql-action/init@74483a38d39275f33fcff5f35b679b5ca4a26a99 # v2.22.5
         with:
           languages: go
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@2cb752a87e96af96708ab57187ab6372ee1973ab # v2.22.0
+        uses: github/codeql-action/analyze@74483a38d39275f33fcff5f35b679b5ca4a26a99 # v2.22.5
