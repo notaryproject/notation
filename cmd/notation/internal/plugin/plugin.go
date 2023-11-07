@@ -18,19 +18,26 @@ import (
 	"github.com/opencontainers/go-digest"
 )
 
-// Type is an enum for plugin source types.
-type Type string
+// PluginSourceType is an enum for plugin source
+type PluginSourceType string
 
 const (
-	TypeFile Type = "file"
-	TypeURL  Type = "url"
+	// TypeFile means plugin source is file
+	TypeFile PluginSourceType = "file"
+
+	// TypeURL means plugin source is URL
+	TypeURL PluginSourceType = "url"
+
+	// TypeUnknown means unknown plugin source
+	TypeUnknown PluginSourceType = "unknown"
 )
 
-var (
-	Types = []Type{
-		TypeFile,
-		TypeURL,
-	}
+const (
+	// TypeZip means plugin file is zip
+	TypeZip = "application/zip"
+
+	// TypeGzip means plugin file is gzip
+	TypeGzip = "application/x-gzip"
 )
 
 // CheckPluginExistence returns true if a plugin already exists
@@ -46,16 +53,6 @@ func CheckPluginExistence(ctx context.Context, pluginName string) (bool, error) 
 	return true, nil
 }
 
-// ValidateInstallSource returns true if source is in Types
-func ValidateInstallSource(source string) bool {
-	for _, t := range Types {
-		if strings.ToLower(source) == string(t) {
-			return true
-		}
-	}
-	return false
-}
-
 // ValidateCheckSum returns nil if SHA256 of file at path equals to checkSum.
 func ValidateCheckSum(path string, checkSum string) error {
 	r, err := os.Open(path)
@@ -69,12 +66,12 @@ func ValidateCheckSum(path string, checkSum string) error {
 	}
 	enc := dgst.Encoded()
 	if enc != checkSum {
-		return fmt.Errorf("plugin checkSum does not match user input. User input is %s, got %s", checkSum, enc)
+		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checkSum)
 	}
 	return nil
 }
 
-// ValidatePluginMetadata validates plugin metadata given plugin name and path
+// ValidatePluginMetadata validates plugin metadata given plugin name and path,
 // returns the plugin version on success
 func ValidatePluginMetadata(ctx context.Context, pluginName, path string) (string, error) {
 	plugin, err := plugin.NewCLIPlugin(ctx, pluginName, path)
@@ -122,7 +119,7 @@ func ExtractPluginNameFromExecutableFileName(execFileName string) (string, error
 	fileName := osutil.FileNameWithoutExtension(execFileName)
 	_, pluginName, found := strings.Cut(fileName, "-")
 	if !found || !strings.HasPrefix(fileName, proto.Prefix) {
-		return "", notationerrors.ErrorInvalidPluginName{Msg: fmt.Sprintf("invalid plugin executable file name. file name requires format notation-{plugin-name}, got %s", fileName)}
+		return "", notationerrors.ErrorInvalidPluginName{Msg: fmt.Sprintf("invalid plugin executable file name. file name requires format notation-{plugin-name}, but got %s", fileName)}
 	}
 	return pluginName, nil
 }
