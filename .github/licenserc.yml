@@ -29,7 +29,7 @@ header:
       limitations under the License.
     
     pattern: |
-      *Copyright The ORAS Authors.*
+      Copyright The ORAS Authors.
 
   paths-ignore:
     - '**/*.md'
