@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -37,7 +36,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const notationPluginTmpDir = "notationPluginTmpDir"
+const (
+	notationPluginTmpDir = "notationPluginTmpDir"
+	httpsPrefix          = "https://"
+)
 
 type pluginInstallOpts struct {
 	cmd.LoggingFlagOpts
@@ -297,15 +299,11 @@ func getPluginSource(source string) (notationplugin.PluginSourceType, error) {
 		return notationplugin.TypeFile, nil
 	}
 	// check url
-	url, urlError := url.ParseRequestURI(source)
-	if urlError == nil {
-		if url.Scheme != "https" {
-			return notationplugin.TypeURL, fmt.Errorf("input plugin URL has to be in scheme HTTPS, but got %s", url.Scheme)
-		}
+	if strings.HasPrefix(source, httpsPrefix) {
 		return notationplugin.TypeURL, nil
 	}
 	// unknown
-	fmt.Fprintf(os.Stderr, "%s is not a valid file: %v\n", source, fileError)
-	fmt.Fprintf(os.Stderr, "%s is not a valid URL: %v\n", source, urlError)
+	fmt.Fprintf(os.Stdout, "%s is not a valid file: %v\n", source, fileError)
+	fmt.Fprintf(os.Stdout, "%s is not a valid HTTPS URL\n", source)
 	return notationplugin.TypeUnknown, fmt.Errorf("%s is an unknown plugin source", source)
 }

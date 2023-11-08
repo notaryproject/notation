@@ -71,9 +71,9 @@ fi
 # install dependency
 go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.9.5
 
-# build e2e plugin
+# build e2e plugin and tar.gz
 PLUGIN_NAME=e2e-plugin
-( cd $CWD/plugin && go build -o ./bin/$PLUGIN_NAME . && echo "e2e plugin built." && tar -C ./bin/ -czvf ./bin/notation-$PLUGIN_NAME.tar.gz  $PLUGIN_NAME)
+( cd $CWD/plugin && go build -o ./bin/$PLUGIN_NAME . && echo "e2e plugin built." && tar --transform="flags=r;s|$PLUGIN_NAME|notation-$PLUGIN_NAME|" -czvf ./bin/$PLUGIN_NAME.tar.gz -C ./bin/ $PLUGIN_NAME)
 
 # setup registry
 case $REGISTRY_NAME in
