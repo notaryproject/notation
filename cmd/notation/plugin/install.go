@@ -303,7 +303,7 @@ func getPluginSource(source string) (notationplugin.PluginSourceType, error) {
 		return notationplugin.TypeURL, nil
 	}
 	// unknown
-	fmt.Fprintf(os.Stdout, "%s is not a valid file: %v\n", source, fileError)
-	fmt.Fprintf(os.Stdout, "%s is not a valid HTTPS URL\n", source)
-	return notationplugin.TypeUnknown, fmt.Errorf("%s is an unknown plugin source", source)
+	fmt.Fprintf(os.Stdout, "%q is not a valid file: %v\n", source, fileError)
+	fmt.Fprintf(os.Stdout, "%q is not a valid HTTPS URL\n", source)
+	return notationplugin.TypeUnknown, fmt.Errorf("%q is an unknown plugin source. Require file path or HTTPS URL", source)
 }

@@ -41,6 +41,9 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with plugin already installed", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
+				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+
 			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginTarGzPath).
 				MatchErrContent("plugin e2e-plugin already installed\n")
 		})
@@ -56,14 +59,14 @@ var _ = Describe("notation plugin install", func() {
 	It("with valid plugin URL but missing checksum", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", PluginURL).
-				MatchErrContent("install from URL requires non-empty SHA256 checksum of the plugin source")
+				MatchErrContent("Error: install from URL requires non-empty SHA256 checksum of the plugin source\n")
 		})
 	})
 
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "http://invalid", "--checksum", "abcd").
-				MatchErrContent("input plugin URL has to be in scheme HTTPS, but got http")
+				MatchErrContent("Error: \"http://invalid\" is an unknown plugin source. Require file path or HTTPS URL\n")
 		})
 	})
 
