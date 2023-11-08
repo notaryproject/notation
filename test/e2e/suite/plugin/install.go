@@ -45,7 +45,7 @@ var _ = Describe("notation plugin install", func() {
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginTarGzPath).
-				MatchErrContent("plugin e2e-plugin already installed\n")
+				MatchErrContent("Error: failed to install the plugin, plugin e2e-plugin already installed\n")
 		})
 	})
 
