@@ -1,6 +1,7 @@
 // Copied and adapted from oras (https://github.com/oras-project/oras)
 /*
 Copyright The ORAS Authors.
+Copyright The Notary Project Authors.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
