@@ -185,6 +185,9 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 	}
 	defer archive.Close()
 	for _, f := range archive.File {
+		if strings.Contains(f.Name, "..") {
+			continue
+		}
 		fmode := f.Mode()
 		// requires one and only one executable file, with name in format
 		// notation-{plugin-name}, exists in the zip file
@@ -227,6 +230,9 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 				break
 			}
 			return err
+		}
+		if strings.Contains(header.Name, "..") {
+			continue
 		}
 		fmode := header.FileInfo().Mode()
 		// requires one and only one executable file, with name in format
