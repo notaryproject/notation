@@ -103,7 +103,7 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		if opts.inputCheckSum == "" {
 			return errors.New("install from URL requires non-empty SHA256 checksum of the plugin source")
 		}
-		tmpDir, err := os.MkdirTemp(".", notationPluginTmpDir)
+		tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 		if err != nil {
 			return fmt.Errorf("failed to create notationPluginTmpDir, %w", err)
 		}
@@ -182,7 +182,7 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 			return err
 		}
 	}
-	return fmt.Errorf("no valid plugin executable file was found in %s", zipPath)
+	return fmt.Errorf("no valid plugin executable file was found in %s. Plugin executable file name must in format notation-{plugin-name}", zipPath)
 }
 
 // installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
@@ -220,7 +220,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			return err
 		}
 	}
-	return fmt.Errorf("no valid plugin executable file was found in %s", tarGzPath)
+	return fmt.Errorf("no valid plugin executable file was found in %s. Plugin executable file name must in format notation-{plugin-name}", tarGzPath)
 }
 
 // installPluginExecutable extracts, validates, and installs a plugin from
@@ -248,7 +248,7 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 		}
 	}
 	// extract to tmp dir
-	tmpDir, err := os.MkdirTemp(".", notationPluginTmpDir)
+	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 	if err != nil {
 		return fmt.Errorf("failed to create notationPluginTmpDir, %w", err)
 	}

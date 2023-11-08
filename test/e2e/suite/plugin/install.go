@@ -27,21 +27,21 @@ const (
 var _ = Describe("notation plugin install", func() {
 	It("with invalid plugin file type", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", NotationE2EPluginPath).
+			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginPath).
 				MatchErrContent("Error: failed to install the plugin, invalid file format. Only support .tar.gz and .zip")
 		})
 	})
 
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath).
+			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with plugin already installed", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath).
+			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginTarGzPath).
 				MatchErrContent("plugin e2e-plugin already installed\n")
 		})
 	})
@@ -55,21 +55,21 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with valid plugin URL but missing checksum", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", PluginURL).
+			notation.ExpectFailure().Exec("plugin", "install", PluginURL).
 				MatchErrContent("install from URL requires non-empty SHA256 checksum of the plugin source")
 		})
 	})
 
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "http://invalid", "--checksum", "abcd").
+			notation.ExpectFailure().Exec("plugin", "install", "http://invalid", "--checksum", "abcd").
 				MatchErrContent("input plugin URL has to be in scheme HTTPS, but got http")
 		})
 	})
 
 	It("with invalid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "https://invalid", "--checksum", "abcd").
+			notation.ExpectFailure().Exec("plugin", "install", "https://invalid", "--checksum", "abcd").
 				MatchErrKeyWords("failed to download plugin from URL https://invalid")
 		})
 	})
