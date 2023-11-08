@@ -25,17 +25,17 @@ const (
 )
 
 var _ = Describe("notation plugin install", func() {
-	It("with invalid plugin file type", func() {
-		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginPath).
-				MatchErrContent("Error: failed to install the plugin, invalid file format. Only support .tar.gz and .zip\n")
-		})
-	})
-
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+		})
+	})
+
+	It("with invalid plugin file type", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginPath).
+				MatchErrContent("Error: failed to install the plugin, invalid file format. Only support .tar.gz and .zip\n")
 		})
 	})
 
@@ -51,8 +51,18 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with plugin already installed but force install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
+				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+
 			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "--force").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+		})
+	})
+
+	It("with valid plugin URL", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("plugin", "install", PluginURL, "--checksum", PluginCheckSum).
+				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 
@@ -74,13 +84,6 @@ var _ = Describe("notation plugin install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "https://invalid", "--checksum", "abcd").
 				MatchErrKeyWords("failed to download plugin from URL https://invalid")
-		})
-	})
-
-	It("with valid plugin URL", func() {
-		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", PluginURL, "--checksum", PluginCheckSum).
-				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 })

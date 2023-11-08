@@ -53,9 +53,9 @@ func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
 		opts = &pluginInstallOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "install [flags] <plugin_src>",
+		Use:   "install [flags] <plugin_source>",
 		Short: "Install plugin",
-		Long: `Install a Notation plugin
+		Long: `Install a plugin
 
 Example - Install plugin from file system:
   notation plugin install wabbit-plugin-v1.0.zip
@@ -70,7 +70,7 @@ Example - Install plugin from file system with .tar.gz:
   notation plugin install wabbit-plugin-v1.0.tar.gz
 
 Example - Install plugin from URL, SHA256 checksum is required:
-  notation plugin install --checksum abcxyz https://wabbit-networks.com/intaller/linux/amd64/wabbit-plugin-v1.0.tar.gz 
+  notation plugin install https://wabbit-networks.com/intaller/linux/amd64/wabbit-plugin-v1.0.tar.gz --checksum abcxyz
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -84,8 +84,8 @@ Example - Install plugin from URL, SHA256 checksum is required:
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVar(&opts.inputCheckSum, "checksum", "", "if set, must match the SHA256 of the plugin source")
-	command.Flags().BoolVar(&opts.force, "force", false, "force to install and overwrite the plugin")
+	command.Flags().StringVar(&opts.inputCheckSum, "checksum", "", "must match SHA256 of the plugin source")
+	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of a plugin")
 	return command
 }
 
@@ -118,6 +118,24 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 	default:
 		return fmt.Errorf("failed to install the plugin, plugin source type %s is not supported", pluginSourceType)
 	}
+}
+
+// getPluginSource returns the type of plugin source
+func getPluginSource(source string) (notationplugin.PluginSourceType, error) {
+	source = strings.TrimSpace(source)
+	// check file path
+	_, fileError := os.Stat(source)
+	if fileError == nil {
+		return notationplugin.TypeFile, nil
+	}
+	// check url
+	if strings.HasPrefix(source, httpsPrefix) {
+		return notationplugin.TypeURL, nil
+	}
+	// unknown
+	fmt.Fprintf(os.Stdout, "%q is not a valid file: %v\n", source, fileError)
+	fmt.Fprintf(os.Stdout, "%q is not a valid HTTPS URL\n", source)
+	return notationplugin.TypeUnknown, fmt.Errorf("%q is an unknown plugin source. Require file path or HTTPS URL", source)
 }
 
 // installFromFileSystem install the plugin from file system
@@ -288,22 +306,4 @@ func installPluginExecutable(ctx context.Context, fileName string, fileReader io
 	}
 	fmt.Printf("Succussefully installed plugin %s, version %s\n", pluginName, pluginVersion)
 	return nil
-}
-
-// getPluginSource returns the type of plugin source
-func getPluginSource(source string) (notationplugin.PluginSourceType, error) {
-	source = strings.TrimSpace(source)
-	// check file path
-	_, fileError := os.Stat(source)
-	if fileError == nil {
-		return notationplugin.TypeFile, nil
-	}
-	// check url
-	if strings.HasPrefix(source, httpsPrefix) {
-		return notationplugin.TypeURL, nil
-	}
-	// unknown
-	fmt.Fprintf(os.Stdout, "%q is not a valid file: %v\n", source, fileError)
-	fmt.Fprintf(os.Stdout, "%q is not a valid HTTPS URL\n", source)
-	return notationplugin.TypeUnknown, fmt.Errorf("%q is an unknown plugin source. Require file path or HTTPS URL", source)
 }
