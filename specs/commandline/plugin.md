@@ -90,7 +90,7 @@ Aliases:
 
 ### Install a plugin from file system
 
-Install a Notation plugin from file system. 
+Install a Notation plugin from file system. The checksum validation is optional for this case.
 
 ```shell
 $ notation plugin install <file_path>
@@ -119,7 +119,7 @@ Error: failed to install the plugin, input checksum does not match the published
 Install a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL.
 
 ```shell
-$ notation plugin install --checksum <digest>
+$ notation plugin install --checksum <digest> <URL>
 ```
 
 ### Install a plugin as an OCI artifact from a registry (for future iteration)
@@ -135,7 +135,7 @@ $ notation plugin install <registry>/<repository>@<digest>
 Upgrade a Notation plugin to a higher version from file system and verify the plugin checksum.
 
 ```shell
-$ notation plugin upgrade <file_path> --checksum <digest>
+$ notation plugin upgrade <file_path>
 ```
 
 Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
@@ -154,6 +154,22 @@ If the plugin does not exist, Notation will return an error message and will not
 
 ```
 Error: failed to upgrade the plugin, <plugin name> version 
+```
+
+### Upgrade a plugin from URL
+
+Upgrade a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports upgrade plugins from an HTTPS URL.
+
+```shell
+$ notation plugin upgrade --checksum <digest> <URL>
+```
+
+### Upgrade a plugin as an OCI artifact from a registry (for future iteration)
+
+Upgrade a Notation plugin from a registry. Users can verify the plugin's signature with `notation verify` before the plugin installation.
+
+```shell
+$ notation plugin upgrade <registry>/<repository>@<digest>
 ```
 
 ### Uninstall a plugin
@@ -193,6 +209,6 @@ An example of output from `notation plugin list`:
 
 ```text
 NAME                                   DESCRIPTION                                   VERSION       CAPABILITIES                                                                                            ERROR
-azure-kv                               Sign artifacts with keys in Azure Key Vault   v1.0.0   Signature generation                                                                                <nil>
+azure-kv                               Sign artifacts with keys in Azure Key Vault   v1.0.0        Signature generation                                                                                <nil>
 com.amazonaws.signer.notation.plugin   AWS Signer plugin for Notation                1.0.290       Signature envelope generation, Trusted Identity validation, Certificate chain revocation check   <nil>
 ```
