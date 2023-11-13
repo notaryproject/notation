@@ -105,7 +105,9 @@ Successfully installed plugin <plugin name>, version <x.y.z>
 If the plugin directory does not exist, it will be created. When an existing plugin is detected, it fails to install and returns the error as follows. Users can use a flag `--force` to skip existence check and force the installation.
 
 ```console
-Error: failed to install the plugin, <plugin_name> already installed
+Error: failed to install the plugin, <plugin_name> already installed. 
+To view a list of installed plugins, use "notation plugin list".
+To force the installation, use a flag `--force`.
 ```
 
 If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
@@ -152,8 +154,9 @@ Error: failed to upgrade the plugin, <plugin name> version should be higher than
 
 If the plugin does not exist, Notation will return an error message and will not start upgrade.
 
-```
-Error: failed to upgrade the plugin, <plugin name> version 
+```console
+Error: failed to upgrade the plugin, <plugin name> does not exist.
+To install a plugin, use "notation plugin install".
 ```
 
 ### Upgrade a plugin from URL
@@ -194,7 +197,8 @@ notation plugin uninstall <plugin_name> --yes
 If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
 ```shell
-Error: unable to find plugin <plugin_name>. To view a list of installed plugins, use "notation plugin list".
+Error: unable to find plugin <plugin_name>. 
+To view a list of installed plugins, use "notation plugin list".
 ```
 
 ### List installed plugins
