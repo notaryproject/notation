@@ -65,7 +65,9 @@ Usage:
   notation plugin upgrade [flags] <plugin_source>
 
 Flags:
-  -h, --help                    help for upgrade
+  -h, --help                     help for upgrade
+      --plugin-name string       plugin name 
+      --plugin-version           plugin version           
       --sha256sum string         must match SHA256 of the plugin source                 
 ```
 
@@ -161,7 +163,19 @@ To install a plugin, use "notation plugin install".
 
 ### Upgrade a plugin from URL
 
-Upgrade a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports upgrade plugins from an HTTPS URL.
+When upgrading a Notation plugin from GitHub release page, Notation upgrades the plugin to the latest version by default.  
+
+```
+$ notation plugin upgrade --plugin-name <plugin-name>
+```
+
+When upgrading a Notation plugin from GitHub release page, users can also specify a plugin version to upgrade.
+
+```
+$ notation plugin upgrade --plugin-version <plugin-version>
+```
+
+Upgrade a Notation plugin from a remote shared address (e.g, object storage) and verify the plugin checksum. Notation only supports upgrade a plugin from an HTTPS URL.
 
 ```shell
 $ notation plugin upgrade --sha256sum <digest> <URL>
@@ -172,7 +186,7 @@ $ notation plugin upgrade --sha256sum <digest> <URL>
 Upgrade a Notation plugin from a registry. Users can verify the plugin's signature with `notation verify` before the plugin installation.
 
 ```shell
-$ notation plugin upgrade <registry>/<repository>@<digest>
+$ notation plugin upgrade --plugin-name <plugin-name>
 ```
 
 ### Uninstall a plugin
