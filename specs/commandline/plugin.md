@@ -50,7 +50,7 @@ Usage:
 Flags:
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
-      --checksum string         must match SHA256 of the plugin source               
+      --sha256sum string         must match SHA256 of the plugin source               
 
 Aliases:
   install, add
@@ -66,7 +66,7 @@ Usage:
 
 Flags:
   -h, --help                    help for upgrade
-      --checksum string         must match SHA256 of the plugin source                 
+      --sha256sum string         must match SHA256 of the plugin source                 
 ```
 
 ### notation plugin uninstall
@@ -119,7 +119,7 @@ Error: failed to install the plugin, input checksum does not match the published
 Install a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL.
 
 ```shell
-$ notation plugin install --checksum <digest> <URL>
+$ notation plugin install --sha256sum <digest> <URL>
 ```
 
 ### Install a plugin as an OCI artifact from a registry (for future iteration)
@@ -161,7 +161,7 @@ Error: failed to upgrade the plugin, <plugin name> version
 Upgrade a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports upgrade plugins from an HTTPS URL.
 
 ```shell
-$ notation plugin upgrade --checksum <digest> <URL>
+$ notation plugin upgrade --sha256sum <digest> <URL>
 ```
 
 ### Upgrade a plugin as an OCI artifact from a registry (for future iteration)
@@ -194,7 +194,7 @@ notation plugin uninstall <plugin_name> --yes
 If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
 
 ```shell
-Error: <plugin_name> does not exist. Please check the plugin information using 'notation plugin list' first.
+Error: unable to find plugin <plugin_name>. To view a list of installed plugins, use "notation plugin list".
 ```
 
 ### List installed plugins
