@@ -34,17 +34,17 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with invalid plugin file type", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "file", NotationE2EPluginPath).
+			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginPath).
 				MatchErrContent("Error: failed to install the plugin: invalid file format. Only support .tar.gz and .zip\n")
 		})
 	})
 
 	It("with plugin already installed", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 
-			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
 				MatchContent("e2e-plugin with version 1.0.0 already installed\n")
 		})
 	})
