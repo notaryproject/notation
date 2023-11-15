@@ -18,7 +18,6 @@ Available Commands:
   install     Install a plugin
   list        List installed plugins
   uninstall   Uninstall a plugin
-  upgrade     Upgrade a plugin
 
 Flags:
   -h, --help          help for plugin
@@ -48,27 +47,14 @@ Usage:
   notation plugin install [flags] <plugin_source>
 
 Flags:
+      --file                    install a plugin from a local file
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
-      --sha256sum string         must match SHA256 of the plugin source               
+      --sha256sum string        must match SHA256 of the plugin source
+      --url                     install a plugin from a remote HTTPS address
 
 Aliases:
   install, add
-```
-
-### notation plugin upgrade
-
-```text
-Upgrade a plugin
-
-Usage:
-  notation plugin upgrade [flags] <plugin_source>
-
-Flags:
-  -h, --help                     help for upgrade
-      --plugin-name string       plugin name 
-      --plugin-version           plugin version           
-      --sha256sum string         must match SHA256 of the plugin source                 
 ```
 
 ### notation plugin uninstall
@@ -92,24 +78,16 @@ Aliases:
 
 ### Install a plugin from file system
 
-Install a Notation plugin from file system. The checksum validation is optional for this case.
+Install a Notation plugin from file system. Plugin file supports `.zip` and `.tar.gz` format. The checksum validation is optional for this case. 
 
 ```shell
-$ notation plugin install <file_path>
+$ notation plugin install --file <file_path>
 ```
 
-Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
+Upon successful execution, the plugin is copied to Notation's plugin directory. If the plugin directory does not exist, it will be created. The name and version of the installed plugin are displayed as follows. 
 
 ```console
 Successfully installed plugin <plugin name>, version <x.y.z>
-```
-
-If the plugin directory does not exist, it will be created. When an existing plugin is detected, it fails to install and returns the error as follows. Users can use a flag `--force` to skip existence check and force the installation.
-
-```console
-Error: failed to install the plugin, <plugin_name> already installed. 
-To view a list of installed plugins, use "notation plugin list".
-To force the installation, use a flag `--force`.
 ```
 
 If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
@@ -118,75 +96,33 @@ If the entered plugin checksum digest doesn't match the published checksum, Nota
 Error: failed to install the plugin, input checksum does not match the published checksum, expected <digest>
 ```
 
+If the plugin version is higher than the existing plugin, Notation will start installation and overwrite the existing plugin.
+
+```console
+Successfully installed plugin <plugin name>, updated the version from <x.y.z> to <a.b.c>
+```
+
+If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
+
+```console
+Plugin <plugin name>-<x.y.z> already exists. 
+To view a list of installed plugins, use "notation plugin list".
+If you want to install the same version, use "notation plugin uninstall" to uninstall it before re-installing the same version or use "--force" to force the installation
+```
+
+If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
+
+```console
+Error: failed to install the plugin, plugin version is lower than the existing plugin. 
+To view a list of installed plugins, use "notation plugin list".
+If you want to install an old version, use "notation plugin uninstall" to uninstall the existing plugin before installation or use "--force" to force the installation
+```
 ### Install a plugin from URL
 
 Install a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL.
 
 ```shell
-$ notation plugin install --sha256sum <digest> <URL>
-```
-
-### Install a plugin as an OCI artifact from a registry (for future iteration)
-
-Install a Notation plugin from a registry. Users can verify the plugin's signature with `notation verify` before the plugin installation.
-
-```shell
-$ notation plugin install <registry>/<repository>@<digest>
-```
-
-### Upgrade a plugin to a higher version from file system 
-
-Upgrade a Notation plugin to a higher version from file system and verify the plugin checksum.
-
-```shell
-$ notation plugin upgrade <file_path>
-```
-
-Upon successful execution, the plugin is copied to Notation's plugin directory. The name and version of the installed plugin is displayed as follows. 
-
-```console
-Successfully upgraded plugin <plugin name> to version <x.y.z>
-```
-
-If the upgrade version is equal to or lower than an existing plugin, Notation will return an error message and will not start upgrade.
-
-```console
-Error: failed to upgrade the plugin, <plugin name> version should be higher than <x.y.z>
-```
-
-If the plugin does not exist, Notation will return an error message and will not start upgrade.
-
-```console
-Error: failed to upgrade the plugin, <plugin name> does not exist.
-To install a plugin, use "notation plugin install".
-```
-
-### Upgrade a plugin from URL
-
-When upgrading a Notation plugin from GitHub release page, Notation upgrades the plugin to the latest version by default.  
-
-```
-$ notation plugin upgrade --plugin-name <plugin-name>
-```
-
-When upgrading a Notation plugin from GitHub release page, users can also specify a plugin version to upgrade.
-
-```
-$ notation plugin upgrade --plugin-version <plugin-version>
-```
-
-Upgrade a Notation plugin from a remote shared address (e.g, object storage) and verify the plugin checksum. Notation only supports upgrade a plugin from an HTTPS URL.
-
-```shell
-$ notation plugin upgrade --sha256sum <digest> <URL>
-```
-
-### Upgrade a plugin as an OCI artifact from a registry (for future iteration)
-
-Upgrade a Notation plugin from a registry. Users can verify the plugin's signature with `notation verify` before the plugin installation.
-
-```shell
-$ notation plugin upgrade --plugin-name <plugin-name>
+$ notation plugin install --sha256sum <digest> --url <HTTPS_URL>
 ```
 
 ### Uninstall a plugin
@@ -198,7 +134,7 @@ notation plugin uninstall <plugin_name>
 Upon successful execution, the plugin is uninstalled from the plugin directory. 
 
 ```shell
-Are you sure you want to uninstall plugin "<plugin name>"? [y/N] y
+Are you sure you want to uninstall plugin "<plugin name>"? [y/n] y
 Successfully uninstalled <plugin_name> 
 ```
 
