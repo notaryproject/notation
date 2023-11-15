@@ -51,13 +51,13 @@ func (e ErrorExceedMaxSignatures) Error() string {
 	return fmt.Sprintf("exceeded configured limit of max signatures %d to examine", e.MaxSignatures)
 }
 
-// ErrorInvalidPluginName is used when a plugin executable file name does not
-// follow the spec.
-type ErrorInvalidPluginName struct {
+// ErrorInvalidPluginFileName is used when a file name is not a valid plugin
+// file name following the spec https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation.
+type ErrorInvalidPluginFileName struct {
 	Msg string
 }
 
-func (e ErrorInvalidPluginName) Error() string {
+func (e ErrorInvalidPluginFileName) Error() string {
 	if e.Msg != "" {
 		return e.Msg
 	}

@@ -113,7 +113,6 @@ func ValidateCheckSum(path string, checkSum string) error {
 }
 
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
-// it returns the tmp file path of the downloaded file
 func DownloadPluginFromURL(ctx context.Context, url string, tmpFile *os.File) error {
 	// Get the data
 	client := getClient(ctx)
@@ -138,20 +137,18 @@ func DownloadPluginFromURL(ctx context.Context, url string, tmpFile *os.File) er
 	return nil
 }
 
-// ExtractPluginNameFromExecutableFileName gets plugin name from plugin
-// executable file name based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
-func ExtractPluginNameFromExecutableFileName(execFileName string) (string, error) {
-	fileName := osutil.FileNameWithoutExtension(execFileName)
-	if !strings.HasPrefix(fileName, proto.Prefix) {
-		return "", notationerrors.ErrorInvalidPluginName{Msg: fmt.Sprintf("invalid plugin executable file name. file name requires format notation-{plugin-name}, but got %s", fileName)}
+// getClient returns an *auth.Client
+func getClient(ctx context.Context) *auth.Client {
+	client := &auth.Client{
+		Cache:    auth.NewCache(),
+		ClientID: "notation",
 	}
-	_, pluginName, found := strings.Cut(fileName, "-")
-	if !found {
-		return "", notationerrors.ErrorInvalidPluginName{Msg: fmt.Sprintf("invalid plugin executable file name. file name requires format notation-{plugin-name}, but got %s", fileName)}
-	}
-	return pluginName, nil
+	client.SetUserAgent("notation/" + version.GetVersion())
+	setHttpDebugLog(ctx, client)
+	return client
 }
 
+// setHttpDebugLog sets http debug logger
 func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
 		return
@@ -165,13 +162,16 @@ func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
 	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
 }
 
-// getClient returns an *auth.Client
-func getClient(ctx context.Context) *auth.Client {
-	client := &auth.Client{
-		Cache:    auth.NewCache(),
-		ClientID: "notation",
+// ExtractPluginNameFromFileName checks if fileName is a valid plugin file name
+// and gets plugin name from it based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
+func ExtractPluginNameFromFileName(fileName string) (string, error) {
+	fname := osutil.FileNameWithoutExtension(fileName)
+	if !strings.HasPrefix(fname, proto.Prefix) {
+		return "", notationerrors.ErrorInvalidPluginFileName{Msg: fmt.Sprintf("invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got %s", fname)}
 	}
-	client.SetUserAgent("notation/" + version.GetVersion())
-	setHttpDebugLog(ctx, client)
-	return client
+	_, pluginName, found := strings.Cut(fname, "-")
+	if !found {
+		return "", notationerrors.ErrorInvalidPluginFileName{Msg: fmt.Sprintf("invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got %s", fname)}
+	}
+	return pluginName, nil
 }

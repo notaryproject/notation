@@ -14,7 +14,6 @@
 package osutil
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -107,7 +106,7 @@ func DetectFileType(path string) (string, error) {
 	defer rc.Close()
 	var header [512]byte
 	_, err = io.ReadFull(rc, header[:])
-	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+	if err != nil {
 		return "", err
 	}
 	return http.DetectContentType(header[:]), nil
@@ -120,9 +119,4 @@ func DetectFileType(path string) (string, error) {
 func FileNameWithoutExtension(inputName string) string {
 	fileName := filepath.Base(inputName)
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
-}
-
-// IsOwnerExecutalbeFile checks whether file is owner executable
-func IsOwnerExecutalbeFile(fmode fs.FileMode) bool {
-	return fmode&0100 != 0
 }

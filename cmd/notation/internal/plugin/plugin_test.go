@@ -61,7 +61,7 @@ func TestValidateCheckSum(t *testing.T) {
 }
 
 func TestExtractPluginNameFromExecutableFileName(t *testing.T) {
-	pluginName, err := ExtractPluginNameFromExecutableFileName("notation-my-plugin")
+	pluginName, err := ExtractPluginNameFromFileName("notation-my-plugin")
 	if err != nil {
 		t.Fatalf("expected nil err, got %v", err)
 	}
@@ -69,7 +69,7 @@ func TestExtractPluginNameFromExecutableFileName(t *testing.T) {
 		t.Fatalf("expected plugin name my-plugin, but got %s", pluginName)
 	}
 
-	pluginName, err = ExtractPluginNameFromExecutableFileName("notation-my-plugin.exe")
+	pluginName, err = ExtractPluginNameFromFileName("notation-my-plugin.exe")
 	if err != nil {
 		t.Fatalf("expected nil err, got %v", err)
 	}
@@ -77,13 +77,13 @@ func TestExtractPluginNameFromExecutableFileName(t *testing.T) {
 		t.Fatalf("expected plugin name my-plugin, but got %s", pluginName)
 	}
 
-	_, err = ExtractPluginNameFromExecutableFileName("myPlugin")
+	_, err = ExtractPluginNameFromFileName("myPlugin")
 	expectedErrorMsg := "invalid plugin executable file name. file name requires format notation-{plugin-name}, but got myPlugin"
 	if err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected %s, got %v", expectedErrorMsg, err)
 	}
 
-	_, err = ExtractPluginNameFromExecutableFileName("my-plugin")
+	_, err = ExtractPluginNameFromFileName("my-plugin")
 	expectedErrorMsg = "invalid plugin executable file name. file name requires format notation-{plugin-name}, but got my-plugin"
 	if err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected %s, got %v", expectedErrorMsg, err)

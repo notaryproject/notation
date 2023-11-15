@@ -27,62 +27,62 @@ const (
 var _ = Describe("notation plugin install", func() {
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with invalid plugin file type", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginPath).
-				MatchErrContent("Error: failed to install the plugin, invalid file format. Only support .tar.gz and .zip\n")
+			notation.ExpectFailure().Exec("plugin", "install", "file", NotationE2EPluginPath).
+				MatchErrContent("Error: failed to install the plugin: invalid file format. Only support .tar.gz and .zip\n")
 		})
 	})
 
 	It("with plugin already installed", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 
-			notation.ExpectFailure().Exec("plugin", "install", NotationE2EPluginTarGzPath).
-				MatchErrContent("Error: failed to install the plugin, plugin e2e-plugin already installed\n")
+			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
+				MatchContent("e2e-plugin with version 1.0.0 already installed\n")
 		})
 	})
 
 	It("with plugin already installed but force install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "-v").
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 
-			notation.Exec("plugin", "install", NotationE2EPluginTarGzPath, "--force").
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "--force").
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", PluginURL, "--checksum", PluginCheckSum).
+			notation.Exec("plugin", "install", "--url", PluginURL, "--checksum", PluginCheckSum).
 				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 
 	It("with valid plugin URL but missing checksum", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", PluginURL).
+			notation.ExpectFailure().Exec("plugin", "install", "--url", PluginURL).
 				MatchErrContent("Error: install from URL requires non-empty SHA256 checksum of the plugin source\n")
 		})
 	})
 
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "http://invalid", "--checksum", "abcd").
-				MatchErrContent("Error: \"http://invalid\" is an unknown plugin source. Require file path or HTTPS URL\n")
+			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--checksum", "abcd").
+				MatchErrContent("Error: failed to install from URL: \"http://invalid\" scheme is not HTTPS\n")
 		})
 	})
 
 	It("with invalid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "https://invalid", "--checksum", "abcd").
+			notation.ExpectFailure().Exec("plugin", "install", "--url", "https://invalid", "--checksum", "abcd").
 				MatchErrKeyWords("failed to download plugin from URL https://invalid")
 		})
 	})
