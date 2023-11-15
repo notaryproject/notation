@@ -78,13 +78,13 @@ func TestExtractPluginNameFromExecutableFileName(t *testing.T) {
 	}
 
 	_, err = ExtractPluginNameFromFileName("myPlugin")
-	expectedErrorMsg := "invalid plugin executable file name. file name requires format notation-{plugin-name}, but got myPlugin"
+	expectedErrorMsg := "invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got myPlugin"
 	if err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected %s, got %v", expectedErrorMsg, err)
 	}
 
 	_, err = ExtractPluginNameFromFileName("my-plugin")
-	expectedErrorMsg = "invalid plugin executable file name. file name requires format notation-{plugin-name}, but got my-plugin"
+	expectedErrorMsg = "invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got my-plugin"
 	if err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected %s, got %v", expectedErrorMsg, err)
 	}

@@ -15,7 +15,6 @@ package osutil
 
 import (
 	"bytes"
-	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -268,14 +267,5 @@ func TestFileNameWithoutExtension(t *testing.T) {
 	actualOutput := FileNameWithoutExtension(input)
 	if actualOutput != expectedOutput {
 		t.Errorf("expected '%s', but got '%s'", expectedOutput, actualOutput)
-	}
-}
-
-func TestIsOwnerExecutalbeFile(t *testing.T) {
-	input := fs.FileMode(0755)
-	expectedOutput := true
-	actualOutput := IsOwnerExecutalbeFile(input)
-	if actualOutput != expectedOutput {
-		t.Errorf("expected '%t', but got '%t'", expectedOutput, actualOutput)
 	}
 }
