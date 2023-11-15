@@ -14,6 +14,7 @@
 package osutil
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -99,11 +100,17 @@ func IsRegularFile(path string) (bool, error) {
 
 // DetectFileType returns a file's content type given path
 func DetectFileType(path string) (string, error) {
-	f, err := os.ReadFile(path)
+	rc, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
-	return http.DetectContentType(f), nil
+	defer rc.Close()
+	var header [512]byte
+	_, err = io.ReadFull(rc, header[:])
+	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+		return "", err
+	}
+	return http.DetectContentType(header[:]), nil
 }
 
 // FileNameWithoutExtension returns the file name without extension.

@@ -15,13 +15,38 @@ package plugin
 
 import (
 	"context"
+	"errors"
+	"os"
 	"testing"
 )
 
-func TestCheckPluginExistence(t *testing.T) {
-	exist, err := CheckPluginExistence(context.Background(), "non-exist-plugin")
-	if exist || err != nil {
-		t.Fatalf("expected exist to be false with nil err, got: %v, %s", exist, err)
+func TestGetPluginMetadataIfExist(t *testing.T) {
+	_, err := GetPluginMetadataIfExist(context.Background(), "non-exist-plugin")
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected os.ErrNotExist err, got: %v", err)
+	}
+}
+
+func TestComparePluginVersion(t *testing.T) {
+	comp, err := ComparePluginVersion("v1.0.0", "v1.0.1")
+	if err != nil || comp >= 0 {
+		t.Fatal("expected nil err and negative comp")
+	}
+
+	comp, err = ComparePluginVersion("1.0.0", "1.0.1")
+	if err != nil || comp >= 0 {
+		t.Fatal("expected nil err and negative comp")
+	}
+
+	comp, err = ComparePluginVersion("1.0.1", "1.0.1")
+	if err != nil || comp != 0 {
+		t.Fatal("expected nil err and comp equal to 0")
+	}
+
+	expectedErrMsg := "vabc is not a valid semantic version"
+	_, err = ComparePluginVersion("abc", "1.0.1")
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatalf("expected err %s, got %s", expectedErrMsg, err)
 	}
 }
 
