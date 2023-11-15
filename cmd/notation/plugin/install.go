@@ -265,7 +265,7 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 	}
 	defer os.RemoveAll(tmpDir)
 	tmpFilePath := filepath.Join(tmpDir, fileName)
-	pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0700)
 	if err != nil {
 		return err
 	}
