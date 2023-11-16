@@ -127,6 +127,7 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 			return err
 		}
 		defer os.Remove(tmpFile.Name())
+		defer tmpFile.Close()
 		err = notationplugin.DownloadPluginFromURL(ctx, opts.pluginSource, tmpFile)
 		if err != nil {
 			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
@@ -270,9 +271,7 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 		return err
 	}
 	if _, err := io.Copy(pluginFile, fileReader); err != nil {
-		if err := pluginFile.Close(); err != nil {
-			return err
-		}
+		defer pluginFile.Close()
 		return err
 	}
 	if err := pluginFile.Close(); err != nil {
