@@ -97,8 +97,8 @@ Example - Install plugin from URL, SHA256 checksum is required:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "if set, install plugin from a file in file system")
-	command.Flags().BoolVar(&opts.isUrl, "url", false, "if set, install plugin from a URL")
-	command.Flags().StringVar(&opts.inputCheckSum, "checksum", "", "must match SHA256 of the plugin source")
+	command.Flags().BoolVar(&opts.isUrl, "url", false, " if set, install plugin from a HTTPS URL")
+	command.Flags().StringVar(&opts.inputCheckSum, "sha256sum", "", "must match SHA256 of the plugin source")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of a plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
 	return command
@@ -295,12 +295,12 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 				return err
 			}
 			if comp < 0 {
-				return fmt.Errorf("%s current version %s is larger than the installing version %s", pluginName, currentPluginMetadata.Version, pluginVersion)
+				return fmt.Errorf("%s current version %s is larger than the installing version %s. To view a list of installed plugins, use `notation plugin list`", pluginName, currentPluginMetadata.Version, pluginVersion)
 			}
 			if comp == 0 {
 				// if version is the same, no action is needed and no error is
 				// returned
-				fmt.Printf("%s with version %s already installed\n", pluginName, currentPluginMetadata.Version)
+				fmt.Printf("Plugin %s with version %s is already installed. To view a list of installed plugins, use `notation plugin list`.\n", pluginName, currentPluginMetadata.Version)
 				return nil
 			}
 		}
