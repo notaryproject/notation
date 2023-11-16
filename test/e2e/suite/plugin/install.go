@@ -61,7 +61,7 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "--url", PluginURL, "--checksum", PluginCheckSum).
+			notation.Exec("plugin", "install", "--url", PluginURL, "--sha256sum", PluginCheckSum).
 				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
@@ -75,14 +75,14 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--checksum", "abcd").
+			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--sha256sum", "abcd").
 				MatchErrContent("Error: failed to install from URL: \"http://invalid\" scheme is not HTTPS\n")
 		})
 	})
 
 	It("with invalid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--url", "https://invalid", "--checksum", "abcd").
+			notation.ExpectFailure().Exec("plugin", "install", "--url", "https://invalid", "--sha256sum", "abcd").
 				MatchErrKeyWords("failed to download plugin from URL https://invalid")
 		})
 	})
