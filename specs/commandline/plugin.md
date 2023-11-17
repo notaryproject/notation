@@ -118,7 +118,7 @@ It is not recommended to install an older version. To force the installation, us
 ```
 ### Install a plugin from URL
 
-Installs a Notation plugin from a remote location and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL, which means that the URL must start with "https://".
+Install a Notation plugin from a remote location and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL, which means that the URL must start with "https://".
 
 ```shell
 $ notation plugin install --sha256sum <digest> --url <HTTPS_URL>
