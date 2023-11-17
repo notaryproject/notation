@@ -1,8 +1,8 @@
-# notation policy
+# notation blob
 
 ## Description
 
-Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute in any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. For more details, see [trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/signing-and-verification-workflow.md#blob-signing-workflow).
+Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. For more details on how to create trust policy for verifying blobs, see [trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/signing-and-verification-workflow.md#blob-signing-workflow).
 
 ## Outline
 
@@ -32,7 +32,7 @@ Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-  -sd,  --signature-directory path  optional path where the detached signature needs to be placed (default: currently working directory) 
+  -sd, --signature-directory path  optional path where the detached signature needs to be placed (default: currently working directory) 
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -243,7 +243,7 @@ notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 ```
 
 ## Verify detached blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a policy configuration file with Policies scoped to blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trsut policy file with Policies scoped to blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The Policy named "blob-verification-policy" is for verifying blob artifacts signed by Wabbit Networks and scoped to `blob-verification-selector`.
 - Policy named "skip-blob-verification-policy" is for skipping verification on blob artifacts scoped to `skip-blob-verification-selector`.
