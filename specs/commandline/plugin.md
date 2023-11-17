@@ -44,14 +44,14 @@ Aliases:
 Install a plugin
 
 Usage:
-  notation plugin install [flags] <plugin_source>
+  notation plugin install [flags] <--file|--url> <plugin_source>
 
 Flags:
-      --file                    install a plugin from a local file
+      --file                    install plugin from a file in file system
   -h, --help                    help for install
   -f, --force                   force the installation of a plugin
       --sha256sum string        must match SHA256 of the plugin source
-      --url                     install a plugin from a remote HTTPS address
+      --url                     install plugin from an HTTPS URL
 
 Aliases:
   install, add
@@ -93,7 +93,7 @@ Successfully installed plugin <plugin name>, version <x.y.z>
 If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
 
 ```console
-Error: failed to install the plugin, input checksum does not match the published checksum, expected <digest>
+Error: failed to install the plugin: plugin checksum does not match user input. Expecting <sha256sum>
 ```
 
 If the plugin version is higher than the existing plugin, Notation will start installation and overwrite the existing plugin.
@@ -105,17 +105,15 @@ Successfully installed plugin <plugin name>, updated the version from <x.y.z> to
 If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Plugin <plugin name>-<x.y.z> already exists. 
-To view a list of installed plugins, use "notation plugin list".
-If you want to install the same version, use "notation plugin uninstall" to uninstall it before re-installing the same version or use "--force" to force the installation
+Plugin <plugin name> with version <x.y.z> already exists. 
+To view a list of installed plugins, use "notation plugin list"
 ```
 
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install the plugin, plugin version is lower than the existing plugin. 
-To view a list of installed plugins, use "notation plugin list".
-If you want to install an old version, use "notation plugin uninstall" to uninstall the existing plugin before installation or use "--force" to force the installation
+Error: failed to install the plugin: <plugin-name>. The installing version <a.b.c> is lower than the existing plugin. 
+To view a list of installed plugins, use "notation plugin list". It is not recommended to install older versions. Use "--force" to force the installation if you want to install an old version in a certain scenario.
 ```
 ### Install a plugin from URL
 
