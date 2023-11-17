@@ -107,19 +107,18 @@ Successfully installed plugin <plugin name>, updated the version from <x.y.z> to
 If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Plugin <plugin name> with version <x.y.z> already exists. 
-To view a list of installed plugins, use "notation plugin list"
+Error: Plugin <plugin name> with version <x.y.z> already exists.
 ```
 
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install the plugin: <plugin-name>. The installing version <a.b.c> is lower than the existing plugin version <x.y.z>.
-It is not recommended to install an older version. Use "--force" to force the installation if you want to do so. To view a list of installed plugins, use "notation plugin list"
+Error: failed to install the plugin: <plugin-name>. The installing plugin version <a.b.c> is lower than the existing plugin version <x.y.z>.
+It is not recommended to install an older version. To force the installation, use the "--force" option.
 ```
 ### Install a plugin from URL
 
-Install a Notation plugin from a remote shared address and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL.
+Installs a Notation plugin from a remote location and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL, which means that the URL must start with "https://".
 
 ```shell
 $ notation plugin install --sha256sum <digest> --url <HTTPS_URL>
