@@ -55,7 +55,7 @@ var _ = Describe("notation plugin install", func() {
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "--force").
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Succussefully installed plugin e2e-plugin, updated the version from 1.0.0 to 1.0.0\n")
 		})
 	})
 
