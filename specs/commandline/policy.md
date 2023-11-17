@@ -112,7 +112,7 @@ Policy language version 1.1 added support for verifying signatures associated wi
 }
 ```
 
-Note: Policy language version 1.1 renamed the field `registryScopes` from version 1.0 to `scopes`. The new field accepts values with prefixes `oci` or `blob` to limit a scope value to either OCI signature verification or Blob signature verification. While scope values with `blob` prefix can be of free-form text, values with `oci` prefix must be valid OCI references. `notation` supports both policy language versions 1.0 and 1.1. However, `notation` rejects policy configuration files with mixed terminology i.e. both `registryScopes` and `scopes` defined in a single configuration file. Users migrating from 1.0 to 1.1 can simply rename `registryScopes` to `scopes` and prefix the values with `oci`.
+Note: Policy version 1.1 replaced the field `registryScopes` from version 1.0 with `scopes`. The new field accepts values with prefixes `oci` or `blob` to limit a scope value to either OCI signature verification or Blob signature verification. While scope values with `blob` prefix can be alpha-numeric text with `-` and `_` characters, values with `oci` prefix must be valid OCI references. `notation` supports both policy language versions 1.0 and 1.1. However, `notation` rejects policy configuration files with mixed terminology i.e. both `registryScopes` and `scopes` defined in a single configuration file. Users migrating from 1.0 to 1.1 can simply rename `registryScopes` to `scopes` and prefix the values with `oci`.
 Below is a sample Policy configuration file that verifies OCI artifacts using `scopes` field.
 
 ```jsonc
