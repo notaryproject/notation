@@ -285,24 +285,24 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 	pluginVersion := pluginMetadata.Version
 	// check plugin existence and version
 	var currentPluginVersion string
-	if !force {
-		currentPluginMetadata, err := notationplugin.GetPluginMetadataIfExist(ctx, pluginName)
-		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return err
-		}
+	currentPluginMetadata, err := notationplugin.GetPluginMetadataIfExist(ctx, pluginName)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	if err == nil { // plugin already exists
 		currentPluginVersion = currentPluginMetadata.Version
-		if err == nil { // plugin already installed
+		if !force {
 			comp, err := notationplugin.ComparePluginVersion(pluginVersion, currentPluginVersion)
 			if err != nil {
 				return err
 			}
 			if comp < 0 {
-				return fmt.Errorf("%s current version %s is higher than the installing version %s.\n To view a list of installed plugins, use `notation plugin list`. If you want to install an old version, use \"--force\" to force the installation", pluginName, currentPluginVersion, pluginVersion)
+				return fmt.Errorf("%s current version %s is higher than the installing version %s.\nTo view a list of installed plugins, use `notation plugin list`. If you want to install an old version, use \"--force\" to force the installation", pluginName, currentPluginVersion, pluginVersion)
 			}
 			if comp == 0 {
 				// if version is the same, no action is needed and no error is
 				// returned
-				fmt.Printf("Plugin %s with version %s already exists.\n To view a list of installed plugins, use `notation plugin list`.\n", pluginName, currentPluginVersion)
+				fmt.Printf("Plugin %s with version %s already exists.\nTo view a list of installed plugins, use `notation plugin list`.\n", pluginName, currentPluginVersion)
 				return nil
 			}
 		}
