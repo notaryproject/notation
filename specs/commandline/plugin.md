@@ -114,7 +114,7 @@ To view a list of installed plugins, use "notation plugin list"
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install the plugin: <plugin-name>. The installing version <a.b.c> is lower than the existing plugin with version <x.y.z>.
+Error: failed to install the plugin: <plugin-name>. The installing version <a.b.c> is lower than the existing plugin version <x.y.z>.
 It is not recommended to install an older version. Use "--force" to force the installation if you want to do so. To view a list of installed plugins, use "notation plugin list"
 ```
 ### Install a plugin from URL
