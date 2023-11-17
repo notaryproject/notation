@@ -47,11 +47,13 @@ Usage:
   notation plugin install [flags] <--file|--url> <plugin_source>
 
 Flags:
-      --file                    install plugin from a file in file system
-  -h, --help                    help for install
-  -f, --force                   force the installation of a plugin
-      --sha256sum string        must match SHA256 of the plugin source
-      --url                     install plugin from an HTTPS URL
+  -d, --debug              debug mode
+      --file               install plugin from a file in file system
+      --force              force the installation of a plugin
+  -h, --help               help for install
+      --sha256sum string   must match SHA256 of the plugin source
+      --url                install plugin from an HTTPS URL
+  -v, --verbose            verbose mode
 
 Aliases:
   install, add
@@ -112,8 +114,8 @@ To view a list of installed plugins, use "notation plugin list"
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install the plugin: <plugin-name>. The installing version <a.b.c> is lower than the existing plugin. 
-To view a list of installed plugins, use "notation plugin list". It is not recommended to install older versions. Use "--force" to force the installation if you want to install an old version in a certain scenario.
+Error: failed to install the plugin: <plugin-name>. The installing version <a.b.c> is lower than the existing plugin with version <x.y.z>.
+It is not recommended to install an older version. Use "--force" to force the installation if you want to do so. To view a list of installed plugins, use "notation plugin list"
 ```
 ### Install a plugin from URL
 
@@ -146,7 +148,7 @@ If the plugin is not found, an error is returned showing the syntax for the plug
 
 ```shell
 Error: unable to find plugin <plugin_name>. 
-To view a list of installed plugins, use "notation plugin list".
+To view a list of installed plugins, use "notation plugin list"
 ```
 
 ### List installed plugins
