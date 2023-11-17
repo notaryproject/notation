@@ -54,8 +54,9 @@ func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
 		opts = &pluginInstallOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "install [flags] <--file|--url> <plugin_source>",
-		Short: "Install plugin",
+		Use:     "install [flags] <--file|--url> <plugin_source>",
+		Aliases: []string{"add"},
+		Short:   "Install plugin",
 		Long: `Install a plugin
 
 Example - Install plugin from file system:
@@ -97,7 +98,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file in file system")
-	command.Flags().BoolVar(&opts.isUrl, "url", false, " install plugin from a HTTPS URL")
+	command.Flags().BoolVar(&opts.isUrl, "url", false, "install plugin from an HTTPS URL")
 	command.Flags().StringVar(&opts.inputCheckSum, "sha256sum", "", "must match SHA256 of the plugin source")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of a plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
@@ -297,12 +298,12 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 				return err
 			}
 			if comp < 0 {
-				return fmt.Errorf("%s current version %s is higher than the installing version %s.\nTo view a list of installed plugins, use `notation plugin list`. If you want to install an old version, use \"--force\" to force the installation", pluginName, currentPluginVersion, pluginVersion)
+				return fmt.Errorf("%s. The installing version %s is lower than the existing plugin version %s.\nIt is not recommended to install an older version. Use \"--force\" to force the installation if you want to do so. To view a list of installed plugins, use `notation plugin list`", pluginName, pluginVersion, currentPluginVersion)
 			}
 			if comp == 0 {
 				// if version is the same, no action is needed and no error is
 				// returned
-				fmt.Printf("Plugin %s with version %s already exists.\nTo view a list of installed plugins, use `notation plugin list`.\n", pluginName, currentPluginVersion)
+				fmt.Printf("Plugin %s with version %s already exists.\nTo view a list of installed plugins, use `notation plugin list`\n", pluginName, currentPluginVersion)
 				return nil
 			}
 		}
