@@ -22,6 +22,7 @@ import (
 var _ = Describe("notation plugin uninstall", func() {
 	It("with valid plugin name", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
 			notation.Exec("plugin", "uninstall", "--yes", "e2e-plugin").
 				MatchContent("Succussefully uninstalled plugin e2e-plugin\n")
 		})
