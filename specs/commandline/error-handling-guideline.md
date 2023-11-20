@@ -1,4 +1,4 @@
-# Notation CLI Error Handling and Message Guidelines
+# Notation CLI Error Handling and Message Guideline
 
 This document aims to provide the guidelines for Notation contributors to improve existing error messages and error handling method as well as the new error output format. It will also provide recommendations and examples for Notation CLI contributors for how to write friendly and standard error messages, avoid generating inconsistent and ambiguous error messages.
 
@@ -49,9 +49,9 @@ Usage: [Command usage]
 [Recommended solution]
 ```
 
-Error code is an optional information. If the error message is generated from the server side, it may include error code. Command usage is also an optional information but it's recommended to be printed out when user input doesn't follow the standard usage or examples.
-
-Recommended solution is required and should follow the general guiding principles described above.
+- Error code is an optional information. If the error message is generated from the server side, it may include error code or [warn code](https://www.rfc-editor.org/rfc/rfc7234#section-5.5). It could be printed out alongside the error description.
+- Command usage is also an optional information but it's recommended to be printed out when user input doesn't follow the standard usage or examples. 
+- Recommended solution is required and should follow the general guiding principles described above.
 
 ### Examples
 
