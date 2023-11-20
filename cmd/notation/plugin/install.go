@@ -199,7 +199,7 @@ func installPluginFromZip(ctx context.Context, zipPath string, force bool) error
 		// validate and get plugin name from file name
 		pluginName, err := notationplugin.ExtractPluginNameFromFileName(f.Name)
 		if err != nil {
-			logger.Infoln(err)
+			logger.Infof("processing file %s. File name not in format notation-{plugin-name}, skipped", f.Name)
 			continue
 		}
 		fileInArchive, err := f.Open()
