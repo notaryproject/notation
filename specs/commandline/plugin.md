@@ -107,7 +107,7 @@ Successfully installed plugin <plugin name>, updated the version from <x.y.z> to
 If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: Plugin <plugin name> with version <x.y.z> already exists.
+Error: failed to install the plugin: <plugin-name> with version <x.y.z> already exists.
 ```
 
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
