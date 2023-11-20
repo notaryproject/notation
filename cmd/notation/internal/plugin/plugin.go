@@ -44,10 +44,7 @@ type PluginSourceType int
 
 const (
 	// PluginSourceTypeFile means plugin source is file
-	PluginSourceTypeUnknown PluginSourceType = 1 + iota
-
-	// PluginSourceTypeFile means plugin source is file
-	PluginSourceTypeFile
+	PluginSourceTypeFile PluginSourceType = 1 + iota
 
 	// PluginSourceTypeURL means plugin source is URL
 	PluginSourceTypeURL
