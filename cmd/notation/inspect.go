@@ -94,7 +94,7 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference")
+				return errors.New("missing reference to the artifact: use `notation inspect --help` to see what parameters are required")
 			}
 			opts.reference = args[0]
 			return nil
