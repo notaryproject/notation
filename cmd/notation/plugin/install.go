@@ -298,13 +298,10 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 				return err
 			}
 			if comp < 0 {
-				return fmt.Errorf("%s. The installing version %s is lower than the existing plugin version %s.\nIt is not recommended to install an older version. Use \"--force\" to force the installation if you want to do so. To view a list of installed plugins, use `notation plugin list`", pluginName, pluginVersion, currentPluginVersion)
+				return fmt.Errorf("%s. The installing version %s is lower than the existing plugin version %s.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", pluginName, pluginVersion, currentPluginVersion)
 			}
 			if comp == 0 {
-				// if version is the same, no action is needed and no error is
-				// returned
-				fmt.Printf("Plugin %s with version %s already exists.\nTo view a list of installed plugins, use `notation plugin list`\n", pluginName, currentPluginVersion)
-				return nil
+				return fmt.Errorf("%s with version %s already exists", pluginName, currentPluginVersion)
 			}
 		}
 	}
