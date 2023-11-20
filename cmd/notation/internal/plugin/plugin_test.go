@@ -2,12 +2,14 @@ package plugin
 
 import (
 	"context"
+	"errors"
+	"os"
 	"testing"
 )
 
-func TestCheckPluginExistence(t *testing.T) {
-	exist, err := CheckPluginExistence(context.Background(), "non-exist-plugin")
-	if exist || err != nil {
-		t.Fatalf("expected exist to be false with nil err, got: %v, %s", exist, err)
+func TestGetPluginMetadataIfExist(t *testing.T) {
+	_, err := GetPluginMetadataIfExist(context.Background(), "non-exist-plugin")
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected os.ErrNotExist err, got: %v", err)
 	}
 }

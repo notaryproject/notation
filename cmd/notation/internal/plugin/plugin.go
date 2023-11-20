@@ -2,22 +2,18 @@ package plugin
 
 import (
 	"context"
-	"errors"
-	"os"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/proto"
 )
 
-// CheckPluginExistence returns true if a plugin already exists
-func CheckPluginExistence(ctx context.Context, pluginName string) (bool, error) {
+// GetPluginMetadataIfExist returns plugin's metadata if it exists in Notation
+func GetPluginMetadataIfExist(ctx context.Context, pluginName string) (*proto.GetMetadataResponse, error) {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
-	_, err := mgr.Get(ctx, pluginName)
+	plugin, err := mgr.Get(ctx, pluginName)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return false, nil
-		}
-		return false, err
+		return nil, err
 	}
-	return true, nil
+	return plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
 }
