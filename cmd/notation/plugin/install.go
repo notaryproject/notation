@@ -243,7 +243,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 		// validate and get plugin name from file name
 		pluginName, err := notationplugin.ExtractPluginNameFromFileName(header.Name)
 		if err != nil {
-			logger.Infoln(err)
+			logger.Infof("processing file %s. File name not in format notation-{plugin-name}, skipped", header.Name)
 			continue
 		}
 		return installPluginExecutable(ctx, header.Name, pluginName, tarReader, force)
