@@ -19,6 +19,8 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -31,7 +33,7 @@ type pluginUninstallOpts struct {
 	confirmed  bool
 }
 
-func pluginUninstallCommand(opts *pluginUninstallOpts) *cobra.Command {
+func uninstallCommand(opts *pluginUninstallOpts) *cobra.Command {
 	if opts == nil {
 		opts = &pluginUninstallOpts{}
 	}
@@ -49,7 +51,7 @@ Example - Uninstall plugin:
 				return errors.New("plugin name is required")
 			}
 			if len(args) > 1 {
-				return errors.New("can only remove one plugin at a time")
+				return errors.New("only one plugin can be removed at a time")
 			}
 			opts.pluginName = args[0]
 			return nil
@@ -65,21 +67,20 @@ Example - Uninstall plugin:
 }
 
 func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
-	// set log level
+	// set logger
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	logger := log.GetLogger(ctx)
+
 	pluginName := opts.pluginName
 	_, err := notationplugin.GetPluginMetadataIfExist(ctx, pluginName)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) { // plugin does not exist
 			return fmt.Errorf("unable to find plugin %s.\nTo view a list of installed plugins, use `notation plugin list`", pluginName)
 		}
-		return fmt.Errorf("failed to uninstall %s: %w", pluginName, err)
+		// plugin exists, but the binary is corrupted
+		logger.Warnf("%s plugin binary file is corrupted: %v", pluginName, err)
 	}
 	// core process
-	pluginPath, err := dir.PluginFS().SysPath(pluginName)
-	if err != nil {
-		return fmt.Errorf("failed to uninstall %s: %v", pluginName, err)
-	}
 	prompt := fmt.Sprintf("Are you sure you want to uninstall plugin %q?", pluginName)
 	confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, opts.confirmed)
 	if err != nil {
@@ -88,7 +89,8 @@ func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	if !confirmed {
 		return nil
 	}
-	if err := os.RemoveAll(pluginPath); err != nil {
+	mgr := plugin.NewCLIManager(dir.PluginFS())
+	if err := mgr.Uninstall(ctx, pluginName); err != nil {
 		return fmt.Errorf("failed to uninstall %s: %v", pluginName, err)
 	}
 	fmt.Printf("Successfully uninstalled plugin %s\n", pluginName)
