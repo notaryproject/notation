@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation plugin` to manage plugins. See notation [plugin documentation](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details. The `notation plugin` command by itself performs no action. In order to operate on a plugin, one of the subcommands must be used.
+Use `notation plugin` to manage plugins. See notation [plugin documentation](https://github.com/notaryproject/notaryproject/blob/main/specs/plugin-extensibility.md) for more details. The `notation plugin` command by itself performs no action. In order to manage notation plugins, one of the subcommands must be used.
 
 ## Outline
 
@@ -15,9 +15,9 @@ Usage:
   notation plugin [command]
 
 Available Commands:
+  install     Install a plugin
   list        List installed plugins
-  install     Installs a plugin
-  remove      Removes a plugin
+  uninstall   Uninstall a plugin
 
 Flags:
   -h, --help          help for plugin
@@ -41,51 +41,114 @@ Aliases:
 ### notation plugin install
 
 ```text
-Installs a plugin
+Install a plugin
 
 Usage:
-  notation plugin install [flags] <plugin path>
+  notation plugin install [flags] <--file|--url> <plugin_source>
 
 Flags:
-  -h, --help                    help for install
-  -f, --force                   force the installation of a plugin
+  -d, --debug              debug mode
+      --file               install plugin from a file in file system
+      --force              force the installation of a plugin
+  -h, --help               help for install
+      --sha256sum string   must match SHA256 of the plugin source
+      --url                install plugin from an HTTPS URL
+  -v, --verbose            verbose mode
 
 Aliases:
   install, add
 ```
 
-### notation plugin remove
+### notation plugin uninstall
 
 ```text
-Removes a plugin
+Uninstall a plugin
 
 Usage:
-  notation plugin remove [flags] <plugin name>
+  notation plugin uninstall [flags] <plugin_name>
 
 Flags:
   -h, --help          help for remove
-
+  -y, --yes           do not prompt for confirmation
 Aliases:
-  remove, rm, uninstall, delete
+  uninstall, remove, rm
 ```
 
 ## Usage
 
-### Install a plugin
+## Install a plugin 
+
+### Install a plugin from file system
+
+Install a Notation plugin from file system. Plugin file supports `.zip` and `.tar.gz` format. The checksum validation is optional for this case. 
 
 ```shell
-notation plugin install <plugin path>
+$ notation plugin install --file <file_path>
 ```
 
-Upon successful execution, the plugin is copied to plugins directory and name+version of plugin is displayed. If the plugin directory does not exist, it will be created. When an existing plugin is detected, the versions are compared and if the existing plugin is a lower version then it is replaced by the newer version.
+Upon successful execution, the plugin is copied to Notation's plugin directory. If the plugin directory does not exist, it will be created. The name and version of the installed plugin are displayed as follows. 
+
+```console
+Successfully installed plugin <plugin name>, version <x.y.z>
+```
+
+If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
+
+```console
+Error: failed to install the plugin: plugin checksum does not match user input. Expecting <sha256sum>
+```
+
+If the plugin version is higher than the existing plugin, Notation will start installation and overwrite the existing plugin.
+
+```console
+Successfully installed plugin <plugin name>, updated the version from <x.y.z> to <a.b.c>
+```
+
+If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
+
+```console
+Error: failed to install the plugin: <plugin-name> with version <x.y.z> already exists.
+```
+
+If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
+
+```console
+Error: failed to install the plugin: <plugin-name>. The installing plugin version <a.b.c> is lower than the existing plugin version <x.y.z>.
+It is not recommended to install an older version. To force the installation, use the "--force" option.
+```
+### Install a plugin from URL
+
+Install a Notation plugin from a remote location and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL, which means that the URL must start with "https://".
+
+```shell
+$ notation plugin install --sha256sum <digest> --url <HTTPS_URL>
+```
 
 ### Uninstall a plugin
 
 ```shell
-notation plugin remove <plugin name>
+notation plugin uninstall <plugin_name>
 ```
 
-Upon successful execution, the plugin is removed from the plugins directory. If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
+Upon successful execution, the plugin is uninstalled from the plugin directory. 
+
+```shell
+Are you sure you want to uninstall plugin "<plugin name>"? [y/n] y
+Successfully uninstalled <plugin_name> 
+```
+
+Uninstall the plugin without prompt for confirmation.
+
+```shell
+notation plugin uninstall <plugin_name> --yes
+```
+
+If the plugin is not found, an error is returned showing the syntax for the plugin list command to show the installed plugins.
+
+```shell
+Error: unable to find plugin <plugin_name>. 
+To view a list of installed plugins, use "notation plugin list"
+```
 
 ### List installed plugins
 
@@ -99,6 +162,6 @@ An example of output from `notation plugin list`:
 
 ```text
 NAME                                   DESCRIPTION                                   VERSION       CAPABILITIES                                                                                            ERROR
-azure-kv                               Sign artifacts with keys in Azure Key Vault   v0.5.0-rc.1   [SIGNATURE_GENERATOR.RAW]                                                                                <nil>
-com.amazonaws.signer.notation.plugin   AWS Signer plugin for Notation                1.0.290       [SIGNATURE_GENERATOR.ENVELOPE SIGNATURE_VERIFIER.TRUSTED_IDENTITY SIGNATURE_VERIFIER.REVOCATION_CHECK]   <nil>
+azure-kv                               Sign artifacts with keys in Azure Key Vault   v1.0.0        Signature generation                                                                                <nil>
+com.amazonaws.signer.notation.plugin   AWS Signer plugin for Notation                1.0.290       Signature envelope generation, Trusted Identity validation, Certificate chain revocation check   <nil>
 ```
