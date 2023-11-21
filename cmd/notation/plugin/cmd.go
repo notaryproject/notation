@@ -22,8 +22,8 @@ func Cmd() *cobra.Command {
 	}
 
 	command.AddCommand(
-		pluginListCommand(),
-		pluginUninstallCommand(nil),
+		listCommand(),
+		uninstallCommand(nil),
 	)
 
 	return command
