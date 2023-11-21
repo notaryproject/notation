@@ -63,7 +63,7 @@ Example - Install plugin from file system:
   notation plugin install --file wabbit-plugin-v1.0.zip
 
 Example - Install plugin from file system with user input SHA256 checksum:
-  notation plugin install --file wabbit-plugin-v1.0.zip --checksum abcdef 
+  notation plugin install --file wabbit-plugin-v1.0.zip --sha256sum 113062a462674a0e35cb5cad75a0bb2ea16e9537025531c0fd705018fcdbc17e
 
 Example - Install plugin from file system regardless if it's already installed:
   notation plugin install --file wabbit-plugin-v1.0.zip --force
@@ -72,7 +72,7 @@ Example - Install plugin from file system with .tar.gz:
   notation plugin install --file wabbit-plugin-v1.0.tar.gz
 
 Example - Install plugin from URL, SHA256 checksum is required:
-  notation plugin install --url https://wabbit-networks.com/intaller/linux/amd64/wabbit-plugin-v1.0.tar.gz --checksum abcxyz
+  notation plugin install --url https://wabbit-networks.com/intaller/linux/amd64/wabbit-plugin-v1.0.tar.gz --sha256sum f8a75d9234db90069d9eb5660e5374820edf36d710bd063f4ef81e7063d3810b
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
