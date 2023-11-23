@@ -70,7 +70,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with invalid plugin file type", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginPath).
-				MatchErrContent("Error: failed to install the plugin: invalid file format. Only support .tar.gz and .zip\n")
+				MatchErrContent("Error: plugin installation failed: invalid file format. Only .tar.gz and .zip formats are supported\n")
 		})
 	})
 
@@ -80,7 +80,7 @@ var _ = Describe("notation plugin install", func() {
 				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
-				MatchErrContent("Error: failed to install the plugin: e2e-plugin with version 1.0.0 already exists\n")
+				MatchErrContent("Error: plugin installation failed: plugin e2e-plugin with version 1.0.0 already exists\n")
 		})
 	})
 
@@ -111,7 +111,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--sha256sum", "abcd").
-				MatchErrContent("Error: failed to install from URL: \"http://invalid\" scheme is not HTTPS\n")
+				MatchErrContent("Error: the plugin download failed: only the HTTPS scheme is supported, but got \"http\"\n")
 		})
 	})
 

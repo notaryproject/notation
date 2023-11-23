@@ -30,9 +30,11 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// maxPluginSourceBytes specifies the limit on how many response
-// bytes are allowed in the server's response to the download from URL request
-var maxPluginSourceBytes int64 = 256 * 1024 * 1024 // 256 MiB
+// MaxPluginSourceBytes specifies the limit on how many bytes are allowed in the
+// server's response to the download from URL request.
+// It also specifies the limit of a potentail plugin executable file in a
+// .tar.gz or .zip file.
+var MaxPluginSourceBytes int64 = 256 * 1024 * 1024 // 256 MiB
 
 // PluginSourceType is an enum for plugin source
 type PluginSourceType int
@@ -92,14 +94,14 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 	// Write the body to file
 	lr := &io.LimitedReader{
 		R: resp.Body,
-		N: maxPluginSourceBytes,
+		N: MaxPluginSourceBytes,
 	}
 	_, err = io.Copy(tmpFile, lr)
 	if err != nil {
 		return err
 	}
 	if lr.N == 0 {
-		return fmt.Errorf("https response reaches the %d MiB size limit", maxPluginSourceBytes)
+		return fmt.Errorf("https response reaches the %d MiB size limit", MaxPluginSourceBytes)
 	}
 	return nil
 }
