@@ -78,7 +78,7 @@ func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 			return fmt.Errorf("unable to find plugin %s.\nTo view a list of installed plugins, use `notation plugin list`", pluginName)
 		}
 		// plugin exists, but the binary is corrupted
-		logger.Infof("Uninstalling...Found plugin %s binary file is corrupted: %v", pluginName, err)
+		logger.Infof("Uninstalling...Found plugin %s binary file is malfunctioning: %v", pluginName, err)
 	}
 	// core process
 	prompt := fmt.Sprintf("Are you sure you want to uninstall plugin %q?", pluginName)
