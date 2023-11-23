@@ -111,7 +111,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--sha256sum", "abcd").
-				MatchErrContent("Error: the plugin download failed: only the HTTPS scheme is supported, but got \"http\"\n")
+				MatchErrContent("Error: the plugin download failed: only the HTTPS scheme is supported, but got http\n")
 		})
 	})
 
