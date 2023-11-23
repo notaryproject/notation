@@ -18,7 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/http"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -28,7 +27,6 @@ import (
 	"github.com/notaryproject/notation/internal/version"
 	"github.com/notaryproject/notation/pkg/configutil"
 	credentials "github.com/oras-project/oras-credentials-go"
-	"github.com/sirupsen/logrus"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -122,19 +120,6 @@ func getRegistryLoginClient(ctx context.Context, opts *SecureFlagOpts, serverAdd
 	return reg, nil
 }
 
-func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
-	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
-		return
-	}
-	if authClient.Client == nil {
-		authClient.Client = http.DefaultClient
-	}
-	if authClient.Client.Transport == nil {
-		authClient.Client.Transport = http.DefaultTransport
-	}
-	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
-}
-
 // getAuthClient returns an *auth.Client and a bool indicating if the registry
 // is insecure.
 //
@@ -162,7 +147,7 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 		ClientID: "notation",
 	}
 	authClient.SetUserAgent("notation/" + version.GetVersion())
-	setHttpDebugLog(ctx, authClient)
+	trace.SetHttpDebugLog(ctx, authClient)
 	if !withCredential {
 		return authClient, insecureRegistry, nil
 	}

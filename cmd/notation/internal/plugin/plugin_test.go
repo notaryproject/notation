@@ -27,39 +27,6 @@ func TestGetPluginMetadataIfExist(t *testing.T) {
 	}
 }
 
-func TestComparePluginVersion(t *testing.T) {
-	comp, err := ComparePluginVersion("v1.0.0", "v1.0.1")
-	if err != nil || comp >= 0 {
-		t.Fatal("expected nil err and negative comp")
-	}
-
-	comp, err = ComparePluginVersion("1.0.0", "1.0.1")
-	if err != nil || comp >= 0 {
-		t.Fatal("expected nil err and negative comp")
-	}
-
-	comp, err = ComparePluginVersion("1.0.1", "1.0.1")
-	if err != nil || comp != 0 {
-		t.Fatal("expected nil err and comp equal to 0")
-	}
-
-	expectedErrMsg := "vabc is not a valid semantic version"
-	_, err = ComparePluginVersion("abc", "1.0.1")
-	if err == nil || err.Error() != expectedErrMsg {
-		t.Fatalf("expected err %s, got %s", expectedErrMsg, err)
-	}
-}
-
-func TestValidateCheckSum(t *testing.T) {
-	expectedErrorMsg := "plugin checksum does not match user input. Expecting abcd123"
-	if err := ValidateCheckSum("./testdata/test", "abcd123"); err == nil || err.Error() != expectedErrorMsg {
-		t.Fatalf("expected err %s, got %v", expectedErrorMsg, err)
-	}
-	if err := ValidateCheckSum("./testdata/test", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); err != nil {
-		t.Fatalf("expected nil err, got %v", err)
-	}
-}
-
 func TestExtractPluginNameFromExecutableFileName(t *testing.T) {
 	pluginName, err := ExtractPluginNameFromFileName("notation-my-plugin")
 	if err != nil {
@@ -78,13 +45,13 @@ func TestExtractPluginNameFromExecutableFileName(t *testing.T) {
 	}
 
 	_, err = ExtractPluginNameFromFileName("myPlugin")
-	expectedErrorMsg := "invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got myPlugin"
+	expectedErrorMsg := "invalid plugin executable file name. Plugin file name requires format notation-{plugin-name}, but got myPlugin"
 	if err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected %s, got %v", expectedErrorMsg, err)
 	}
 
 	_, err = ExtractPluginNameFromFileName("my-plugin")
-	expectedErrorMsg = "invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got my-plugin"
+	expectedErrorMsg = "invalid plugin executable file name. Plugin file name requires format notation-{plugin-name}, but got my-plugin"
 	if err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected %s, got %v", expectedErrorMsg, err)
 	}

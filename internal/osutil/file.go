@@ -14,6 +14,8 @@
 package osutil
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/fs"
@@ -104,12 +106,12 @@ func DetectFileType(path string) (string, error) {
 		return "", err
 	}
 	defer rc.Close()
-	var header [512]byte
-	_, err = io.ReadFull(rc, header[:])
-	if err != nil {
+	lr := io.LimitReader(rc, 512)
+	header := make([]byte, 512)
+	if _, err := lr.Read(header); err != nil {
 		return "", err
 	}
-	return http.DetectContentType(header[:]), nil
+	return http.DetectContentType(header), nil
 }
 
 // FileNameWithoutExtension returns the file name without extension.
@@ -119,4 +121,23 @@ func DetectFileType(path string) (string, error) {
 func FileNameWithoutExtension(inputName string) string {
 	fileName := filepath.Base(inputName)
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
+// ValidateChecksum returns nil if SHA256 of file at path equals to checksum.
+func ValidateChecksum(path string, checksum string) error {
+	rc, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+	sha256Hash := sha256.New()
+	if _, err := io.Copy(sha256Hash, rc); err != nil {
+		return err
+	}
+	sha256sum := sha256Hash.Sum(nil)
+	enc := strings.ToLower(hex.EncodeToString(sha256sum[:]))
+	if enc != strings.ToLower(checksum) {
+		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checksum)
+	}
+	return nil
 }

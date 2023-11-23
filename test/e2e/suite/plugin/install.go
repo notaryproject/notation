@@ -21,10 +21,45 @@ import (
 
 const (
 	PluginURL      = "https://github.com/notaryproject/notation-action/raw/e2e-test-plugin/tests/plugin_binaries/notation-e2e-test-plugin_0.1.0_linux_amd64.tar.gz"
-	PluginCheckSum = "be8d035024d3a96afb4118af32f2e201f126c7254b02f7bcffb3e3149d744fd2"
+	PluginChecksum = "be8d035024d3a96afb4118af32f2e201f126c7254b02f7bcffb3e3149d744fd2"
 )
 
 var _ = Describe("notation plugin install", func() {
+	It("with missing file or url flag", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", ".").
+				MatchErrContent("Error: at least one of the flags in the group [file url] is required\n")
+		})
+	})
+
+	It("with both file and url flags are set", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", "--url", ".").
+				MatchErrContent("Error: if any flags in the group [file url] are set none of the others can be; [file url] were all set\n")
+		})
+	})
+
+	It("with missing plugin source", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install").
+				MatchErrContent("Error: missing plugin source\n")
+		})
+	})
+
+	It("with missing plugin file path", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file").
+				MatchErrContent("Error: missing plugin file path\n")
+		})
+	})
+
+	It("with missing plugin URL", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--url").
+				MatchErrContent("Error: missing plugin URL\n")
+		})
+	})
+
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
@@ -61,7 +96,7 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "--url", PluginURL, "--sha256sum", PluginCheckSum).
+			notation.Exec("plugin", "install", "--url", PluginURL, "--sha256sum", PluginChecksum).
 				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})

@@ -32,18 +32,20 @@ import (
 	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/internal/semver"
 	"github.com/spf13/cobra"
 )
 
 const (
-	notationPluginTmpDir = "notationPluginTmpDir"
+	notationPluginTmpDir          = "notation-plugin"
+	notationPluginDownloadTmpFile = "notation-plugin-download"
 )
 
 type pluginInstallOpts struct {
 	cmd.LoggingFlagOpts
 	pluginSourceType notationplugin.PluginSourceType
 	pluginSource     string
-	inputCheckSum    string
+	inputChecksum    string
 	isFile           bool
 	isUrl            bool
 	force            bool
@@ -76,32 +78,33 @@ Example - Install plugin from URL, SHA256 checksum is required:
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing plugin file path or URL")
+				if opts.isFile {
+					return errors.New("missing plugin file path")
+				}
+				if opts.isUrl {
+					return errors.New("missing plugin URL")
+				}
+				return errors.New("missing plugin source")
 			}
 			opts.pluginSource = args[0]
 			return nil
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.isFile {
 				opts.pluginSourceType = notationplugin.PluginSourceTypeFile
-				return nil
-			}
-			if opts.isUrl {
+			} else if opts.isUrl {
 				opts.pluginSourceType = notationplugin.PluginSourceTypeURL
-				return nil
 			}
-			return errors.New("must choose one and only one flag from [--file, --url]")
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
 			return installPlugin(cmd, opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file in file system")
 	command.Flags().BoolVar(&opts.isUrl, "url", false, "install plugin from an HTTPS URL")
-	command.Flags().StringVar(&opts.inputCheckSum, "sha256sum", "", "must match SHA256 of the plugin source")
+	command.Flags().StringVar(&opts.inputChecksum, "sha256sum", "", "must match SHA256 of the plugin source, required when \"--url\" flag is set")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of a plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
+	command.MarkFlagsOneRequired("file", "url")
 	return command
 }
 
@@ -111,19 +114,19 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 	// core process
 	switch opts.pluginSourceType {
 	case notationplugin.PluginSourceTypeFile:
-		return installFromFileSystem(ctx, opts.pluginSource, opts.inputCheckSum, opts.force)
+		return installFromFileSystem(ctx, opts.pluginSource, opts.inputChecksum, opts.force)
 	case notationplugin.PluginSourceTypeURL:
-		if opts.inputCheckSum == "" {
+		if opts.inputChecksum == "" {
 			return errors.New("install from URL requires non-empty SHA256 checksum of the plugin source")
 		}
-		url, err := url.Parse(opts.pluginSource)
+		pluginURL, err := url.Parse(opts.pluginSource)
 		if err != nil {
 			return fmt.Errorf("failed to install from URL: %v", err)
 		}
-		if url.Scheme != "https" {
+		if pluginURL.Scheme != "https" {
 			return fmt.Errorf("failed to install from URL: %q scheme is not HTTPS", opts.pluginSource)
 		}
-		tmpFile, err := os.CreateTemp(".", "notationPluginDownloadTmp")
+		tmpFile, err := os.CreateTemp("", notationPluginDownloadTmpFile)
 		if err != nil {
 			return err
 		}
@@ -137,14 +140,14 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		if err != nil {
 			return err
 		}
-		return installFromFileSystem(ctx, downloadPath, opts.inputCheckSum, opts.force)
+		return installFromFileSystem(ctx, downloadPath, opts.inputChecksum, opts.force)
 	default:
 		return errors.New("failed to install the plugin: plugin source type is unknown")
 	}
 }
 
 // installFromFileSystem install the plugin from file system
-func installFromFileSystem(ctx context.Context, inputPath string, inputCheckSum string, force bool) error {
+func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum string, force bool) error {
 	// sanity check
 	inputFileStat, err := os.Stat(inputPath)
 	if err != nil {
@@ -154,8 +157,8 @@ func installFromFileSystem(ctx context.Context, inputPath string, inputCheckSum 
 		return fmt.Errorf("failed to install the plugin: %s is not a regular file", inputPath)
 	}
 	// checksum check
-	if inputCheckSum != "" {
-		if err := notationplugin.ValidateCheckSum(inputPath, inputCheckSum); err != nil {
+	if inputChecksum != "" {
+		if err := osutil.ValidateChecksum(inputPath, inputChecksum); err != nil {
 			return fmt.Errorf("failed to install the plugin: %w", err)
 		}
 	}
@@ -261,7 +264,7 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 		return fmt.Errorf("on %s, plugin executable file %s cannot have the '.exe' extension", runtime.GOOS, fileName)
 	}
 	// extract to tmp dir
-	tmpDir, err := os.MkdirTemp(".", notationPluginTmpDir)
+	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 	if err != nil {
 		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
 	}
@@ -272,7 +275,7 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 		return err
 	}
 	if _, err := io.Copy(pluginFile, fileReader); err != nil {
-		defer pluginFile.Close()
+		_ = pluginFile.Close()
 		return err
 	}
 	if err := pluginFile.Close(); err != nil {
@@ -287,20 +290,21 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 	// check plugin existence and version
 	var currentPluginVersion string
 	currentPluginMetadata, err := notationplugin.GetPluginMetadataIfExist(ctx, pluginName)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
-	}
-	if err == nil { // plugin already exists
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	} else { // plugin already exists
 		currentPluginVersion = currentPluginMetadata.Version
 		if !force {
-			comp, err := notationplugin.ComparePluginVersion(pluginVersion, currentPluginVersion)
+			comp, err := semver.ComparePluginVersion(pluginVersion, currentPluginVersion)
 			if err != nil {
 				return err
 			}
-			if comp < 0 {
+			switch {
+			case comp < 0:
 				return fmt.Errorf("%s. The installing version %s is lower than the existing plugin version %s.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", pluginName, pluginVersion, currentPluginVersion)
-			}
-			if comp == 0 {
+			case comp == 0:
 				return fmt.Errorf("%s with version %s already exists", pluginName, currentPluginVersion)
 			}
 		}

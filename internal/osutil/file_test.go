@@ -269,3 +269,13 @@ func TestFileNameWithoutExtension(t *testing.T) {
 		t.Errorf("expected '%s', but got '%s'", expectedOutput, actualOutput)
 	}
 }
+
+func TestValidateChecksum(t *testing.T) {
+	expectedErrorMsg := "plugin checksum does not match user input. Expecting abcd123"
+	if err := ValidateChecksum("./testdata/test", "abcd123"); err == nil || err.Error() != expectedErrorMsg {
+		t.Fatalf("expected err %s, got %v", expectedErrorMsg, err)
+	}
+	if err := ValidateChecksum("./testdata/test", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); err != nil {
+		t.Fatalf("expected nil err, got %v", err)
+	}
+}

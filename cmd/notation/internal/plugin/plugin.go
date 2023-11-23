@@ -18,20 +18,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
-	"github.com/opencontainers/go-digest"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/mod/semver"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
@@ -77,47 +72,11 @@ func GetPluginMetadata(ctx context.Context, pluginName, path string) (*proto.Get
 	return plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
 }
 
-// ComparePluginVersion validates and compares two plugin semantic versions
-func ComparePluginVersion(v, w string) (int, error) {
-	// semantic version strings must begin with a leading "v"
-	if !strings.HasPrefix(v, "v") {
-		v = "v" + v
-	}
-	if !semver.IsValid(v) {
-		return 0, fmt.Errorf("%s is not a valid semantic version", v)
-	}
-	if !strings.HasPrefix(w, "v") {
-		w = "v" + w
-	}
-	if !semver.IsValid(w) {
-		return 0, fmt.Errorf("%s is not a valid semantic version", w)
-	}
-	return semver.Compare(v, w), nil
-}
-
-// ValidateCheckSum returns nil if SHA256 of file at path equals to checkSum.
-func ValidateCheckSum(path string, checkSum string) error {
-	rc, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer rc.Close()
-	dgst, err := digest.FromReader(rc)
-	if err != nil {
-		return err
-	}
-	enc := dgst.Encoded()
-	if enc != strings.ToLower(checkSum) {
-		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checkSum)
-	}
-	return nil
-}
-
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
-func DownloadPluginFromURL(ctx context.Context, url string, tmpFile *os.File) error {
+func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
 	client := getClient(ctx)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", pluginURL, nil)
 	if err != nil {
 		return err
 	}
@@ -128,13 +87,19 @@ func DownloadPluginFromURL(ctx context.Context, url string, tmpFile *os.File) er
 	defer resp.Body.Close()
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad status: %s", resp.Status)
+		return fmt.Errorf("https response bad status: %s", resp.Status)
 	}
 	// Write the body to file
-	lr := io.LimitReader(resp.Body, maxPluginSourceBytes)
+	lr := &io.LimitedReader{
+		R: resp.Body,
+		N: maxPluginSourceBytes,
+	}
 	_, err = io.Copy(tmpFile, lr)
 	if err != nil {
 		return err
+	}
+	if lr.N == 0 {
+		return fmt.Errorf("https response reaches the %d MiB size limit", maxPluginSourceBytes)
 	}
 	return nil
 }
@@ -146,34 +111,17 @@ func getClient(ctx context.Context) *auth.Client {
 		ClientID: "notation",
 	}
 	client.SetUserAgent("notation/" + version.GetVersion())
-	setHttpDebugLog(ctx, client)
+	trace.SetHttpDebugLog(ctx, client)
 	return client
-}
-
-// setHttpDebugLog sets http debug logger
-func setHttpDebugLog(ctx context.Context, authClient *auth.Client) {
-	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
-		return
-	}
-	if authClient.Client == nil {
-		authClient.Client = http.DefaultClient
-	}
-	if authClient.Client.Transport == nil {
-		authClient.Client.Transport = http.DefaultTransport
-	}
-	authClient.Client.Transport = trace.NewTransport(authClient.Client.Transport)
 }
 
 // ExtractPluginNameFromFileName checks if fileName is a valid plugin file name
 // and gets plugin name from it based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
 func ExtractPluginNameFromFileName(fileName string) (string, error) {
 	fname := osutil.FileNameWithoutExtension(fileName)
-	if !strings.HasPrefix(fname, proto.Prefix) {
-		return "", notationerrors.ErrorInvalidPluginFileName{Msg: fmt.Sprintf("invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got %s", fname)}
-	}
-	_, pluginName, found := strings.Cut(fname, "-")
+	pluginName, found := strings.CutPrefix(fname, proto.Prefix)
 	if !found {
-		return "", notationerrors.ErrorInvalidPluginFileName{Msg: fmt.Sprintf("invalid plugin file name. Plugin file name requires format notation-{plugin-name}, but got %s", fname)}
+		return "", notationerrors.ErrorInvalidPluginFileName{Msg: fmt.Sprintf("invalid plugin executable file name. Plugin file name requires format notation-{plugin-name}, but got %s", fname)}
 	}
 	return pluginName, nil
 }
