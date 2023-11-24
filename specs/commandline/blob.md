@@ -243,7 +243,7 @@ notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 ```
 
 ## Verify detached blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trsut policy file with Policies scoped to blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file with Policies scoped to blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The Policy named "blob-verification-policy" is for verifying blob artifacts signed by Wabbit Networks and scoped to `blob-verification-selector`.
 - Policy named "skip-blob-verification-policy" is for skipping verification on blob artifacts scoped to `skip-blob-verification-selector`.

@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation verify` command to verify signatures associated with an OCI artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
+Use `notation verify` command to verify signatures associated with artifacts stored in OCI compliant registries. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
 
 ```text
 Successfully verified signature for <registry>/<repository>@<digest>
@@ -25,6 +25,8 @@ The artifact was signed with the following user metadata.
 KEY    VALUE
 <key>  <value>
 ```
+NOTE: This command is for verifying OCI artifacts only. Use `notation blob verify` command for verifying arbitrary blobs.
+
 
 ## Outline
 
