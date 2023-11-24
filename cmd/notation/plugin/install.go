@@ -21,18 +21,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation-go/plugin"
 	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/internal/semver"
 	"github.com/spf13/cobra"
 )
 
@@ -50,6 +50,8 @@ type pluginInstallOpts struct {
 	isUrl            bool
 	force            bool
 }
+
+var ErrNoPluginExecutableFileWasFound = errors.New("no plugin executable file was found")
 
 func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
 	if opts == nil {
@@ -169,7 +171,14 @@ func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum 
 	}
 	switch fileType {
 	case notationplugin.MediaTypeZip:
-		if err := installPluginFromZip(ctx, inputPath, force); err != nil {
+		rc, err := zip.OpenReader(inputPath)
+		if err != nil {
+			return fmt.Errorf("plugin installation failed: %w", err)
+		}
+		if err := installPluginFromFS(ctx, rc, force); err != nil {
+			if errors.Is(err, ErrNoPluginExecutableFileWasFound) {
+				return fmt.Errorf("plugin installation failed: no valid plugin file was found in %s. Plugin file name must in format notation-{plugin-name}", inputPath)
+			}
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
 		return nil
@@ -184,35 +193,51 @@ func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum 
 	}
 }
 
-// installPluginFromZip extracts a plugin zip file, validates and
-// installs the plugin
-func installPluginFromZip(ctx context.Context, zipPath string, force bool) error {
+// installPluginFromFS extracts , validates and installs the plugin from a fs.FS
+func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error {
+	// set up logger
 	logger := log.GetLogger(ctx)
-	archive, err := zip.OpenReader(zipPath)
-	if err != nil {
-		return err
-	}
-	defer archive.Close()
-	// require one and only one file with name in the format
-	// `notation-{plugin-name}`
-	for _, f := range archive.File {
-		if !f.Mode().IsRegular() || strings.Contains(f.Name, "..") {
-			continue
-		}
-		// validate and get plugin name from file name
-		pluginName, err := notationplugin.ExtractPluginNameFromFileName(f.Name)
-		if err != nil {
-			logger.Debugf("processing file %s. File name not in format notation-{plugin-name}, skipped", f.Name)
-			continue
-		}
-		fileInArchive, err := f.Open()
+	root := "."
+	var success bool
+	if err := fs.WalkDir(pluginFs, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
-		defer fileInArchive.Close()
-		return installPluginExecutable(ctx, f.Name, pluginName, fileInArchive, force)
+		fName := d.Name()
+		if d.IsDir() && fName != root { // skip any dir in the fs
+			return fs.SkipDir
+		}
+		info, err := d.Info()
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() || strings.Contains(fName, "..") {
+			return nil
+		}
+		// validate the file name against the notation-{plugin-name} format
+		logger.Debugf("Processing file %s...", fName)
+		_, err = plugin.ExtractPluginNameFromFileName(fName)
+		if err != nil {
+			logger.Debugf("File name %s is not in format notation-{plugin-name}, skipped", fName)
+			return nil
+		}
+		rc, err := pluginFs.Open(path)
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+		if err := installPluginExecutable(ctx, fName, rc, force); err != nil {
+			return err
+		}
+		success = true
+		return fs.SkipAll
+	}); err != nil {
+		return err
 	}
-	return fmt.Errorf("no valid plugin file was found in %s. Plugin file name must in format notation-{plugin-name}", zipPath)
+	if !success {
+		return ErrNoPluginExecutableFileWasFound
+	}
+	return nil
 }
 
 // installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
@@ -243,27 +268,22 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 		if !header.FileInfo().Mode().IsRegular() || strings.Contains(header.Name, "..") {
 			continue
 		}
-		// validate and get plugin name from file name
-		pluginName, err := notationplugin.ExtractPluginNameFromFileName(header.Name)
+		// validate the file name against the notation-{plugin-name} format
+		fName := filepath.Base(header.Name)
+		logger.Debugf("Processing file %s...", fName)
+		_, err = plugin.ExtractPluginNameFromFileName(fName)
 		if err != nil {
-			logger.Infof("processing file %s. File name not in format notation-{plugin-name}, skipped", header.Name)
+			logger.Infof("File name %s is not in format notation-{plugin-name}, skipped", fName)
 			continue
 		}
-		return installPluginExecutable(ctx, header.Name, pluginName, tarReader, force)
+		return installPluginExecutable(ctx, fName, tarReader, force)
 	}
 	return fmt.Errorf("no valid plugin file was found in %s. Plugin file name must in format notation-{plugin-name}", tarGzPath)
 }
 
-// installPluginExecutable extracts, validates, and installs a plugin file
-func installPluginExecutable(ctx context.Context, fileName string, pluginName string, fileReader io.Reader, force bool) error {
-	// sanity check
-	if runtime.GOOS == "windows" && filepath.Ext(fileName) != ".exe" {
-		return fmt.Errorf("on Windows, plugin executable file %s is missing the '.exe' extension", fileName)
-	}
-	if runtime.GOOS != "windows" && filepath.Ext(fileName) == ".exe" {
-		return fmt.Errorf("on %s, plugin executable file %s cannot have the '.exe' extension", runtime.GOOS, fileName)
-	}
-	// extract to tmp dir
+// installPluginExecutable extracts, validates, and installs a plugin executable
+// file
+func installPluginExecutable(ctx context.Context, fileName string, fileReader io.Reader, force bool) error {
 	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 	if err != nil {
 		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
@@ -285,57 +305,22 @@ func installPluginExecutable(ctx context.Context, fileName string, pluginName st
 		}
 		return fmt.Errorf("plugin executable file reaches the %d MiB size limit", notationplugin.MaxPluginSourceBytes)
 	}
-
 	if err := pluginFile.Close(); err != nil {
 		return err
 	}
-	// get plugin metadata
-	pluginMetadata, err := notationplugin.GetPluginMetadata(ctx, pluginName, tmpFilePath)
+	// core process
+	mgr := plugin.NewCLIManager(dir.PluginFS())
+	existingPluginMetadata, newPluginMetadata, err := mgr.Install(ctx, tmpFilePath, force)
 	if err != nil {
-		return err
-	}
-	pluginVersion := pluginMetadata.Version
-	// check plugin existence and version
-	var currentPluginVersion string
-	currentPluginMetadata, err := notationplugin.GetPluginMetadataIfExist(ctx, pluginName)
-	if err != nil {
-		if !errors.Is(err, os.ErrNotExist) {
-			return err
+		if errors.Is(err, &plugin.ErrInstallLowerVersion{}) {
+			return fmt.Errorf("%s. %w.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", newPluginMetadata.Name, err)
 		}
-	} else { // plugin already exists
-		currentPluginVersion = currentPluginMetadata.Version
-		if !force {
-			comp, err := semver.ComparePluginVersion(pluginVersion, currentPluginVersion)
-			if err != nil {
-				return err
-			}
-			switch {
-			case comp < 0:
-				return fmt.Errorf("%s. The installing version %s is lower than the existing plugin version %s.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", pluginName, pluginVersion, currentPluginVersion)
-			case comp == 0:
-				return fmt.Errorf("plugin %s with version %s already exists", pluginName, currentPluginVersion)
-			}
-		}
-	}
-	// install plugin
-	pluginPath, err := dir.PluginFS().SysPath(pluginName)
-	if err != nil {
 		return err
 	}
-	_, err = osutil.CopyToDir(tmpFilePath, pluginPath)
-	if err != nil {
-		return err
-	}
-	// plugin is always executable
-	pluginFilePath := filepath.Join(pluginPath, fileName)
-	err = os.Chmod(pluginFilePath, 0700)
-	if err != nil {
-		return err
-	}
-	if currentPluginVersion != "" {
-		fmt.Printf("Succussefully installed plugin %s, updated the version from %s to %s\n", pluginName, currentPluginVersion, pluginVersion)
+	if existingPluginMetadata != nil {
+		fmt.Printf("Succussefully installed plugin %s, updated the version from %s to %s\n", newPluginMetadata.Name, existingPluginMetadata.Version, newPluginMetadata.Version)
 	} else {
-		fmt.Printf("Succussefully installed plugin %s, version %s\n", pluginName, pluginVersion)
+		fmt.Printf("Succussefully installed plugin %s, version %s\n", newPluginMetadata.Name, newPluginMetadata.Version)
 	}
 	return nil
 }

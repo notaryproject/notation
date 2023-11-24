@@ -114,15 +114,6 @@ func DetectFileType(path string) (string, error) {
 	return http.DetectContentType(header), nil
 }
 
-// FileNameWithoutExtension returns the file name without extension.
-// For example,
-// when input is xyz.exe, output is xyz
-// when input is xyz.tar.gz, output is xyz.tar
-func FileNameWithoutExtension(inputName string) string {
-	fileName := filepath.Base(inputName)
-	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
-}
-
 // ValidateChecksum returns nil if SHA256 of file at path equals to checksum.
 func ValidateChecksum(path string, checksum string) error {
 	rc, err := os.Open(path)

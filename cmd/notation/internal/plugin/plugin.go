@@ -18,16 +18,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
-	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/plugin/proto"
-	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
-	"github.com/notaryproject/notation/internal/osutil"
-	"github.com/notaryproject/notation/internal/trace"
-	"github.com/notaryproject/notation/internal/version"
-	"oras.land/oras-go/v2/registry/remote/auth"
+	notationauth "github.com/notaryproject/notation/internal/auth"
 )
 
 // MaxPluginSourceBytes specifies the limit on how many bytes are allowed in the
@@ -55,29 +47,10 @@ const (
 	MediaTypeGzip = "application/x-gzip"
 )
 
-// GetPluginMetadataIfExist returns plugin's metadata if it exists in Notation
-func GetPluginMetadataIfExist(ctx context.Context, pluginName string) (*proto.GetMetadataResponse, error) {
-	mgr := plugin.NewCLIManager(dir.PluginFS())
-	plugin, err := mgr.Get(ctx, pluginName)
-	if err != nil {
-		return nil, err
-	}
-	return plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
-}
-
-// GetPluginMetadata returns plugin's metadata given plugin path
-func GetPluginMetadata(ctx context.Context, pluginName, path string) (*proto.GetMetadataResponse, error) {
-	plugin, err := plugin.NewCLIPlugin(ctx, pluginName, path)
-	if err != nil {
-		return nil, err
-	}
-	return plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
-}
-
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
 func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
-	client := getClient(ctx)
+	client := notationauth.NewAuthClient(ctx)
 	req, err := http.NewRequest("GET", pluginURL, nil)
 	if err != nil {
 		return err
@@ -104,26 +77,4 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 		return fmt.Errorf("https response reaches the %d MiB size limit", MaxPluginSourceBytes)
 	}
 	return nil
-}
-
-// getClient returns an *auth.Client
-func getClient(ctx context.Context) *auth.Client {
-	client := &auth.Client{
-		Cache:    auth.NewCache(),
-		ClientID: "notation",
-	}
-	client.SetUserAgent("notation/" + version.GetVersion())
-	trace.SetHttpDebugLog(ctx, client)
-	return client
-}
-
-// ExtractPluginNameFromFileName checks if fileName is a valid plugin file name
-// and gets plugin name from it based on spec: https://github.com/notaryproject/specifications/blob/main/specs/plugin-extensibility.md#installation
-func ExtractPluginNameFromFileName(fileName string) (string, error) {
-	fname := osutil.FileNameWithoutExtension(fileName)
-	pluginName, found := strings.CutPrefix(fname, proto.Prefix)
-	if !found {
-		return "", notationerrors.ErrorInvalidPluginFileName{Msg: fmt.Sprintf("invalid plugin executable file name. Plugin file name requires format notation-{plugin-name}, but got %s", fname)}
-	}
-	return pluginName, nil
 }

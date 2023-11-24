@@ -15,7 +15,6 @@ package osutil
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -23,7 +22,7 @@ import (
 )
 
 func validFileContent(t *testing.T, filename string, content []byte) {
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,15 +258,6 @@ func TestCopyToDir(t *testing.T) {
 		}
 		validFileContent(t, filepath.Join(destDir, "file.txt"), data)
 	})
-}
-
-func TestFileNameWithoutExtension(t *testing.T) {
-	input := "testfile.tar.gz"
-	expectedOutput := "testfile.tar"
-	actualOutput := FileNameWithoutExtension(input)
-	if actualOutput != expectedOutput {
-		t.Errorf("expected '%s', but got '%s'", expectedOutput, actualOutput)
-	}
 }
 
 func TestValidateChecksum(t *testing.T) {
