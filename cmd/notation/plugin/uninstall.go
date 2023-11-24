@@ -14,6 +14,7 @@
 package plugin
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -21,8 +22,8 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 )
@@ -72,12 +73,12 @@ func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	logger := log.GetLogger(ctx)
 
 	pluginName := opts.pluginName
-	_, err := notationplugin.GetPluginMetadataIfExist(ctx, pluginName)
+	_, err := getPluginMetadataIfExist(ctx, pluginName)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) { // plugin does not exist
 			return fmt.Errorf("unable to find plugin %s.\nTo view a list of installed plugins, use `notation plugin list`", pluginName)
 		}
-		// plugin exists, but the binary is corrupted
+		// plugin exists, but the binary is malfunctioning
 		logger.Infof("Uninstalling...Found plugin %s binary file is malfunctioning: %v", pluginName, err)
 	}
 	// core process
@@ -95,4 +96,14 @@ func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	}
 	fmt.Printf("Successfully uninstalled plugin %s\n", pluginName)
 	return nil
+}
+
+// getPluginMetadataIfExist returns plugin's metadata if it exists in Notation
+func getPluginMetadataIfExist(ctx context.Context, pluginName string) (*proto.GetMetadataResponse, error) {
+	mgr := plugin.NewCLIManager(dir.PluginFS())
+	plugin, err := mgr.Get(ctx, pluginName)
+	if err != nil {
+		return nil, err
+	}
+	return plugin.GetMetadata(ctx, &proto.GetMetadataRequest{})
 }
