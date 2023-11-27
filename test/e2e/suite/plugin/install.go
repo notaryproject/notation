@@ -104,14 +104,14 @@ var _ = Describe("notation plugin install", func() {
 	It("with valid plugin URL but missing checksum", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", PluginURL).
-				MatchErrContent("Error: install from URL requires non-empty SHA256 checksum of the plugin source\n")
+				MatchErrContent("Error: installing from URL requires non-empty SHA256 checksum of the plugin source\n")
 		})
 	})
 
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--sha256sum", "abcd").
-				MatchErrContent("Error: the plugin download failed: only the HTTPS scheme is supported, but got http\n")
+				MatchErrContent("Error: failed to download plugin from URL: only the HTTPS scheme is supported, but got http\n")
 		})
 	})
 

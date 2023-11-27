@@ -24,7 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func pluginListCommand() *cobra.Command {
+func listCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "list [flags]",
 		Aliases: []string{"ls"},

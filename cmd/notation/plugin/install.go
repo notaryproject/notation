@@ -53,7 +53,7 @@ type pluginInstallOpts struct {
 
 var ErrNoPluginExecutableFileWasFound = errors.New("no plugin executable file was found")
 
-func pluginInstallCommand(opts *pluginInstallOpts) *cobra.Command {
+func installCommand(opts *pluginInstallOpts) *cobra.Command {
 	if opts == nil {
 		opts = &pluginInstallOpts{}
 	}
@@ -97,7 +97,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 			} else if opts.isUrl {
 				opts.pluginSourceType = notationplugin.PluginSourceTypeURL
 			}
-			return installPlugin(cmd, opts)
+			return install(cmd, opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
@@ -110,27 +110,27 @@ Example - Install plugin from URL, SHA256 checksum is required:
 	return command
 }
 
-func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
+func install(command *cobra.Command, opts *pluginInstallOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 	// core process
 	switch opts.pluginSourceType {
 	case notationplugin.PluginSourceTypeFile:
-		return installFromFileSystem(ctx, opts.pluginSource, opts.inputChecksum, opts.force)
+		return installPlugin(ctx, opts.pluginSource, opts.inputChecksum, opts.force)
 	case notationplugin.PluginSourceTypeURL:
 		if opts.inputChecksum == "" {
-			return errors.New("install from URL requires non-empty SHA256 checksum of the plugin source")
+			return errors.New("installing from URL requires non-empty SHA256 checksum of the plugin source")
 		}
 		pluginURL, err := url.Parse(opts.pluginSource)
 		if err != nil {
-			return fmt.Errorf("the plugin download failed: %v", err)
+			return fmt.Errorf("failed to parse plugin download URL %s with error: %w", pluginURL, err)
 		}
 		if pluginURL.Scheme != "https" {
-			return fmt.Errorf("the plugin download failed: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
+			return fmt.Errorf("failed to download plugin from URL: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
 		}
 		tmpFile, err := os.CreateTemp("", notationPluginDownloadTmpFile)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to create notationPluginDownloadTmpFile: %w", err)
 		}
 		defer os.Remove(tmpFile.Name())
 		defer tmpFile.Close()
@@ -138,18 +138,14 @@ func installPlugin(command *cobra.Command, opts *pluginInstallOpts) error {
 		if err != nil {
 			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
 		}
-		downloadPath, err := filepath.Abs(tmpFile.Name())
-		if err != nil {
-			return err
-		}
-		return installFromFileSystem(ctx, downloadPath, opts.inputChecksum, opts.force)
+		return installPlugin(ctx, tmpFile.Name(), opts.inputChecksum, opts.force)
 	default:
 		return errors.New("plugin installation failed: unknown plugin source type")
 	}
 }
 
-// installFromFileSystem install the plugin from file system
-func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum string, force bool) error {
+// installPlugin installs the plugin given plugin source path
+func installPlugin(ctx context.Context, inputPath string, inputChecksum string, force bool) error {
 	// sanity check
 	inputFileStat, err := os.Stat(inputPath)
 	if err != nil {
@@ -175,6 +171,7 @@ func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum 
 		if err != nil {
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
+		defer rc.Close()
 		if err := installPluginFromFS(ctx, rc, force); err != nil {
 			if errors.Is(err, ErrNoPluginExecutableFileWasFound) {
 				return fmt.Errorf("plugin installation failed: no valid plugin file was found in %s. Plugin file name must in format notation-{plugin-name}", inputPath)
@@ -183,7 +180,7 @@ func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum 
 		}
 		return nil
 	case notationplugin.MediaTypeGzip:
-		// when file is gzip, require to be tar
+		// when file is gzip, required to be tar
 		if err := installPluginFromTarGz(ctx, inputPath, force); err != nil {
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
@@ -193,7 +190,9 @@ func installFromFileSystem(ctx context.Context, inputPath string, inputChecksum 
 	}
 }
 
-// installPluginFromFS extracts , validates and installs the plugin from a fs.FS
+// installPluginFromFS extracts, validates and installs the plugin from a fs.FS
+//
+// Note: zip.ReadCloser implments fs.FS
 func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error {
 	// set up logger
 	logger := log.GetLogger(ctx)
@@ -204,7 +203,7 @@ func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error 
 			return err
 		}
 		fName := d.Name()
-		if d.IsDir() && fName != root { // skip any dir in the fs
+		if d.IsDir() && fName != root { // skip any dir in the fs except root
 			return fs.SkipDir
 		}
 		info, err := d.Info()
@@ -214,7 +213,8 @@ func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error 
 		if !info.Mode().IsRegular() || strings.Contains(fName, "..") {
 			return nil
 		}
-		// validate the file name against the notation-{plugin-name} format
+		// require one and only one file with name in the format
+		// `notation-{plugin-name}`
 		logger.Debugf("Processing file %s...", fName)
 		_, err = plugin.ExtractPluginNameFromFileName(fName)
 		if err != nil {
@@ -229,6 +229,7 @@ func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error 
 		if err := installPluginExecutable(ctx, fName, rc, force); err != nil {
 			return err
 		}
+		// on success, skip all remaining files
 		success = true
 		return fs.SkipAll
 	}); err != nil {
@@ -268,7 +269,6 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 		if !header.FileInfo().Mode().IsRegular() || strings.Contains(header.Name, "..") {
 			continue
 		}
-		// validate the file name against the notation-{plugin-name} format
 		fName := filepath.Base(header.Name)
 		logger.Debugf("Processing file %s...", fName)
 		_, err = plugin.ExtractPluginNameFromFileName(fName)
