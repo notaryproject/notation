@@ -49,7 +49,7 @@ notation list <registry>/<repository>:<tag>
 An example output:
 
 ```shell
-localhost:5000/net-monitor:v1
+localhost:5000/net-monitor@sha256:8456f085dd609fd12cdebc5f80b6f33f25f670a7a9a03c8fa750b8aee0c4d657
 └── application/vnd.cncf.notary.signature
     ├── sha256:647039638efb22a021f59675c9449dd09956c981a44b82c1ff074513c2c9f273
     └── sha256:6bfb3c4fd485d6810f9656ddd4fb603f0c414c5f0b175ef90eeb4090ebd9bfa1
