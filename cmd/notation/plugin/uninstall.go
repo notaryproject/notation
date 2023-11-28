@@ -56,7 +56,7 @@ Example - Uninstall plugin:
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return unInstallPlugin(cmd, opts)
+			return uninstallPlugin(cmd, opts)
 		},
 	}
 
@@ -65,7 +65,7 @@ Example - Uninstall plugin:
 	return command
 }
 
-func unInstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
+func uninstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	// set logger
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 	pluginName := opts.pluginName
