@@ -32,7 +32,7 @@ Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-  -sd, --signature-directory path  optional path where the detached signature needs to be placed (default: currently working directory) 
+  -sd, --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -40,7 +40,7 @@ Flags:
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --force                      skip user confirmation and force overwrite the existing detached signature file 
+       --force                      skip user confirmation and force overwrite the existing blob signature file 
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -d,  --debug                      debug mode
   -v,  --verbose                    verbose mode
@@ -71,7 +71,7 @@ Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
-  -s, --signature path        location of the detached signature
+  -s, --signature string      location of the blob signature file
       --media-type string     optional media type of the blob to verify
       --policy-scope string   optional policy scope to verify against. If not provided, notation verifies against wildcard policy if it exists.
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
@@ -108,7 +108,7 @@ Successfully signed /tmp/my-blob.bin
 Signature file written to ./my-blob.bin.sig.jws
 ```
 
-### Sign a blob by generating the detached signature in a particular directory
+### Sign a blob by generating the signature in a particular directory
 ```shell
 $ notation blob sign --signature-directory /tmp/xyz/sigs /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
@@ -184,16 +184,16 @@ notation key list
 notation blob sign --key <key_name> /tmp/my-blob.bin
 ```
 
-## Inspect detached blob signatures
+## Inspect blob signatures
 
-### Display details of the given detached blob signature and its associated certificate properties
+### Display details of the given blob signature and its associated certificate properties
 
 
 ```text
 notation blob inspect [flags] /tmp/my-blob.bin.sig.jws
 ```
 
-### Inspect the given detached blob signature
+### Inspect the given blob signature
 
 ```shell
 # Prerequisites: Signatures is produced by notation blob sign command
@@ -236,13 +236,13 @@ Inspecting /tmp/my-blob.bin.sig.jws
             └── size: 16724
 ```
 
-### Inspect the given detached blob signature with JSON Output
+### Inspect the given blob signature with JSON Output
 
 ```shell
 notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 ```
 
-## Verify detached blob signatures
+## Verify blob signatures
 The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file with Policies scoped to blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The Policy named "blob-verification-policy" is for verifying blob artifacts signed by Wabbit Networks and scoped to `blob-verification-selector`.
@@ -288,7 +288,7 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
 }
 ```
 
-### Verify the detached signature of a blob
+### Verify the signature of a blob
 
 Configure trust store and trust policy properly before using `notation blob verify` command.
 
@@ -300,7 +300,7 @@ notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
 # Create a JSON file named "trustpolicy.json" under directory "{NOTATION_CONFIG}".
 
-# Verify the detached signature
+# Verify the blob signature
 notation blob verify --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
 ```
 
@@ -357,7 +357,7 @@ The blob is of media type `application/my-media-octet-stream`.
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed: The blob is not of media type `application/my-media-octet-stream`.
+Error: signature verification failed: The blob's media type `application/xyz` and not matching `application/my-media-octet-stream`.
 ```
 
 ### Verify the signature using a policy scope
@@ -377,5 +377,5 @@ Successfully verified signature /tmp/my-blob.bin.sig.jws using policy scope `blo
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed for Policy scope `blob-verification-selector`
+Error: signature verification failed for policy scope `blob-verification-selector`
 ```
