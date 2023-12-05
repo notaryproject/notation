@@ -33,17 +33,18 @@ const (
 )
 
 const (
-	envKeyRegistryHost       = "NOTATION_E2E_REGISTRY_HOST"
-	envKeyRegistryUsername   = "NOTATION_E2E_REGISTRY_USERNAME"
-	envKeyRegistryPassword   = "NOTATION_E2E_REGISTRY_PASSWORD"
-	envKeyDomainRegistryHost = "NOTATION_E2E_DOMAIN_REGISTRY_HOST"
-	envKeyNotationBinPath    = "NOTATION_E2E_BINARY_PATH"
-	envKeyNotationOldBinPath = "NOTATION_E2E_OLD_BINARY_PATH"
-	envKeyNotationPluginPath = "NOTATION_E2E_PLUGIN_PATH"
-	envKeyNotationConfigPath = "NOTATION_E2E_CONFIG_PATH"
-	envKeyOCILayoutPath      = "NOTATION_E2E_OCI_LAYOUT_PATH"
-	envKeyTestRepo           = "NOTATION_E2E_TEST_REPO"
-	envKeyTestTag            = "NOTATION_E2E_TEST_TAG"
+	envKeyRegistryHost            = "NOTATION_E2E_REGISTRY_HOST"
+	envKeyRegistryUsername        = "NOTATION_E2E_REGISTRY_USERNAME"
+	envKeyRegistryPassword        = "NOTATION_E2E_REGISTRY_PASSWORD"
+	envKeyDomainRegistryHost      = "NOTATION_E2E_DOMAIN_REGISTRY_HOST"
+	envKeyNotationBinPath         = "NOTATION_E2E_BINARY_PATH"
+	envKeyNotationOldBinPath      = "NOTATION_E2E_OLD_BINARY_PATH"
+	envKeyNotationPluginPath      = "NOTATION_E2E_PLUGIN_PATH"
+	envKeyNotationPluginTarGzPath = "NOTATION_E2E_PLUGIN_TAR_GZ_PATH"
+	envKeyNotationConfigPath      = "NOTATION_E2E_CONFIG_PATH"
+	envKeyOCILayoutPath           = "NOTATION_E2E_OCI_LAYOUT_PATH"
+	envKeyTestRepo                = "NOTATION_E2E_TEST_REPO"
+	envKeyTestTag                 = "NOTATION_E2E_TEST_TAG"
 )
 
 var (
@@ -51,12 +52,13 @@ var (
 	NotationBinPath string
 	// NotationOldBinPath is the path of an old version notation binary for
 	// testing forward compatibility.
-	NotationOldBinPath        string
-	NotationE2EPluginPath     string
-	NotationE2EConfigPath     string
-	NotationE2ELocalKeysDir   string
-	NotationE2ETrustPolicyDir string
-	NotationE2EConfigJsonDir  string
+	NotationOldBinPath         string
+	NotationE2EPluginPath      string
+	NotationE2EPluginTarGzPath string
+	NotationE2EConfigPath      string
+	NotationE2ELocalKeysDir    string
+	NotationE2ETrustPolicyDir  string
+	NotationE2EConfigJsonDir   string
 )
 
 var (
@@ -90,6 +92,7 @@ func setUpNotationValues() {
 
 	// set Notation e2e-plugin path
 	setPathValue(envKeyNotationPluginPath, &NotationE2EPluginPath)
+	setPathValue(envKeyNotationPluginTarGzPath, &NotationE2EPluginTarGzPath)
 
 	// set Notation configuration paths
 	setPathValue(envKeyNotationConfigPath, &NotationE2EConfigPath)
