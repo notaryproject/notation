@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
 	"fmt"
@@ -24,16 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func pluginCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "plugin",
-		Short: "Manage plugins",
-	}
-	cmd.AddCommand(pluginListCommand())
-	return cmd
-}
-
-func pluginListCommand() *cobra.Command {
+func listCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "list [flags]",
 		Aliases: []string{"ls"},
