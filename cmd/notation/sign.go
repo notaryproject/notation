@@ -43,6 +43,7 @@ type signOpts struct {
 	allowReferrersAPI bool
 	ociLayout         bool
 	inputType         inputType
+	tsaServerURL      string
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -112,6 +113,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
+	command.Flags().StringVar(&opts.tsaServerURL, "tsa", "", "TSA server URL")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "allow-referrers-api")
 	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
@@ -180,6 +182,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationreg
 			SignatureMediaType: mediaType,
 			ExpiryDuration:     opts.expiry,
 			PluginConfig:       pluginConfig,
+			TSAServerURL:       opts.tsaServerURL,
 		},
 		UserMetadata: userMetadata,
 	}
