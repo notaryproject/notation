@@ -32,7 +32,7 @@ Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-  -sd, --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
+  -d,  --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
