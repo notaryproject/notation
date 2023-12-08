@@ -25,7 +25,8 @@ The artifact was signed with the following user metadata.
 KEY    VALUE
 <key>  <value>
 ```
-NOTE: This command is for verifying OCI artifacts only. Use `notation blob verify` command for verifying arbitrary blobs.
+> [!NOTE]
+> This command is for verifying OCI artifacts only. Use `notation blob verify` command for verifying arbitrary blobs.
 
 
 ## Outline
