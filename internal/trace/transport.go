@@ -86,8 +86,8 @@ func logHeader(header http.Header, e log.Logger) {
 	}
 }
 
-// SetHttpDebugLog sets up http debug log with logrus.Logger
-func SetHttpDebugLog(ctx context.Context, authClient *auth.Client) {
+// SetHTTPDebugLog sets up http debug log with logrus.Logger
+func SetHTTPDebugLog(ctx context.Context, authClient *auth.Client) {
 	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
 		return
 	}

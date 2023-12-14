@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package auth
+package httputil
 
 import (
 	"context"
@@ -28,6 +28,6 @@ func NewAuthClient(ctx context.Context) *auth.Client {
 		ClientID: "notation",
 	}
 	client.SetUserAgent("notation/" + version.GetVersion())
-	trace.SetHttpDebugLog(ctx, client)
+	trace.SetHTTPDebugLog(ctx, client)
 	return client
 }

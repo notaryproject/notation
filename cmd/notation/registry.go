@@ -23,6 +23,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	notationauth "github.com/notaryproject/notation/internal/auth"
+	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/pkg/configutil"
 	credentials "github.com/oras-project/oras-credentials-go"
 	"oras.land/oras-go/v2/registry"
@@ -140,7 +141,7 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 	}
 
 	// build authClient
-	authClient := notationauth.NewAuthClient(ctx)
+	authClient := httputil.NewAuthClient(ctx)
 	if !withCredential {
 		return authClient, insecureRegistry, nil
 	}

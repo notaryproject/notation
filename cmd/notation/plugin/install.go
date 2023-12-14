@@ -47,11 +47,9 @@ type pluginInstallOpts struct {
 	pluginSource     string
 	inputChecksum    string
 	isFile           bool
-	isUrl            bool
+	isURL            bool
 	force            bool
 }
-
-var ErrNoPluginExecutableFileWasFound = errors.New("no plugin executable file was found")
 
 func installCommand(opts *pluginInstallOpts) *cobra.Command {
 	if opts == nil {
@@ -83,10 +81,13 @@ Example - Install plugin from URL, SHA256 checksum is required:
 				if opts.isFile {
 					return errors.New("missing plugin file path")
 				}
-				if opts.isUrl {
+				if opts.isURL {
 					return errors.New("missing plugin URL")
 				}
 				return errors.New("missing plugin source")
+			}
+			if len(args) > 1 {
+				return fmt.Errorf("can only insall one plugin at a time, but got %v", args)
 			}
 			opts.pluginSource = args[0]
 			return nil
@@ -94,7 +95,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.isFile {
 				opts.pluginSourceType = notationplugin.PluginSourceTypeFile
-			} else if opts.isUrl {
+			} else if opts.isURL {
 				opts.pluginSourceType = notationplugin.PluginSourceTypeURL
 			}
 			return install(cmd, opts)
@@ -102,7 +103,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file in file system")
-	command.Flags().BoolVar(&opts.isUrl, "url", false, "install plugin from an HTTPS URL")
+	command.Flags().BoolVar(&opts.isURL, "url", false, "install plugin from an HTTPS URL")
 	command.Flags().StringVar(&opts.inputChecksum, "sha256sum", "", "must match SHA256 of the plugin source, required when \"--url\" flag is set")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of the plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
@@ -156,7 +157,7 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 	}
 	// checksum check
 	if inputChecksum != "" {
-		if err := osutil.ValidateChecksum(inputPath, inputChecksum); err != nil {
+		if err := osutil.ValidateSHA256Sum(inputPath, inputChecksum); err != nil {
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
 	}
@@ -173,9 +174,6 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 		}
 		defer rc.Close()
 		if err := installPluginFromFS(ctx, rc, force); err != nil {
-			if errors.Is(err, ErrNoPluginExecutableFileWasFound) {
-				return fmt.Errorf("plugin installation failed: no valid plugin file was found in %s. Plugin file name must in format notation-{plugin-name}", inputPath)
-			}
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
 		return nil

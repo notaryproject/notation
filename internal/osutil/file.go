@@ -136,15 +136,15 @@ func DetectFileType(path string) (string, error) {
 	}
 	defer rc.Close()
 	lr := io.LimitReader(rc, 512)
-	header := make([]byte, 512)
-	if _, err := lr.Read(header); err != nil {
+	header, err := io.ReadAll(lr)
+	if err != nil {
 		return "", err
 	}
 	return http.DetectContentType(header), nil
 }
 
-// ValidateChecksum returns nil if SHA256 of file at path equals to checksum.
-func ValidateChecksum(path string, checksum string) error {
+// ValidateSHA256Sum returns nil if SHA256 of file at path equals to checksum.
+func ValidateSHA256Sum(path string, checksum string) error {
 	rc, err := os.Open(path)
 	if err != nil {
 		return err
@@ -156,7 +156,7 @@ func ValidateChecksum(path string, checksum string) error {
 	}
 	sha256sum := sha256Hash.Sum(nil)
 	enc := strings.ToLower(hex.EncodeToString(sha256sum[:]))
-	if enc != strings.ToLower(checksum) {
+	if !strings.EqualFold(enc, checksum) {
 		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checksum)
 	}
 	return nil

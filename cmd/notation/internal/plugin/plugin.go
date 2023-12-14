@@ -19,7 +19,7 @@ import (
 	"io"
 	"net/http"
 
-	notationauth "github.com/notaryproject/notation/internal/auth"
+	"github.com/notaryproject/notation/internal/httputil"
 )
 
 // MaxPluginSourceBytes specifies the limit on how many bytes are allowed in the
@@ -50,8 +50,8 @@ const (
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
 func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
-	client := notationauth.NewAuthClient(ctx)
-	req, err := http.NewRequest("GET", pluginURL, nil)
+	client := httputil.NewAuthClient(ctx)
+	req, err := http.NewRequest(http.MethodGet, pluginURL, nil)
 	if err != nil {
 		return err
 	}
