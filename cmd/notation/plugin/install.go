@@ -190,14 +190,20 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 	}
 }
 
-// installPluginFromFS extracts, validates and installs the plugin from a fs.FS
+// installPluginFromFS extracts, validates and installs the plugin files
+// from a fs.FS
 //
 // Note: zip.ReadCloser implments fs.FS
 func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error {
 	// set up logger
 	logger := log.GetLogger(ctx)
 	root := "."
-	var success bool
+	// extracting all regular files from root into tmpDir
+	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
+	if err != nil {
+		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
 	if err := fs.WalkDir(pluginFs, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -210,35 +216,28 @@ func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error 
 		if err != nil {
 			return err
 		}
+		// only accept regular files
+		// it is required by github-advanced-security to check for `..` in fName
 		if !info.Mode().IsRegular() || strings.Contains(fName, "..") {
 			return nil
 		}
-		// require one and only one file with name in the format
-		// `notation-{plugin-name}`
-		logger.Debugf("Processing file %s...", fName)
-		_, err = plugin.ExtractPluginNameFromFileName(fName)
-		if err != nil {
-			logger.Debugf("File name %s is not in format notation-{plugin-name}, skipped", fName)
-			return nil
-		}
+		logger.Debugf("Extracting file %s...", fName)
 		rc, err := pluginFs.Open(path)
 		if err != nil {
 			return err
 		}
 		defer rc.Close()
-		if err := installPluginExecutable(ctx, fName, rc, force); err != nil {
-			return err
-		}
-		// on success, skip all remaining files
-		success = true
-		return fs.SkipAll
+		tmpFilePath := filepath.Join(tmpDir, fName)
+		return osutil.CopyFromReaderToDir(rc, tmpFilePath, info.Mode())
 	}); err != nil {
 		return err
 	}
-	if !success {
-		return ErrNoPluginExecutableFileWasFound
+	// install core process
+	installOpts := plugin.CLIInstallOptions{
+		PluginPath: tmpDir,
+		Overwrite:  force,
 	}
-	return nil
+	return installPluginWithOptions(ctx, installOpts)
 }
 
 // installPluginFromTarGz extracts and untar a plugin tar.gz file, validates and
@@ -256,8 +255,12 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 	}
 	defer decompressedStream.Close()
 	tarReader := tar.NewReader(decompressedStream)
-	// require one and only one file with name in the format
-	// `notation-{plugin-name}`
+	// extracting all regular files into tmpDir
+	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
+	if err != nil {
+		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
 	for {
 		header, err := tarReader.Next()
 		if err != nil {
@@ -266,53 +269,32 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			}
 			return err
 		}
+		// only accept regular files
+		// it is required by github-advanced-security to check for `..` in fName
 		if !header.FileInfo().Mode().IsRegular() || strings.Contains(header.Name, "..") {
 			continue
 		}
 		fName := filepath.Base(header.Name)
-		logger.Debugf("Processing file %s...", fName)
-		_, err = plugin.ExtractPluginNameFromFileName(fName)
-		if err != nil {
-			logger.Infof("File name %s is not in format notation-{plugin-name}, skipped", fName)
-			continue
-		}
-		return installPluginExecutable(ctx, fName, tarReader, force)
-	}
-	return fmt.Errorf("no valid plugin file was found in %s. Plugin file name must in format notation-{plugin-name}", tarGzPath)
-}
-
-// installPluginExecutable extracts, validates, and installs a plugin executable
-// file
-func installPluginExecutable(ctx context.Context, fileName string, fileReader io.Reader, force bool) error {
-	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
-	if err != nil {
-		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
-	}
-	defer os.RemoveAll(tmpDir)
-	tmpFilePath := filepath.Join(tmpDir, fileName)
-	pluginFile, err := os.OpenFile(tmpFilePath, os.O_WRONLY|os.O_CREATE, 0700)
-	if err != nil {
-		return err
-	}
-	lr := &io.LimitedReader{
-		R: fileReader,
-		N: notationplugin.MaxPluginSourceBytes,
-	}
-	if _, err := io.Copy(pluginFile, lr); err != nil || lr.N == 0 {
-		_ = pluginFile.Close()
-		if err != nil {
+		logger.Debugf("Extracting file %s...", fName)
+		tmpFilePath := filepath.Join(tmpDir, fName)
+		if err := osutil.CopyFromReaderToDir(tarReader, tmpFilePath, header.FileInfo().Mode()); err != nil {
 			return err
 		}
-		return fmt.Errorf("plugin executable file reaches the %d MiB size limit", notationplugin.MaxPluginSourceBytes)
 	}
-	if err := pluginFile.Close(); err != nil {
-		return err
+	// install core process
+	installOpts := plugin.CLIInstallOptions{
+		PluginPath: tmpDir,
+		Overwrite:  force,
 	}
-	// core process
+	return installPluginWithOptions(ctx, installOpts)
+}
+
+// installPluginWithOptions installs plugin with CLIInstallOptions
+func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions) error {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
-	existingPluginMetadata, newPluginMetadata, err := mgr.Install(ctx, tmpFilePath, force)
+	existingPluginMetadata, newPluginMetadata, err := mgr.Install(ctx, opts)
 	if err != nil {
-		if errors.Is(err, &plugin.ErrInstallLowerVersion{}) {
+		if errors.Is(err, &plugin.PluginDowngradeError{}) {
 			return fmt.Errorf("%s. %w.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", newPluginMetadata.Name, err)
 		}
 		return err

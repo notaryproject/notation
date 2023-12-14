@@ -25,9 +25,6 @@ import (
 // MaxPluginSourceBytes specifies the limit on how many bytes are allowed in the
 // server's response to the download from URL request.
 //
-// It also specifies the limit of a potentail plugin executable file in a
-// .tar.gz or .zip file.
-//
 // The plugin source size must be strictly less than this value.
 var MaxPluginSourceBytes int64 = 256 * 1024 * 1024 // 256 MiB
 
