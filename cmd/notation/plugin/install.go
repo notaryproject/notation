@@ -186,7 +186,15 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 		}
 		return nil
 	default:
-		return errors.New("plugin installation failed: invalid file format. Only .tar.gz and .zip formats are supported")
+		// input file is not in zip or gzip, try install directly
+		installOpts := plugin.CLIInstallOptions{
+			PluginPath: inputPath,
+			Overwrite:  force,
+		}
+		if err := installPluginWithOptions(ctx, installOpts); err != nil {
+			return fmt.Errorf("plugin installation failed: %w", err)
+		}
+		return nil
 	}
 }
 

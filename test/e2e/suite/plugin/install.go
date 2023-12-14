@@ -67,10 +67,10 @@ var _ = Describe("notation plugin install", func() {
 		})
 	})
 
-	It("with invalid plugin file type", func() {
+	It("with plugin executable file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginPath).
-				MatchErrContent("Error: plugin installation failed: invalid file format. Only .tar.gz and .zip formats are supported\n")
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginPath).
+				MatchErrContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
