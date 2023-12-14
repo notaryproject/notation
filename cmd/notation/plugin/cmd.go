@@ -24,6 +24,7 @@ func Cmd() *cobra.Command {
 	command.AddCommand(
 		listCommand(),
 		installCommand(nil),
+		uninstallCommand(nil),
 	)
 
 	return command
