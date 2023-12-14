@@ -70,7 +70,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with plugin executable file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginPath).
-				MatchErrContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
