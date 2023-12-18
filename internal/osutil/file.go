@@ -103,8 +103,8 @@ func IsRegularFile(path string) (bool, error) {
 	return fileStat.Mode().IsRegular(), nil
 }
 
-// CopyFromReaderToDir copies file from src to dst. The file
-// size must be less than 256 MiB.
+// CopyFromReaderToDir copies file from src to dst where dst is the destination
+// file path. The file size must be less than 256 MiB.
 func CopyFromReaderToDir(src io.Reader, dst string, perm fs.FileMode) error {
 	dstFile, err := os.Create(dst)
 	if err != nil {
