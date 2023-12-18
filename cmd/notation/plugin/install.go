@@ -117,7 +117,10 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 	// core process
 	switch opts.pluginSourceType {
 	case notationplugin.PluginSourceTypeFile:
-		return installPlugin(ctx, opts.pluginSource, opts.inputChecksum, opts.force)
+		if err := installPlugin(ctx, opts.pluginSource, opts.inputChecksum, opts.force); err != nil {
+			return fmt.Errorf("plugin installation failed: %w", err)
+		}
+		return nil
 	case notationplugin.PluginSourceTypeURL:
 		if opts.inputChecksum == "" {
 			return errors.New("installing from URL requires non-empty SHA256 checksum of the plugin source")
@@ -139,7 +142,10 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		if err != nil {
 			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
 		}
-		return installPlugin(ctx, tmpFile.Name(), opts.inputChecksum, opts.force)
+		if err := installPlugin(ctx, tmpFile.Name(), opts.inputChecksum, opts.force); err != nil {
+			return fmt.Errorf("plugin installation failed: %w", err)
+		}
+		return nil
 	default:
 		return errors.New("plugin installation failed: unknown plugin source type")
 	}
@@ -150,49 +156,40 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 	// sanity check
 	inputFileStat, err := os.Stat(inputPath)
 	if err != nil {
-		return fmt.Errorf("plugin installation failed: %w", err)
+		return err
 	}
 	if !inputFileStat.Mode().IsRegular() {
-		return fmt.Errorf("plugin installation failed: %s is not a valid file", inputPath)
+		return fmt.Errorf("%s is not a valid file", inputPath)
 	}
 	// checksum check
 	if inputChecksum != "" {
 		if err := osutil.ValidateSHA256Sum(inputPath, inputChecksum); err != nil {
-			return fmt.Errorf("plugin installation failed: %w", err)
+			return err
 		}
 	}
 	// install the plugin based on file type
 	fileType, err := osutil.DetectFileType(inputPath)
 	if err != nil {
-		return fmt.Errorf("plugin installation failed: %w", err)
+		return err
 	}
 	switch fileType {
 	case notationplugin.MediaTypeZip:
 		rc, err := zip.OpenReader(inputPath)
 		if err != nil {
-			return fmt.Errorf("plugin installation failed: %w", err)
+			return err
 		}
 		defer rc.Close()
-		if err := installPluginFromFS(ctx, rc, force); err != nil {
-			return fmt.Errorf("plugin installation failed: %w", err)
-		}
-		return nil
+		return installPluginFromFS(ctx, rc, force)
 	case notationplugin.MediaTypeGzip:
 		// when file is gzip, required to be tar
-		if err := installPluginFromTarGz(ctx, inputPath, force); err != nil {
-			return fmt.Errorf("plugin installation failed: %w", err)
-		}
-		return nil
+		return installPluginFromTarGz(ctx, inputPath, force)
 	default:
 		// input file is not in zip or gzip, try install directly
 		installOpts := plugin.CLIInstallOptions{
 			PluginPath: inputPath,
 			Overwrite:  force,
 		}
-		if err := installPluginWithOptions(ctx, installOpts); err != nil {
-			return fmt.Errorf("plugin installation failed: %w", err)
-		}
-		return nil
+		return installPluginWithOptions(ctx, installOpts)
 	}
 }
 
@@ -222,7 +219,7 @@ func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error 
 		if err != nil {
 			return err
 		}
-		// only accept regular files
+		// only accept regular files.
 		// it is required by github-advanced-security to check for `..` in fName
 		if !info.Mode().IsRegular() || strings.Contains(fName, "..") {
 			return nil
@@ -275,7 +272,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			}
 			return err
 		}
-		// only accept regular files
+		// only accept regular files.
 		// it is required by github-advanced-security to check for `..` in fName
 		if !header.FileInfo().Mode().IsRegular() || strings.Contains(header.Name, "..") {
 			continue
