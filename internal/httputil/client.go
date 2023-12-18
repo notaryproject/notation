@@ -15,6 +15,7 @@ package httputil
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/notaryproject/notation/internal/version"
@@ -22,8 +23,9 @@ import (
 )
 
 // NewAuthClient returns an *auth.Client
-func NewAuthClient(ctx context.Context) *auth.Client {
+func NewAuthClient(ctx context.Context, httpClient *http.Client) *auth.Client {
 	client := &auth.Client{
+		Client:   httpClient,
 		Cache:    auth.NewCache(),
 		ClientID: "notation",
 	}

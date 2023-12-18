@@ -297,8 +297,9 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	existingPluginMetadata, newPluginMetadata, err := mgr.Install(ctx, opts)
 	if err != nil {
-		if errors.Is(err, &plugin.PluginDowngradeError{}) {
-			return fmt.Errorf("%s. %w.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", newPluginMetadata.Name, err)
+		var errPluginDowngrade plugin.PluginDowngradeError
+		if errors.As(err, &errPluginDowngrade) {
+			return fmt.Errorf("%w.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", errPluginDowngrade)
 		}
 		return err
 	}

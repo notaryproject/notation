@@ -141,7 +141,7 @@ func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Refer
 	}
 
 	// build authClient
-	authClient := httputil.NewAuthClient(ctx)
+	authClient := httputil.NewAuthClient(ctx, nil)
 	if !withCredential {
 		return authClient, insecureRegistry, nil
 	}
