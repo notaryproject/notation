@@ -104,7 +104,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file in file system")
-	command.Flags().BoolVar(&opts.isURL, "url", false, "install plugin from an HTTPS URL")
+	command.Flags().BoolVar(&opts.isURL, "url", false, "install plugin from an HTTPS URL. The timeout of the download HTTPS request is set to 20 minutes")
 	command.Flags().StringVar(&opts.inputChecksum, "sha256sum", "", "must match SHA256 of the plugin source, required when \"--url\" flag is set")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of the plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
