@@ -155,7 +155,7 @@ func ValidateSHA256Sum(path string, checksum string) error {
 		return err
 	}
 	sha256sum := sha256Hash.Sum(nil)
-	enc := strings.ToLower(hex.EncodeToString(sha256sum[:]))
+	enc := hex.EncodeToString(sha256sum[:])
 	if !strings.EqualFold(enc, checksum) {
 		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checksum)
 	}

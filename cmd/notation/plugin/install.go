@@ -78,10 +78,10 @@ Example - Install plugin from URL, SHA256 checksum is required:
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				if opts.isFile {
+				switch {
+				case opts.isFile:
 					return errors.New("missing plugin file path")
-				}
-				if opts.isURL {
+				case opts.isURL:
 					return errors.New("missing plugin URL")
 				}
 				return errors.New("missing plugin source")
@@ -93,9 +93,10 @@ Example - Install plugin from URL, SHA256 checksum is required:
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.isFile {
+			switch {
+			case opts.isFile:
 				opts.pluginSourceType = notationplugin.PluginSourceTypeFile
-			} else if opts.isURL {
+			case opts.isURL:
 				opts.pluginSourceType = notationplugin.PluginSourceTypeURL
 			}
 			return install(cmd, opts)

@@ -51,7 +51,7 @@ const (
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
 func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
-	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: 100 * time.Second})
+	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: 20 * time.Minute})
 	req, err := http.NewRequest(http.MethodGet, pluginURL, nil)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 	defer resp.Body.Close()
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("https response bad status: %s", resp.Status)
+		return fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
 	}
 	// Write the body to file
 	lr := &io.LimitedReader{
