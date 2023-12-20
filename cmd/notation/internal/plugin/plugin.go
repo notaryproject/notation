@@ -51,7 +51,7 @@ const (
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
 func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
-	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: 20 * time.Minute})
+	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: 10 * time.Minute})
 	req, err := http.NewRequest(http.MethodGet, pluginURL, nil)
 	if err != nil {
 		return err
