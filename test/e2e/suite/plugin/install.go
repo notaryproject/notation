@@ -97,14 +97,14 @@ var _ = Describe("notation plugin install", func() {
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--url", PluginURL, "--sha256sum", PluginChecksum).
-				MatchContent("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
+				MatchKeyWords("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 
 	It("with valid plugin URL but missing checksum", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", PluginURL).
-				MatchKeyWords("Error: installing from URL requires non-empty SHA256 checksum of the plugin source\n")
+				MatchErrContent("Error: installing from URL requires non-empty SHA256 checksum of the plugin source\n")
 		})
 	})
 
