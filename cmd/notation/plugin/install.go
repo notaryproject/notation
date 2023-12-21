@@ -144,7 +144,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		if err != nil {
 			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
 		}
-		fmt.Printf("Download completed. Saved to tmp file %s.\n", tmpFile.Name())
+		fmt.Printf("Download completed. Saved to tmp file %s\n", tmpFile.Name())
 		if err := installPlugin(ctx, tmpFile.Name(), opts.inputChecksum, opts.force); err != nil {
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
