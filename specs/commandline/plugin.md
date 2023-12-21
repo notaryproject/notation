@@ -95,7 +95,7 @@ Successfully installed plugin <plugin name>, version <x.y.z>
 If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
 
 ```console
-Error: failed to install the plugin: plugin checksum does not match user input. Expecting <sha256sum>
+Error: plugin installation failed: plugin checksum does not match user input. Expecting <sha256sum>
 ```
 
 If the plugin version is higher than the existing plugin, Notation will start installation and overwrite the existing plugin.
@@ -107,13 +107,13 @@ Successfully installed plugin <plugin name>, updated the version from <x.y.z> to
 If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install the plugin: <plugin-name> with version <x.y.z> already exists.
+Error: plugin installation failed: plugin <plugin-name> with version <x.y.z> already exists.
 ```
 
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install the plugin: <plugin-name>. The installing plugin version <a.b.c> is lower than the existing plugin version <x.y.z>.
+Error: failed to install plugin: <plugin-name>. The installing plugin version <a.b.c> is lower than the existing plugin version <x.y.z>.
 It is not recommended to install an older version. To force the installation, use the "--force" option.
 ```
 ### Install a plugin from URL

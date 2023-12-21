@@ -11,21 +11,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package plugin
+package httputil
 
-import "github.com/spf13/cobra"
+import (
+	"context"
+	"net/http"
 
-func Cmd() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "plugin",
-		Short: "Manage plugins",
+	"github.com/notaryproject/notation/internal/trace"
+	"github.com/notaryproject/notation/internal/version"
+	"oras.land/oras-go/v2/registry/remote/auth"
+)
+
+// NewAuthClient returns an *auth.Client
+func NewAuthClient(ctx context.Context, httpClient *http.Client) *auth.Client {
+	client := &auth.Client{
+		Client:   httpClient,
+		Cache:    auth.NewCache(),
+		ClientID: "notation",
 	}
-
-	command.AddCommand(
-		listCommand(),
-		installCommand(nil),
-		uninstallCommand(nil),
-	)
-
-	return command
+	client.SetUserAgent("notation/" + version.GetVersion())
+	trace.SetHTTPDebugLog(ctx, client)
+	return client
 }
