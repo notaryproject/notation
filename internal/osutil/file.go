@@ -14,12 +14,20 @@
 package osutil
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
+
+// MaxFileBytes is the maximum file bytes.
+// When used, the value should strictly less than this number.
+var MaxFileBytes int64 = 256 * 1024 * 1024 // 256 MiB
 
 // WriteFile writes to a path with all parent directories created.
 func WriteFile(path string, data []byte) error {
@@ -93,4 +101,63 @@ func IsRegularFile(path string) (bool, error) {
 	}
 
 	return fileStat.Mode().IsRegular(), nil
+}
+
+// CopyFromReaderToDir copies file from src to dst where dst is the destination
+// file path. The file size must be less than 256 MiB.
+func CopyFromReaderToDir(src io.Reader, dst string, perm fs.FileMode) error {
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	lr := &io.LimitedReader{
+		R: src,
+		N: MaxFileBytes,
+	}
+	if _, err := io.Copy(dstFile, lr); err != nil || lr.N == 0 {
+		_ = dstFile.Close()
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("file reaches the %d MiB size limit", MaxFileBytes)
+	}
+	if err := dstFile.Chmod(perm); err != nil {
+		_ = dstFile.Close()
+		return err
+	}
+	return dstFile.Close()
+}
+
+// DetectFileType returns a file's content type given path
+func DetectFileType(path string) (string, error) {
+	rc, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer rc.Close()
+	lr := io.LimitReader(rc, 512)
+	header, err := io.ReadAll(lr)
+	if err != nil {
+		return "", err
+	}
+	return http.DetectContentType(header), nil
+}
+
+// ValidateSHA256Sum returns nil if SHA256 of file at path equals to checksum.
+func ValidateSHA256Sum(path string, checksum string) error {
+	rc, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+	sha256Hash := sha256.New()
+	if _, err := io.Copy(sha256Hash, rc); err != nil {
+		return err
+	}
+	sha256sum := sha256Hash.Sum(nil)
+	enc := hex.EncodeToString(sha256sum[:])
+	if !strings.EqualFold(enc, checksum) {
+		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checksum)
+	}
+	return nil
 }

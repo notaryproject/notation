@@ -30,10 +30,13 @@ limitations under the License.
 package trace
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/sirupsen/logrus"
+	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 // Transport is an http.RoundTripper that keeps track of the in-flight
@@ -81,4 +84,18 @@ func logHeader(header http.Header, e log.Logger) {
 	} else {
 		e.Debugf("   Empty header")
 	}
+}
+
+// SetHTTPDebugLog sets up http debug log with logrus.Logger
+func SetHTTPDebugLog(ctx context.Context, authClient *auth.Client) {
+	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
+		return
+	}
+	if authClient.Client == nil {
+		authClient.Client = http.DefaultClient
+	}
+	if authClient.Client.Transport == nil {
+		authClient.Client.Transport = http.DefaultTransport
+	}
+	authClient.Client.Transport = NewTransport(authClient.Client.Transport)
 }
