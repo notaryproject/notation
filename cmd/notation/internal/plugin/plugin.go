@@ -48,10 +48,14 @@ const (
 	MediaTypeGzip = "application/x-gzip"
 )
 
+// DownloadPluginFromURLTimeout is the timeout when downloading plugin from a
+// URL
+const DownloadPluginFromURLTimeout = 10 * time.Minute
+
 // DownloadPluginFromURL downloads plugin file from url to a tmp directory
 func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
-	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: 10 * time.Minute})
+	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: DownloadPluginFromURLTimeout})
 	req, err := http.NewRequest(http.MethodGet, pluginURL, nil)
 	if err != nil {
 		return err
