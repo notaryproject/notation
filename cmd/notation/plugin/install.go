@@ -73,6 +73,9 @@ Example - Install plugin from file system regardless if it's already installed:
 Example - Install plugin from file system with .tar.gz:
   notation plugin install --file wabbit-plugin-v1.0.tar.gz
 
+Example - Install plugin from file system with a single plugin executable file:
+  notation plugin install --file notation-wabbit-plugin
+
 Example - Install plugin from URL, SHA256 checksum is required:
   notation plugin install --url https://wabbit-networks.com/intaller/linux/amd64/wabbit-plugin-v1.0.tar.gz --sha256sum f8a75d9234db90069d9eb5660e5374820edf36d710bd063f4ef81e7063d3810b
 `,
@@ -84,10 +87,10 @@ Example - Install plugin from URL, SHA256 checksum is required:
 				case opts.isURL:
 					return errors.New("missing plugin URL")
 				}
-				return errors.New("missing plugin source")
+				return errors.New("missing plugin source location")
 			}
 			if len(args) > 1 {
-				return fmt.Errorf("can only insall one plugin at a time, but got %v", args)
+				return fmt.Errorf("can only install one plugin at a time, but got %v", args)
 			}
 			opts.pluginSource = args[0]
 			return nil
@@ -103,8 +106,8 @@ Example - Install plugin from URL, SHA256 checksum is required:
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file in file system")
-	command.Flags().BoolVar(&opts.isURL, "url", false, "install plugin from an HTTPS URL. The timeout of the download HTTPS request is set to 10 minutes")
+	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file on file system")
+	command.Flags().BoolVar(&opts.isURL, "url", false, "install plugin from an HTTPS URL. The default plugin download timeout is 10 minutes")
 	command.Flags().StringVar(&opts.inputChecksum, "sha256sum", "", "must match SHA256 of the plugin source, required when \"--url\" flag is set")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of the plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
@@ -135,7 +138,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 		tmpFile, err := os.CreateTemp("", notationPluginDownloadTmpFile)
 		if err != nil {
-			return fmt.Errorf("failed to create notationPluginDownloadTmpFile: %w", err)
+			return fmt.Errorf("failed to create temporary file required for downloading plugin: %w", err)
 		}
 		defer os.Remove(tmpFile.Name())
 		defer tmpFile.Close()
@@ -200,17 +203,17 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 // from a fs.FS
 //
 // Note: zip.ReadCloser implments fs.FS
-func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error {
+func installPluginFromFS(ctx context.Context, pluginFS fs.FS, force bool) error {
 	// set up logger
 	logger := log.GetLogger(ctx)
 	root := "."
 	// extracting all regular files from root into tmpDir
 	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 	if err != nil {
-		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
+		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
-	if err := fs.WalkDir(pluginFs, root, func(path string, d fs.DirEntry, err error) error {
+	if err := fs.WalkDir(pluginFS, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -228,7 +231,7 @@ func installPluginFromFS(ctx context.Context, pluginFs fs.FS, force bool) error 
 			return nil
 		}
 		logger.Debugf("Extracting file %s...", fName)
-		rc, err := pluginFs.Open(path)
+		rc, err := pluginFS.Open(path)
 		if err != nil {
 			return err
 		}
@@ -264,7 +267,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 	// extracting all regular files into tmpDir
 	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 	if err != nil {
-		return fmt.Errorf("failed to create notationPluginTmpDir: %w", err)
+		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 	for {
@@ -307,9 +310,9 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 		return err
 	}
 	if existingPluginMetadata != nil {
-		fmt.Printf("Succussefully installed plugin %s, updated the version from %s to %s\n", newPluginMetadata.Name, existingPluginMetadata.Version, newPluginMetadata.Version)
+		fmt.Printf("Successfully updated plugin %s from version %s to %s\n", newPluginMetadata.Name, existingPluginMetadata.Version, newPluginMetadata.Version)
 	} else {
-		fmt.Printf("Succussefully installed plugin %s, version %s\n", newPluginMetadata.Name, newPluginMetadata.Version)
+		fmt.Printf("Successfully installed plugin %s, version %s\n", newPluginMetadata.Name, newPluginMetadata.Version)
 	}
 	return nil
 }

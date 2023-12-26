@@ -48,7 +48,7 @@ Usage:
 
 Flags:
   -d, --debug              debug mode
-      --file               install plugin from a file in file system
+      --file               install plugin from a file on file system
       --force              force the installation of a plugin
   -h, --help               help for install
       --sha256sum string   must match SHA256 of the plugin source

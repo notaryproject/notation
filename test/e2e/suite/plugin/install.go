@@ -42,7 +42,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with missing plugin source", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install").
-				MatchErrContent("Error: missing plugin source\n")
+				MatchErrContent("Error: missing plugin source location\n")
 		})
 	})
 
@@ -60,24 +60,31 @@ var _ = Describe("notation plugin install", func() {
 		})
 	})
 
+	It("with zip file too large", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/largeFileZip.zip", "-v").
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
+		})
+	})
+
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with plugin executable file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginPath).
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with plugin already installed", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
 				MatchErrContent("Error: plugin installation failed: plugin e2e-plugin with version 1.0.0 already exists\n")
@@ -87,17 +94,17 @@ var _ = Describe("notation plugin install", func() {
 	It("with plugin already installed but force install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "--force").
-				MatchContent("Succussefully installed plugin e2e-plugin, updated the version from 1.0.0 to 1.0.0\n")
+				MatchContent("Successfully updated plugin e2e-plugin from version 1.0.0 to 1.0.0\n")
 		})
 	})
 
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--url", PluginURL, "--sha256sum", PluginChecksum).
-				MatchKeyWords("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
+				MatchKeyWords("Successfully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 

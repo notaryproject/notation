@@ -119,7 +119,7 @@ func CopyFromReaderToDir(src io.Reader, dst string, perm fs.FileMode) error {
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("file reaches the %d MiB size limit", MaxFileBytes)
+		return fmt.Errorf("file reached the %d MiB size limit", MaxFileBytes)
 	}
 	if err := dstFile.Chmod(perm); err != nil {
 		_ = dstFile.Close()
@@ -157,7 +157,7 @@ func ValidateSHA256Sum(path string, checksum string) error {
 	sha256sum := sha256Hash.Sum(nil)
 	enc := hex.EncodeToString(sha256sum[:])
 	if !strings.EqualFold(enc, checksum) {
-		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checksum)
+		return fmt.Errorf("plugin sha256sum does not match user input. Expecting %s", checksum)
 	}
 	return nil
 }
