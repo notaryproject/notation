@@ -47,6 +47,7 @@ func main() {
 	}
 	cmd.AddCommand(
 		signCommand(nil),
+		blobSignCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
 		cert.Cmd(),
@@ -57,6 +58,7 @@ func main() {
 		logoutCommand(nil),
 		versionCommand(),
 		inspectCommand(nil),
+		blobInspectCommand(nil),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
