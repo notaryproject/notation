@@ -58,7 +58,7 @@ func installCommand(opts *pluginInstallOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:     "install [flags] <--file|--url> <plugin_source>",
 		Aliases: []string{"add"},
-		Short:   "Install plugin",
+		Short:   "Install a plugin",
 		Long: `Install a plugin
 
 Example - Install plugin from file system:
