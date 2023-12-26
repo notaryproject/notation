@@ -226,7 +226,7 @@ func installPluginFromFS(ctx context.Context, pluginFS fs.FS, force bool) error 
 			return err
 		}
 		// only accept regular files.
-		// it is required by github-advanced-security to check for `..` in fName
+		// check for `..` in fName to avoid zip slip vulnerability
 		if !info.Mode().IsRegular() || strings.Contains(fName, "..") {
 			return nil
 		}
@@ -279,7 +279,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			return err
 		}
 		// only accept regular files.
-		// it is required by github-advanced-security to check for `..` in fName
+		// check for `..` in fName to avoid zip slip vulnerability
 		if !header.FileInfo().Mode().IsRegular() || strings.Contains(header.Name, "..") {
 			continue
 		}

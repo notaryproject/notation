@@ -16,6 +16,7 @@ package osutil
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -119,7 +120,7 @@ func CopyFromReaderToDir(src io.Reader, dst string, perm fs.FileMode) error {
 		if err != nil {
 			return err
 		}
-		return fmt.Errorf("file reached the %d MiB size limit", MaxFileBytes)
+		return errors.New("file reached the 256 MiB size limit")
 	}
 	if err := dstFile.Chmod(perm); err != nil {
 		_ = dstFile.Close()

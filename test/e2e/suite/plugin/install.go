@@ -60,10 +60,17 @@ var _ = Describe("notation plugin install", func() {
 		})
 	})
 
-	It("with zip file too large", func() {
+	It("with content inside zip archive is too large", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/largeFileZip.zip", "-v").
-				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
+			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/largeFileZip.zip", "-v").
+				MatchErrContent("Error: plugin installation failed: file reached the 256 MiB size limit\n")
+		})
+	})
+
+	It("with content inside tar.gz archive is too large", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/largeFileTarGzip.tar.gz", "-v").
+				MatchErrContent("Error: plugin installation failed: file reached the 256 MiB size limit\n")
 		})
 	})
 
