@@ -261,7 +261,7 @@ func TestCopyToDir(t *testing.T) {
 }
 
 func TestValidateChecksum(t *testing.T) {
-	expectedErrorMsg := "plugin sha256sum does not match user input. Expecting abcd123"
+	expectedErrorMsg := "plugin SHA-256 checksum does not match user input. Expecting abcd123"
 	if err := ValidateSHA256Sum("./testdata/test", "abcd123"); err == nil || err.Error() != expectedErrorMsg {
 		t.Fatalf("expected err %s, but got %v", expectedErrorMsg, err)
 	}
