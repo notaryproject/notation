@@ -122,6 +122,13 @@ var _ = Describe("notation plugin install", func() {
 		})
 	})
 
+	It("with valid plugin URL but mismatched SHA-256 checksum", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--url", PluginURL, "--sha256sum", "abcd").
+				MatchErrContent("Error: plugin installation failed: plugin SHA-256 checksum does not match user input. Expecting abcd\n")
+		})
+	})
+
 	It("with invalid plugin URL scheme", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", "http://invalid", "--sha256sum", "abcd").

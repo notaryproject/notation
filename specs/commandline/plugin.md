@@ -52,7 +52,7 @@ Flags:
       --force              force the installation of the plugin
   -h, --help               help for install
       --sha256sum string   must match SHA256 of the plugin source, required when "--url" flag is set
-      --url                install plugin from an HTTPS URL. The default plugin download timeout is 10 minutes
+      --url                install plugin from an HTTPS URL. The default plugin download timeout is 10m0s
   -v, --verbose            verbose mode
 
 Aliases:

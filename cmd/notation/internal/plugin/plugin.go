@@ -80,7 +80,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 		return err
 	}
 	if lr.N == 0 {
-		return fmt.Errorf("%s %q: https response reached the 256 MiB size limit", resp.Request.Method, resp.Request.URL)
+		return fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
 	}
 	return nil
 }

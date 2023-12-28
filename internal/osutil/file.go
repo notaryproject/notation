@@ -16,7 +16,6 @@ package osutil
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -120,7 +119,7 @@ func CopyFromReaderToDir(src io.Reader, dst string, perm fs.FileMode) error {
 		if err != nil {
 			return err
 		}
-		return errors.New("file reached the 256 MiB size limit")
+		return fmt.Errorf("file reached the %d MiB size limit", MaxFileBytes/1024/1024)
 	}
 	if err := dstFile.Chmod(perm); err != nil {
 		_ = dstFile.Close()
@@ -158,7 +157,7 @@ func ValidateSHA256Sum(path string, checksum string) error {
 	sha256sum := sha256Hash.Sum(nil)
 	enc := hex.EncodeToString(sha256sum[:])
 	if !strings.EqualFold(enc, checksum) {
-		return fmt.Errorf("plugin sha256sum does not match user input. Expecting %s", checksum)
+		return fmt.Errorf("plugin SHA-256 checksum does not match user input. Expecting %s", checksum)
 	}
 	return nil
 }
