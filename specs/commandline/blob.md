@@ -26,7 +26,7 @@ Flags:
 ### notation blob sign
 
 ```text
-Produce a detached signature for a given blob. Signature file will be written to the currently working directory with blob file name + ".sig" + signature format as the file extension. For example, signature file name for "myBlob.bin" will be "myBlob.bin.sig.jws" for JWS signature format or "myBlob.bin.sig.cose" for COSE signature format.
+Produce a signature for a given blob. A detached signature file will be written to the currently working directory with blob file name + ".sig" + signature format as the file extension. For example, signature file name for "myBlob.bin" will be "myBlob.bin.sig.jws" for JWS signature format or "myBlob.bin.sig.cose" for COSE signature format.
 
 Usage:
   notation blob sign [flags] <blob_path>
