@@ -88,14 +88,14 @@ func logHeader(header http.Header, e log.Logger) {
 
 // SetHTTPDebugLog sets up http debug log with logrus.Logger
 func SetHTTPDebugLog(ctx context.Context, authClient *auth.Client) {
-	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); ok && logrusLog.Level != logrus.DebugLevel {
+	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); !ok || logrusLog.Level != logrus.DebugLevel {
 		return
 	}
 	if authClient.Client == nil {
-		authClient.Client = http.DefaultClient
+		authClient.Client = &http.Client{}
 	}
 	if authClient.Client.Transport == nil {
-		authClient.Client.Transport = http.DefaultTransport
+		authClient.Client.Transport = http.DefaultTransport.(*http.Transport).Clone()
 	}
 	authClient.Client.Transport = NewTransport(authClient.Client.Transport)
 }
