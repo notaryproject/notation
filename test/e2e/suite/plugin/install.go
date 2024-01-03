@@ -84,7 +84,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/zip_slip.zip", "-v").
-				MatchErrContent("Error: plugin installation failed: file name in zip cannot contain '..', but found \"../../../../../../../../tmp/evil.sh\"\n")
+				MatchErrContent("Error: plugin installation failed: file name in zip cannot contain '..', but found \"../../../../../../../../tmp/evil.txt\"\n")
 		})
 	})
 
