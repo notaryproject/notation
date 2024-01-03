@@ -60,17 +60,31 @@ var _ = Describe("notation plugin install", func() {
 		})
 	})
 
-	It("with content inside zip archive exceeds 256 MiB size limit", func() {
+	It("with zip bomb single file exceeds 256 MiB size limit in zip format", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/large_file_zip.zip", "-v").
-				MatchErrContent("Error: plugin installation failed: file reached the 256 MiB size limit\n")
+				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
 		})
 	})
 
-	It("with content inside tar.gz archive exceeds 256 MiB size limit", func() {
+	It("with zip bomb single file exceeds 256 MiB size limit in tar.gz format", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/large_file_tarGz.tar.gz", "-v").
-				MatchErrContent("Error: plugin installation failed: file reached the 256 MiB size limit\n")
+				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
+		})
+	})
+
+	It("with zip slip", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/large_file_tarGz.tar.gz", "-v").
+				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
+		})
+	})
+
+	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EMaliciousPluginArchivePath+"/zip_slip.zip", "-v").
+				MatchErrContent("Error: plugin installation failed: file name in zip cannot contain '..', but found \"../../../../../../../../tmp/evil.sh\"\n")
 		})
 	})
 

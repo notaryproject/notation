@@ -107,7 +107,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file on file system")
-	command.Flags().BoolVar(&opts.isURL, "url", false, fmt.Sprintf("install plugin from an HTTPS URL. The default plugin download timeout is %s", notationplugin.DownloadPluginFromURLTimeout))
+	command.Flags().BoolVar(&opts.isURL, "url", false, fmt.Sprintf("install plugin from an HTTPS URL. The plugin download timeout is %s", notationplugin.DownloadPluginFromURLTimeout))
 	command.Flags().StringVar(&opts.inputChecksum, "sha256sum", "", "must match SHA256 of the plugin source, required when \"--url\" flag is set")
 	command.Flags().BoolVar(&opts.force, "force", false, "force the installation of the plugin")
 	command.MarkFlagsMutuallyExclusive("file", "url")
@@ -160,11 +160,11 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 // installPlugin installs the plugin given plugin source path
 func installPlugin(ctx context.Context, inputPath string, inputChecksum string, force bool) error {
 	// sanity check
-	inputFileStat, err := os.Stat(inputPath)
+	inputFileInfo, err := os.Stat(inputPath)
 	if err != nil {
 		return err
 	}
-	if !inputFileStat.Mode().IsRegular() {
+	if !inputFileInfo.Mode().IsRegular() {
 		return fmt.Errorf("%s is not a valid file", inputPath)
 	}
 	// checksum check
@@ -185,12 +185,21 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 			return err
 		}
 		defer rc.Close()
+		// check for '..' in file name to avoid zip slip vulnerability
+		for _, f := range rc.File {
+			if strings.Contains(f.Name, "..") {
+				return fmt.Errorf("file name in zip cannot contain '..', but found %q", f.Name)
+			}
+		}
 		return installPluginFromFS(ctx, rc, force)
 	case notationplugin.MediaTypeGzip:
 		// when file is gzip, required to be tar
 		return installPluginFromTarGz(ctx, inputPath, force)
 	default:
 		// input file is not in zip or gzip, try install directly
+		if inputFileInfo.Size() >= osutil.MaxFileBytes {
+			return fmt.Errorf("file size reached the %d MiB size limit", osutil.MaxFileBytes/1024/1024)
+		}
 		installOpts := plugin.CLIInstallOptions{
 			PluginPath: inputPath,
 			Overwrite:  force,
@@ -213,6 +222,7 @@ func installPluginFromFS(ctx context.Context, pluginFS fs.FS, force bool) error 
 		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
+	var pluginFileSize int64
 	if err := fs.WalkDir(pluginFS, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -225,10 +235,14 @@ func installPluginFromFS(ctx context.Context, pluginFS fs.FS, force bool) error 
 		if err != nil {
 			return err
 		}
-		// only accept regular files.
-		// check for `..` in fName to avoid zip slip vulnerability
-		if !info.Mode().IsRegular() || strings.Contains(fName, "..") {
+		// only accept regular files
+		if !info.Mode().IsRegular() {
 			return nil
+		}
+		// check for plugin file size to avoid zip bomb vulnerability
+		pluginFileSize += info.Size()
+		if pluginFileSize >= osutil.MaxFileBytes {
+			return fmt.Errorf("total file size reached the %d MiB size limit", osutil.MaxFileBytes/1024/1024)
 		}
 		logger.Debugf("Extracting file %s...", fName)
 		rc, err := pluginFS.Open(path)
@@ -270,6 +284,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
+	var pluginFileSize int64
 	for {
 		header, err := tarReader.Next()
 		if err != nil {
@@ -278,10 +293,18 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 			}
 			return err
 		}
-		// only accept regular files.
-		// check for `..` in fName to avoid zip slip vulnerability
-		if !header.FileInfo().Mode().IsRegular() || strings.Contains(header.Name, "..") {
+		// check for '..' in file name to avoid zip slip vulnerability
+		if strings.Contains(header.Name, "..") {
+			return fmt.Errorf("file name in tar.gz cannot contain '..', but found %q", header.Name)
+		}
+		// only accept regular files
+		if !header.FileInfo().Mode().IsRegular() {
 			continue
+		}
+		// check for plugin file size to avoid zip bomb vulnerability
+		pluginFileSize += header.FileInfo().Size()
+		if pluginFileSize >= osutil.MaxFileBytes {
+			return fmt.Errorf("total file size reached the %d MiB size limit", osutil.MaxFileBytes/1024/1024)
 		}
 		fName := filepath.Base(header.Name)
 		logger.Debugf("Extracting file %s...", fName)

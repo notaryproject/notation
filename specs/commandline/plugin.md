@@ -52,7 +52,7 @@ Flags:
       --force              force the installation of the plugin
   -h, --help               help for install
       --sha256sum string   must match SHA256 of the plugin source, required when "--url" flag is set
-      --url                install plugin from an HTTPS URL. The default plugin download timeout is 10m0s
+      --url                install plugin from an HTTPS URL. The plugin download timeout is 10m0s
   -v, --verbose            verbose mode
 
 Aliases:
@@ -82,7 +82,7 @@ Aliases:
 
 ### Install a plugin from file system
 
-Install a Notation plugin from file system. Plugin file supports `.zip`, `.tar.gz`, and single plugin executable file format. The checksum validation is optional for this case. 
+Install a Notation plugin from the host file system. `.zip`, `.tar.gz`, and `single plugin executable file` formats are supported. In this scenario, SHA-256 checksum validation is optional.
 
 ```shell
 $ notation plugin install --file <file_path>
@@ -120,7 +120,7 @@ It is not recommended to install an older version. To force the installation, us
 ```
 ### Install a plugin from URL
 
-Install a Notation plugin from a remote location and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL, which means that the URL must start with "https://".
+Install a Notation plugin from a URL. Notation only supports HTTPS URL, which means that the URL must start with "https://". The URL MUST point to a resource in `.zip`, `.tar.gz`, or `single plugin executable file` format.  In this scenario, the SHA-256 checksum of the resource MUST be provided.
 
 ```shell
 $ notation plugin install --sha256sum <digest> --url <HTTPS_URL>
