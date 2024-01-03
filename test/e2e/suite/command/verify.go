@@ -155,4 +155,26 @@ var _ = Describe("notation verify", func() {
 				NoMatchErrKeyWords(HTTPSRequest)
 		})
 	})
+
+	It("incorrect NOTATION_CONFIG path", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			vhost.UpdateEnv(map[string]string{"NOTATION_CONFIG": "/not/exist"})
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchErrKeyWords("trust policy is not present")
+		})
+	})
+
+	It("correct NOTATION_CONFIG path", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			vhost.UpdateEnv(map[string]string{"NOTATION_CONFIG": vhost.AbsolutePath(NotationDirName)})
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
 })
