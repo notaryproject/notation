@@ -265,4 +265,38 @@ var _ = Describe("notation plugin sign", func() {
 			Expect(descriptors[0].Annotations).Should(HaveKeyWithValue("k1", "v1"))
 		})
 	})
+
+	It("incorrect NOTATION_LIBEXEC path", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			// setup incorrect NOTATION_LIBEXEC path
+			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
+			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
+				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
+				"--plugin-config", TamperAnnotation+"=k1=v1").
+				MatchKeyWords("plugin-key")
+
+			vhost.UpdateEnv(map[string]string{"NOTATION_LIBEXEC": "/not/exist"})
+
+			// run signing
+			notation.ExpectFailure().Exec("sign", artifact.ReferenceWithDigest(), "--key", "plugin-key", "-d").
+				MatchErrKeyWords("no such file or directory")
+		})
+	})
+
+	It("correct NOTATION_LIBEXEC path", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			// setup incorrect NOTATION_LIBEXEC path
+			vhost.SetOption(AddPlugin(NotationE2EPluginPath))
+			notation.Exec("key", "add", "plugin-key", "--id", "key1", "--plugin", "e2e-plugin",
+				"--plugin-config", string(CapabilityEnvelopeGenerator)+"=true",
+				"--plugin-config", TamperAnnotation+"=k1=v1").
+				MatchKeyWords("plugin-key")
+
+			vhost.UpdateEnv(map[string]string{"NOTATION_LIBEXEC": vhost.AbsolutePath(NotationDirName)})
+
+			// run signing
+			notation.Exec("sign", artifact.ReferenceWithDigest(), "--key", "plugin-key", "-d").
+				MatchKeyWords("Successfully signed")
+		})
+	})
 })
