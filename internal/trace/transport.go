@@ -95,7 +95,7 @@ func SetHTTPDebugLog(ctx context.Context, authClient *auth.Client) {
 		authClient.Client = &http.Client{}
 	}
 	if authClient.Client.Transport == nil {
-		authClient.Client.Transport = http.DefaultTransport.(*http.Transport).Clone()
+		authClient.Client.Transport = http.DefaultTransport
 	}
 	authClient.Client.Transport = NewTransport(authClient.Client.Transport)
 }
