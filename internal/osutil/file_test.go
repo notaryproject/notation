@@ -15,7 +15,6 @@ package osutil
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -23,11 +22,11 @@ import (
 )
 
 func validFileContent(t *testing.T, filename string, content []byte) {
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if bytes.Compare(content, b) != 0 {
+	if !bytes.Equal(content, b) {
 		t.Fatal("file content is not correct")
 	}
 }
@@ -259,4 +258,14 @@ func TestCopyToDir(t *testing.T) {
 		}
 		validFileContent(t, filepath.Join(destDir, "file.txt"), data)
 	})
+}
+
+func TestValidateChecksum(t *testing.T) {
+	expectedErrorMsg := "plugin SHA-256 checksum does not match user input. Expecting abcd123"
+	if err := ValidateSHA256Sum("./testdata/test", "abcd123"); err == nil || err.Error() != expectedErrorMsg {
+		t.Fatalf("expected err %s, but got %v", expectedErrorMsg, err)
+	}
+	if err := ValidateSHA256Sum("./testdata/test", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); err != nil {
+		t.Fatalf("expected nil err, but got %v", err)
+	}
 }
