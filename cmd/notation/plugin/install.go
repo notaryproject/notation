@@ -37,8 +37,7 @@ import (
 )
 
 const (
-	notationPluginTmpDir          = "notation-plugin"
-	notationPluginDownloadTmpFile = "notation-plugin-download"
+	notationPluginTmpDir = "notation-plugin"
 )
 
 type pluginInstallOpts struct {
@@ -136,14 +135,13 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		if pluginURL.Scheme != "https" {
 			return fmt.Errorf("failed to download plugin from URL: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
 		}
-		tmpFile, err := os.CreateTemp("", notationPluginDownloadTmpFile)
+		tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
 		if err != nil {
-			return fmt.Errorf("failed to create temporary file required for downloading plugin: %w", err)
+			return fmt.Errorf("failed to create temporary directory: %w", err)
 		}
-		defer os.Remove(tmpFile.Name())
-		defer tmpFile.Close()
+		defer os.RemoveAll(tmpDir)
 		fmt.Printf("Downloading plugin from %s\n", opts.pluginSource)
-		err = notationplugin.DownloadPluginFromURL(ctx, opts.pluginSource, tmpFile)
+		tmpFile, err := notationplugin.DownloadPluginFromURL(ctx, opts.pluginSource, tmpDir)
 		if err != nil {
 			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
 		}
@@ -199,6 +197,11 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 		// input file is not in zip or gzip, try install directly
 		if inputFileInfo.Size() >= osutil.MaxFileBytes {
 			return fmt.Errorf("file size reached the %d MiB size limit", osutil.MaxFileBytes/1024/1024)
+		}
+		// set permission to 0700 for plugin validation before installation.
+		// The eventual plugin permission is updated in notation-go.
+		if err := os.Chmod(inputPath, 0700); err != nil {
+			return err
 		}
 		installOpts := plugin.CLIInstallOptions{
 			PluginPath: inputPath,

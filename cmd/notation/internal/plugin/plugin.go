@@ -17,7 +17,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
+	"os"
+	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/notaryproject/notation/internal/httputil"
@@ -52,35 +56,53 @@ const (
 // URL
 const DownloadPluginFromURLTimeout = 10 * time.Minute
 
-// DownloadPluginFromURL downloads plugin source from url to a tmp file on file
-// system
-func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
+// DownloadPluginFromURL downloads plugin source from url to a tmp dir on file
+// system. On success, it returns the downloaded file.
+func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (*os.File, error) {
 	// Get the data
 	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: DownloadPluginFromURLTimeout})
 	req, err := http.NewRequest(http.MethodGet, pluginURL, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
+		return nil, fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
+	}
+	var downloadedFilename string
+	if cd := resp.Header.Get("Content-Disposition"); cd != "" {
+		_, params, err := mime.ParseMediaType(cd)
+		if err == nil { // if there's an error, use the filename in URL
+			downloadedFilename = params["filename"]
+		}
+	}
+	if downloadedFilename == "" {
+		downloadedFilename = path.Base(req.URL.Path)
 	}
 	// Write the body to file
+	tmpFilePath := filepath.Join(tmpDir, downloadedFilename)
+	tmpFile, err := os.Create(tmpFilePath)
+	if err != nil {
+		return nil, err
+	}
 	lr := &io.LimitedReader{
 		R: resp.Body,
 		N: MaxPluginSourceBytes,
 	}
 	_, err = io.Copy(tmpFile, lr)
 	if err != nil {
-		return err
+		tmpFile.Close()
+		return nil, err
 	}
 	if lr.N == 0 {
-		return fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
+		tmpFile.Close()
+		return nil, fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
 	}
-	return nil
+	tmpFile.Close()
+	return tmpFile, nil
 }
