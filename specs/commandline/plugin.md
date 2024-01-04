@@ -48,11 +48,11 @@ Usage:
 
 Flags:
   -d, --debug              debug mode
-      --file               install plugin from a file in file system
-      --force              force the installation of a plugin
+      --file               install plugin from a file on file system
+      --force              force the installation of the plugin
   -h, --help               help for install
-      --sha256sum string   must match SHA256 of the plugin source
-      --url                install plugin from an HTTPS URL
+      --sha256sum string   must match SHA256 of the plugin source, required when "--url" flag is set
+      --url                install plugin from an HTTPS URL. The plugin download timeout is 10m0s
   -v, --verbose            verbose mode
 
 Aliases:
@@ -68,7 +68,9 @@ Usage:
   notation plugin uninstall [flags] <plugin_name>
 
 Flags:
+  -d, --debug         debug mode
   -h, --help          help for remove
+  -v, --verbose       verbose mode
   -y, --yes           do not prompt for confirmation
 Aliases:
   uninstall, remove, rm
@@ -80,7 +82,7 @@ Aliases:
 
 ### Install a plugin from file system
 
-Install a Notation plugin from file system. Plugin file supports `.zip` and `.tar.gz` format. The checksum validation is optional for this case. 
+Install a Notation plugin from the host file system. `.zip`, `.tar.gz`, and `single plugin executable file` formats are supported. In this scenario, SHA-256 checksum validation is optional.
 
 ```shell
 $ notation plugin install --file <file_path>
@@ -95,13 +97,13 @@ Successfully installed plugin <plugin name>, version <x.y.z>
 If the entered plugin checksum digest doesn't match the published checksum, Notation will return an error message and will not start installation.
 
 ```console
-Error: plugin installation failed: plugin checksum does not match user input. Expecting <sha256sum>
+Error: plugin installation failed: plugin sha256sum does not match user input. Expecting <sha256sum>
 ```
 
 If the plugin version is higher than the existing plugin, Notation will start installation and overwrite the existing plugin.
 
 ```console
-Successfully installed plugin <plugin name>, updated the version from <x.y.z> to <a.b.c>
+Successfully updated plugin <plugin name> from version <x.y.z> to <a.b.c>
 ```
 
 If the plugin version is equal to the existing plugin, Notation will not start installation and return the following message. Users can use a flag `--force` to skip plugin version check and force the installation.
@@ -113,12 +115,12 @@ Error: plugin installation failed: plugin <plugin-name> with version <x.y.z> alr
 If the plugin version is lower than the existing plugin, Notation will return an error message and will not start installation. Users can use a flag `--force` to skip plugin version check and force the installation.
 
 ```console
-Error: failed to install plugin: <plugin-name>. The installing plugin version <a.b.c> is lower than the existing plugin version <x.y.z>.
+Error: plugin installation failed: failed to install plugin <plugin-name>. The installing plugin version <a.b.c> is lower than the existing plugin version <x.y.z>.
 It is not recommended to install an older version. To force the installation, use the "--force" option.
 ```
 ### Install a plugin from URL
 
-Install a Notation plugin from a remote location and verify the plugin checksum. Notation only supports installing plugins from an HTTPS URL, which means that the URL must start with "https://".
+Install a Notation plugin from a URL. Notation only supports HTTPS URL, which means that the URL must start with "https://". The URL MUST point to a resource in `.zip`, `.tar.gz`, or `single plugin executable file` format.  In this scenario, the SHA-256 checksum of the resource MUST be provided.
 
 ```shell
 $ notation plugin install --sha256sum <digest> --url <HTTPS_URL>
@@ -134,7 +136,7 @@ Upon successful execution, the plugin is uninstalled from the plugin directory.
 
 ```shell
 Are you sure you want to uninstall plugin "<plugin name>"? [y/n] y
-Successfully uninstalled <plugin_name> 
+Successfully uninstalled plugin <plugin_name> 
 ```
 
 Uninstall the plugin without prompt for confirmation.
@@ -147,7 +149,7 @@ If the plugin is not found, an error is returned showing the syntax for the plug
 
 ```shell
 Error: unable to find plugin <plugin_name>. 
-To view a list of installed plugins, use "notation plugin list"
+To view a list of installed plugins, use `notation plugin list`
 ```
 
 ### List installed plugins
