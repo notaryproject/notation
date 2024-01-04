@@ -26,7 +26,7 @@ import (
 )
 
 // MaxFileBytes is the maximum file bytes.
-// When used, the value should strictly less than this number.
+// When used, the value should be strictly less than this number.
 var MaxFileBytes int64 = 256 * 1024 * 1024 // 256 MiB
 
 // WriteFile writes to a path with all parent directories created.
@@ -104,25 +104,18 @@ func IsRegularFile(path string) (bool, error) {
 }
 
 // CopyFromReaderToDir copies file from src to dst where dst is the destination
-// file path. The file size must be less than 256 MiB.
+// file path.
 func CopyFromReaderToDir(src io.Reader, dst string, perm fs.FileMode) error {
 	dstFile, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	lr := &io.LimitedReader{
-		R: src,
-		N: MaxFileBytes,
-	}
-	if _, err := io.Copy(dstFile, lr); err != nil || lr.N == 0 {
-		_ = dstFile.Close()
-		if err != nil {
-			return err
-		}
-		return fmt.Errorf("file reaches the %d MiB size limit", MaxFileBytes)
+	if _, err := io.Copy(dstFile, src); err != nil {
+		dstFile.Close()
+		return err
 	}
 	if err := dstFile.Chmod(perm); err != nil {
-		_ = dstFile.Close()
+		dstFile.Close()
 		return err
 	}
 	return dstFile.Close()
@@ -157,7 +150,7 @@ func ValidateSHA256Sum(path string, checksum string) error {
 	sha256sum := sha256Hash.Sum(nil)
 	enc := hex.EncodeToString(sha256sum[:])
 	if !strings.EqualFold(enc, checksum) {
-		return fmt.Errorf("plugin checksum does not match user input. Expecting %s", checksum)
+		return fmt.Errorf("plugin SHA-256 checksum does not match user input. Expecting %s", checksum)
 	}
 	return nil
 }

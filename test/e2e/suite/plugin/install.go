@@ -14,6 +14,8 @@
 package plugin
 
 import (
+	"path/filepath"
+
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 	. "github.com/onsi/ginkgo/v2"
@@ -42,7 +44,7 @@ var _ = Describe("notation plugin install", func() {
 	It("with missing plugin source", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install").
-				MatchErrContent("Error: missing plugin source\n")
+				MatchErrContent("Error: missing plugin source location\n")
 		})
 	})
 
@@ -60,24 +62,52 @@ var _ = Describe("notation plugin install", func() {
 		})
 	})
 
+	It("with zip bomb single file exceeds 256 MiB size limit in zip format", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "large_file_zip.zip"), "-v").
+				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
+		})
+	})
+
+	It("with zip bomb single file exceeds 256 MiB size limit in tar.gz format", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "large_file_tarGz.tar.gz"), "-v").
+				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
+		})
+	})
+
+	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip"), "-v").
+				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
+		})
+	})
+
+	It("with zip slip", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_slip.zip"), "-v").
+				MatchErrContent("Error: plugin installation failed: file name in zip cannot contain '..', but found \"../../../../../../../../tmp/evil.txt\"\n")
+		})
+	})
+
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with plugin executable file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginPath).
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
 
 	It("with plugin already installed", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.ExpectFailure().Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
 				MatchErrContent("Error: plugin installation failed: plugin e2e-plugin with version 1.0.0 already exists\n")
@@ -87,17 +117,17 @@ var _ = Describe("notation plugin install", func() {
 	It("with plugin already installed but force install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
-				MatchContent("Succussefully installed plugin e2e-plugin, version 1.0.0\n")
+				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "--force").
-				MatchContent("Succussefully installed plugin e2e-plugin, updated the version from 1.0.0 to 1.0.0\n")
+				MatchContent("Successfully updated plugin e2e-plugin from version 1.0.0 to 1.0.0\n")
 		})
 	})
 
 	It("with valid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("plugin", "install", "--url", PluginURL, "--sha256sum", PluginChecksum).
-				MatchKeyWords("Succussefully installed plugin e2e-test-plugin, version 0.1.0\n")
+				MatchKeyWords("Successfully installed plugin e2e-test-plugin, version 0.1.0\n")
 		})
 	})
 
@@ -105,6 +135,13 @@ var _ = Describe("notation plugin install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("plugin", "install", "--url", PluginURL).
 				MatchErrContent("Error: installing from URL requires non-empty SHA256 checksum of the plugin source\n")
+		})
+	})
+
+	It("with valid plugin URL but mismatched SHA-256 checksum", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("plugin", "install", "--url", PluginURL, "--sha256sum", "abcd").
+				MatchErrContent("Error: plugin installation failed: plugin SHA-256 checksum does not match user input. Expecting abcd\n")
 		})
 	})
 

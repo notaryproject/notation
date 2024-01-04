@@ -87,7 +87,7 @@ func uninstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	}
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	if err := mgr.Uninstall(ctx, pluginName); err != nil {
-		return fmt.Errorf("failed to uninstall %s: %w", pluginName, err)
+		return fmt.Errorf("failed to uninstall plugin %s: %w", pluginName, err)
 	}
 	fmt.Printf("Successfully uninstalled plugin %s\n", pluginName)
 	return nil

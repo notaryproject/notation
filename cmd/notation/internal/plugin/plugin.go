@@ -52,7 +52,8 @@ const (
 // URL
 const DownloadPluginFromURLTimeout = 10 * time.Minute
 
-// DownloadPluginFromURL downloads plugin file from url to a tmp directory
+// DownloadPluginFromURL downloads plugin source from url to a tmp file on file
+// system
 func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Writer) error {
 	// Get the data
 	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: DownloadPluginFromURLTimeout})
@@ -79,7 +80,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 		return err
 	}
 	if lr.N == 0 {
-		return fmt.Errorf("%s %q: https response reaches the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes)
+		return fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
 	}
 	return nil
 }

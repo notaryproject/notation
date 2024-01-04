@@ -261,11 +261,11 @@ func TestCopyToDir(t *testing.T) {
 }
 
 func TestValidateChecksum(t *testing.T) {
-	expectedErrorMsg := "plugin checksum does not match user input. Expecting abcd123"
+	expectedErrorMsg := "plugin SHA-256 checksum does not match user input. Expecting abcd123"
 	if err := ValidateSHA256Sum("./testdata/test", "abcd123"); err == nil || err.Error() != expectedErrorMsg {
-		t.Fatalf("expected err %s, got %v", expectedErrorMsg, err)
+		t.Fatalf("expected err %s, but got %v", expectedErrorMsg, err)
 	}
 	if err := ValidateSHA256Sum("./testdata/test", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); err != nil {
-		t.Fatalf("expected nil err, got %v", err)
+		t.Fatalf("expected nil err, but got %v", err)
 	}
 }
