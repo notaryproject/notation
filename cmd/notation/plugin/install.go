@@ -138,7 +138,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 		tmpDir, err := os.MkdirTemp("", pluginDownloadTmpDir)
 		if err != nil {
-			return fmt.Errorf("failed to create temporary directory: %w", err)
+			return fmt.Errorf("failed to create temporary directory required for downloading plugin: %w", err)
 		}
 		defer os.RemoveAll(tmpDir)
 		fmt.Printf("Downloading plugin from %s\n", opts.pluginSource)
@@ -147,7 +147,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
 		}
 		fmt.Println("Download completed")
-		if err := installPlugin(ctx, tmpFile.Name(), opts.inputChecksum, opts.force); err != nil {
+		if err := installPlugin(ctx, tmpFile, opts.inputChecksum, opts.force); err != nil {
 			return fmt.Errorf("plugin installation failed: %w", err)
 		}
 		return nil
@@ -223,7 +223,7 @@ func installPluginFromFS(ctx context.Context, pluginFS fs.FS, force bool) error 
 	// extracting all regular files from root into tmpDir
 	tmpDir, err := os.MkdirTemp("", pluginDecompressTmpDir)
 	if err != nil {
-		return fmt.Errorf("failed to create temporary directory: %w", err)
+		return fmt.Errorf("failed to create temporary directory required for extracting plugin files: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 	var pluginFileSize int64
@@ -285,7 +285,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 	// extracting all regular files into tmpDir
 	tmpDir, err := os.MkdirTemp("", pluginDecompressTmpDir)
 	if err != nil {
-		return fmt.Errorf("failed to create temporary directory: %w", err)
+		return fmt.Errorf("failed to create temporary directory required for extracting plugin files: %w", err)
 	}
 	defer os.RemoveAll(tmpDir)
 	var pluginFileSize int64

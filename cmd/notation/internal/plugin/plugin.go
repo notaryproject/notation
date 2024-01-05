@@ -58,21 +58,21 @@ const DownloadPluginFromURLTimeout = 10 * time.Minute
 
 // DownloadPluginFromURL downloads plugin source from url to a tmp dir on file
 // system. On success, it returns the downloaded file.
-func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (*os.File, error) {
+func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (string, error) {
 	// Get the data
 	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: DownloadPluginFromURLTimeout})
 	req, err := http.NewRequest(http.MethodGet, pluginURL, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer resp.Body.Close()
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
+		return "", fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
 	}
 	// get the downloaded file name
 	var downloadedFilename string
@@ -89,7 +89,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (*os.F
 	tmpFilePath := filepath.Join(tmpDir, downloadedFilename)
 	tmpFile, err := os.Create(tmpFilePath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	lr := &io.LimitedReader{
 		R: resp.Body,
@@ -98,12 +98,12 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (*os.F
 	_, err = io.Copy(tmpFile, lr)
 	if err != nil {
 		tmpFile.Close()
-		return nil, err
+		return "", err
 	}
 	if lr.N == 0 {
 		tmpFile.Close()
-		return nil, fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
+		return "", fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
 	}
 	tmpFile.Close()
-	return tmpFile, nil
+	return tmpFile.Name(), nil
 }
