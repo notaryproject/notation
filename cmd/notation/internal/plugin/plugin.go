@@ -83,7 +83,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (*os.F
 		}
 	}
 	if downloadedFilename == "" {
-		downloadedFilename = path.Base(req.URL.Path)
+		downloadedFilename = path.Base(path.Clean(req.URL.Path))
 	}
 	// Write the body to file
 	tmpFilePath := filepath.Join(tmpDir, downloadedFilename)
