@@ -37,7 +37,8 @@ import (
 )
 
 const (
-	notationPluginTmpDir = "notation-plugin"
+	pluginDownloadTmpDir   = "notation-plugin-download"
+	pluginDecompressTmpDir = "notation-plugin-decompress"
 )
 
 type pluginInstallOpts struct {
@@ -135,7 +136,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		if pluginURL.Scheme != "https" {
 			return fmt.Errorf("failed to download plugin from URL: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
 		}
-		tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
+		tmpDir, err := os.MkdirTemp("", pluginDownloadTmpDir)
 		if err != nil {
 			return fmt.Errorf("failed to create temporary directory: %w", err)
 		}
@@ -198,9 +199,9 @@ func installPlugin(ctx context.Context, inputPath string, inputChecksum string, 
 		if inputFileInfo.Size() >= osutil.MaxFileBytes {
 			return fmt.Errorf("file size reached the %d MiB size limit", osutil.MaxFileBytes/1024/1024)
 		}
-		// set permission to 0700 for plugin validation before installation.
-		// The eventual plugin permission is updated in notation-go.
-		if err := os.Chmod(inputPath, 0700); err != nil {
+		// set permission for plugin validation before installation.
+		// The eventual plugin permission is determined in notation-go.
+		if err := os.Chmod(inputPath, inputFileInfo.Mode()|os.FileMode(0700)); err != nil {
 			return err
 		}
 		installOpts := plugin.CLIInstallOptions{
@@ -220,7 +221,7 @@ func installPluginFromFS(ctx context.Context, pluginFS fs.FS, force bool) error 
 	logger := log.GetLogger(ctx)
 	root := "."
 	// extracting all regular files from root into tmpDir
-	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
+	tmpDir, err := os.MkdirTemp("", pluginDecompressTmpDir)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}
@@ -282,7 +283,7 @@ func installPluginFromTarGz(ctx context.Context, tarGzPath string, force bool) e
 	defer decompressedStream.Close()
 	tarReader := tar.NewReader(decompressedStream)
 	// extracting all regular files into tmpDir
-	tmpDir, err := os.MkdirTemp("", notationPluginTmpDir)
+	tmpDir, err := os.MkdirTemp("", pluginDecompressTmpDir)
 	if err != nil {
 		return fmt.Errorf("failed to create temporary directory: %w", err)
 	}

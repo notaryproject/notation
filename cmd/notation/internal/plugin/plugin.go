@@ -74,6 +74,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (*os.F
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
 	}
+	// get the downloaded file name
 	var downloadedFilename string
 	if cd := resp.Header.Get("Content-Disposition"); cd != "" {
 		_, params, err := mime.ParseMediaType(cd)
