@@ -57,7 +57,7 @@ const (
 const DownloadPluginFromURLTimeout = 10 * time.Minute
 
 // DownloadPluginFromURL downloads plugin source from url to a tmp dir on file
-// system. On success, it returns the downloaded file.
+// system. On success, it returns the downloaded file path.
 func DownloadPluginFromURL(ctx context.Context, pluginURL, tmpDir string) (string, error) {
 	// Get the data
 	client := httputil.NewAuthClient(ctx, &http.Client{Timeout: DownloadPluginFromURLTimeout})
