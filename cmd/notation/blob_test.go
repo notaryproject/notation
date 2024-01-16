@@ -24,10 +24,10 @@ import (
 )
 
 func TestBlobSignCommand_BasicArgs(t *testing.T) {
-	opts := &signOpts{}
+	opts := &blobOpts{}
 	command := blobSignCommand(opts)
-	expected := &signOpts{
-		reference: "ref",
+	expected := &blobOpts{
+		blobPath: "path",
 		SecureFlagOpts: SecureFlagOpts{
 			Username: "user",
 			Password: "password",
@@ -38,7 +38,7 @@ func TestBlobSignCommand_BasicArgs(t *testing.T) {
 		},
 	}
 	if err := command.ParseFlags([]string{
-		expected.reference,
+		expected.blobPath,
 		"-u", expected.Username,
 		"--password", expected.Password,
 		"--key", expected.Key}); err != nil {
@@ -48,15 +48,15 @@ func TestBlobSignCommand_BasicArgs(t *testing.T) {
 		t.Fatalf("Parse args failed: %v", err)
 	}
 	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 	}
 }
 
 func TestBlobSignCommand_MoreArgs(t *testing.T) {
-	opts := &signOpts{}
+	opts := &blobOpts{}
 	command := blobSignCommand(opts)
-	expected := &signOpts{
-		reference: "ref",
+	expected := &blobOpts{
+		blobPath: "path",
 		SecureFlagOpts: SecureFlagOpts{
 			Username:         "user",
 			Password:         "password",
@@ -66,33 +66,31 @@ func TestBlobSignCommand_MoreArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
 		},
-		expiry:            24 * time.Hour,
-		allowReferrersAPI: true,
+		expiry: 24 * time.Hour,
 	}
 	if err := command.ParseFlags([]string{
-		expected.reference,
+		expected.blobPath,
 		"-u", expected.Username,
 		"-p", expected.Password,
 		"--key", expected.Key,
 		"--insecure-registry",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
-		"--expiry", expected.expiry.String(),
-		"--allow-referrers-api"}); err != nil {
+		"--expiry", expected.expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse args failed: %v", err)
 	}
 	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 	}
 }
 
 func TestBlobSignCommand_CorrectConfig(t *testing.T) {
-	opts := &signOpts{}
+	opts := &blobOpts{}
 	command := blobSignCommand(opts)
-	expected := &signOpts{
-		reference: "ref",
+	expected := &blobOpts{
+		blobPath: "path",
 		SignerFlagOpts: cmd.SignerFlagOpts{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
@@ -101,7 +99,7 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 		pluginConfig: []string{"key0=val0", "key1=val1"},
 	}
 	if err := command.ParseFlags([]string{
-		expected.reference,
+		expected.blobPath,
 		"--key", expected.Key,
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
@@ -113,7 +111,7 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 		t.Fatalf("Parse args failed: %v", err)
 	}
 	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		t.Fatalf("Expect sign blob opts: %v, got: %v", expected, opts)
 	}
 	config, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
@@ -134,11 +132,11 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 	}
 }
 
-func TestBlobSignCommmand_OnDemandKeyOptions(t *testing.T) {
-	opts := &signOpts{}
+func TestBlobSignCommand_OnDemandKeyOptions(t *testing.T) {
+	opts := &blobOpts{}
 	command := blobSignCommand(opts)
-	expected := &signOpts{
-		reference: "ref",
+	expected := &blobOpts{
+		blobPath: "path",
 		SecureFlagOpts: SecureFlagOpts{
 			Username: "user",
 			Password: "password",
@@ -150,7 +148,7 @@ func TestBlobSignCommmand_OnDemandKeyOptions(t *testing.T) {
 		},
 	}
 	if err := command.ParseFlags([]string{
-		expected.reference,
+		expected.blobPath,
 		"-u", expected.Username,
 		"--password", expected.Password,
 		"--id", expected.KeyID,
@@ -161,16 +159,16 @@ func TestBlobSignCommmand_OnDemandKeyOptions(t *testing.T) {
 		t.Fatalf("Parse args failed: %v", err)
 	}
 	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+		t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 	}
 }
 
-func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
+func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 	t.Run("error when using id and plugin options with key", func(t *testing.T) {
-		opts := &signOpts{}
+		opts := &blobOpts{}
 		command := blobSignCommand(opts)
-		expected := &signOpts{
-			reference: "ref",
+		expected := &blobOpts{
+			blobPath: "path",
 			SecureFlagOpts: SecureFlagOpts{
 				Username: "user",
 				Password: "password",
@@ -183,7 +181,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			},
 		}
 		if err := command.ParseFlags([]string{
-			expected.reference,
+			expected.blobPath,
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--id", expected.KeyID,
@@ -195,7 +193,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			t.Fatalf("Parse args failed: %v", err)
 		}
 		if !reflect.DeepEqual(*expected, *opts) {
-			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+			t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 		}
 		err := command.ValidateFlagGroups()
 		if err == nil || err.Error() != "if any flags in the group [key id] are set none of the others can be; [id key] were all set" {
@@ -203,10 +201,10 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		}
 	})
 	t.Run("error when using key and id options", func(t *testing.T) {
-		opts := &signOpts{}
-		command := signCommand(opts)
-		expected := &signOpts{
-			reference: "ref",
+		opts := &blobOpts{}
+		command := blobSignCommand(opts)
+		expected := &blobOpts{
+			blobPath: "path",
 			SecureFlagOpts: SecureFlagOpts{
 				Username: "user",
 				Password: "password",
@@ -218,7 +216,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			},
 		}
 		if err := command.ParseFlags([]string{
-			expected.reference,
+			expected.blobPath,
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--id", expected.KeyID,
@@ -229,7 +227,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			t.Fatalf("Parse args failed: %v", err)
 		}
 		if !reflect.DeepEqual(*expected, *opts) {
-			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+			t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 		}
 		err := command.ValidateFlagGroups()
 		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [plugin]" {
@@ -237,10 +235,10 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		}
 	})
 	t.Run("error when using key and plugin options", func(t *testing.T) {
-		opts := &signOpts{}
-		command := signCommand(opts)
-		expected := &signOpts{
-			reference: "ref",
+		opts := &blobOpts{}
+		command := blobSignCommand(opts)
+		expected := &blobOpts{
+			blobPath: "path",
 			SecureFlagOpts: SecureFlagOpts{
 				Username: "user",
 				Password: "password",
@@ -252,7 +250,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			},
 		}
 		if err := command.ParseFlags([]string{
-			expected.reference,
+			expected.blobPath,
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--plugin", expected.PluginName,
@@ -263,7 +261,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			t.Fatalf("Parse args failed: %v", err)
 		}
 		if !reflect.DeepEqual(*expected, *opts) {
-			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+			t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 		}
 		err := command.ValidateFlagGroups()
 		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [id]" {
@@ -271,10 +269,10 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		}
 	})
 	t.Run("error when using id option and not plugin", func(t *testing.T) {
-		opts := &signOpts{}
-		command := signCommand(opts)
-		expected := &signOpts{
-			reference: "ref",
+		opts := &blobOpts{}
+		command := blobSignCommand(opts)
+		expected := &blobOpts{
+			blobPath: "path",
 			SecureFlagOpts: SecureFlagOpts{
 				Username: "user",
 				Password: "password",
@@ -285,7 +283,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			},
 		}
 		if err := command.ParseFlags([]string{
-			expected.reference,
+			expected.blobPath,
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--id", expected.KeyID}); err != nil {
@@ -295,7 +293,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			t.Fatalf("Parse args failed: %v", err)
 		}
 		if !reflect.DeepEqual(*expected, *opts) {
-			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+			t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 		}
 		err := command.ValidateFlagGroups()
 		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [plugin]" {
@@ -303,10 +301,10 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		}
 	})
 	t.Run("error when using plugin option and not id", func(t *testing.T) {
-		opts := &signOpts{}
-		command := signCommand(opts)
-		expected := &signOpts{
-			reference: "ref",
+		opts := &blobOpts{}
+		command := blobSignCommand(opts)
+		expected := &blobOpts{
+			blobPath: "path",
 			SecureFlagOpts: SecureFlagOpts{
 				Username: "user",
 				Password: "password",
@@ -317,7 +315,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			},
 		}
 		if err := command.ParseFlags([]string{
-			expected.reference,
+			expected.blobPath,
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--plugin", expected.PluginName}); err != nil {
@@ -327,7 +325,7 @@ func TestBlobSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			t.Fatalf("Parse args failed: %v", err)
 		}
 		if !reflect.DeepEqual(*expected, *opts) {
-			t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
+			t.Fatalf("Expect blob sign opts: %v, got: %v", expected, opts)
 		}
 		err := command.ValidateFlagGroups()
 		if err == nil || err.Error() != "if any flags in the group [id plugin] are set they must all be set; missing [id]" {
@@ -347,21 +345,19 @@ func TestBlobSignCommand_MissingArgs(t *testing.T) {
 }
 
 func TestBlobInspectCommand_SecretsFromArgs(t *testing.T) {
-	opts := &inspectOpts{}
+	opts := &blobOpts{}
 	command := blobInspectCommand(opts)
-	expected := &inspectOpts{
-		reference: "ref",
+	expected := &blobOpts{
+		signaturePath: "path",
 		SecureFlagOpts: SecureFlagOpts{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
 		},
-		outputFormat:  cmd.OutputPlaintext,
-		maxSignatures: 100,
-	}
+		outputFormat: cmd.OutputPlaintext}
 	if err := command.ParseFlags([]string{
+		expected.signaturePath,
 		"--password", expected.Password,
-		expected.reference,
 		"-u", expected.Username,
 		"--insecure-registry",
 		"--output", "text"}); err != nil {
@@ -370,35 +366,34 @@ func TestBlobInspectCommand_SecretsFromArgs(t *testing.T) {
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if *opts != *expected {
-		t.Fatalf("Expect inspect opts: %v, got: %v", expected, opts)
+	if !reflect.DeepEqual(*expected, *opts) {
+		t.Fatalf("Expect blob inspect opts: %v, got: %v", expected, opts)
 	}
 }
 
 func TestBlobInspectCommand_SecretsFromEnv(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	t.Setenv(defaultPasswordEnv, "password")
-	opts := &inspectOpts{}
-	expected := &inspectOpts{
-		reference: "ref",
+	opts := &blobOpts{}
+	expected := &blobOpts{
+		signaturePath: "path",
 		SecureFlagOpts: SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},
-		outputFormat:  cmd.OutputJSON,
-		maxSignatures: 100,
+		outputFormat: cmd.OutputJSON,
 	}
 	command := blobInspectCommand(opts)
 	if err := command.ParseFlags([]string{
-		expected.reference,
+		expected.signaturePath,
 		"--output", "json"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if *opts != *expected {
-		t.Fatalf("Expect inspect opts: %v, got: %v", expected, opts)
+	if !reflect.DeepEqual(*expected, *opts) {
+		t.Fatalf("Expect blob inspect opts: %v, got: %v", expected, opts)
 	}
 }
 

@@ -13,56 +13,87 @@
 
 package main
 
+//Verify this
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation-core-go/signature"
+	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/plugin/proto"
+	"github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"os"
+	"strings"
+	"time"
 )
 
-func blobSignCommand(opts *signOpts) *cobra.Command {
+type blobOpts struct {
+	cmd.LoggingFlagOpts
+	cmd.SignerFlagOpts
+	SecureFlagOpts
+	expiry        time.Duration
+	desc          ocispec.Descriptor
+	sigRepo       registry.Repository
+	pluginConfig  []string
+	userMetadata  []string
+	blobPath      string
+	signaturePath string
+	outputFormat  string
+}
+
+func blobSignCommand(opts *blobOpts) *cobra.Command {
 	if opts == nil {
-		opts = &signOpts{
-			inputType: inputTypeRegistry, // remote registry by default
-		}
+		opts = &blobOpts{}
 	}
-	longMessage := `Sign artifacts
+	longMessage := `Sign BLOB artifacts
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
 Example - Sign a BLOB artifact using the default signing key, with the default JWS envelope, and use BLOB image manifest to store the signature:
-  notation blob sign <registry>/<repository>@<digest>
+  notation blob sign <blob_path>
+
+Example - Sign a BLOB artifact by generating the signature in a particular directory: 
+ notation blob sign --signature-directory <directory_path> <blob_path>
+
+Example - Sign a BLOB artifact and skip user confirmations when overwriting existing signature:
+  notation blob sign --force <blob_path> 
 
 Example - Sign a BLOB artifact using the default signing key, with the COSE envelope:
-  notation blob sign --signature-format cose <registry>/<repository>@<digest> 
+  notation blob sign --signature-format cose <blob_path>
 
-Example - Sign a BLOB artifact with a specified plugin and signing key stored in KMS 
-  notation blob sign --plugin <plugin_name> --id <remote_key_id> <registry>/<repository>@<digest>
+Example - Sign a BLOB artifact with a specified plugin and signing key stored in KMS: 
+  notation blob sign --plugin <plugin_name> --id <remote_key_id> <blob_path>
 
-Example - Sign a BLOB artifact using a specified key
-  notation blob sign --key <key_name> <registry>/<repository>@<digest>
+Example - Sign a BLOB artifact and add a user metadata to payload: 
+  notation blob sign --user-metadata <metadata> <blob_path>
 
-Example - Sign a BLOB artifact identified by a tag (Notation will resolve tag to digest)
-  notation blob sign <registry>/<repository>:<tag>
+Example - Sign a BLOB artifact using a specified media type: 
+  notation blob sign --media-type <media type> <blob_path>
 
-Example - Sign a BLOB artifact stored in a registry and specify the signature expiry duration, for example 24 hours
-  notation blob sign --expiry 24h <registry>/<repository>@<digest>
+Example - Sign a BLOB artifact using a specified key: 
+  notation blob sign --key <key_name> <blob_path>
+
+Example - Sign a BLOB artifact and specify the signature expiry duration, for example 24 hours: 
+  notation blob sign --expiry 24h <blob_path>
 `
 
 	command := &cobra.Command{
-		Use:   "blob sign [flags] <reference>",
-		Short: "Sign artifacts",
+		Use:   "blob sign [flags] <blobPath>",
+		Short: "Sign BLOB artifacts",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference")
+				return errors.New("missing blob_path")
 			}
-			opts.reference = args[0]
+			opts.blobPath = args[0]
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSign(cmd, opts)
+			return runBlobSign(cmd, opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
@@ -71,56 +102,131 @@ Example - Sign a BLOB artifact stored in a registry and specify the signature ex
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
+	//PlaceHolder for MediaType and Signature-directory
 	return command
 }
 
-func blobInspectCommand(opts *inspectOpts) *cobra.Command {
+func runBlobSign(command *cobra.Command, cmdOpts *blobOpts) error {
+	// set log level
+	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
+
+	// initialize
+	signer, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	if err != nil {
+		return err
+	}
+	blobOpts, err := prepareBlobSigningOpts(ctx, cmdOpts)
+	if err != nil {
+		return err
+	}
+
+	// core process
+	err = notation.BlobSign(ctx, signer, blobOpts) //PlaceHolder
+	if err != nil {
+		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
+		if errors.As(err, &errorPushSignatureFailed) && strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
+			fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
+			// write out
+			fmt.Println("Successfully signed")
+			return nil
+		}
+		return err
+	}
+	fmt.Println("Successfully signed")
+	return nil
+}
+
+func prepareBlobSigningOpts(ctx context.Context, opts *blobOpts) (notation.SignOptions, error) {
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	if err != nil {
+		return notation.SignOptions{}, err
+	}
+	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	if err != nil {
+		return notation.SignOptions{}, err
+	}
+	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	if err != nil {
+		return notation.SignOptions{}, err
+	}
+	blobOpts := notation.SignOptions{
+		SignerSignOptions: notation.SignerSignOptions{
+			SignatureMediaType: mediaType,
+			ExpiryDuration:     opts.expiry,
+			PluginConfig:       pluginConfig,
+		},
+		UserMetadata: userMetadata,
+	}
+	return blobOpts, nil
+}
+
+func blobInspectCommand(opts *blobOpts) *cobra.Command {
 	if opts == nil {
-		opts = &inspectOpts{}
+		opts = &blobOpts{}
 	}
 	longMessage := `Inspect all signatures associated with the signed artifact.
 
-Example - Inspect signatures on an BLOB artifact identified by a digest:
-  notation blob inspect <registry>/<repository>@<digest>
+Example - Inspect signatures on an BLOB artifact:
+  notation blob inspect <signature_path>
 
-Example - Inspect signatures on an BLOB artifact identified by a tag  (Notation will resolve tag to digest):
-  notation blob inspect <registry>/<repository>:<tag>
+Example - Inspect signatures on an BLOB artifact output as json:
+  notation blob inspect --output json <signature_path>
+`
 
-Example - Inspect signatures on an BLOB artifact identified by a digest and output as json:
-  notation blob inspect --output json <registry>/<repository>@<digest>
-`
-	experimentalExamples := `
-Example - [Experimental] Inspect signatures on an BLOB artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
-  notation blob inspect --allow-referrers-api <registry>/<repository>@<digest>
-`
 	command := &cobra.Command{
-		Use:   "blob inspect [reference]",
+		Use:   "blob inspect [signaturePath]",
 		Short: "Inspect all signatures associated with the signed artifact",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing reference")
+				return errors.New("missing signature_path")
 			}
-			opts.reference = args[0]
+			opts.signaturePath = args[0]
 			return nil
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.maxSignatures <= 0 {
-				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
-			}
-			return runInspect(cmd, opts)
+			return runBlobInspect(cmd, opts)
 		},
 	}
 
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
-	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
+}
+
+func runBlobInspect(command *cobra.Command, opts *blobOpts) error {
+	// set log level
+	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+
+	if opts.outputFormat != cmd.OutputJSON && opts.outputFormat != cmd.OutputPlaintext {
+		return fmt.Errorf("unrecognized output format %s", opts.outputFormat)
+	}
+
+	output := inspectOutput{MediaType: opts.desc.MediaType, Signatures: []signatureOutput{}}
+
+	sigBlob, _, _ := opts.sigRepo.FetchSignatureBlob(ctx, opts.desc)
+	sigEnvelope, _ := signature.ParseEnvelope(opts.desc.MediaType, sigBlob)
+	envelopeContent, _ := sigEnvelope.Content()
+	signedArtifactDesc, _ := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
+	signatureAlgorithm, _ := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
+
+	sig := signatureOutput{
+		MediaType:             opts.desc.MediaType,
+		Digest:                opts.desc.Digest.String(),
+		SignatureAlgorithm:    string(signatureAlgorithm),
+		SignedAttributes:      getSignedAttributes(opts.outputFormat, envelopeContent),
+		UserDefinedAttributes: signedArtifactDesc.Annotations,
+		UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
+		Certificates:          getCertificates(opts.outputFormat, envelopeContent),
+		SignedArtifact:        *signedArtifactDesc,
+	}
+
+	// clearing annotations from the SignedArtifact field since they're already
+	// displayed as UserDefinedAttributes
+	sig.SignedArtifact.Annotations = nil
+
+	output.Signatures = append(output.Signatures, sig)
+
+	return nil
 }
