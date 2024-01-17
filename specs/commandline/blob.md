@@ -32,7 +32,7 @@ Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-  -d,  --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
+  --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -84,7 +84,7 @@ Flags:
 
 ## Usage
 
-## Produce detached blob signatures
+## Produce blob signatures
 
 ### Sign a blob by adding a new key
 
@@ -122,7 +122,7 @@ Successfully signed /tmp/my-blob.bin
 Signature file overwritten to ./my-blob.bin.sig.jws
 ```
 
-### Sign a blob with on-demand remote key
+### Sign a blob with a plugin
 
 ```shell
 notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
@@ -243,7 +243,7 @@ notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 ```
 
 ## Verify blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file with Policies scoped to blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file with Policies for blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The Policy named "blob-verification-policy" is for verifying blob artifacts signed by Wabbit Networks and scoped to `blob-verification-selector`.
 - Policy named "skip-blob-verification-policy" is for skipping verification on blob artifacts scoped to `skip-blob-verification-selector`.
@@ -324,7 +324,7 @@ An example of output messages for a successful verification:
 ```text
 Successfully verified signature /tmp/my-blob.bin.sig.jws
 
-The blob signature is having the following user metadata.
+The signature contains the following user metadata:
 
 KEY                         VALUE
 io.wabbit-networks.buildId  123
@@ -357,8 +357,7 @@ The blob is of media type `application/my-media-octet-stream`.
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed: The blob's media type `application/xyz` and not matching `application/my-media-octet-stream`.
-```
+Error: Signature verification failed due to a mismatch in the blob's media type 'application/xyz' and the expected type 'application/my-media-octet-stream'.```
 
 ### Verify the signature using a policy scope
 
