@@ -14,6 +14,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -44,6 +45,11 @@ func listPlugins(command *cobra.Command) error {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	pluginNames, err := mgr.List(command.Context())
 	if err != nil {
+		var errPluginDirWalk plugin.PluginDirectoryWalkError
+		if errors.As(err, &errPluginDirWalk) {
+			pluginDir, _ := dir.PluginFS().SysPath("")
+			return fmt.Errorf("%w.\nPlease check if the current user has access to the plugin directory: %s", errPluginDirWalk, pluginDir)
+		}
 		return err
 	}
 
