@@ -1,5 +1,7 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
+github.com/JeyJeyGao/notation-go v1.0.0-rc.6.0.20240118060847-73d28729ce20 h1:+OxueSitwXs2a9zKBLP6feLTPNmPt4xwdXaktfSDjz4=
+github.com/JeyJeyGao/notation-go v1.0.0-rc.6.0.20240118060847-73d28729ce20/go.mod h1:/ddbxt03OnWzfb/jZD6STe/gbuWhFaYLWCkq1BkgUCQ=
 github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74 h1:Kk6a4nehpJ3UuJRqlA3JxYxBZEqCeOmATOvrbT4p9RA=
 github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
