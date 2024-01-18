@@ -336,7 +336,11 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 		if errors.As(err, &errExeFile) {
 			var errPath *os.PathError
 			if errors.As(errExeFile, &errPath) && errPath.Op == "fork/exec" {
-				return fmt.Errorf("%w.\nPlease ensure the plugin is executable and meet the installation requirements on the %s/%s.", errExeFile, runtime.GOOS, runtime.GOARCH)
+				return fmt.Errorf("%s.\nPlease ensure the plugin is executable and meet the installation requirements on the %s/%s.",
+					// hide the wrapped error message to simplify the output
+					strings.TrimSuffix(strings.Split(errExeFile.Error(), "fork/exec")[0], ": "),
+					runtime.GOOS,
+					runtime.GOARCH)
 			}
 		}
 
