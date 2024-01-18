@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.1
-	github.com/notaryproject/notation-go v1.0.2-0.20240118012419-d52ca7162a49
+	github.com/notaryproject/notation-go v1.0.2-0.20240118131949-690448ee6711
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/oras-project/oras-credentials-go v0.3.1
@@ -30,5 +30,3 @@ require (
 	golang.org/x/sync v0.4.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 )
-
-replace github.com/notaryproject/notation-go => github.com/JeyJeyGao/notation-go v1.0.0-rc.6.0.20240118060847-73d28729ce20
