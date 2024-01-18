@@ -2,7 +2,51 @@
 
 ## Description
 
-Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. For more details on how to create trust policy for verifying blobs, see [trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/signing-and-verification-workflow.md#blob-signing-workflow).
+Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. 
+
+Users can use `notation blob policy` command to manage trust policies for signed blob verification. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
+
+User can refer to the below trust policy configuration sample `trustpolicy.blob.json` that is applicable for verifying signed arbitrary blobs using `notation blob verify` command. In this sample, there are three policies configured for different requirements:
+
+- The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
+- Policy named "skip-verification-policy" is for skipping verification on blob artifacts.
+- Policy "wildcard-verification-policy" is for auditing verification results when user wants to apply a wildcard policy by not providing `--policy-name` argument in `notation blob verify` command.
+
+```jsonc
+{
+    "version": "1.0",
+    "policyType": "blob",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-policy",
+            "signatureVerification": {
+                "level": "strict"
+            },
+            "trustStores": [ 
+              "ca:wabbit-networks",
+            ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
+            ]
+        },
+        {
+            "name": "skip-verification-policy",
+            "signatureVerification": {
+              "level" : "skip" 
+            }
+        },
+        {
+            "name": "wildcard-verification-policy",
+            "wildcardPolicy": true,
+            "signatureVerification": {
+              "level" : "audit"
+            },
+            "trustStores": ["ca:acme-rockets"],
+            "trustedIdentities": ["*"]
+        }
+    ]
+}
+```
 
 ## Outline
 
@@ -16,6 +60,7 @@ Usage:
 
 Available Commands:
   inspect   inspect a signature associated with a blob
+  policy    manage trust policy configuration file for signed blobs
   sign      produce a detached signature for a given blob
   verify    verify a signature associated with a blob
 
@@ -62,6 +107,47 @@ Flags:
   -h, --help                  help for inspect
 ```
 
+### notation blob policy
+
+```text
+Manage trust policy configuration for arbitrary blob signature verification.
+
+Usage:
+  notation blob policy [command]
+
+Available Commands:
+  import    import trust policy configuration from a JSON file
+  show      show trust policy configuration
+
+Flags:
+  -h, --help   help for policy
+```
+
+### notation blob policy import
+
+```text
+Import blob trust policy configuration from a JSON file
+
+Usage:
+  notation blob policy import [flags] <file_path>
+
+Flags:    
+      --force     override the existing trust policy configuration, never prompt
+  -h, --help      help for import
+```
+
+### notation blob policy show
+
+```text
+Show blob trust policy configuration
+
+Usage:
+  notation blob policy show [flags]
+
+Flags:
+  -h, --help      help for show
+```
+
 ### notation blob verify
 
 ```text
@@ -73,7 +159,7 @@ Usage:
 Flags:
   -s, --signature string      location of the blob signature file
       --media-type string     optional media type of the blob to verify
-      --policy-scope string   optional policy scope to verify against. If not provided, notation verifies against wildcard policy if it exists.
+      --policy-name string   optional policy name to verify against. If not provided, notation verifies against the wildcard policy if it exists.
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
   -o, --output string         output format, options: 'json', 'text' (default "text")
@@ -242,22 +328,66 @@ Inspecting /tmp/my-blob.bin.sig.jws
 notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 ```
 
-## Verify blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file with Policies for blobs. Below are three examples of how a policy configuration file can be setup for verifying blob signatures.
+### Import blob trust policy configuration from a JSON file
 
-- The Policy named "blob-verification-policy" is for verifying blob artifacts signed by Wabbit Networks and scoped to `blob-verification-selector`.
-- Policy named "skip-blob-verification-policy" is for skipping verification on blob artifacts scoped to `skip-blob-verification-selector`.
-- Policy "wildcard-blob-verification-policy" is for auditing verification results when user wants to apply a wildcard policy by not providing `--policy-scope` argument in `notation blob verify` command.
+An example of import trust policy configuration from a JSON file:
+
+```shell  
+notation blob policy import ./my_policy.json
+```
+
+The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
+
+If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
+
+### Show blob trust policies
+
+Use the following command to show trust policy configuration:
+
+```shell
+notation blob policy show
+```
+
+Upon successful execution, the trust policy configuration is printed out to standard output. If trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import trust policy configuration from a JSON file.
+
+### Export blob trust policy configuration into a JSON file
+
+Users can redirect the output of command `notation blob policy show` to a JSON file.
+
+```shell
+notation blob policy show > ./blob_trust_policy.json
+```
+
+### Update trust policy configuration
+
+The steps to update blob trust policy configuration:
+
+1. Export trust policy configuration into a JSON file.
+
+   ```shell
+   notation blob policy show > ./blob_trust_policy.json
+   ```
+
+2. Edit the exported JSON file "blob_trust_policy.json", update trust policy configuration and save the file.
+3. Import trust policy configuration from the file.
+
+   ```shell
+   notation blob policy import ./blob_trust_policy.json
+   ```
+
+## Verify blob signatures
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with Policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
+
+- The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
+- Policy "wildcard-verification-policy" is for auditing verification results when user wants to apply a wildcard policy by not providing `--policy-name` argument in `notation blob verify` command.
 
 ```jsonc
 {
-    "version": "1.1",
+    "version": "1.0",
+    "policyType": "blob",
     "trustPolicies": [
         {
-            "name": "blob-verification-policy",
-            "scopes": [ 
-              "blob:blob-verification-selector"
-            ],
+            "name": "wabbit-networks-policy",
             "signatureVerification": {
                 "level": "strict"
             },
@@ -269,15 +399,8 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
             ]
         },
         {
-            "name": "skip-blob-verification-policy",
-            "scopes": [ "blob:skip-blob-verification-selector" ],
-            "signatureVerification": {
-              "level" : "skip" 
-            }
-        },
-        {
-            "name": "wildcard-blob-verification-policy",
-            "scopes": [ "blob:*" ],
+            "name": "wildcard-verification-policy",
+            "wildcardPolicy": true,
             "signatureVerification": {
               "level" : "audit"
             },
@@ -298,7 +421,7 @@ Configure trust store and trust policy properly before using `notation blob veri
 # Configure trust store by adding a certificate file into trust store named "wabbit-network" of type "ca"
 notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
-# Create a JSON file named "trustpolicy.json" under directory "{NOTATION_CONFIG}".
+# Create a JSON file named "trustpolicy.blob.json" under directory "{NOTATION_CONFIG}".
 
 # Verify the blob signature
 notation blob verify --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
@@ -357,24 +480,25 @@ The blob is of media type `application/my-media-octet-stream`.
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: Signature verification failed due to a mismatch in the blob's media type 'application/xyz' and the expected type 'application/my-media-octet-stream'.```
+Error: Signature verification failed due to a mismatch in the blob's media type 'application/xyz' and the expected type 'application/my-media-octet-stream'.
+```
 
-### Verify the signature using a policy scope
+### Verify the signature using a policy name
 
-Use the `--policy-scope` flag to select a policy scope to verify the signature against.
+Use the `--policy-name` flag to select a policy to verify the signature against.
 
 ```shell
-notation blob verify --policy-scope blob-verification-selector --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
+notation blob verify --policy-name wabbit-networks-policy --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.sig.jws using policy scope `blob-verification-selector`
+Successfully verified signature /tmp/my-blob.bin.sig.jws using policy `wabbit-networks-policy`
 
 ```
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed for policy scope `blob-verification-selector`
+Error: signature verification failed for policy `wabbit-networks-policy`
 ```
