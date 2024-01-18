@@ -334,7 +334,7 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 
 		var errExeFile *plugin.PluginExecutableFileError
 		if errors.As(err, &errExeFile) {
-			return fmt.Errorf("%s.\nPlease ensure the plugin is executable on %s/%s.", errExeFile, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w.\nPlease ensure the plugin is executable on %s/%s.", err, runtime.GOOS, runtime.GOARCH)
 		}
 
 		var errMalformedPlugin *plugin.PluginMalformedError
