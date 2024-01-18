@@ -332,16 +332,9 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 			return fmt.Errorf("%w.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", errPluginDowngrade)
 		}
 
-		var errExeFile plugin.PluginExecutableFileError
+		var errExeFile *plugin.PluginExecutableFileError
 		if errors.As(err, &errExeFile) {
-			var errPath *os.PathError
-			if errors.As(errExeFile, &errPath) && errPath.Op == "fork/exec" {
-				return fmt.Errorf("%s.\nPlease ensure the plugin is executable and meet the installation requirements on the %s/%s.",
-					// hide the wrapped error message to simplify the output
-					strings.TrimSuffix(strings.Split(errExeFile.Error(), "fork/exec")[0], ": "),
-					runtime.GOOS,
-					runtime.GOARCH)
-			}
+			return fmt.Errorf("%s.\nPlease ensure the plugin is executable on the %s/%s.", errExeFile, runtime.GOOS, runtime.GOARCH)
 		}
 
 		var errMalformedPlugin *plugin.PluginMalformedError
