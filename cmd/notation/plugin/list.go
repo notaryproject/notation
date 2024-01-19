@@ -48,7 +48,7 @@ func listPlugins(command *cobra.Command) error {
 		var errPluginDirWalk plugin.PluginDirectoryWalkError
 		if errors.As(err, &errPluginDirWalk) {
 			pluginDir, _ := dir.PluginFS().SysPath("")
-			return fmt.Errorf("%w.\nPlease check if the current user has access to the plugin directory: %s", errPluginDirWalk, pluginDir)
+			return fmt.Errorf("%w.\nPlease ensure that the current user has permission to access the plugin directory: %s", errPluginDirWalk, pluginDir)
 		}
 		return err
 	}

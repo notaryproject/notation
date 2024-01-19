@@ -334,12 +334,12 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 
 		var errExeFile *plugin.PluginExecutableFileError
 		if errors.As(err, &errExeFile) {
-			return fmt.Errorf("%w.\nPlease ensure the plugin is executable on %s/%s.", err, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w.\nPlease ensure that the plugin executable is compatible with the %s/%s architecture and has the appropriate file permissions.", err, runtime.GOOS, runtime.GOARCH)
 		}
 
 		var errMalformedPlugin *plugin.PluginMalformedError
 		if errors.As(err, &errMalformedPlugin) {
-			return fmt.Errorf("%w.\nPlease ensure to install the plugin for %s/%s. Contact the plugin publisher if the plugin executable file is malformed.", errMalformedPlugin, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is intact and compatible with %s/%s. Contact the plugin publisher for further assistance.", errMalformedPlugin, runtime.GOOS, runtime.GOARCH)
 		}
 		return err
 	}
