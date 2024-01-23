@@ -25,6 +25,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -329,6 +330,16 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 		var errPluginDowngrade plugin.PluginDowngradeError
 		if errors.As(err, &errPluginDowngrade) {
 			return fmt.Errorf("%w.\nIt is not recommended to install an older version. To force the installation, use the \"--force\" option", errPluginDowngrade)
+		}
+
+		var errExeFile *plugin.PluginExecutableFileError
+		if errors.As(err, &errExeFile) {
+			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is compatible with %s/%s and has appropriate permissions.", err, runtime.GOOS, runtime.GOARCH)
+		}
+
+		var errMalformedPlugin *plugin.PluginMalformedError
+		if errors.As(err, &errMalformedPlugin) {
+			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is intact and compatible with %s/%s. Contact the plugin publisher for further assistance.", errMalformedPlugin, runtime.GOOS, runtime.GOARCH)
 		}
 		return err
 	}
