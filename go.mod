@@ -3,8 +3,8 @@ module github.com/notaryproject/notation
 go 1.21
 
 require (
-	github.com/notaryproject/notation-core-go v1.0.1
-	github.com/notaryproject/notation-go v1.0.2-0.20240118131949-690448ee6711
+	github.com/notaryproject/notation-core-go v1.0.2
+	github.com/notaryproject/notation-go v1.1.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0-rc5
 	github.com/oras-project/oras-credentials-go v0.3.1

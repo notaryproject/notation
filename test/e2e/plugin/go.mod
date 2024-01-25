@@ -4,8 +4,8 @@ go 1.20
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/notaryproject/notation-core-go v1.0.1
-	github.com/notaryproject/notation-go v1.0.1
+	github.com/notaryproject/notation-core-go v1.0.2
+	github.com/notaryproject/notation-go v1.1.0
 	github.com/spf13/cobra v1.7.0
 )
 
@@ -22,8 +22,8 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/veraison/go-cose v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/mod v0.13.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
+	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
 	oras.land/oras-go/v2 v2.3.1 // indirect
 )
