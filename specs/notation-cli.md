@@ -6,17 +6,17 @@ This spec contains reference information on using notation commands. Each comman
 
 | Command                                     | Description                                                            |
 | ------------------------------------------- | ---------------------------------------------------------------------- |
+| [blob](./commandline/blob.md)               | Sign, verify and inspect singatures associated with blobs              |
 | [certificate](./commandline/certificate.md) | Manage certificates in trust store                                     |
+| [inspect](./commandline/inspect.md)         | Inspect OCI signatures                                                 |
 | [key](./commandline/key.md)                 | Manage keys used for signing                                           |
 | [list](./commandline/list.md)               | List signatures of a signed OCI artifact                               |
 | [login](./commandline/login.md)             | Log into OCI registries                                                |
 | [logout](./commandline/logout.md)           | Log out from the logged in OCI registries                              |
 | [plugin](./commandline/plugin.md)           | Manage plugins                                                         |
-| [policy](./commandline/policy.md)           | Manage trust policy configuration for signature verification           |
+| [policy](./commandline/policy.md)           | Manage trust policy configuration for OCI signature verification       |
 | [sign](./commandline/sign.md)               | Sign OCI artifacts                                                     |
 | [verify](./commandline/verify.md)           | Verify OCI artifacts                                                   |
-| [inspect](./commandline/inspect.md)         | Inspect OCI signatures                                                 |
-| [blob](./commandline/blob.md)               | Sign, verify and inspect singatures associated with blobs                                |
 | [version](./commandline/version.md)         | Print the version of notation CLI                                      |
 
 ## Notation Outline
