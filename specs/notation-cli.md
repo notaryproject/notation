@@ -28,17 +28,17 @@ Usage:
   notation [command]
 
 Available Commands:
+  blob        Sign, verify and inspect signatures associated with blobs
   certificate Manage certificates in trust store
+  inspect     Inspect all signatures associated with a signed OCI artifact
   key         Manage keys used for signing
   list        List signatures of a signed OCI artifact
   login       Log into OCI registries
   logout      Log out from the logged in OCI registries
   plugin      Manage plugins
-  policy      Manage trust policy configuration for signature verification
+  policy      Manage trust policy configuration for OCI signature verification
   sign        Sign OCI artifacts
   verify      Verify OCI artifacts
-  blobs       Sign, verify and inspect singatures associated with blobs
-  inspect     Inspect all signatures associated with a signed OCI artifact
   version     Show the notation version information
 
 Flags:
