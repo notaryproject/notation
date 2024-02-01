@@ -15,7 +15,6 @@ User can refer to the below trust policy configuration sample `trustpolicy.blob.
 ```jsonc
 {
     "version": "1.0",
-    "policyType": "blob",
     "trustPolicies": [
         {
             "name": "wabbit-networks-policy",
@@ -53,7 +52,7 @@ User can refer to the below trust policy configuration sample `trustpolicy.blob.
 ### notation blob command
 
 ```text
-Sign, inspect, and verify signatures associated with arbitrary blobs.
+Sign, inspect, and verify signatures and setup trust policies.
 
 Usage:
   notation blob [command]
@@ -384,7 +383,6 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
 ```jsonc
 {
     "version": "1.0",
-    "policyType": "blob",
     "trustPolicies": [
         {
             "name": "wabbit-networks-policy",
