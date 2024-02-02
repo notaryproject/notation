@@ -27,7 +27,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
-	credentials "oras.land/oras-go/v2/registry/remote/credentials"
+	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-authentication/"

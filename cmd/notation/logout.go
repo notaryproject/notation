@@ -21,7 +21,7 @@ import (
 	"github.com/notaryproject/notation/internal/auth"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
-	credentials "oras.land/oras-go/v2/registry/remote/credentials"
+	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 type logoutOpts struct {
