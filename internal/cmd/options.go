@@ -18,10 +18,10 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/trace"
-	credentialstrace "github.com/oras-project/oras-credentials-go/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	credentialstrace "oras.land/oras-go/v2/registry/remote/credentials/trace"
 )
 
 // SignerFlagOpts cmd opts for using cmd.GetSigner
