@@ -25,10 +25,10 @@ import (
 	notationauth "github.com/notaryproject/notation/internal/auth"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/pkg/configutil"
-	credentials "github.com/oras-project/oras-credentials-go"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 // inputType denotes the user input type
