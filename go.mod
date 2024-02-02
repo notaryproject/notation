@@ -4,15 +4,14 @@ go 1.21
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.2
-	github.com/notaryproject/notation-go v1.1.0
+	github.com/notaryproject/notation-go v1.1.1-0.20240201073933-4606472ebdcb
 	github.com/opencontainers/go-digest v1.0.0
-	github.com/opencontainers/image-spec v1.1.0-rc5
-	github.com/oras-project/oras-credentials-go v0.3.1
+	github.com/opencontainers/image-spec v1.1.0-rc6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/term v0.16.0
-	oras.land/oras-go/v2 v2.3.1
+	oras.land/oras-go/v2 v2.4.0
 )
 
 require (
@@ -27,6 +26,6 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 )
