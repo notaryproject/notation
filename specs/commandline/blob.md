@@ -4,13 +4,13 @@
 
 Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. 
 
-Users can use `notation blob policy` command to manage trust policies for signed blob verification. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
+Users can use `notation blob policy` command to manage trust policies for verifying a blob signature. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
 
-User can refer to the below trust policy configuration sample `trustpolicy.blob.json` that is applicable for verifying signed arbitrary blobs using `notation blob verify` command. In this sample, there are three policies configured for different requirements:
+The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample trust policy file, contains three different statements for different usecases:
 
 - The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
 - Policy named "skip-verification-policy" is for skipping verification on blob artifacts.
-- Policy "wildcard-verification-policy" is for auditing verification results when user wants to apply a wildcard policy by not providing `--policy-name` argument in `notation blob verify` command.
+- Policy "global-verification-policy" is for auditing verification results when user does not provide `--policy-name` argument in `notation blob verify` command.
 
 ```jsonc
 {
@@ -35,8 +35,8 @@ User can refer to the below trust policy configuration sample `trustpolicy.blob.
             }
         },
         {
-            "name": "wildcard-verification-policy",
-            "wildcardPolicy": true,
+            "name": "global-verification-policy",
+            "globalPolicy": true,
             "signatureVerification": {
               "level" : "audit"
             },
@@ -52,14 +52,14 @@ User can refer to the below trust policy configuration sample `trustpolicy.blob.
 ### notation blob command
 
 ```text
-Sign, inspect, and verify signatures and setup trust policies.
+Sign, inspect, and verify signatures and configure trust policies.
 
 Usage:
   notation blob [command]
 
 Available Commands:
   inspect   inspect a signature associated with a blob
-  policy    manage trust policy configuration file for signed blobs
+  policy    manage trust policy configuration for signed blobs
   sign      produce a detached signature for a given blob
   verify    verify a signature associated with a blob
 
@@ -76,7 +76,7 @@ Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-  --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
+       --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -158,7 +158,7 @@ Usage:
 Flags:
   -s, --signature string      location of the blob signature file
       --media-type string     optional media type of the blob to verify
-      --policy-name string   optional policy name to verify against. If not provided, notation verifies against the wildcard policy if it exists.
+      --policy-name string   optional policy name to verify against. If not provided, notation verifies against the global policy if it exists.
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
   -o, --output string         output format, options: 'json', 'text' (default "text")
@@ -287,38 +287,36 @@ notation blob inspect /tmp/my-blob.bin.sig.jws
 
 An example output:
 ```shell
-Inspecting /tmp/my-blob.bin.sig.jws
 /tmp/my-blob.bin.sig.jws
 └── application/octet-stream
-    ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        ├── signature algorithm: RSASSA-PSS-SHA-256
-        ├── signature format: jws
-        ├── signed attributes
-        │   ├── content type: application/vnd.cncf.notary.payload.v1+json
-        │   ├── signing scheme: notary.signingAuthority.x509
-        │   ├── signing time: Fri Jun 23 22:04:01 2023
-        │   ├── expiry: Sat Jun 29 22:04:01 2024
-        │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
-        ├── unsigned attributes
-        │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
-        │   └── io.cncf.notary.signingAgent: notation/1.0.0
-        ├── certificates
-        │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
-        │   │   ├── issued to: wabbit-com Software
-        │   │   ├── issued by: wabbit-com Software Root Certificate Authority
-        │   │   └── expiry: Sun Jul 06 20:50:17 2025
-        │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
-        │   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
-        │   │   ├── issued by: wabbit-com Software Root Certificate Authority
-        │   │   └── expiry: Sun Jul 06 20:50:17 2025
-        │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
-        │       ├── issued to: wabbit-com Software Root Certificate Authority
-        │       ├── issued by: wabbit-com Software Root Certificate Authority
-        │       └── expiry: Sat Jun 23 22:04:01 2035
-        └── signed artifact
-            ├── media type: application/vnd.oci.image.manifest.v1+json
-            ├── digest: sha256:b94d27b9934d3e08a52e52d7da7fac484efe37a5380ee9088f7ace2efcde9
-            └── size: 16724
+    ├── signature algorithm: RSASSA-PSS-SHA-256
+    ├── signature envelope type: jws
+    ├── signed attributes
+    │   ├── content type: application/vnd.cncf.notary.payload.v1+json
+    │   ├── signing scheme: notary.signingAuthority.x509
+    │   ├── signing time: Fri Jun 23 22:04:01 2023
+    │   ├── expiry: Sat Jun 29 22:04:01 2024
+    │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
+    ├── unsigned attributes
+    │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
+    │   └── io.cncf.notary.signingAgent: notation/1.0.0
+    ├── certificates
+    │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
+    │   │   ├── issued to: wabbit-com Software
+    │   │   ├── issued by: wabbit-com Software Root Certificate Authority
+    │   │   └── expiry: Sun Jul 06 20:50:17 2025
+    │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
+    │   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
+    │   │   ├── issued by: wabbit-com Software Root Certificate Authority
+    │   │   └── expiry: Sun Jul 06 20:50:17 2025
+    │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
+    │       ├── issued to: wabbit-com Software Root Certificate Authority
+    │       ├── issued by: wabbit-com Software Root Certificate Authority
+    │       └── expiry: Sat Jun 23 22:04:01 2035
+    └── signed artifact
+        ├── media type: application/octet-stream
+        ├── digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        └── size: 16724
 ```
 
 ### Inspect the given blob signature with JSON Output
@@ -326,6 +324,8 @@ Inspecting /tmp/my-blob.bin.sig.jws
 ```shell
 notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 ```
+
+## Import/Export trust policy configuration files
 
 ### Import blob trust policy configuration from a JSON file
 
@@ -335,7 +335,7 @@ An example of import trust policy configuration from a JSON file:
 notation blob policy import ./my_policy.json
 ```
 
-The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
+The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
 If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
 
@@ -378,7 +378,7 @@ The steps to update blob trust policy configuration:
 The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with Policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
-- Policy "wildcard-verification-policy" is for auditing verification results when user wants to apply a wildcard policy by not providing `--policy-name` argument in `notation blob verify` command.
+- Policy  named "global-verification-policy" is for auditing verification results when user doesn't not provide `--policy-name` argument in `notation blob verify` command.
 
 ```jsonc
 {
@@ -397,8 +397,8 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
             ]
         },
         {
-            "name": "wildcard-verification-policy",
-            "wildcardPolicy": true,
+            "name": "global-verification-policy",
+            "globalPolicy": true,
             "signatureVerification": {
               "level" : "audit"
             },
@@ -415,11 +415,11 @@ Configure trust store and trust policy properly before using `notation blob veri
 
 ```shell
 
-# Prerequisites: Signature is produced on the filesystem from `notation blob sign` command.
+# Prerequisites: Blob and its associated signature is present on the filesystem.
 # Configure trust store by adding a certificate file into trust store named "wabbit-network" of type "ca"
 notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
-# Create a JSON file named "trustpolicy.blob.json" under directory "{NOTATION_CONFIG}".
+# Setup the trust policy in a JSON file named "trustpolicy.blob.json" under directory "{NOTATION_CONFIG}".
 
 # Verify the blob signature
 notation blob verify --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
