@@ -288,7 +288,6 @@ notation blob inspect /tmp/my-blob.bin.sig.jws
 An example output:
 ```shell
 /tmp/my-blob.bin.sig.jws
-└── application/octet-stream
     ├── signature algorithm: RSASSA-PSS-SHA-256
     ├── signature envelope type: jws
     ├── signed attributes
