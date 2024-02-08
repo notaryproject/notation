@@ -156,7 +156,7 @@ Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
-  -s, --signature string      location of the blob signature file
+      --signature string      location of the blob signature file
       --media-type string     optional media type of the blob to verify
       --policy-name string   optional policy name to verify against. If not provided, notation verifies against the global policy if it exists.
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
