@@ -14,6 +14,7 @@
 package main
 
 import (
+	"github.com/notaryproject/notation/cmd/notation/blob"
 	"os"
 
 	"github.com/notaryproject/notation/cmd/notation/cert"
@@ -37,6 +38,7 @@ func main() {
 		signCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
+		blob.Cmd(),
 		cert.Cmd(),
 		policy.Cmd(),
 		keyCommand(),
@@ -45,8 +47,6 @@ func main() {
 		logoutCommand(nil),
 		versionCommand(),
 		inspectCommand(nil),
-		blobSignCommand(nil),
-		blobInspectCommand(nil),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
