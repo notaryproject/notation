@@ -14,6 +14,7 @@
 package main
 
 import (
+	"github.com/notaryproject/notation/cmd/notation/blob"
 	"os"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -49,6 +50,7 @@ func main() {
 		signCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
+		blob.Cmd(),
 		cert.Cmd(),
 		policy.Cmd(),
 		keyCommand(),
