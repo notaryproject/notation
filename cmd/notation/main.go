@@ -10,12 +10,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package main
 
 import (
 	"os"
 
+	"github.com/notaryproject/notation/cmd/notation/blob"
 	"github.com/notaryproject/notation/cmd/notation/cert"
 	"github.com/notaryproject/notation/cmd/notation/policy"
 	"github.com/spf13/cobra"
@@ -37,6 +37,7 @@ func main() {
 		signCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
+		blob.Cmd(),
 		cert.Cmd(),
 		policy.Cmd(),
 		keyCommand(),
@@ -45,8 +46,6 @@ func main() {
 		logoutCommand(nil),
 		versionCommand(),
 		inspectCommand(nil),
-		blobSignCommand(nil),
-		blobInspectCommand(nil),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
