@@ -11,27 +11,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package version
+package plugin
 
-var (
-	// Version shows the current notation version, optionally with pre-release.
-	Version = "v1.1.0"
+import "github.com/spf13/cobra"
 
-	// BuildMetadata stores the build metadata.
-	//
-	// When execute `make build` command, it will be overridden by
-	// environment variable `BUILD_METADATA`. If commit tag was set,
-	// BuildMetadata will be empty.
-	BuildMetadata = "unreleased"
-
-	// GitCommit stores the git HEAD commit id
-	GitCommit = ""
-)
-
-// GetVersion returns the version string in SemVer 2.
-func GetVersion() string {
-	if BuildMetadata == "" {
-		return Version
+func Cmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "plugin",
+		Short: "Manage plugins",
 	}
-	return Version + "+" + BuildMetadata
+
+	command.AddCommand(
+		listCommand(),
+		installCommand(nil),
+		uninstallCommand(nil),
+	)
+
+	return command
 }

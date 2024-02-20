@@ -11,27 +11,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package version
+package httputil
 
-var (
-	// Version shows the current notation version, optionally with pre-release.
-	Version = "v1.1.0"
+import (
+	"context"
+	"net/http"
 
-	// BuildMetadata stores the build metadata.
-	//
-	// When execute `make build` command, it will be overridden by
-	// environment variable `BUILD_METADATA`. If commit tag was set,
-	// BuildMetadata will be empty.
-	BuildMetadata = "unreleased"
-
-	// GitCommit stores the git HEAD commit id
-	GitCommit = ""
+	"github.com/notaryproject/notation/internal/trace"
+	"github.com/notaryproject/notation/internal/version"
+	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// GetVersion returns the version string in SemVer 2.
-func GetVersion() string {
-	if BuildMetadata == "" {
-		return Version
+// NewAuthClient returns an *auth.Client
+func NewAuthClient(ctx context.Context, httpClient *http.Client) *auth.Client {
+	client := &auth.Client{
+		Client:   httpClient,
+		Cache:    auth.NewCache(),
+		ClientID: "notation",
 	}
-	return Version + "+" + BuildMetadata
+	client.SetUserAgent("notation/" + version.GetVersion())
+	trace.SetHTTPDebugLog(ctx, client)
+	return client
 }

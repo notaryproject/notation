@@ -11,9 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package plugin
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"text/tabwriter"
@@ -24,16 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func pluginCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "plugin",
-		Short: "Manage plugins",
-	}
-	cmd.AddCommand(pluginListCommand())
-	return cmd
-}
-
-func pluginListCommand() *cobra.Command {
+func listCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "list [flags]",
 		Aliases: []string{"ls"},
@@ -53,6 +45,11 @@ func listPlugins(command *cobra.Command) error {
 	mgr := plugin.NewCLIManager(dir.PluginFS())
 	pluginNames, err := mgr.List(command.Context())
 	if err != nil {
+		var errPluginDirWalk plugin.PluginDirectoryWalkError
+		if errors.As(err, &errPluginDirWalk) {
+			pluginDir, _ := dir.PluginFS().SysPath("")
+			return fmt.Errorf("%w.\nPlease ensure that the current user has permission to access the plugin directory: %s", errPluginDirWalk, pluginDir)
+		}
 		return err
 	}
 

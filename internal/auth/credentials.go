@@ -17,7 +17,7 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation-go/dir"
-	credentials "github.com/oras-project/oras-credentials-go"
+	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 // NewCredentialsStore returns a new credentials store from the settings in the

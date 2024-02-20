@@ -16,7 +16,9 @@ package main
 import (
 	"os"
 
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/cmd/notation/cert"
+	"github.com/notaryproject/notation/cmd/notation/plugin"
 	"github.com/notaryproject/notation/cmd/notation/policy"
 	"github.com/spf13/cobra"
 )
@@ -31,6 +33,16 @@ func main() {
 			// to avoid leaking credentials
 			os.Unsetenv(defaultUsernameEnv)
 			os.Unsetenv(defaultPasswordEnv)
+
+			// update Notation config directory
+			if notationConfig := os.Getenv("NOTATION_CONFIG"); notationConfig != "" {
+				dir.UserConfigDir = notationConfig
+			}
+
+			// update Notation Libexec directory (for plugins)
+			if notationLibexec := os.Getenv("NOTATION_LIBEXEC"); notationLibexec != "" {
+				dir.UserLibexecDir = notationLibexec
+			}
 		},
 	}
 	cmd.AddCommand(
@@ -40,7 +52,7 @@ func main() {
 		cert.Cmd(),
 		policy.Cmd(),
 		keyCommand(),
-		pluginCommand(),
+		plugin.Cmd(),
 		loginCommand(nil),
 		logoutCommand(nil),
 		versionCommand(),
