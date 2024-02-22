@@ -190,7 +190,7 @@ An example for a successful signing:
 ```console
 $ notation blob sign /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to ./my-blob.bin.sig.jws
+Signature file written to my-blob.bin.sig.jws
 ```
 
 ### Sign a blob by generating the signature in a particular directory
