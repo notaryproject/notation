@@ -74,7 +74,7 @@ To get started, user can refer to the following trust policy configuration sampl
 ### notation policy command
 
 ```text
-Manage trust policy configuration for OCI image signature verification.
+Manage trust policy configuration for OCI artifact signature verification.
 
 Usage:
   notation policy [command]
