@@ -194,7 +194,7 @@ Signature file written to my-blob.bin.sig.jws
 ```
 
 ### Sign a blob by generating the signature in a particular directory
-```shell
+```console
 $ notation blob sign --signature-directory /tmp/xyz/sigs /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
 Signature file written to /tmp/xyz/sigs/my-blob.bin.sig.jws
