@@ -204,7 +204,7 @@ Signature file written to /tmp/xyz/sigs/my-blob.bin.sig.jws
 ```console
 $ notation blob sign --force /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file overwritten to ./my-blob.bin.sig.jws
+Signature file overwritten to my-blob.bin.sig.jws
 ```
 
 ### Sign a blob with a plugin
