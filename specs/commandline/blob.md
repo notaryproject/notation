@@ -215,7 +215,7 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 
 ### Sign a blob using COSE signature format
 
-```shell
+```console
 # Prerequisites:
 # A default signing key is configured using CLI "notation key"
 
