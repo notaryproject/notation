@@ -95,7 +95,7 @@ Import OCI trust policy configuration from a JSON file
 Usage:
   notation policy import [flags] <file_path>
 
-Flags:    
+Flags:
       --force     override the existing trust policy configuration, never prompt
   -h, --help      help for import
 ```
