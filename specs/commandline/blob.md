@@ -190,7 +190,7 @@ An example for a successful signing:
 ```console
 $ notation blob sign /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to my-blob.bin.sig.jws
+Signature file written to /tmp/my-blob.bin.sig.jws
 ```
 
 ### Sign a blob by generating the signature in a particular directory
@@ -200,11 +200,18 @@ Successfully signed /tmp/my-blob.bin
 Signature file written to /tmp/xyz/sigs/my-blob.bin.sig.jws
 ```
 
+### Sign a blob using a relative path
+```console
+$ notation blob sign ./relative/path/my-blob.bin
+Successfully signed ./relative/path/my-blob.bin
+Signature file written to ./relative/path/my-blob.bin.sig.jws
+```
+
 ### Sign a blob and skip user confirmations when overwriting existing signature
 ```console
 $ notation blob sign --force /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file overwritten to my-blob.bin.sig.jws
+Signature file overwritten to /tmp/my-blob.bin.sig.jws
 ```
 
 ### Sign a blob with a plugin
@@ -222,7 +229,7 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 # Use option "--signature-format" to set the signature format to COSE.
 $ notation blob sign --signature-format cose /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to ./my-blob.bin.sig.cose
+Signature file written to /tmp/my-blob.bin.sig.cose
 ```
 
 ### Sign a blob using the default signing key
@@ -485,13 +492,13 @@ Error: Signature verification failed due to a mismatch in the blob's media type 
 Use the `--policy-name` flag to select a policy to verify the signature against.
 
 ```shell
-notation blob verify --policy-name wabbit-networks-policy --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
+notation blob verify --policy-name wabbit-networks-policy --signature ./sigs/my-blob.bin.sig.jws ./blobs/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.sig.jws using policy `wabbit-networks-policy`
+Successfully verified signature ./sigs/my-blob.bin.sig.jws using policy `wabbit-networks-policy`
 
 ```
 An example of output messages for an unsuccessful verification:
