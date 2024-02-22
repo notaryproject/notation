@@ -220,7 +220,7 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 # A default signing key is configured using CLI "notation key"
 
 # Use option "--signature-format" to set the signature format to COSE.
-notation blob sign --signature-format cose /tmp/my-blob.bin
+$ notation blob sign --signature-format cose /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
 Signature file written to ./my-blob.bin.sig.cose
 ```
