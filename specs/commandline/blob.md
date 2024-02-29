@@ -84,7 +84,6 @@ Flags:
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --force                      skip user confirmation and force overwrite the existing blob signature file 
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -d,  --debug                      debug mode
   -v,  --verbose                    verbose mode
@@ -204,14 +203,7 @@ Signature file written to /tmp/xyz/sigs/my-blob.bin.sig.jws
 ```console
 $ notation blob sign ./relative/path/my-blob.bin
 Successfully signed ./relative/path/my-blob.bin
-Signature file written to ./relative/path/my-blob.bin.sig.jws
-```
-
-### Sign a blob and skip user confirmations when overwriting existing signature
-```console
-$ notation blob sign --force /tmp/my-blob.bin
-Successfully signed /tmp/my-blob.bin
-Signature file overwritten to /tmp/my-blob.bin.sig.jws
+Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.jws
 ```
 
 ### Sign a blob with a plugin
