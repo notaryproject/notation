@@ -221,7 +221,7 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 # Use option "--signature-format" to set the signature format to COSE.
 $ notation blob sign --signature-format cose /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to /tmp/my-blob.bin.sig.cose
+Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.cose
 ```
 
 ### Sign a blob using the default signing key
