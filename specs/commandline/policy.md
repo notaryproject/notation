@@ -2,14 +2,16 @@
 
 ## Description
 
-As part of signature verification workflow, users need to configure the trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [trust policy specification and examples](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy).
+As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [OCI trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#oci-trust-policy).
 
-The `notation policy` command provides a user-friendly way to manage trust policies. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. To get started user can refer to the following trust policy configuration sample. In this sample, there are four policies configured for different requirements:
+The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. Users who want to manage trust policies for signed arbitrary blobs, please refer to `notation blob policy` command.
 
-- The Policy named "wabbit-networks-images" is for verifying images signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
-- Policy named "unsigned-image" is for skipping the verification on unsigned images stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
-- Policy "allow-expired-images" is for logging instead of failing expired images stored in repository `registry.acme-rockets.io/software/legacy/metrics`.
-- Policy "global-policy-for-all-other-images" is for verifying any other images that signed by the ACME Rockets.
+To get started, user can refer to the following trust policy configuration sample `trustpolicy.json` that is applicable for verifying signed OCI artifacts using `notation verify` command. In this sample, there are four policies configured for different requirements:
+
+- The Policy named "wabbit-networks-images" is for verifying OCI artifacts signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
+- Policy named "unsigned-image" is for skipping the verification on unsigned OCI artifacts stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
+- Policy "allow-expired-images" is for logging instead of failing expired OCI artifacts stored in repository `registry.acme-rockets.io/software/legacy/metrics`.
+- Policy "global-policy-for-all-other-images" is for verifying any other OCI artifacts that signed by the ACME Rockets.
 
 ```jsonc
 {
@@ -72,7 +74,7 @@ The `notation policy` command provides a user-friendly way to manage trust polic
 ### notation policy command
 
 ```text
-Manage trust policy configuration for signature verification.
+Manage trust policy configuration for OCI artifact signature verification.
 
 Usage:
   notation policy [command]
@@ -88,7 +90,7 @@ Flags:
 ### notation policy import
 
 ```text
-Import trust policy configuration from a JSON file
+Import OCI trust policy configuration from a JSON file
 
 Usage:
   notation policy import [flags] <file_path>
@@ -101,7 +103,7 @@ Flags:
 ### notation policy show
 
 ```text
-Show trust policy configuration
+Show OCI trust policy configuration
 
 Usage:
   notation policy show [flags]
@@ -120,7 +122,7 @@ An example of import trust policy configuration from a JSON file:
 notation policy import ./my_policy.json
 ```
 
-The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0-rc.2/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
+The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
 If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
 
@@ -132,29 +134,29 @@ Use the following command to show trust policy configuration:
 notation policy show
 ```
 
-Upon successful execution, the trust policy configuration are printed out to standard output. If trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import trust policy configuration from a JSON file.
+Upon successful execution, the trust policy configuration is printed out to standard output. If trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import trust policy configuration from a JSON file.
 
-### Export trust policy configuration into a JSON file
+### Export OCI trust policy configuration into a JSON file
 
 Users can redirect the output of command `notation policy show` to a JSON file.
 
 ```shell
-notation policy show > ./trust_policy.json
+notation policy show > ./oci_trust_policy.json
 ```
 
 ### Update trust policy configuration
 
-The steps to update trust policy configuration:
+The steps to update OCI trust policy configuration:
 
 1. Export trust policy configuration into a JSON file.
 
    ```shell
-   notation policy show > ./trust_policy.json
+   notation policy show > ./oci_trust_policy.json
    ```
 
-2. Edit the exported JSON file "trust_policy.json", update trust policy configuration and save the file.
+2. Edit the exported JSON file "oci_trust_policy.json", update trust policy configuration and save the file.
 3. Import trust policy configuration from the file.
 
    ```shell
-   notation policy import ./trust_policy.json
+   notation policy import ./oci_trust_policy.json
    ```
