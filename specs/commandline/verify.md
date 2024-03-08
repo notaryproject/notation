@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation verify` command to verify signatures associated with the artifact. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
+Use `notation verify` command to verify signatures associated with artifacts stored in OCI compliant registries. Signature verification succeeds if verification succeeds for at least one of the signatures associated with the artifact. Upon successful verification, the output message is printed out as follows:
 
 ```text
 Successfully verified signature for <registry>/<repository>@<digest>
@@ -25,6 +25,9 @@ The artifact was signed with the following user metadata.
 KEY    VALUE
 <key>  <value>
 ```
+> [!NOTE]
+> This command is for verifying OCI artifacts only. Use `notation blob verify` command for verifying arbitrary blobs.
+
 
 ## Outline
 
@@ -59,7 +62,7 @@ Use `notation certificate` command to configure trust stores.
 
 ### Configure Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
+Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` or `trustpolicy.oci.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
 
 An example of `trustpolicy.json`:
 
