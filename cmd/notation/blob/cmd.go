@@ -18,12 +18,12 @@ import "github.com/spf13/cobra"
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "blob [command]",
-		Short: "Commands for BLOB artifacts",
+		Short: "Operation on BLOB artifact",
+		Long:  "Operation on BLOB artifact - Sign, Verify, Inspect",
 	}
 
 	command.AddCommand(
 		inspectCommand(nil),
-		signCommand(nil),
 	)
 
 	return command

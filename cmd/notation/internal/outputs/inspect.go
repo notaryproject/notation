@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sharedutils
+package outputs
 
 import (
 	"crypto/sha256"
@@ -19,10 +19,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/notaryproject/notation-core-go/signature"
+	"github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/tree"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -81,15 +83,6 @@ func GetUnsignedAttributes(envContent *signature.EnvelopeContent) map[string]str
 	return unsignedAttributes
 }
 
-func formatTimestamp(outputFormat string, t time.Time) string {
-	switch outputFormat {
-	case cmd.OutputJSON:
-		return t.Format(time.RFC3339)
-	default:
-		return t.Format(time.ANSIC)
-	}
-}
-
 func GetCertificates(outputFormat string, envContent *signature.EnvelopeContent) []certificateOutput {
 	certificates := []certificateOutput{}
 
@@ -110,16 +103,67 @@ func GetCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 	return certificates
 }
 
-func LogSkippedSignature(sigDesc ocispec.Descriptor, err error) {
-	fmt.Fprintf(os.Stderr, "Warning: Skipping signature %s because of error: %v\n", sigDesc.Digest.String(), err)
+func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
+	if outputFormat == cmd.OutputJSON {
+		return ioutil.PrintObjectAsJSON(output)
+	}
+
+	if len(output.Signatures) == 0 {
+		fmt.Printf("%s has no associated signature\n", ref)
+		return nil
+	}
+
+	fmt.Println("Inspecting all signatures for signed artifact")
+	root := tree.New(ref)
+	cncfSigNode := root.Add(registry.ArtifactTypeNotation)
+
+	for _, signature := range output.Signatures {
+		sigNode := cncfSigNode.Add(signature.Digest)
+		sigNode.AddPair("media type", signature.MediaType)
+		sigNode.AddPair("signature algorithm", signature.SignatureAlgorithm)
+
+		signedAttributesNode := sigNode.Add("signed attributes")
+		addMapToTree(signedAttributesNode, signature.SignedAttributes)
+
+		userDefinedAttributesNode := sigNode.Add("user defined attributes")
+		addMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
+
+		unsignedAttributesNode := sigNode.Add("unsigned attributes")
+		addMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
+
+		certListNode := sigNode.Add("certificates")
+		for _, cert := range signature.Certificates {
+			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
+			certNode.AddPair("issued to", cert.IssuedTo)
+			certNode.AddPair("issued by", cert.IssuedBy)
+			certNode.AddPair("expiry", cert.Expiry)
+		}
+
+		artifactNode := sigNode.Add("signed artifact")
+		artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
+		artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
+		artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
+	}
+
+	root.Print()
+	return nil
 }
 
-func AddMapToTree(node *tree.Node, m map[string]string) {
+func addMapToTree(node *tree.Node, m map[string]string) {
 	if len(m) > 0 {
 		for k, v := range m {
 			node.AddPair(k, v)
 		}
 	} else {
 		node.Add("(empty)")
+	}
+}
+
+func formatTimestamp(outputFormat string, t time.Time) string {
+	switch outputFormat {
+	case cmd.OutputJSON:
+		return t.Format(time.RFC3339)
+	default:
+		return t.Format(time.ANSIC)
 	}
 }
