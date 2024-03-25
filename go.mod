@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/term v0.18.0
-	oras.land/oras-go/v2 v2.4.0
+	oras.land/oras-go/v2 v2.5.0
 )
 
 require (
