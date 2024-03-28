@@ -109,8 +109,7 @@ var (
 	PflagReferrersAPI = &pflag.Flag{
 		Name: "allow-referrers-api",
 	}
-	PflagReferrersUsageFormat = "[Experimental] use the Referrers API to %s signatures, if not supported (returns 404), fallback to the Referrers tag schema"
-	SetPflagReferrersAPI      = func(fs *pflag.FlagSet, p *bool, usage string) {
+	SetPflagReferrersAPI = func(fs *pflag.FlagSet, p *bool, usage string) {
 		fs.BoolVar(p, PflagReferrersAPI.Name, false, usage)
 	}
 

@@ -21,7 +21,6 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	notationauth "github.com/notaryproject/notation/internal/auth"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/pkg/configutil"
@@ -41,10 +40,10 @@ const (
 
 // getRepository returns a notationregistry.Repository given user input
 // type and user input reference
-func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, allowReferrersAPI bool) (notationregistry.Repository, error) {
+func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, useReferrersAPI bool) (notationregistry.Repository, error) {
 	switch inputType {
 	case inputTypeRegistry:
-		return getRemoteRepository(ctx, opts, reference, allowReferrersAPI)
+		return getRemoteRepository(ctx, opts, reference, useReferrersAPI)
 	case inputTypeOCILayout:
 		layoutPath, _, err := parseOCILayoutReference(reference)
 		if err != nil {
@@ -57,17 +56,17 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 }
 
 // getRemoteRepository returns a registry.Repository.
-// When experimental feature is disabled OR allowReferrersAPI is not set,
-// Notation always uses referrers tag schema to store and consume signatures
-// by default.
-// When experimental feature is enabled AND allowReferrersAPI is set, Notation
-// tries the Referrers API, if not supported, fallback to use the Referrers
-// tag schema.
+// When useReferrersAPI is set, Notation tries the Referrers API,
+// if not supported, fallback to use the Referrers tag schema. This flag is
+// always set when verify/list/inspect signatures.
+//
+// When useReferrersAPI is not set, Notation uses referrers tag schema
+// to store signatures by default.
 //
 // References:
-// https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#listing-referrers
-// https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc1/spec.md#referrers-tag-schema
-func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference string, allowReferrersAPI bool) (notationregistry.Repository, error) {
+// https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#listing-referrers
+// https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#referrers-tag-schema
+func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference string, useReferrersAPI bool) (notationregistry.Repository, error) {
 	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
@@ -82,7 +81,7 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 		return nil, err
 	}
 
-	if !experimental.IsDisabled() && allowReferrersAPI {
+	if useReferrersAPI {
 		logger.Info("Trying to use the referrers API")
 	} else {
 		logger.Info("Using the referrers tag schema")

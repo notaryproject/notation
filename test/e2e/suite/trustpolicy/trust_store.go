@@ -35,12 +35,12 @@ var _ = Describe("notation trust policy trust store test", func() {
 	})
 
 	It("invalid trust store", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AddTrustPolicyOption("invalid_trust_store_trustpolicy.json"))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("the trust store \"invalid_store\" of type \"ca\" does not exist")
 		})
 	})
@@ -82,14 +82,14 @@ var _ = Describe("notation trust policy trust store test", func() {
 				AddTrustPolicyOption("multiple_trust_store_trustpolicy.json"),
 				AddTrustStoreOption("e2e-new", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
-				EnableExperimental())
+			)
 
 			notation.WithDescription("verify artifact1 with trust store ca/e2e-new").
-				Exec("verify", "--allow-referrers-api", artifact1.ReferenceWithDigest(), "-v").
+				Exec("verify", artifact1.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 
 			notation.WithDescription("verify artifact2 with trust store ca/e2e").
-				Exec("verify", "--allow-referrers-api", artifact2.ReferenceWithDigest(), "-v").
+				Exec("verify", artifact2.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

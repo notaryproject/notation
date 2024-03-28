@@ -36,7 +36,6 @@ Usage:
     notation inspect [flags] <reference>
 
 Flags:
-      --allow-referrers-api   [Experimental] use the Referrers API to inspect signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d, --debug                 debug mode
   -h, --help                  help for inspect
       --insecure-registry     use HTTP protocol while connecting to registries. Should be used only for testing

@@ -78,6 +78,22 @@ var _ = Describe("notation sign", func() {
 		})
 	})
 
+	It("by digest, with Referrers API", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("by tag, with Referrers API", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				Exec("sign", artifact.ReferenceWithTag(), "--allow-referrers-api").
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
 	It("with specific key", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			const keyName = "sKey"

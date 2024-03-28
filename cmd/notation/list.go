@@ -30,11 +30,10 @@ import (
 type listOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference         string
-	allowReferrersAPI bool
-	ociLayout         bool
-	inputType         inputType
-	maxSignatures     int
+	reference     string
+	ociLayout     bool
+	inputType     inputType
+	maxSignatures int
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
@@ -52,9 +51,6 @@ Example - List signatures of an OCI artifact identified by a tag (Notation will 
   notation list <registry>/<repository>:<tag>
 `
 	experimentalExamples := `
-Example - [Experimental] List signatures of an OCI artifact using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
-  notation list --allow-referrers-api <registry>/<repository>@<digest>
-
 Example - [Experimental] List signatures of an OCI artifact referenced in an OCI layout
   notation list --oci-layout "<oci_layout_path>@<digest>"
 
@@ -77,7 +73,7 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.maxSignatures <= 0 {
@@ -88,11 +84,9 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
-	experimental.HideFlags(command, "", []string{"allow-referrers-api", "oci-layout"})
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
+	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command
 }
 
@@ -102,7 +96,9 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, opts.allowReferrersAPI)
+	// always use the Referrers API, if not supported, automatically fallback to
+	// the referrers tag schema
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, true)
 	if err != nil {
 		return err
 	}

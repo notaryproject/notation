@@ -34,21 +34,21 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 	})
 
 	It("with valid trusted identity", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AddTrustPolicyOption("valid_trusted_identity_trustpolicy.json"))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
 	It("with invalid trusted identity", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AddTrustPolicyOption("invalid_trusted_identity_trustpolicy.json"))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Failure reason: signing certificate from the digital signature does not match the X.509 trusted identities",
 					VerifyFailed)
 		})
@@ -89,13 +89,12 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 				AddTrustPolicyOption("multiple_trusted_identity_trustpolicy.json"),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
-				EnableExperimental(),
 			)
 
-			notation.Exec("verify", "--allow-referrers-api", artifact1.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact1.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 
-			notation.Exec("verify", "--allow-referrers-api", artifact2.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact2.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
