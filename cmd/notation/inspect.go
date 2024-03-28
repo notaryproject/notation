@@ -28,7 +28,6 @@ import (
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
-	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -40,10 +39,9 @@ import (
 type inspectOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference         string
-	outputFormat      string
-	allowReferrersAPI bool
-	maxSignatures     int
+	reference     string
+	outputFormat  string
+	maxSignatures int
 }
 
 type inspectOutput struct {
@@ -84,10 +82,6 @@ Example - Inspect signatures on an OCI artifact identified by a tag  (Notation w
 Example - Inspect signatures on an OCI artifact identified by a digest and output as json:
   notation inspect --output json <registry>/<repository>@<digest>
 `
-	experimentalExamples := `
-Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
-  notation inspect --allow-referrers-api <registry>/<repository>@<digest>
-`
 	command := &cobra.Command{
 		Use:   "inspect [reference]",
 		Short: "Inspect all signatures associated with the signed artifact",
@@ -98,9 +92,6 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 			}
 			opts.reference = args[0]
 			return nil
-		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.maxSignatures <= 0 {
@@ -114,8 +105,6 @@ Example - [Experimental] Inspect signatures on an OCI artifact identified by a d
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
 }
 
@@ -129,7 +118,9 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 
 	// initialize
 	reference := opts.reference
-	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, opts.allowReferrersAPI)
+	// always use the Referrers API, if not supported, automatically fallback to
+	// the referrers tag schema
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, true)
 	if err != nil {
 		return err
 	}

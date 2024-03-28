@@ -63,22 +63,22 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("by digest with the Referrers API", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+	It("by digest, sign with the Referrers API", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
-	It("by digest, sign with the Referrers tag schema, verify with the Referrers API", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.ReferenceWithDigest()).
+	It("by tag, sign with the Referrers API", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithTag(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
