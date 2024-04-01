@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation inspect` command to inspect all the signatures associated with signed artifact in a human readable format.
+Use `notation inspect` command to inspect all the signatures associated with artifacts stored in OCI compliant registries in a human readable format.
 
 Upon successful execution, both the digest of the signed artifact and the digests of signatures manifest along with their properties associated with the signed artifact are printed in the following format:
 
@@ -24,10 +24,13 @@ Upon successful execution, both the digest of the signed artifact and the digest
         └── <signed artifact>
 ```
 
+> [!NOTE]
+> This command is for inspecting signatures associated with OCI artifacts only. Use `notation blob inspect` command for inspecting signatures associated with arbitrary blobs.
+
 ## Outline
 
 ```text
-Inspect all signatures associated with the signed artifact.
+Inspect all signatures associated with a signed OCI artifact.
 
 Usage:
     notation inspect [flags] <reference>
