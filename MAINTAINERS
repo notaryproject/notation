@@ -1,11 +1,11 @@
 # Org-Level Maintainers (in alphabetical order)
 # Pattern: [First Name] [Last Name] <[Email Address]> ([GitHub Handle])
-Justin Cormack <justin.cormack@docker.com> (@justincormack)
 Niaz Khan <niazfk@amazon.com> (@niazfk)
 Pritesh Bandi <priteshbandi@gmail.com> (@priteshbandi)
 Shiwei Zhang <shizh@microsoft.com> (@shizhMSFT)
-Steve Lasker <StevenLasker@hotmail.com> (@stevelasker)
 Toddy Mladenov <toddysm@gmail.com> (@toddysm)
+Vani Rao <vaninrao@amazon.com> (@vaninrao10)
+Yi Zha <yizha1@microsoft.com> (@yizha1)
 
 # Repo-Level Maintainers (in alphabetical order)
 # Note: This is for the notaryproject/notation repo
@@ -13,3 +13,7 @@ Junjie Gao <junjiegao@microsoft.com> (@JeyJeyGao)
 Milind Gokarn <gokarnm@amazon.com> (@gokarnm)
 Patrick Zheng <patrickzheng@microsoft.com> (@Two-Hearts)
 Rakesh Gariganti <garigant@amazon.com> (@rgnote)
+
+# Emeritus Org Maintainers (in alphabetical order)
+Justin Cormack <justin.cormack@docker.com> (@justincormack)
+Steve Lasker <StevenLasker@hotmail.com> (@stevelasker)
