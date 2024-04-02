@@ -96,7 +96,7 @@ var _ = Describe("notation sign", func() {
 				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag=false").
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify by referrers api").
+			OldNotation(BaseOptionsWithExperimental()...).WithDescription("verify by referrers api").
 				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -112,7 +112,7 @@ var _ = Describe("notation sign", func() {
 				).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify by referrers api").
+			OldNotation(BaseOptionsWithExperimental()...).WithDescription("verify by referrers api").
 				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
