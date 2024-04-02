@@ -95,6 +95,9 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			opts.reference = args[0]
 			return nil
 		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.maxSignatures <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
