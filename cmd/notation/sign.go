@@ -40,7 +40,7 @@ type signOpts struct {
 	pluginConfig      []string
 	userMetadata      []string
 	reference         string
-	allowReferrersAPI bool
+	forceReferrersTag bool
 	ociLayout         bool
 	inputType         inputType
 }
@@ -74,7 +74,7 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact and store signature using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
-  notation sign --allow-referrers-api <registry>/<repository>@<digest>
+  notation sign --force-referrers-tag <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
@@ -111,9 +111,9 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, "use the Referrers API to store signatures, if not supported (returns 404), fallback to the Referrers tag schema")
+	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	command.MarkFlagsMutuallyExclusive("oci-layout", "allow-referrers-api")
+	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag")
 	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command
 }
@@ -127,7 +127,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.allowReferrersAPI)
+	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.forceReferrersTag)
 	if err != nil {
 		return err
 	}

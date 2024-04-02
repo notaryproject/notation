@@ -106,11 +106,11 @@ var (
 		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
 	}
 
-	PflagReferrersAPI = &pflag.Flag{
-		Name: "allow-referrers-api",
+	PflagReferrersTag = &pflag.Flag{
+		Name: "force-referrers-tag",
 	}
-	SetPflagReferrersAPI = func(fs *pflag.FlagSet, p *bool, usage string) {
-		fs.BoolVar(p, PflagReferrersAPI.Name, false, usage)
+	SetPflagReferrersTag = func(fs *pflag.FlagSet, p *bool, usage string) {
+		fs.BoolVar(p, PflagReferrersTag.Name, true, usage)
 	}
 
 	PflagOutput = &pflag.Flag{

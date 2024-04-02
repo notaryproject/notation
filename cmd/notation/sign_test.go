@@ -67,7 +67,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			SignatureFormat: envelope.COSE,
 		},
 		expiry:            24 * time.Hour,
-		allowReferrersAPI: true,
+		forceReferrersTag: true,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -77,7 +77,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--insecure-registry",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
-		"--allow-referrers-api"}); err != nil {
+		"--force-referrers-tag"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {

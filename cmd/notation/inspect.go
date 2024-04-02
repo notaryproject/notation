@@ -120,7 +120,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, true)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, false)
 	if err != nil {
 		return err
 	}

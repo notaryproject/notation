@@ -127,7 +127,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, true)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, false)
 	if err != nil {
 		return err
 	}

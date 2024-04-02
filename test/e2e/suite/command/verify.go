@@ -65,7 +65,7 @@ var _ = Describe("notation verify", func() {
 
 	It("by digest, sign with the Referrers API", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--force-referrers-tag=false", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -73,9 +73,9 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("by tag, sign with the Referrers API", func() {
+	It("by tag, sign with the referrers tag schema", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--force-referrers-tag", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithTag(), "-v").
