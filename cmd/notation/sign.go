@@ -40,6 +40,7 @@ type signOpts struct {
 	pluginConfig      []string
 	userMetadata      []string
 	reference         string
+	allowReferrersAPI bool
 	forceReferrersTag bool
 	ociLayout         bool
 	inputType         inputType
@@ -73,8 +74,8 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
 
-Example - Sign an OCI artifact and store signature using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
-  notation sign --force-referrers-tag <registry>/<repository>@<digest>
+Example - Sign an OCI artifact and store signature using the Referrers API. If it's not supported, fallback to the Referrers tag schema
+  notation sign --force-referrers-tag=false <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
@@ -99,9 +100,18 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// allow-referrers-api flag is set
+			if cmd.Flags().Changed("allow-referrers-api") {
+				if opts.allowReferrersAPI {
+					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated, use '--force-referrers-tag=false' instead.")
+					opts.forceReferrersTag = false
+				} else {
+					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated, use '--force-referrers-tag' instead.")
+				}
+			}
 			return runSign(cmd, opts)
 		},
 	}
@@ -111,10 +121,11 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag")
-	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
+	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
 

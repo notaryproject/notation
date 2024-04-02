@@ -28,6 +28,7 @@ import (
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -39,9 +40,10 @@ import (
 type inspectOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference     string
-	outputFormat  string
-	maxSignatures int
+	reference         string
+	outputFormat      string
+	allowReferrersAPI bool
+	maxSignatures     int
 }
 
 type inspectOutput struct {
@@ -97,6 +99,9 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			if opts.maxSignatures <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
 			}
+			if cmd.Flags().Changed("allow-referrers-api") {
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and ignored.")
+			}
 			return runInspect(cmd, opts)
 		},
 	}
@@ -105,6 +110,8 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
+	experimental.HideFlags(command, "", []string{"allow-referrers-api"})
 	return command
 }
 

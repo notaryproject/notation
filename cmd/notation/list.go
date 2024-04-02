@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
@@ -30,10 +31,11 @@ import (
 type listOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference     string
-	ociLayout     bool
-	inputType     inputType
-	maxSignatures int
+	reference         string
+	allowReferrersAPI bool
+	ociLayout         bool
+	inputType         inputType
+	maxSignatures     int
 }
 
 func listCommand(opts *listOpts) *cobra.Command {
@@ -73,20 +75,24 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.maxSignatures <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
+			}
+			if cmd.Flags().Changed("allow-referrers-api") {
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and ignored.")
 			}
 			return runList(cmd.Context(), opts)
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
 
