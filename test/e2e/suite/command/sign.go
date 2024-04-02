@@ -78,19 +78,71 @@ var _ = Describe("notation sign", func() {
 		})
 	})
 
-	It("by digest, with referrers tag schema", func() {
+	It("with force-referrers-tag set", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.WithDescription("store signature with referrers tag schema").
-				Exec("sign", artifact.ReferenceWithDigest()).
+				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag").
 				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().WithDescription("verify by tag schema").
+				Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
-	It("by digest, with Referrers API", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+	It("with force-referrers-tag set to false", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.WithDescription("store signature with Referrers API").
 				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag=false").
 				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().WithDescription("verify by referrers api").
+				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with allow-referrers-api set", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"Warning: flag '--allow-referrers-api' is deprecated, use '--force-referrers-tag=false' instead.",
+				).
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().WithDescription("verify by referrers api").
+				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with allow-referrers-api set to false", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with referrers tag schema").
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api=false").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"Warning: flag '--allow-referrers-api' is deprecated, use '--force-referrers-tag' instead.",
+				).
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().WithDescription("verify by tag schema").
+				Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with both force-referrers-tag and allow-referrers-api set", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				ExpectFailure().
+				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag", "--allow-referrers-api").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"[allow-referrers-api force-referrers-tag] were all set",
+				)
 		})
 	})
 
