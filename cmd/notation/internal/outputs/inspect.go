@@ -19,19 +19,20 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/tree"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"strconv"
+	"os"
 	"strings"
 	"time"
 )
 
 type InspectOutput struct {
-	MediaType  string `json:"mediaType"`
-	Signatures []SignatureOutput
+	MediaType    string `json:"mediaType"`
+	Signatures   []SignatureOutput
+	outputFormat string
 }
 
 type SignatureOutput struct {
@@ -52,7 +53,7 @@ type certificateOutput struct {
 	Expiry            string `json:"expiry"`
 }
 
-func GetSignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) map[string]string {
+func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) map[string]string {
 	signedAttributes := map[string]string{
 		"signingScheme": string(envContent.SignerInfo.SignedAttributes.SigningScheme),
 		"signingTime":   formatTimestamp(outputFormat, envContent.SignerInfo.SignedAttributes.SigningTime),
@@ -69,7 +70,7 @@ func GetSignedAttributes(outputFormat string, envContent *signature.EnvelopeCont
 	return signedAttributes
 }
 
-func GetUnsignedAttributes(envContent *signature.EnvelopeContent) map[string]string {
+func getUnsignedAttributes(envContent *signature.EnvelopeContent) map[string]string {
 	unsignedAttributes := map[string]string{}
 
 	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
@@ -83,7 +84,7 @@ func GetUnsignedAttributes(envContent *signature.EnvelopeContent) map[string]str
 	return unsignedAttributes
 }
 
-func GetCertificates(outputFormat string, envContent *signature.EnvelopeContent) []certificateOutput {
+func getCertificates(outputFormat string, envContent *signature.EnvelopeContent) []certificateOutput {
 	certificates := []certificateOutput{}
 
 	for _, cert := range envContent.SignerInfo.CertificateChain {
@@ -103,53 +104,7 @@ func GetCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 	return certificates
 }
 
-func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
-	if outputFormat == cmd.OutputJSON {
-		return ioutil.PrintObjectAsJSON(output)
-	}
-
-	if len(output.Signatures) == 0 {
-		fmt.Printf("%s has no associated signature\n", ref)
-		return nil
-	}
-
-	fmt.Println("Inspecting all signatures for signed artifact")
-	root := tree.New(ref)
-	cncfSigNode := root.Add(registry.ArtifactTypeNotation)
-
-	for _, signature := range output.Signatures {
-		sigNode := cncfSigNode.Add(signature.Digest)
-		sigNode.AddPair("media type", signature.MediaType)
-		sigNode.AddPair("signature algorithm", signature.SignatureAlgorithm)
-
-		signedAttributesNode := sigNode.Add("signed attributes")
-		addMapToTree(signedAttributesNode, signature.SignedAttributes)
-
-		userDefinedAttributesNode := sigNode.Add("user defined attributes")
-		addMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
-
-		unsignedAttributesNode := sigNode.Add("unsigned attributes")
-		addMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
-
-		certListNode := sigNode.Add("certificates")
-		for _, cert := range signature.Certificates {
-			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
-			certNode.AddPair("issued to", cert.IssuedTo)
-			certNode.AddPair("issued by", cert.IssuedBy)
-			certNode.AddPair("expiry", cert.Expiry)
-		}
-
-		artifactNode := sigNode.Add("signed artifact")
-		artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
-		artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
-		artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
-	}
-
-	root.Print()
-	return nil
-}
-
-func addMapToTree(node *tree.Node, m map[string]string) {
+func AddMapToTree(node *tree.Node, m map[string]string) {
 	if len(m) > 0 {
 		for k, v := range m {
 			node.AddPair(k, v)
@@ -166,4 +121,57 @@ func formatTimestamp(outputFormat string, t time.Time) string {
 	default:
 		return t.Format(time.ANSIC)
 	}
+}
+
+func Signature(mediaType string, skippedSignatures bool, digest string, output InspectOutput, ref []byte) (error, bool, []SignatureOutput) {
+	sigEnvelope, err := signature.ParseEnvelope(mediaType, ref)
+	if err != nil {
+		logSkippedSignature(digest, err)
+		skippedSignatures = true
+		return nil, skippedSignatures, nil
+	}
+
+	envelopeContent, err := sigEnvelope.Content()
+	if err != nil {
+		logSkippedSignature(digest, err)
+		skippedSignatures = true
+		return nil, skippedSignatures, nil
+	}
+
+	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
+	if err != nil {
+		logSkippedSignature(digest, err)
+		skippedSignatures = true
+		return nil, skippedSignatures, nil
+	}
+
+	signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
+	if err != nil {
+		logSkippedSignature(digest, err)
+		skippedSignatures = true
+		return nil, skippedSignatures, nil
+	}
+
+	sig := SignatureOutput{
+		MediaType:             mediaType,
+		Digest:                digest,
+		SignatureAlgorithm:    string(signatureAlgorithm),
+		SignedAttributes:      getSignedAttributes(InspectOutput{}.outputFormat, envelopeContent),
+		UserDefinedAttributes: signedArtifactDesc.Annotations,
+		UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
+		Certificates:          getCertificates(InspectOutput{}.outputFormat, envelopeContent),
+		SignedArtifact:        *signedArtifactDesc,
+	}
+
+	// clearing annotations from the SignedArtifact field since they're already
+	// displayed as UserDefinedAttributes
+	sig.SignedArtifact.Annotations = nil
+
+	output.Signatures = append(output.Signatures, sig)
+
+	return nil, skippedSignatures, output.Signatures
+}
+
+func logSkippedSignature(digest string, err error) {
+	fmt.Fprintf(os.Stderr, "Warning: Skipping signature %s because of error: %v\n", digest, err)
 }

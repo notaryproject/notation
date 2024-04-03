@@ -16,22 +16,23 @@ package blob
 import (
 	"errors"
 	"fmt"
-	"github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation/cmd/notation/internal/outputs"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/internal/tree"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type blobInspectOpts struct {
 	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
 	signaturePath string
 	outputFormat  string
-	mediaType     string
 }
 
 func inspectCommand(opts *blobInspectOpts) *cobra.Command {
@@ -75,46 +76,85 @@ func runBlobInspect(opts *blobInspectOpts) error {
 
 	// initialize
 	mediaType, err := envelope.GetEnvelopeMediaType(filepath.Ext(opts.signaturePath))
-	if !(mediaType == "jws.MediaTypeEnvelope" || mediaType == "cose.MediaTypeEnvelope") {
+	if err != nil {
 		return err
 	}
-	contents, err := os.ReadFile(opts.signaturePath)
+	contents, err := readFile(opts.signaturePath)
 	if err != nil {
 		return err
 	}
 	output := outputs.InspectOutput{MediaType: mediaType, Signatures: []outputs.SignatureOutput{}}
-	sigEnvelope, err := signature.ParseEnvelope(mediaType, contents)
+	skippedSignatures := false
+	err, skippedSignatures, output.Signatures = outputs.Signature(mediaType, skippedSignatures, "nil", output, contents)
 	if err != nil {
-		return err
+		return nil
 	}
-	envelopeContent, err := sigEnvelope.Content()
-	if err != nil {
-		return err
-	}
-	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
-	if err != nil {
-		return err
-	}
-	signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
-	if err != nil {
-		return err
-	}
-
-	sig := outputs.SignatureOutput{
-		MediaType:             mediaType,
-		SignatureAlgorithm:    string(signatureAlgorithm),
-		SignedAttributes:      outputs.GetSignedAttributes(opts.outputFormat, envelopeContent),
-		UserDefinedAttributes: signedArtifactDesc.Annotations,
-		UnsignedAttributes:    outputs.GetUnsignedAttributes(envelopeContent),
-		Certificates:          outputs.GetCertificates(opts.outputFormat, envelopeContent),
-		SignedArtifact:        *signedArtifactDesc,
-	}
-
-	sig.SignedArtifact.Annotations = nil
-
-	output.Signatures = append(output.Signatures, sig)
-	if err := outputs.PrintOutput(opts.outputFormat, opts.signaturePath, output); err != nil {
+	if err := printOutput(opts.outputFormat, opts.signaturePath, output); err != nil {
 		return err
 	}
 	return nil
+}
+
+func printOutput(outputFormat string, ref string, output outputs.InspectOutput) error {
+	if outputFormat == cmd.OutputJSON {
+		return ioutil.PrintObjectAsJSON(output)
+	}
+
+	if len(output.Signatures) == 0 {
+		fmt.Printf("%s has no associated signature\n", ref)
+		return nil
+	}
+
+	root := tree.New(ref)
+	var signature outputs.SignatureOutput
+	root.Add(signature.Digest)
+	root.AddPair("media type", signature.MediaType)
+	root.AddPair("signature algorithm", signature.SignatureAlgorithm)
+
+	signedAttributesNode := root.Add("signed attributes")
+	outputs.AddMapToTree(signedAttributesNode, signature.SignedAttributes)
+
+	userDefinedAttributesNode := root.Add("user defined attributes")
+	outputs.AddMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
+
+	unsignedAttributesNode := root.Add("unsigned attributes")
+	outputs.AddMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
+
+	certListNode := root.Add("certificates")
+	for _, cert := range signature.Certificates {
+		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
+		certNode.AddPair("issued to", cert.IssuedTo)
+		certNode.AddPair("issued by", cert.IssuedBy)
+		certNode.AddPair("expiry", cert.Expiry)
+	}
+
+	artifactNode := root.Add("signed artifact")
+	artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
+	artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
+	artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
+
+	root.Print()
+	return nil
+}
+
+func readFile(path string) ([]byte, error) {
+	file, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	size, err := os.Stat(path)
+	if size.Size() == 0 {
+		return nil, fmt.Errorf("file is empty")
+	}
+	r := strings.NewReader(string(file))
+	var n int64 = 10485760 //10MB in bytes
+	limitedReader := &io.LimitedReader{R: r, N: n}
+	contents, err := io.ReadAll(limitedReader)
+	if err != nil {
+		return nil, err
+	}
+	if limitedReader.N == 0 {
+		return nil, fmt.Errorf("unable to read as file size was greater than %v bytes", n)
+	}
+	return contents, nil
 }

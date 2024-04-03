@@ -18,8 +18,8 @@ import "github.com/spf13/cobra"
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "blob [command]",
-		Short: "Operation on BLOB artifact",
-		Long:  "Operation on BLOB artifact - Sign, Verify, Inspect",
+		Short: "Operation on BLOB",
+		Long:  "Generate, verify and inspect signature for BLOB",
 	}
 
 	command.AddCommand(
