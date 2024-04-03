@@ -56,13 +56,13 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 }
 
 // getRemoteRepository returns a registry.Repository.
-// When forceReferrersTag is set, Notation will always generate an image index
+// When forceReferrersTag is true, Notation will always generate an image index
 // according to the Referrers tag schema to store signature.
 //
-// When forceReferrersTag is not set, Notation will first try to store the
+// When forceReferrersTag is false, Notation will first try to store the
 // signature as a referrer according to the Referrers API. If the Referrers API
 // is not supported, fallback to use the referrers tag schema.
-// This flag is always NOT set when verify/list/inspect signatures.
+// This flag is always FALSE when verify/list/inspect signatures.
 //
 // References:
 // https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#listing-referrers
