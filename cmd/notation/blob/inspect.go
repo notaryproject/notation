@@ -107,15 +107,11 @@ func printOutput(outputFormat string, ref string, output outputs.InspectOutput) 
 
 	root := tree.New(ref)
 	var signature outputs.SignatureOutput
-	root.Add(signature.Digest)
-	root.AddPair("media type", signature.MediaType)
 	root.AddPair("signature algorithm", signature.SignatureAlgorithm)
+	root.AddPair("signature envelope type", signature.MediaType)
 
 	signedAttributesNode := root.Add("signed attributes")
 	outputs.AddMapToTree(signedAttributesNode, signature.SignedAttributes)
-
-	userDefinedAttributesNode := root.Add("user defined attributes")
-	outputs.AddMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
 
 	unsignedAttributesNode := root.Add("unsigned attributes")
 	outputs.AddMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
