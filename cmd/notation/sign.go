@@ -14,7 +14,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -22,7 +21,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
-	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -142,7 +140,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	signOpts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
+	signOpts, err := prepareSigningOpts(cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -170,7 +168,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, error) {
+func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err

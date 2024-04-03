@@ -146,6 +146,16 @@ var _ = Describe("notation sign", func() {
 		})
 	})
 
+	It("with allow-referrers-api set and experimental off", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				ExpectFailure().
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
+				MatchErrKeyWords(
+					"Error: flag(s) --allow-referrers-api in \"notation sign\" is experimental and not enabled by default.")
+		})
+	})
+
 	It("with specific key", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			const keyName = "sKey"

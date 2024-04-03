@@ -88,7 +88,7 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 			return nil, err
 		}
 	} else {
-		logger.Info("Check and use the Referrers API first if possible")
+		logger.Info("Trying to use the Referrers API, fallback if not supported")
 	}
 	return notationregistry.NewRepository(remoteRepo), nil
 }
