@@ -52,7 +52,7 @@ Example - Inspect BLOB signature and output as JSON:
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing signature path to the artifact: use `notation blob inspect --help` to see what parameters are required")
+				return errors.New("missing signature path: use `notation blob inspect --help` to see what parameters are required")
 			}
 			opts.signaturePath = args[0]
 			return nil
@@ -77,12 +77,12 @@ func runBlobInspect(opts *blobInspectOpts) error {
 	if err != nil {
 		return err
 	}
-	contents, err := osutil.ReadFile(opts.signaturePath)
+	signatureEnv, err := osutil.ReadFile(opts.signaturePath, 10485760)
 	if err != nil {
 		return err
 	}
 	output := outputs.InspectOutput{MediaType: mediaType, Signatures: []outputs.SignatureOutput{}}
-	err, _, output.Signatures = outputs.Signature(mediaType, false, "", output, contents)
+	err, _, output.Signatures = outputs.Signature(mediaType, false, "", output, signatureEnv)
 	if err != nil {
 		return nil
 	}

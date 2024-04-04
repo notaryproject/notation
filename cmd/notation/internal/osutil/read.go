@@ -20,15 +20,15 @@ import (
 	"os"
 )
 
-func ReadFile(path string) ([]byte, error) {
+func ReadFile(path string, size int64) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 
 	reader := bufio.NewReader(file)
-	const bytes int64 = 10485760 //10MB in bytes
-	limitedReader := &io.LimitedReader{R: reader, N: bytes}
+	limitedReader := &io.LimitedReader{R: reader, N: size}
+	defer file.Close()
 	contents, _ := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, err
@@ -37,12 +37,8 @@ func ReadFile(path string) ([]byte, error) {
 		return nil, fmt.Errorf("file is empty")
 	}
 	if limitedReader.N == 0 {
-		return nil, fmt.Errorf("unable to read as file size was greater than %v bytes", bytes)
+		return nil, fmt.Errorf("unable to read as file size is greater than %v bytes", size)
 	}
 
-	err = file.Close()
-	if err != nil {
-		return nil, err
-	}
-	return contents, nil
+	return contents, file.Close()
 }
