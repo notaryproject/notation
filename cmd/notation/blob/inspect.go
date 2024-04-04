@@ -16,17 +16,15 @@ package blob
 import (
 	"errors"
 	"fmt"
+	"github.com/notaryproject/notation/cmd/notation/internal/osutil"
 	"github.com/notaryproject/notation/cmd/notation/internal/outputs"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/tree"
 	"github.com/spf13/cobra"
-	"io"
-	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 type blobInspectOpts struct {
@@ -79,13 +77,12 @@ func runBlobInspect(opts *blobInspectOpts) error {
 	if err != nil {
 		return err
 	}
-	contents, err := readFile(opts.signaturePath)
+	contents, err := osutil.ReadFile(opts.signaturePath)
 	if err != nil {
 		return err
 	}
 	output := outputs.InspectOutput{MediaType: mediaType, Signatures: []outputs.SignatureOutput{}}
-	skippedSignatures := false
-	err, skippedSignatures, output.Signatures = outputs.Signature(mediaType, skippedSignatures, "nil", output, contents)
+	err, _, output.Signatures = outputs.Signature(mediaType, false, "", output, contents)
 	if err != nil {
 		return nil
 	}
@@ -131,26 +128,4 @@ func printOutput(outputFormat string, ref string, output outputs.InspectOutput) 
 
 	root.Print()
 	return nil
-}
-
-func readFile(path string) ([]byte, error) {
-	file, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	size, err := os.Stat(path)
-	if size.Size() == 0 {
-		return nil, fmt.Errorf("file is empty")
-	}
-	r := strings.NewReader(string(file))
-	var n int64 = 10485760 //10MB in bytes
-	limitedReader := &io.LimitedReader{R: r, N: n}
-	contents, err := io.ReadAll(limitedReader)
-	if err != nil {
-		return nil, err
-	}
-	if limitedReader.N == 0 {
-		return nil, fmt.Errorf("unable to read as file size was greater than %v bytes", n)
-	}
-	return contents, nil
 }

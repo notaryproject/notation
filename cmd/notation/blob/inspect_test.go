@@ -15,6 +15,7 @@ package blob
 
 import (
 	"errors"
+	"github.com/notaryproject/notation/cmd/notation/internal/osutil"
 	"path/filepath"
 	"testing"
 )
@@ -32,27 +33,27 @@ func TestBlobInspectCommand_MissingArgs(t *testing.T) {
 func TestReadFile(t *testing.T) {
 	noFile := filepath.FromSlash("")
 	expectedErr := errors.New("open : no such file or directory")
-	_, err := readFile(noFile)
+	_, err := osutil.ReadFile(noFile)
 	if err == nil || err.Error() != "open : no such file or directory" {
 		t.Fatalf("expected err: %v, got: %v", expectedErr, err)
 	}
 
 	emptyFile := filepath.FromSlash("../../../internal/testdata/Empty.txt")
 	expectedErr = errors.New("file is empty")
-	_, err = readFile(emptyFile)
+	_, err = osutil.ReadFile(emptyFile)
 	if err == nil || err.Error() != "file is empty" {
 		t.Fatalf("expected err: %v, got: %v", expectedErr, err)
 	}
 
 	largeFile := filepath.FromSlash("../../../internal/testdata/LargeFile.txt")
 	expectedErr = errors.New("unable to read as file size was greater than 10485760 bytes")
-	_, err = readFile(largeFile)
+	_, err = osutil.ReadFile(largeFile)
 	if err == nil || err.Error() != "unable to read as file size was greater than 10485760 bytes" {
 		t.Fatalf("expected err: %v, got: %v", expectedErr, err)
 	}
 
 	file := filepath.FromSlash("../../../internal/testdata/File.txt")
-	contents, err := readFile(file)
+	contents, err := osutil.ReadFile(file)
 	if err != nil {
 		t.Fatalf("Reading file failed: %v", err)
 	}
