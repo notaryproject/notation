@@ -77,7 +77,7 @@ func runBlobInspect(opts *blobInspectOpts) error {
 	if err != nil {
 		return err
 	}
-	signatureEnv, err := osutil.ReadFile(opts.signaturePath, 10485760)
+	signatureEnv, err := osutil.ReadFile(opts.signaturePath, 10485760) // 10Mb in bytes
 	if err != nil {
 		return err
 	}
