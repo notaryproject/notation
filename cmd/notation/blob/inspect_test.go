@@ -44,10 +44,19 @@ func TestReadFile(t *testing.T) {
 		t.Fatalf("expected err: %v, got: %v", expectedErr, err)
 	}
 
-	filePath := filepath.FromSlash("../../../internal/testdata/Output.txt")
+	largeFile := filepath.FromSlash("../../../internal/testdata/LargeFile.txt")
 	expectedErr = errors.New("unable to read as file size was greater than 10485760 bytes")
-	_, err = readFile(filePath)
+	_, err = readFile(largeFile)
 	if err == nil || err.Error() != "unable to read as file size was greater than 10485760 bytes" {
 		t.Fatalf("expected err: %v, got: %v", expectedErr, err)
+	}
+
+	file := filepath.FromSlash("../../../internal/testdata/File.txt")
+	contents, err := readFile(file)
+	if err != nil {
+		t.Fatalf("Reading file failed: %v", err)
+	}
+	if string(contents) != "awesome notation\n" {
+		t.Fatalf("Reading contents of file failed")
 	}
 }
