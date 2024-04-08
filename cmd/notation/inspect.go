@@ -102,6 +102,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
+	output := outputs.InspectOutput{MediaType: manifestDesc.MediaType, Signatures: []outputs.SignatureOutput{}}
 	skippedSignatures := false
 	err = listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
 		sigBlob, sigDesc, err := sigRepo.FetchSignatureBlob(ctx, sigManifestDesc)
@@ -112,17 +113,19 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		}
 		digest := sigManifestDesc.Digest.String()
 		mediaType := sigDesc.MediaType
-		err, output := outputs.Signatures(mediaType, digest, sigBlob)
+		err, output.Signatures = outputs.Signatures(mediaType, digest, output, sigBlob)
 		if err != nil {
 			return nil
 		}
-		if err := outputs.PrintOutput(opts.outputFormat, resolvedRef, output); err != nil {
-			return err
-		}
+
 		return nil
 	})
 	var errorExceedMaxSignatures cmderr.ErrorExceedMaxSignatures
 	if err != nil && !errors.As(err, &errorExceedMaxSignatures) {
+		return err
+	}
+
+	if err := outputs.PrintOutput(opts.outputFormat, resolvedRef, output); err != nil {
 		return err
 	}
 

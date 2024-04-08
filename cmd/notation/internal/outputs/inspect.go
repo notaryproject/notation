@@ -127,7 +127,7 @@ func formatTimestamp(outputFormat string, t time.Time) string {
 	}
 }
 
-func Signatures(mediaType string, digest string, sigFile []byte) (error, []SignatureOutput) {
+func Signatures(mediaType string, digest string, output InspectOutput, sigFile []byte) (error, []SignatureOutput) {
 	sigEnvelope, err := signature.ParseEnvelope(mediaType, sigFile)
 	skippedSignatures := false
 	if err != nil {
@@ -172,21 +172,19 @@ func Signatures(mediaType string, digest string, sigFile []byte) (error, []Signa
 	// displayed as UserDefinedAttributes
 	sig.SignedArtifact.Annotations = nil
 
-	output := InspectOutput{MediaType: mediaType, Signatures: []SignatureOutput{}}
-
-	signatures := append(output.Signatures, sig)
+	output.Signatures = append(output.Signatures, sig)
 
 	if skippedSignatures {
 		return errors.New("at least one signature was skipped and not displayed"), nil
 	}
-	return nil, signatures
+	return nil, output.Signatures
 }
-func PrintOutput(outputFormat string, ref string, output []SignatureOutput) error {
+func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
 	if outputFormat == cmd.OutputJSON {
-		return ioutil.PrintObjectAsJSON(Signatures)
+		return ioutil.PrintObjectAsJSON(output)
 	}
 
-	if len(output) == 0 {
+	if len(output.Signatures) == 0 {
 		fmt.Printf("%s has no associated signature\n", ref)
 		return nil
 	}
@@ -194,7 +192,7 @@ func PrintOutput(outputFormat string, ref string, output []SignatureOutput) erro
 	fmt.Println("Inspecting all signatures for signed artifact")
 	root := tree.New(ref)
 
-	for _, signature := range output {
+	for _, signature := range output.Signatures {
 
 		if !(signature.MediaType == "jws" || signature.MediaType == "cose") {
 			subroot := root.Add(registry.ArtifactTypeNotation)
