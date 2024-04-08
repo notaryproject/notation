@@ -20,11 +20,8 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/outputs"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/internal/ioutil"
-	"github.com/notaryproject/notation/internal/tree"
 	"github.com/spf13/cobra"
 	"path/filepath"
-	"strconv"
 )
 
 type blobInspectOpts struct {
@@ -81,51 +78,12 @@ func runBlobInspect(opts *blobInspectOpts) error {
 	if err != nil {
 		return err
 	}
-	output := outputs.InspectOutput{MediaType: mediaType, Signatures: []outputs.SignatureOutput{}}
-	err, _, output.Signatures = outputs.Signature(mediaType, false, "", output, signatureEnv)
+	err, output := outputs.Signatures(mediaType, "", signatureEnv)
 	if err != nil {
 		return nil
 	}
-	if err := printOutput(opts.outputFormat, opts.signaturePath, output); err != nil {
+	if err := outputs.PrintOutput(opts.outputFormat, opts.signaturePath, output); err != nil {
 		return err
 	}
-	return nil
-}
-
-func printOutput(outputFormat string, ref string, output outputs.InspectOutput) error {
-	if outputFormat == cmd.OutputJSON {
-		return ioutil.PrintObjectAsJSON(output)
-	}
-
-	if len(output.Signatures) == 0 {
-		fmt.Printf("%s has no associated signature\n", ref)
-		return nil
-	}
-
-	root := tree.New(ref)
-	var signature outputs.SignatureOutput
-	root.AddPair("signature algorithm", signature.SignatureAlgorithm)
-	root.AddPair("signature envelope type", signature.MediaType)
-
-	signedAttributesNode := root.Add("signed attributes")
-	outputs.AddMapToTree(signedAttributesNode, signature.SignedAttributes)
-
-	unsignedAttributesNode := root.Add("unsigned attributes")
-	outputs.AddMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
-
-	certListNode := root.Add("certificates")
-	for _, cert := range signature.Certificates {
-		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
-		certNode.AddPair("issued to", cert.IssuedTo)
-		certNode.AddPair("issued by", cert.IssuedBy)
-		certNode.AddPair("expiry", cert.Expiry)
-	}
-
-	artifactNode := root.Add("signed artifact")
-	artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
-	artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
-	artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
-
-	root.Print()
 	return nil
 }

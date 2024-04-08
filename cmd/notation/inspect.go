@@ -16,17 +16,13 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/outputs"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
-	"github.com/notaryproject/notation/internal/tree"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 	"os"
-	"strconv"
 )
 
 type inspectOpts struct {
@@ -106,7 +102,6 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
-	output := outputs.InspectOutput{MediaType: manifestDesc.MediaType, Signatures: []outputs.SignatureOutput{}}
 	skippedSignatures := false
 	err = listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
 		sigBlob, sigDesc, err := sigRepo.FetchSignatureBlob(ctx, sigManifestDesc)
@@ -117,18 +112,17 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		}
 		digest := sigManifestDesc.Digest.String()
 		mediaType := sigDesc.MediaType
-		err, skippedSignatures, output.Signatures = outputs.Signature(mediaType, skippedSignatures, digest, output, sigBlob)
+		err, output := outputs.Signatures(mediaType, digest, sigBlob)
 		if err != nil {
 			return nil
+		}
+		if err := outputs.PrintOutput(opts.outputFormat, resolvedRef, output); err != nil {
+			return err
 		}
 		return nil
 	})
 	var errorExceedMaxSignatures cmderr.ErrorExceedMaxSignatures
 	if err != nil && !errors.As(err, &errorExceedMaxSignatures) {
-		return err
-	}
-
-	if err := printOutput(opts.outputFormat, resolvedRef, output); err != nil {
 		return err
 	}
 
@@ -139,52 +133,5 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if skippedSignatures {
 		return errors.New("at least one signature was skipped and not displayed")
 	}
-
-	return nil
-}
-
-func printOutput(outputFormat string, ref string, output outputs.InspectOutput) error {
-	if outputFormat == cmd.OutputJSON {
-		return ioutil.PrintObjectAsJSON(output)
-	}
-
-	if len(output.Signatures) == 0 {
-		fmt.Printf("%s has no associated signature\n", ref)
-		return nil
-	}
-
-	fmt.Println("Inspecting all signatures for signed artifact")
-	root := tree.New(ref)
-	cncfSigNode := root.Add(registry.ArtifactTypeNotation)
-
-	for _, signature := range output.Signatures {
-		sigNode := cncfSigNode.Add(signature.Digest)
-		sigNode.AddPair("media type", signature.MediaType)
-		sigNode.AddPair("signature algorithm", signature.SignatureAlgorithm)
-
-		signedAttributesNode := sigNode.Add("signed attributes")
-		outputs.AddMapToTree(signedAttributesNode, signature.SignedAttributes)
-
-		userDefinedAttributesNode := sigNode.Add("user defined attributes")
-		outputs.AddMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
-
-		unsignedAttributesNode := sigNode.Add("unsigned attributes")
-		outputs.AddMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
-
-		certListNode := sigNode.Add("certificates")
-		for _, cert := range signature.Certificates {
-			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
-			certNode.AddPair("issued to", cert.IssuedTo)
-			certNode.AddPair("issued by", cert.IssuedBy)
-			certNode.AddPair("expiry", cert.Expiry)
-		}
-
-		artifactNode := sigNode.Add("signed artifact")
-		artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
-		artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
-		artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
-	}
-
-	root.Print()
 	return nil
 }

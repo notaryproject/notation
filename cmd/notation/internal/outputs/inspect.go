@@ -17,14 +17,18 @@ import (
 	"crypto/sha256"
 	b64 "encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	"github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/tree"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -104,7 +108,7 @@ func getCertificates(outputFormat string, envContent *signature.EnvelopeContent)
 	return certificates
 }
 
-func AddMapToTree(node *tree.Node, m map[string]string) {
+func addMapToTree(node *tree.Node, m map[string]string) {
 	if len(m) > 0 {
 		for k, v := range m {
 			node.AddPair(k, v)
@@ -123,33 +127,34 @@ func formatTimestamp(outputFormat string, t time.Time) string {
 	}
 }
 
-func Signature(mediaType string, skippedSignatures bool, digest string, output InspectOutput, ref []byte) (error, bool, []SignatureOutput) {
-	sigEnvelope, err := signature.ParseEnvelope(mediaType, ref)
+func Signatures(mediaType string, digest string, sigFile []byte) (error, []SignatureOutput) {
+	sigEnvelope, err := signature.ParseEnvelope(mediaType, sigFile)
+	skippedSignatures := false
 	if err != nil {
 		logSkippedSignature(digest, err)
 		skippedSignatures = true
-		return nil, skippedSignatures, nil
+		return nil, nil
 	}
 
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		logSkippedSignature(digest, err)
 		skippedSignatures = true
-		return nil, skippedSignatures, nil
+		return nil, nil
 	}
 
 	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
 	if err != nil {
 		logSkippedSignature(digest, err)
 		skippedSignatures = true
-		return nil, skippedSignatures, nil
+		return nil, nil
 	}
 
 	signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
 	if err != nil {
 		logSkippedSignature(digest, err)
 		skippedSignatures = true
-		return nil, skippedSignatures, nil
+		return nil, nil
 	}
 
 	sig := SignatureOutput{
@@ -167,9 +172,63 @@ func Signature(mediaType string, skippedSignatures bool, digest string, output I
 	// displayed as UserDefinedAttributes
 	sig.SignedArtifact.Annotations = nil
 
-	output.Signatures = append(output.Signatures, sig)
+	output := InspectOutput{MediaType: mediaType, Signatures: []SignatureOutput{}}
 
-	return nil, skippedSignatures, output.Signatures
+	signatures := append(output.Signatures, sig)
+
+	if skippedSignatures {
+		return errors.New("at least one signature was skipped and not displayed"), nil
+	}
+	return nil, signatures
+}
+func PrintOutput(outputFormat string, ref string, output []SignatureOutput) error {
+	if outputFormat == cmd.OutputJSON {
+		return ioutil.PrintObjectAsJSON(Signatures)
+	}
+
+	if len(output) == 0 {
+		fmt.Printf("%s has no associated signature\n", ref)
+		return nil
+	}
+
+	fmt.Println("Inspecting all signatures for signed artifact")
+	root := tree.New(ref)
+
+	for _, signature := range output {
+
+		if !(signature.MediaType == "jws" || signature.MediaType == "cose") {
+			subroot := root.Add(registry.ArtifactTypeNotation)
+			subroot.Add(signature.Digest)
+		}
+		root.AddPair("media type", signature.MediaType)
+		root.AddPair("signature algorithm", signature.SignatureAlgorithm)
+
+		signedAttributesNode := root.Add("signed attributes")
+		addMapToTree(signedAttributesNode, signature.SignedAttributes)
+
+		userDefinedAttributesNode := root.Add("user defined attributes")
+		addMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
+
+		unsignedAttributesNode := root.Add("unsigned attributes")
+		addMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
+
+		certListNode := root.Add("certificates")
+		for _, cert := range signature.Certificates {
+			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
+			certNode.AddPair("issued to", cert.IssuedTo)
+			certNode.AddPair("issued by", cert.IssuedBy)
+			certNode.AddPair("expiry", cert.Expiry)
+		}
+
+		artifactNode := root.Add("signed artifact")
+		artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
+		artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
+		artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
+	}
+
+	root.Print()
+
+	return nil
 }
 
 func logSkippedSignature(digest string, err error) {
