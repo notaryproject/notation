@@ -82,7 +82,7 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
 			}
 			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and ignored.")
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
 			}
 			return runList(cmd.Context(), opts)
 		},

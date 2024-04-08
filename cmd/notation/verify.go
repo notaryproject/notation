@@ -88,7 +88,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatureAttempts)
 			}
 			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and ignored.")
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
 			}
 			return runVerify(cmd, opts)
 		},

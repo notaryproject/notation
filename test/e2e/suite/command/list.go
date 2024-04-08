@@ -126,7 +126,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("list", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
 				MatchErrKeyWords(
 					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and ignored.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.",
 				).
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
@@ -149,7 +149,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("list", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
 				MatchErrKeyWords(
 					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and ignored.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.",
 				).
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",

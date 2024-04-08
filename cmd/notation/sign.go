@@ -104,10 +104,10 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			// allow-referrers-api flag is set
 			if cmd.Flags().Changed("allow-referrers-api") {
 				if opts.allowReferrersAPI {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated, use '--force-referrers-tag=false' instead.")
+					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version, use '--force-referrers-tag=false' instead.")
 					opts.forceReferrersTag = false
 				} else {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated, use '--force-referrers-tag' instead.")
+					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
 				}
 			}
 			return runSign(cmd, opts)
