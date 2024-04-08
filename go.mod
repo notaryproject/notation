@@ -3,7 +3,7 @@ module github.com/notaryproject/notation
 go 1.21
 
 require (
-	github.com/notaryproject/notation-core-go v1.0.2
+	github.com/notaryproject/notation-core-go v1.0.3-0.20240325061945-807a3386734e
 	github.com/notaryproject/notation-go v1.1.1-0.20240201073933-4606472ebdcb
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/term v0.18.0
-	oras.land/oras-go/v2 v2.4.0
+	oras.land/oras-go/v2 v2.5.0
 )
 
 require (
@@ -32,8 +32,8 @@ require (
 	golang.org/x/sys v0.18.0 // indirect
 )
 
-replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient-go v0.0.0-20240327080830-9d2a35b7f3f0
+replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient-go v0.0.0-20240408072521-32657eeb0822
 
-replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240327082239-e085696162b1
+replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240408072948-cbde6f956cbe
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240327084647-c8f8e4ead7c7
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240408073941-2e674e4cb276
