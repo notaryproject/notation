@@ -46,7 +46,7 @@ func GetEnvelopeMediaType(sigFormat string) (string, error) {
 	case COSE:
 		return cose.MediaTypeEnvelope, nil
 	}
-	return "", fmt.Errorf("signature format %q not supported", sigFormat)
+	return "", fmt.Errorf("signature format %q not supported\nPlease use the supported signature envelope format \"jws\" or \"cose\"", sigFormat)
 }
 
 // ValidatePayloadContentType validates signature payload's content type.
