@@ -104,10 +104,10 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			// allow-referrers-api flag is set
 			if cmd.Flags().Changed("allow-referrers-api") {
 				if opts.allowReferrersAPI {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version, use '--force-referrers-tag=false' instead.")
+					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions, use '--force-referrers-tag=false' instead.")
 					opts.forceReferrersTag = false
 				} else {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
+					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
 				}
 			}
 			return runSign(cmd, opts)
@@ -123,7 +123,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
+	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command
 }
 

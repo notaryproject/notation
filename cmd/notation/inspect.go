@@ -103,7 +103,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
 			}
 			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
 			}
 			return runInspect(cmd, opts)
 		},
@@ -114,7 +114,6 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
-	experimental.HideFlags(command, "", []string{"allow-referrers-api"})
 	return command
 }
 

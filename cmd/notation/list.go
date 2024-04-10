@@ -82,7 +82,7 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
 			}
 			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
 			}
 			return runList(cmd.Context(), opts)
 		},
@@ -92,7 +92,7 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
+	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command
 }
 

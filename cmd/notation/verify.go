@@ -88,7 +88,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatureAttempts)
 			}
 			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.")
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
 			}
 			return runVerify(cmd, opts)
 		},
@@ -102,7 +102,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout", "scope"})
+	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout", "scope"})
 	return command
 }
 

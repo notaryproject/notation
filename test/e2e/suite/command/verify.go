@@ -94,7 +94,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
 				MatchErrKeyWords(
 					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
 				).
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -111,7 +111,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
 				MatchErrKeyWords(
 					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in a future version.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
 				).
 				MatchKeyWords(VerifySuccessfully)
 		})
