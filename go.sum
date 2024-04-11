@@ -1,9 +1,9 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240410034234-29bc7737eb3c h1:hr6zVMTS6oEjGuNt7HSAG/41Ck7KQVG+UJxeiF6LHgI=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240410034234-29bc7737eb3c/go.mod h1:o3qDLatecAi3cQKnlnTk32mJNoNWovGFMiToV5n8KW4=
-github.com/Two-Hearts/notation-go v0.0.0-20240410035320-31de40f4956a h1:IRMw8JKpEOsqbyl2w9l94OB8YEcPUegMvqQvtf/4PiQ=
-github.com/Two-Hearts/notation-go v0.0.0-20240410035320-31de40f4956a/go.mod h1:gQJ98AE4ItBTHw5TSBzl86pzwy1s2YcZrTNpGO2uKr4=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240411021119-44995cc7a08f h1:OUQLq7PVUmvVMSuI7RV9IQwcLkqP2fr+DwCo7lMirM0=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240411021119-44995cc7a08f/go.mod h1:o3qDLatecAi3cQKnlnTk32mJNoNWovGFMiToV5n8KW4=
+github.com/Two-Hearts/notation-go v0.0.0-20240411065042-545e1e76454e h1:zVqFLHBKMZhetLSvT/DCl+I47ErHWbmzuY5ewrbKMeg=
+github.com/Two-Hearts/notation-go v0.0.0-20240411065042-545e1e76454e/go.mod h1:VTU1+JpJJJDAqHvuJu3y79BIWZA71KL2dlmFjwJhcsI=
 github.com/Two-Hearts/tspclient-go v0.0.0-20240410033505-94c3b3def019 h1:7SJ4FlWTmpXssu5J+XI7Fzn50tPsagFMEJSWmqv8nLU=
 github.com/Two-Hearts/tspclient-go v0.0.0-20240410033505-94c3b3def019/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
 github.com/alexbrainman/sspi v0.0.0-20210105120005-909beea2cc74 h1:Kk6a4nehpJ3UuJRqlA3JxYxBZEqCeOmATOvrbT4p9RA=

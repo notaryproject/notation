@@ -33,14 +33,15 @@ import (
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
-	reference            string
-	pluginConfig         []string
-	userMetadata         []string
-	allowReferrersAPI    bool
-	ociLayout            bool
-	trustPolicyScope     string
-	inputType            inputType
-	maxSignatureAttempts int
+	reference               string
+	pluginConfig            []string
+	userMetadata            []string
+	allowReferrersAPI       bool
+	ociLayout               bool
+	trustPolicyScope        string
+	inputType               inputType
+	maxSignatureAttempts    int
+	verifyAtTimestampedTime bool
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -99,6 +100,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
+	command.Flags().BoolVar(&opts.verifyAtTimestampedTime, "at-timestamped-time", false, "verify timestamp countersignature at the time point been stamped")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
@@ -141,10 +143,11 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 	intendedRef := resolveArtifactDigestReference(resolvedRef, opts.trustPolicyScope)
 	verifyOpts := notation.VerifyOptions{
-		ArtifactReference:    intendedRef,
-		PluginConfig:         configs,
-		MaxSignatureAttempts: opts.maxSignatureAttempts,
-		UserMetadata:         userMetadata,
+		ArtifactReference:       intendedRef,
+		PluginConfig:            configs,
+		MaxSignatureAttempts:    opts.maxSignatureAttempts,
+		UserMetadata:            userMetadata,
+		VerifyAtTimestampedTime: opts.verifyAtTimestampedTime,
 	}
 	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
 	err = checkVerificationFailure(outcomes, resolvedRef, err)
