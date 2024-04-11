@@ -60,9 +60,9 @@ var _ = Describe("notation cert", func() {
 
 	It("show e2e cert", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("cert", "list", "--type", "ca", "--store", "e2e").
+			notation.Exec("cert", "show", "--type", "ca", "--store", "e2e", "e2e.crt").
 				MatchKeyWords(
-					"e2e.crt",
+					"Issuer: CN=e2e,O=Notary,L=Seattle,ST=WA,C=US",
 				)
 		})
 	})
@@ -72,6 +72,36 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "list").
 				MatchKeyWords(
 					"STORE TYPE   STORE NAME   CERTIFICATE",
+				)
+		})
+	})
+
+	It("list with type", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "list", "--type", "ca").
+				MatchKeyWords(
+					"STORE TYPE   STORE NAME   CERTIFICATE",
+					"e2e.crt",
+				)
+		})
+	})
+
+	It("list with store", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "list", "--store", "e2e").
+				MatchKeyWords(
+					"STORE TYPE   STORE NAME   CERTIFICATE",
+					"e2e.crt",
+				)
+		})
+	})
+
+	It("list with type and store", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "list", "--type", "ca", "--store", "e2e").
+				MatchKeyWords(
+					"STORE TYPE   STORE NAME   CERTIFICATE",
+					"e2e.crt",
 				)
 		})
 	})
