@@ -38,6 +38,7 @@ Usage:
   notation verify [flags] <reference>
 
 Flags:
+       --at-timestamped-time         verify timestamp countersignature at the time point been stamped
        --allow-referrers-api         [Experimental] use the Referrers API to verify signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d,  --debug                       debug mode
   -h,  --help                        help for verify
@@ -173,6 +174,19 @@ An example of output messages for a successful verification:
 
 ```text
 Warning:  Always verify the artifact using digest(@sha256:...) rather than a tag(:v1) because resolved digest may not point to the same signed artifact, as tags are mutable.
+Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Verify timestamp countersignature at the time point been stamped
+
+```shell
+# Verify timestamp countersignature at the time point been stamped
+notation verify --at-timestamped-time localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+An example of output messages for a successful verification:
+
+```text
 Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
