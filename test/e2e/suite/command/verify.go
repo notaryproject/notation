@@ -63,22 +63,56 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("by digest with the Referrers API", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
+	It("sign with --force-referrers-tag set", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--force-referrers-tag", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
-	It("by digest, sign with the Referrers tag schema, verify with the Referrers API", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", artifact.ReferenceWithDigest()).
+	It("sign with --force-referrers-tag set to false", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--force-referrers-tag=false", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", "--allow-referrers-api", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("sign with --allow-referrers-api set", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
+				).
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("sign with --allow-referrers-api set to false", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--allow-referrers-api=false", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
+				).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
