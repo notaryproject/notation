@@ -1,10 +1,10 @@
 module github.com/notaryproject/notation
 
-go 1.21
+go 1.22
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.3-0.20240325061945-807a3386734e
-	github.com/notaryproject/notation-go v1.1.1-0.20240201073933-4606472ebdcb
+	github.com/notaryproject/notation-go v1.1.1-0.20240327165254-57ff8e68a0a8
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/sirupsen/logrus v1.9.3
