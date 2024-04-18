@@ -98,7 +98,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
-					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired").
+					"error: current time is not in certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" validity period and no timestamp token was found in the signature envelope").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -156,7 +156,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
-					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired").
+					"error: current time is not in certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" validity period and no timestamp token was found in the signature envelope").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -226,7 +226,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
-					"error: certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" is not valid anymore, it was expired").
+					"error: current time is not in certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" validity period and no timestamp token was found in the signature envelope").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

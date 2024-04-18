@@ -36,4 +36,4 @@ replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient
 
 replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240418044922-14d05519328b
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240418050603-6e3630339661
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240418052257-bea674c16d59
