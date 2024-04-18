@@ -15,6 +15,8 @@ package envelope
 
 import (
 	"testing"
+
+	"github.com/notaryproject/notation-core-go/signature"
 )
 
 func TestGetEnvelopeMediaType(t *testing.T) {
@@ -55,6 +57,80 @@ func TestGetEnvelopeMediaType(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("GetEnvelopeMediaType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidatePayloadContentType(t *testing.T) {
+	tests := []struct {
+		name    string
+		payload *signature.Payload
+		wantErr bool
+	}{
+		{
+			name: "valid content type",
+			payload: &signature.Payload{
+				ContentType: MediaTypePayloadV1,
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid content type",
+			payload: &signature.Payload{
+				ContentType: "invalid",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePayloadContentType(tt.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePayloadContentType() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestDescriptorFromSignaturePayload(t *testing.T) {
+	validPayload := &signature.Payload{
+		ContentType: MediaTypePayloadV1,
+		Content:     []byte(`{"targetArtifact": {"mediaType": "application/vnd.oci.image.manifest.v1+json", "size": 314159, "digest": "sha256:abcd1234", "urls": ["http://example.com"]}}`),
+	}
+	invalidPayload := &signature.Payload{
+		ContentType: "invalid",
+		Content:     []byte(`invalid`),
+	}
+
+	tests := []struct {
+		name    string
+		payload *signature.Payload
+		wantErr bool
+	}{
+		{
+			name:    "valid payload",
+			payload: validPayload,
+			wantErr: false,
+		},
+		{
+			name:    "invalid content type",
+			payload: invalidPayload,
+			wantErr: true,
+		},
+		{
+			name:    "nil payload",
+			payload: nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := DescriptorFromSignaturePayload(tt.payload)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("DescriptorFromSignaturePayload() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
