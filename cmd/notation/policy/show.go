@@ -59,7 +59,10 @@ func runShow(command *cobra.Command, opts showOpts) error {
 	// core process
 	policyJSON, err := os.ReadFile(policyPath)
 	if err != nil {
-		return fmt.Errorf("failed to load trust policy configuration, you may import one via `notation policy import <path-to-policy.json>`: %w", err)
+		if os.IsNotExist(err) {
+			return fmt.Errorf("failed to show trust policy configuration because the trust policy file does not exist.\nYou may import one via `notation policy import <path-to-policy.json>`")
+		}
+		return fmt.Errorf("failed to load trust policy configuration: %w", err)
 	}
 	var doc trustpolicy.Document
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {

@@ -30,7 +30,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to load trust policy configuration", "notation policy import")
+					MatchErrKeyWords("failed to show trust policy configuration", "notation policy import")
 			})
 		})
 
