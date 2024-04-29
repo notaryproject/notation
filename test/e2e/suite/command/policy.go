@@ -30,7 +30,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to show trust policy configuration", "notation policy import")
+					MatchErrKeyWords("failed to show trust policy", "notation policy import")
 			})
 		})
 
@@ -60,7 +60,9 @@ var _ = Describe("trust policy maintainer", func() {
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
-					Exec("policy", "import")
+					Exec("policy", "import").
+					MatchErrKeyWords("requires 1 argument but received 0")
+
 			})
 		})
 
