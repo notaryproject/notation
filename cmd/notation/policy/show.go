@@ -15,7 +15,9 @@ package policy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -59,7 +61,7 @@ func runShow(command *cobra.Command, opts showOpts) error {
 	// core process
 	policyJSON, err := os.ReadFile(policyPath)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show trust policy because the trust policy file does not exist.\nYou may import one via `notation policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show trust policy: %w", err)

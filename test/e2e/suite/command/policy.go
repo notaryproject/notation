@@ -34,6 +34,16 @@ var _ = Describe("trust policy maintainer", func() {
 			})
 		})
 
+		It("should show error and hint if policy without read permission", func() {
+			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
+				os.Chmod(trustPolicyPath, 0200)
+				notation.ExpectFailure().
+					Exec("policy", "show").
+					MatchErrKeyWords("failed to show trust policy", "permission denied")
+			})
+		})
+
 		It("should show exist policy", func() {
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName))
 			Expect(err).NotTo(HaveOccurred())
