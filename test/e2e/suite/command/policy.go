@@ -76,6 +76,14 @@ var _ = Describe("trust policy maintainer", func() {
 			})
 		})
 
+		It("should fail if more than one file path is provided", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.ExpectFailure().
+					Exec("policy", "import", "a", "b").
+					MatchErrKeyWords("requires 1 argument but received 2")
+			})
+		})
+
 		It("should fail if provided file doesn't exist", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
