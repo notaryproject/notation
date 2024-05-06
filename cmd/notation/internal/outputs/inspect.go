@@ -179,6 +179,7 @@ func Signatures(mediaType string, digest string, output InspectOutput, sigFile [
 	}
 	return nil, output.Signatures
 }
+
 func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
 	if outputFormat == cmd.OutputJSON {
 		return ioutil.PrintObjectAsJSON(output)
@@ -193,24 +194,24 @@ func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
 	root := tree.New(ref)
 
 	for _, signature := range output.Signatures {
-
+		sigNode := root
 		if !(signature.MediaType == "jws" || signature.MediaType == "cose") {
-			subroot := root.Add(registry.ArtifactTypeNotation)
-			subroot.Add(signature.Digest)
+			cncfSigNode := root.Add(registry.ArtifactTypeNotation)
+			sigNode = cncfSigNode.Add(signature.Digest)
 		}
-		root.AddPair("media type", signature.MediaType)
-		root.AddPair("signature algorithm", signature.SignatureAlgorithm)
+		sigNode.AddPair("media type", signature.MediaType)
+		sigNode.AddPair("signature algorithm", signature.SignatureAlgorithm)
 
-		signedAttributesNode := root.Add("signed attributes")
+		signedAttributesNode := sigNode.Add("signed attributes")
 		addMapToTree(signedAttributesNode, signature.SignedAttributes)
 
-		userDefinedAttributesNode := root.Add("user defined attributes")
+		userDefinedAttributesNode := sigNode.Add("user defined attributes")
 		addMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
 
-		unsignedAttributesNode := root.Add("unsigned attributes")
+		unsignedAttributesNode := sigNode.Add("unsigned attributes")
 		addMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
 
-		certListNode := root.Add("certificates")
+		certListNode := sigNode.Add("certificates")
 		for _, cert := range signature.Certificates {
 			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
 			certNode.AddPair("issued to", cert.IssuedTo)
@@ -218,7 +219,7 @@ func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
 			certNode.AddPair("expiry", cert.Expiry)
 		}
 
-		artifactNode := root.Add("signed artifact")
+		artifactNode := sigNode.Add("signed artifact")
 		artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
 		artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
 		artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
