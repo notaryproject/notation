@@ -1,11 +1,11 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240508074737-fc1cb3d28098 h1:xfyYkDuH7MXz5+Pd5wvRSlARyDUp9UM7I23OzlbIMsA=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240508074737-fc1cb3d28098/go.mod h1:wkaaIh2fMRBO3j48U/F64tZOCqcYkuKOiA9o7ERkXXU=
-github.com/Two-Hearts/notation-go v0.0.0-20240508084813-de71d3441d09 h1:IhAKpuMjYTwNm83j+x5cIBhsXx7zmU2vQtmlU2igLQQ=
-github.com/Two-Hearts/notation-go v0.0.0-20240508084813-de71d3441d09/go.mod h1:5AMTl82slXK/SXcDz5ruivU9tgMgC74sfboVL8godtM=
-github.com/Two-Hearts/tspclient-go v0.0.0-20240508074024-ec1725d6dc9b h1:pNICDsr2or3iCRyjB8UnrG/N7mhP6H6yIfx3F8Zkcqk=
-github.com/Two-Hearts/tspclient-go v0.0.0-20240508074024-ec1725d6dc9b/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240510081223-bf89fbfde06f h1:0qJ4YyR0q7SYv9N1VMafb5823SpxI7AGuYnSlvEcTjo=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240510081223-bf89fbfde06f/go.mod h1:KDiMLnM1MHQRMeiPM622MN0MBb9Hz6xRU4/O9qDOics=
+github.com/Two-Hearts/notation-go v0.0.0-20240510081650-cde5adb39abf h1:eVcVj0G9iVEtFn7SzOx+sZEuhdAW1trftTVS7nPgSi8=
+github.com/Two-Hearts/notation-go v0.0.0-20240510081650-cde5adb39abf/go.mod h1:jjaqXrqUi1NFpYm4ZLo/YSHg587lR3BfT0n97U/TE4Y=
+github.com/Two-Hearts/tspclient-go v0.0.0-20240510080813-e58c4f362fa4 h1:jtwluHassbSXeXjloQ5FCJJ1hOhN/DCnAztY8Cr6if0=
+github.com/Two-Hearts/tspclient-go v0.0.0-20240510080813-e58c4f362fa4/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
