@@ -44,7 +44,7 @@ Example - Import trust policy configuration from a file:
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation policy import <path-to-policy.json>\nPlease specify a trust policy file as the argument", len(args))
+				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation policy import <path-to-policy.json>\nPlease specify a trust policy file location as the argument", len(args))
 			}
 			return nil
 		},
@@ -76,7 +76,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	// optional confirmation
 	if !opts.force {
 		if _, err := trustpolicy.LoadDocument(); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy configuration already exists, do you want to overwrite it?", opts.force)
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy file already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}

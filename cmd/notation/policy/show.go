@@ -62,7 +62,7 @@ func runShow(command *cobra.Command, opts showOpts) error {
 	policyJSON, err := os.ReadFile(policyPath)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to show trust policy because the trust policy file does not exist.\nYou may import one via `notation policy import <path-to-policy.json>`")
+			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show trust policy: %w", err)
 	}
