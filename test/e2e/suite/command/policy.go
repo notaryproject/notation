@@ -30,7 +30,17 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to load trust policy configuration", "notation policy import")
+					MatchErrKeyWords("failed to show trust policy", "notation policy import")
+			})
+		})
+
+		It("should show error and hint if policy without read permission", func() {
+			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
+				os.Chmod(trustPolicyPath, 0200)
+				notation.ExpectFailure().
+					Exec("policy", "show").
+					MatchErrKeyWords("failed to show trust policy", "permission denied")
 			})
 		})
 
@@ -60,7 +70,17 @@ var _ = Describe("trust policy maintainer", func() {
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
-					Exec("policy", "import")
+					Exec("policy", "import").
+					MatchErrKeyWords("requires 1 argument but received 0")
+
+			})
+		})
+
+		It("should fail if more than one file path is provided", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.ExpectFailure().
+					Exec("policy", "import", "a", "b").
+					MatchErrKeyWords("requires 1 argument but received 2")
 			})
 		})
 
