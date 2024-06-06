@@ -22,7 +22,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
-	"github.com/notaryproject/notation-plugin-framework-go/plugin"
 	"github.com/notaryproject/notation/test/e2e/plugin/internal/io"
 	"github.com/notaryproject/notation/test/e2e/plugin/mock"
 	"github.com/spf13/cobra"
@@ -89,10 +88,10 @@ func runGenerateSignature(req *proto.GenerateSignatureRequest) error {
 	if err != nil {
 		return &proto.RequestError{Code: proto.ErrorCodeGeneric, Err: err}
 	}
-	resp := &plugin.GenerateSignatureResponse{
+	resp := &proto.GenerateSignatureResponse{
 		KeyID:            req.KeyID,
 		Signature:        rawSig,
-		SigningAlgorithm: signingAlg,
+		SigningAlgorithm: string(signingAlg),
 		CertificateChain: toRawCerts(certs),
 	}
 
@@ -156,7 +155,7 @@ func validateGenerateSignatureRequest(req proto.GenerateSignatureRequest) error 
 }
 
 // updateGenerateSignatureResponse tampers the response to test various cases.
-func updateGenerateSignatureResponse(req *plugin.GenerateSignatureRequest, resp *plugin.GenerateSignatureResponse) {
+func updateGenerateSignatureResponse(req *proto.GenerateSignatureRequest, resp *proto.GenerateSignatureResponse) {
 	if v, ok := req.PluginConfig[mock.TamperKeyID]; ok {
 		resp.KeyID = v
 	}
@@ -166,7 +165,7 @@ func updateGenerateSignatureResponse(req *plugin.GenerateSignatureRequest, resp 
 	}
 
 	if v, ok := req.PluginConfig[mock.TamperSignatureAlgorithm]; ok {
-		resp.SigningAlgorithm = plugin.SignatureAlgorithm(v)
+		resp.SigningAlgorithm = v
 	}
 
 	if v, ok := req.PluginConfig[mock.TamperCertificateChain]; ok {

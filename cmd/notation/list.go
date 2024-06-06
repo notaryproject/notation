@@ -17,7 +17,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
@@ -53,6 +52,9 @@ Example - List signatures of an OCI artifact identified by a tag (Notation will 
   notation list <registry>/<repository>:<tag>
 `
 	experimentalExamples := `
+Example - [Experimental] List signatures of an OCI artifact using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
+  notation list --allow-referrers-api <registry>/<repository>@<digest>
+
 Example - [Experimental] List signatures of an OCI artifact referenced in an OCI layout
   notation list --oci-layout "<oci_layout_path>@<digest>"
 
@@ -81,9 +83,6 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 			if opts.maxSignatures <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
 			}
-			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
-			}
 			return runList(cmd.Context(), opts)
 		},
 	}
@@ -91,8 +90,9 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
+	experimental.HideFlags(command, "", []string{"allow-referrers-api", "oci-layout"})
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
 
@@ -102,9 +102,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// initialize
 	reference := opts.reference
-	// always use the Referrers API, if not supported, automatically fallback to
-	// the referrers tag schema
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, false)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}

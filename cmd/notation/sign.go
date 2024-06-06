@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -21,6 +22,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-go"
+	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -39,7 +41,6 @@ type signOpts struct {
 	userMetadata      []string
 	reference         string
 	allowReferrersAPI bool
-	forceReferrersTag bool
 	ociLayout         bool
 	inputType         inputType
 }
@@ -71,11 +72,11 @@ Example - Sign an OCI artifact identified by a tag (Notation will resolve tag to
 
 Example - Sign an OCI artifact stored in a registry and specify the signature expiry duration, for example 24 hours
   notation sign --expiry 24h <registry>/<repository>@<digest>
-
-Example - Sign an OCI artifact and store signature using the Referrers API. If it's not supported, fallback to the Referrers tag schema
-  notation sign --force-referrers-tag=false <registry>/<repository>@<digest>
 `
 	experimentalExamples := `
+Example - [Experimental] Sign an OCI artifact and store signature using the Referrers API. If it's not supported (returns 404), fallback to the Referrers tag schema
+  notation sign --allow-referrers-api <registry>/<repository>@<digest>
+
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
   notation sign --oci-layout "<oci_layout_path>@<digest>"
 
@@ -101,15 +102,6 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// allow-referrers-api flag is set
-			if cmd.Flags().Changed("allow-referrers-api") {
-				if opts.allowReferrersAPI {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions, use '--force-referrers-tag=false' instead.")
-					opts.forceReferrersTag = false
-				} else {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
-				}
-			}
 			return runSign(cmd, opts)
 		},
 	}
@@ -120,10 +112,9 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
-	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
-	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
+	command.MarkFlagsMutuallyExclusive("oci-layout", "allow-referrers-api")
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout"})
 	return command
 }
 
@@ -136,11 +127,14 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.forceReferrersTag)
+	if cmdOpts.allowReferrersAPI {
+		fmt.Fprintln(os.Stderr, "Warning: using the Referrers API to store signature. On success, must set the `--allow-referrers-api` flag to list, inspect, and verify the signature.")
+	}
+	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}
-	signOpts, err := prepareSigningOpts(cmdOpts)
+	signOpts, err := prepareSigningOpts(ctx, cmdOpts, sigRepo)
 	if err != nil {
 		return err
 	}
@@ -168,7 +162,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
+func prepareSigningOpts(ctx context.Context, opts *signOpts, sigRepo notationregistry.Repository) (notation.SignOptions, error) {
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err
