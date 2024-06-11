@@ -4,13 +4,13 @@ go 1.22
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.3
-	github.com/notaryproject/notation-go v1.1.1-0.20240327165254-57ff8e68a0a8
+	github.com/notaryproject/notation-go v1.1.1
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/term v0.20.0
+	golang.org/x/term v0.21.0
 	oras.land/oras-go/v2 v2.5.0
 )
 
@@ -27,13 +27,13 @@ require (
 	github.com/veraison/go-cose v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 )
 
 replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient-go v0.0.0-20240604030442-e5d82db3a4d4
 
-replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240604074342-99b519049ef9
+replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240611085403-02dce641a74d
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240604085003-d8f19cfde887
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240611092236-ee0b91b980f5
