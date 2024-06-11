@@ -19,6 +19,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 )
 
 const (
@@ -26,6 +28,10 @@ const (
 )
 
 func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
+	t.Setenv("NOTATION_EXPERIMENTAL", "1")
+	if experimental.IsDisabled() {
+		t.Fatal("failed to enable experimental")
+	}
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/v1/referrers/"+zeroDigest {
 			w.WriteHeader(http.StatusOK)
@@ -50,6 +56,10 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
 }
 
 func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) {
+	t.Setenv("NOTATION_EXPERIMENTAL", "1")
+	if experimental.IsDisabled() {
+		t.Fatal("failed to enable experimental")
+	}
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet && r.URL.Path == "/v2/test/v1/referrers/"+zeroDigest {
 			w.WriteHeader(http.StatusNotFound)

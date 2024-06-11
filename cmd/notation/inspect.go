@@ -84,6 +84,10 @@ Example - Inspect signatures on an OCI artifact identified by a tag  (Notation w
 Example - Inspect signatures on an OCI artifact identified by a digest and output as json:
   notation inspect --output json <registry>/<repository>@<digest>
 `
+	experimentalExamples := `
+Example - [Experimental] Inspect signatures on an OCI artifact identified by a digest using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
+  notation inspect --allow-referrers-api <registry>/<repository>@<digest>
+`
 	command := &cobra.Command{
 		Use:   "inspect [reference]",
 		Short: "Inspect all signatures associated with the signed artifact",
@@ -102,9 +106,6 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			if opts.maxSignatures <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
 			}
-			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
-			}
 			return runInspect(cmd, opts)
 		},
 	}
@@ -114,6 +115,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	cmd.SetPflagOutput(command.Flags(), &opts.outputFormat, cmd.PflagOutputUsage)
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
+	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api"})
 	return command
 }
 
@@ -127,9 +129,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 
 	// initialize
 	reference := opts.reference
-	// always use the Referrers API, if not supported, automatically fallback to
-	// the referrers tag schema
-	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, false)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureFlagOpts, reference, opts.allowReferrersAPI)
 	if err != nil {
 		return err
 	}

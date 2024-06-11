@@ -15,11 +15,11 @@ name: "CodeQL"
 
 on:
   push:
-    branches: 
+    branches:
       - main
       - release-*
   pull_request:
-    branches: 
+    branches:
       - main
       - release-*
   schedule:

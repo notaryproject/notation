@@ -36,7 +36,6 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
-		forceReferrersTag: true,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -68,7 +67,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 			SignatureFormat: envelope.COSE,
 		},
 		expiry:            24 * time.Hour,
-		forceReferrersTag: true,
+		allowReferrersAPI: true,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -78,8 +77,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--insecure-registry",
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
-		"--force-referrers-tag",
-	}); err != nil {
+		"--allow-referrers-api"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -99,9 +97,8 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
 		},
-		expiry:            365 * 24 * time.Hour,
-		pluginConfig:      []string{"key0=val0", "key1=val1"},
-		forceReferrersTag: false,
+		expiry:       365 * 24 * time.Hour,
+		pluginConfig: []string{"key0=val0", "key1=val1"},
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -109,9 +106,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
 		"--expiry", expected.expiry.String(),
 		"--plugin-config", "key0=val0",
-		"--plugin-config", "key1=val1",
-		"--force-referrers-tag=false",
-	}); err != nil {
+		"--plugin-config", "key1=val1"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -159,9 +154,7 @@ func TestSignCommmand_OnDemandKeyOptions(t *testing.T) {
 		"-u", expected.Username,
 		"--password", expected.Password,
 		"--id", expected.KeyID,
-		"--plugin", expected.PluginName,
-		"--force-referrers-tag=false",
-	}); err != nil {
+		"--plugin", expected.PluginName}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -195,9 +188,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			"--password", expected.Password,
 			"--id", expected.KeyID,
 			"--plugin", expected.PluginName,
-			"--key", expected.Key,
-			"--force-referrers-tag=false",
-		}); err != nil {
+			"--key", expected.Key}); err != nil {
 			t.Fatalf("Parse Flag failed: %v", err)
 		}
 		if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -231,9 +222,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--id", expected.KeyID,
-			"--key", expected.Key,
-			"--force-referrers-tag=false",
-		}); err != nil {
+			"--key", expected.Key}); err != nil {
 			t.Fatalf("Parse Flag failed: %v", err)
 		}
 		if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -267,9 +256,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			"-u", expected.Username,
 			"--password", expected.Password,
 			"--plugin", expected.PluginName,
-			"--key", expected.Key,
-			"--force-referrers-tag=false",
-		}); err != nil {
+			"--key", expected.Key}); err != nil {
 			t.Fatalf("Parse Flag failed: %v", err)
 		}
 		if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -301,9 +288,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			expected.reference,
 			"-u", expected.Username,
 			"--password", expected.Password,
-			"--id", expected.KeyID,
-			"--force-referrers-tag=false",
-		}); err != nil {
+			"--id", expected.KeyID}); err != nil {
 			t.Fatalf("Parse Flag failed: %v", err)
 		}
 		if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -335,9 +320,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 			expected.reference,
 			"-u", expected.Username,
 			"--password", expected.Password,
-			"--plugin", expected.PluginName,
-			"--force-referrers-tag=false",
-		}); err != nil {
+			"--plugin", expected.PluginName}); err != nil {
 			t.Fatalf("Parse Flag failed: %v", err)
 		}
 		if err := command.Args(command, command.Flags().Args()); err != nil {
