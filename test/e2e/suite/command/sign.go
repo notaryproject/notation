@@ -268,14 +268,15 @@ var _ = Describe("notation sign", func() {
 	It("with invalid tsa server", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://invalid.com", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords(SignSuccessfully)
+				MatchErrKeyWords("Error: timestamp: Post \"http://invalid.com\"").
+				MatchErrKeyWords("server misbehaving")
 		})
 	})
 
-	It("with SHA1-RSA cert signature algorithm", func() {
+	It("with cannot retrieve any tsa root certificate", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords(SignSuccessfully)
+				MatchErrKeyWords("Error: timestamp: failed to verify signed token: failed to set up root certificate pool: cannot retrieve any tsa root certificate")
 		})
 	})
 })
