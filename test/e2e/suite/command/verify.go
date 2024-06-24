@@ -212,13 +212,14 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("with timestamp countersignature", func() {
+	It("with timestamp verification disabled", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords(VerifySuccessfully)
+				MatchKeyWords(VerifySuccessfully).
+				MatchKeyWords("Timestamp verification disabled")
 		})
 	})
 })

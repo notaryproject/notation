@@ -129,6 +129,17 @@ func BaseOptions() []utils.HostOption {
 	)
 }
 
+// BaseTimestampOptions returns a list of base timestamp Options for a valid
+// notation testing environment.
+func BaseTimestampOptions() []utils.HostOption {
+	return Opts(
+		AuthOption("", ""),
+		AddKeyOption("e2e.key", "e2e.crt"),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTrustPolicyOption("timestamp_trustpolicy.json"),
+	)
+}
+
 func BaseOptionsWithExperimental() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
@@ -184,6 +195,16 @@ func AddTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption
 	return func(vhost *utils.VirtualHost) error {
 		vhost.Executor.
 			Exec("cert", "add", "--type", "ca", "--store", namedstore, srcCertPath).
+			MatchKeyWords("Successfully added following certificates")
+		return nil
+	}
+}
+
+// AddTimestampTrustStoreOption adds the test tsa cert to the trust store.
+func AddTimestampTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		vhost.Executor.
+			Exec("cert", "add", "--type", "tsa", "--store", namedstore, srcCertPath).
 			MatchKeyWords("Successfully added following certificates")
 		return nil
 	}
