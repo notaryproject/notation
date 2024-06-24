@@ -135,7 +135,7 @@ func BaseTimestampOptions() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
 		AddKeyOption("e2e.key", "e2e.crt"),
-		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.crt")),
 		AddTrustPolicyOption("timestamp_trustpolicy.json"),
 	)
 }

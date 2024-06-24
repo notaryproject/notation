@@ -222,4 +222,15 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords("Timestamp verification disabled")
 		})
 	})
+
+	It("with timestamp verification", func() {
+		Host(BaseTimestampOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully).
+				MatchKeyWords("Timestamp range:")
+		})
+	})
 })
