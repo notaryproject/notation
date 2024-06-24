@@ -15,6 +15,7 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
@@ -214,7 +215,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with timestamp verification disabled", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -225,7 +226,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with timestamp verification", func() {
 		Host(BaseTimestampOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").

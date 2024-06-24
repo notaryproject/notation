@@ -32,8 +32,8 @@ require (
 	golang.org/x/sys v0.21.0 // indirect
 )
 
-replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient-go v0.0.0-20240621095541-22fd76ec5c45
+replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient-go v0.0.0-20240624080215-1284fbf408ce
 
-replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240621095806-e751e91c74bc
+replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240624084736-28b80547d251
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240621100144-b256493e8029
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240624090216-329760b186ae

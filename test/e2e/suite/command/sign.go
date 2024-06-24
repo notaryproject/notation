@@ -15,6 +15,7 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -260,23 +261,23 @@ var _ = Describe("notation sign", func() {
 
 	It("with timestamping", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
 
 	It("with invalid tsa server", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://invalid.com", artifact.ReferenceWithDigest()).
+			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://invalid.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("Error: timestamp: Post \"http://invalid.com\"").
 				MatchErrKeyWords("server misbehaving")
 		})
 	})
 
-	It("with cannot retrieve any tsa root certificate", func() {
+	It("with empty tsa root certificate path", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords("Error: timestamp: failed to verify signed token: failed to set up root certificate pool: cannot retrieve any tsa root certificate")
+			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", "", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: tsa root certificate path cannot be empty")
 		})
 	})
 })
