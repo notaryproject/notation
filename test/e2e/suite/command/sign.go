@@ -257,4 +257,25 @@ var _ = Describe("notation sign", func() {
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
+
+	It("with timestamping", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("with invalid tsa server", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://invalid.com", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("with SHA1-RSA cert signature algorithm", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords(SignSuccessfully)
+		})
+	})
 })
