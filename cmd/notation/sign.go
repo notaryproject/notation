@@ -77,6 +77,9 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 
 Example - Sign an OCI artifact and store signature using the Referrers API. If it's not supported, fallback to the Referrers tag schema
   notation sign --force-referrers-tag=false <registry>/<repository>@<digest>
+
+Example - Sign an OCI artifact with timestamping:
+  notation sign --tsa-url <trusted_TSA_url> --tsa-root-cert <TSA_root_certificate_filepath> <registry>/<repository>@<digest> 
 `
 	experimentalExamples := `
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
