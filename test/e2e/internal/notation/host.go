@@ -139,7 +139,7 @@ func TimestampOptions(verifyTimestamp string, skipTimestampingRevocationCheck bo
 		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json")
 	}
 	if verifyTimestamp == "afterCertExpiry" {
-		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy")
+		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy.json")
 	}
 
 	return Opts(
@@ -147,6 +147,7 @@ func TimestampOptions(verifyTimestamp string, skipTimestampingRevocationCheck bo
 		AddKeyOption("e2e.key", "e2e.crt"),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer")),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer")),
 		trustPolicyOption,
 	)
 }

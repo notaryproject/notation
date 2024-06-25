@@ -6,7 +6,7 @@
             "registryScopes": [ "*" ],
             "signatureVerification": {
                 "level" : "strict",
-                "verifyTimestamp": "always"
+                "verifyTimestamp": "afterCertExpiry"
             },
             "trustStores": [ "ca:e2e", "tsa:e2e" ],
             "trustedIdentities": [
