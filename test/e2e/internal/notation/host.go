@@ -129,15 +129,25 @@ func BaseOptions() []utils.HostOption {
 	)
 }
 
-// BaseTimestampOptions returns a list of base timestamp Options for a valid
+// TimestampOptions returns a list of timestamp Options for a valid
 // notation testing environment.
-func BaseTimestampOptions() []utils.HostOption {
+func TimestampOptions(verifyTimestamp string, skipTimestampingRevocationCheck bool) []utils.HostOption {
+	var trustPolicyOption utils.HostOption
+	if skipTimestampingRevocationCheck {
+		trustPolicyOption = AddTrustPolicyOption("timestamp_skip_revocation_trustpolicy.json")
+	} else {
+		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json")
+	}
+	if verifyTimestamp == "afterCertExpiry" {
+		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy")
+	}
+
 	return Opts(
 		AuthOption("", ""),
 		AddKeyOption("e2e.key", "e2e.crt"),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer")),
-		AddTrustPolicyOption("timestamp_trustpolicy.json"),
+		trustPolicyOption,
 	)
 }
 

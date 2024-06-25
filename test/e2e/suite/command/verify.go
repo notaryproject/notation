@@ -225,13 +225,36 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with timestamp verification", func() {
-		Host(BaseTimestampOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		Host(TimestampOptions("", false), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords("Timestamp range:")
+		})
+	})
+
+	It("with timestamp verification skipping tsa cert chain revocation check", func() {
+		Host(TimestampOptions("", true), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully).
+				MatchErrKeyWords("Timestamp range:").
+				NoMatchErrKeyWords("Checking timestamping certificate chain revocation...")
+		})
+	})
+
+	It("with timestamp verification after cert expiry", func() {
+		Host(TimestampOptions("afterCertExpiry", false), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully).
+				MatchErrKeyWords("Timestamp verification disabled: verifyTimestamp is set to \"afterCertExpiry\" and signing cert chain unexpired")
 		})
 	})
 })
