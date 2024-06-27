@@ -284,7 +284,7 @@ var _ = Describe("notation sign", func() {
 	It("with invalid tsa root certificate", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "invalid.crt"), artifact.ReferenceWithDigest()).
-				MatchErrKeyWords("Error: timestamp: Post \"http://invalid.com\"")
+				MatchErrKeyWords("Error: x509: malformed certificate")
 		})
 	})
 
