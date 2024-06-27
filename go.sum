@@ -1,11 +1,9 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240625061446-64bf87aaf899 h1:l5T/KFTnK+UIlyGKUgLcp2Up5IXVO1iOuQSrjR5jTt0=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240625061446-64bf87aaf899/go.mod h1:DaE3dTbfW9bLOquUENRPwtAE8He+5Oz2lWy3oCpn4RE=
-github.com/Two-Hearts/notation-go v0.0.0-20240627005958-12b393e36153 h1:Zy3zTBRzaD9CzTKUsJXpWuClmZKhbV7cLdhsUU1ojWs=
-github.com/Two-Hearts/notation-go v0.0.0-20240627005958-12b393e36153/go.mod h1:WTIyTMsBTKSn26534EpunZc+OOCQXwvWwn+orQsaT+Q=
-github.com/Two-Hearts/tspclient-go v0.0.0-20240625051139-b86a837d928d h1:PJ4BkFIkKpRYFtuJsE5oOaJt4LY5zf0Zjjd3UE/JhmM=
-github.com/Two-Hearts/tspclient-go v0.0.0-20240625051139-b86a837d928d/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240627051425-a24facd24315 h1:8wDwsk1Rcs+7dmFFlSNzmj2tgBmD0m/vjjVh6eaozcM=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240627051425-a24facd24315/go.mod h1:4b60hxCB4gB0q1K2QRxycj0TGhLvylSSR1RWCG0ilYs=
+github.com/Two-Hearts/notation-go v0.0.0-20240627102530-13006cec009a h1:sN8aDf7eBhvPi4RWI/EvyszPgg3QT9dJA5j+6j44hko=
+github.com/Two-Hearts/notation-go v0.0.0-20240627102530-13006cec009a/go.mod h1:4eG7HflGMaLsHeuNXV95h89+6OgvRjvem0wtnlTayfY=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
@@ -43,6 +41,8 @@ github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZ
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
+github.com/notaryproject/tspclient-go v0.0.0-20240627050441-dcff9b7c23fe h1:1psX5fHzB0ZGshHkaGlERh0eBX4EapizcVyQwX+YydE=
+github.com/notaryproject/tspclient-go v0.0.0-20240627050441-dcff9b7c23fe/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0 h1:8SG7/vwALn54lVB/0yZ/MMwhFrPYtpEHQb2IpWsCzug=

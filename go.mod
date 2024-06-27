@@ -23,7 +23,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/notaryproject/notation-plugin-framework-go v1.0.0 // indirect
-	github.com/notaryproject/tspclient-go v0.0.0-20240122083733-a373599795a2 // indirect
+	github.com/notaryproject/tspclient-go v0.0.0-20240627050441-dcff9b7c23fe // indirect
 	github.com/veraison/go-cose v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.24.0 // indirect
@@ -32,8 +32,6 @@ require (
 	golang.org/x/sys v0.21.0 // indirect
 )
 
-replace github.com/notaryproject/tspclient-go => github.com/Two-Hearts/tspclient-go v0.0.0-20240625051139-b86a837d928d
+replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240627051425-a24facd24315
 
-replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240625061446-64bf87aaf899
-
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240627005958-12b393e36153
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240627102530-13006cec009a
