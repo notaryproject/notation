@@ -14,12 +14,14 @@
 package main
 
 import (
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
@@ -34,14 +36,16 @@ type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
 	SecureFlagOpts
-	expiry            time.Duration
-	pluginConfig      []string
-	userMetadata      []string
-	reference         string
-	allowReferrersAPI bool
-	forceReferrersTag bool
-	ociLayout         bool
-	inputType         inputType
+	expiry                 time.Duration
+	pluginConfig           []string
+	userMetadata           []string
+	reference              string
+	allowReferrersAPI      bool
+	forceReferrersTag      bool
+	ociLayout              bool
+	inputType              inputType
+	tsaServerURL           string
+	tsaRootCertificatePath string
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -74,6 +78,9 @@ Example - Sign an OCI artifact stored in a registry and specify the signature ex
 
 Example - Sign an OCI artifact and store signature using the Referrers API. If it's not supported, fallback to the Referrers tag schema
   notation sign --force-referrers-tag=false <registry>/<repository>@<digest>
+
+Example - Sign an OCI artifact with timestamping:
+  notation sign --tsa-url <trusted_TSA_url> --tsa-root-cert <TSA_root_certificate_filepath> <registry>/<repository>@<digest> 
 `
 	experimentalExamples := `
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
@@ -95,6 +102,14 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flags().Changed("tsa-url") {
+				if opts.tsaServerURL == "" {
+					return errors.New("tsa-url is set with empty value")
+				}
+				if opts.tsaRootCertificatePath == "" {
+					return errors.New("tsa root certificate path cannot be empty")
+				}
+			}
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
@@ -120,9 +135,12 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
+	command.Flags().StringVar(&opts.tsaServerURL, "tsa-url", "", "timestamp authority server URL")
+	command.Flags().StringVar(&opts.tsaRootCertificatePath, "tsa-root-cert", "", "filepath of trusted tsa root certificate")
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
+	command.MarkFlagsRequiredTogether("tsa-url", "tsa-root-cert")
 	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command
 }
@@ -188,6 +206,18 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 			PluginConfig:       pluginConfig,
 		},
 		UserMetadata: userMetadata,
+	}
+	if opts.tsaRootCertificatePath != "" {
+		rootCerts, err := corex509.ReadCertificateFile(opts.tsaRootCertificatePath)
+		if err != nil {
+			return notation.SignOptions{}, err
+		}
+		if len(rootCerts) == 0 {
+			return notation.SignOptions{}, fmt.Errorf("cannot read tsa root certificate from %q", opts.tsaRootCertificatePath)
+		}
+		signOpts.TSAServerURL = opts.tsaServerURL
+		signOpts.TSARootCAs = x509.NewCertPool()
+		signOpts.TSARootCAs.AddCert(rootCerts[0])
 	}
 	return signOpts, nil
 }

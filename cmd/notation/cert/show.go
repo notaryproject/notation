@@ -57,6 +57,9 @@ Example - Show details of certificate "cert1.pem" with type "ca" from trust stor
 
 Example - Show details of certificate "cert2.pem" with type "signingAuthority" from trust store "wabbit-networks":
   notation cert show --type signingAuthority --store wabbit-networks cert2.pem
+
+Example - Show details of certificate "wabbit-networks-timestamp.pem" with type "tsa" from trust store "timestamp":
+  notation cert show --type tsa --store timestamp wabbit-networks-timestamp.pem
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return showCerts(cmd.Context(), opts)

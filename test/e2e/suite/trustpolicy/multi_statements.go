@@ -30,7 +30,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrContent("Error: registry scope \"localhost:5000/test-repo8\" is present in multiple trust policy statements, one registry scope value can only be associated with one statement\n")
+				MatchErrContent("Error: registry scope \"localhost:5000/test-repo8\" is present in multiple oci trust policy statements, one registry scope value can only be associated with one statement\n")
 		})
 	})
 
@@ -56,7 +56,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrContent("Error: multiple trust policy statements use the same name \"e2e\", statement names must be unique\n")
+				MatchErrContent("Error: multiple oci trust policy statements use the same name \"e2e\", statement names must be unique\n")
 		})
 	})
 
@@ -68,7 +68,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrContent("Error: registry scope \"*\" is present in multiple trust policy statements, one registry scope value can only be associated with one statement\n")
+				MatchErrContent("Error: registry scope \"*\" is present in multiple oci trust policy statements, one registry scope value can only be associated with one statement\n")
 		})
 	})
 })

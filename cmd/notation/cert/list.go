@@ -54,6 +54,9 @@ Example - List all certificate files from trust store of type "ca"
 
 Example - List all certificate files from trust store "wabbit-networks" of type "signingAuthority"
   notation cert ls --type signingAuthority --store "wabbit-networks"
+
+Example - List all certificate files from trust store of type "tsa"
+  notation cert ls --type tsa
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listCerts(cmd.Context(), opts)

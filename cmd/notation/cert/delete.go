@@ -59,6 +59,9 @@ Example - Delete certificate "cert1.pem" with "signingAuthority" type from trust
 
 Example - Delete all certificates with "ca" type from the trust store "acme-rockets", without prompt for confirmation:
   notation cert delete --type ca --store acme-rockets -y --all 
+
+Example - Delete certificate "wabbit-networks-timestamp.pem" with "tsa" type from trust store timestamp:
+  notation cert delete --type tsa --store timestamp wabbit-networks-timestamp.pem -y
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return deleteCerts(opts)

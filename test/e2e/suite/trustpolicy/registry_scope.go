@@ -111,7 +111,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			// test localhost:5000/test-repo
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords("registry scope \"localhost:5000/test-repo6\" is present in multiple trust policy statements")
+				MatchErrKeyWords("registry scope \"localhost:5000/test-repo6\" is present in multiple oci trust policy statements")
 		})
 	})
 
@@ -137,7 +137,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 			// test localhost:5000/test-repo
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
-				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable trust policy. Trust policy applicability for a given artifact is determined by registryScopes. To create a trust policy, see: %s\n", artifact.ReferenceWithDigest(), trustPolicyLink))
+				MatchErrContent(fmt.Sprintf("Error: signature verification failed: artifact %q has no applicable oci trust policy statement. Trust policy applicability for a given artifact is determined by registryScopes. To create a trust policy, see: %s\n", artifact.ReferenceWithDigest(), trustPolicyLink))
 		})
 	})
 })
