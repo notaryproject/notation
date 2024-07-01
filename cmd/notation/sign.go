@@ -14,6 +14,7 @@
 package main
 
 import (
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"os"
@@ -215,7 +216,8 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 			return notation.SignOptions{}, fmt.Errorf("cannot read tsa root certificate from %q", opts.tsaRootCertificatePath)
 		}
 		signOpts.TSAServerURL = opts.tsaServerURL
-		signOpts.TSARootCertificate = rootCerts[0]
+		signOpts.TSARootCAs = x509.NewCertPool()
+		signOpts.TSARootCAs.AddCert(rootCerts[0])
 	}
 	return signOpts, nil
 }
