@@ -34,6 +34,10 @@ import (
 
 const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
 
+// TimestampingTimeout is the timeout when requesting timestamp countersignature
+// from a TSA
+const TimestampingTimeout = 5 * time.Second
+
 type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
@@ -212,7 +216,7 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 	if opts.tsaServerURL != "" {
 		// timestamping
 		fmt.Printf("Timestamping with TSA %q\n", opts.tsaServerURL)
-		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(&http.Client{Timeout: 5 * time.Second}, opts.tsaServerURL)
+		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(&http.Client{Timeout: TimestampingTimeout}, opts.tsaServerURL)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %v", err)
 		}
