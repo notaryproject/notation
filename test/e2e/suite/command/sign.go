@@ -266,10 +266,31 @@ var _ = Describe("notation sign", func() {
 		})
 	})
 
+	It("with tsa-root-cert but no tsa-url", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: if any flags in the group [tsa-url tsa-root-cert] are set they must all be set; missing [tsa-url]")
+		})
+	})
+
+	It("with tsa-url but no tsa-root-cert", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: if any flags in the group [tsa-url tsa-root-cert] are set they must all be set; missing [tsa-root-cert]")
+		})
+	})
+
 	It("with empty tsa server", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--tsa-url", "", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
-				MatchErrKeyWords("Error: tsa-url is set with empty value")
+				MatchErrKeyWords("Error: timestamping: tsa url cannot be empty")
+		})
+	})
+
+	It("with empty tsa root cert", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--tsa-url", "dummy", "--tsa-root-cert", "", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: timestamping: tsa root certificate path cannot be empty")
 		})
 	})
 
@@ -285,13 +306,6 @@ var _ = Describe("notation sign", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "invalid.crt"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("Error: x509: malformed certificate")
-		})
-	})
-
-	It("with empty tsa root certificate path", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", "", artifact.ReferenceWithDigest()).
-				MatchErrKeyWords("Error: tsa root certificate path cannot be empty")
 		})
 	})
 })

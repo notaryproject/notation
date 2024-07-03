@@ -108,20 +108,22 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if cmd.Flags().Changed("tsa-url") {
-				if opts.tsaServerURL == "" {
-					return errors.New("tsa-url is set with empty value")
-				}
-				if opts.tsaRootCertificatePath == "" {
-					return errors.New("tsa root certificate path cannot be empty")
-				}
-			}
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// timestamping
+			if cmd.Flags().Changed("tsa-url") {
+				if opts.tsaServerURL == "" {
+					return errors.New("timestamping: tsa url cannot be empty")
+				}
+				if opts.tsaRootCertificatePath == "" {
+					return errors.New("timestamping: tsa root certificate path cannot be empty")
+				}
+			}
+
 			// allow-referrers-api flag is set
 			if cmd.Flags().Changed("allow-referrers-api") {
 				if opts.allowReferrersAPI {
