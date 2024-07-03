@@ -17,6 +17,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -207,7 +209,14 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 		},
 		UserMetadata: userMetadata,
 	}
-	if opts.tsaRootCertificatePath != "" {
+	if opts.tsaServerURL != "" {
+		// timestamping
+		fmt.Printf("Timestamping with TSA %q\n", opts.tsaServerURL)
+		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(&http.Client{Timeout: 5 * time.Second}, opts.tsaServerURL)
+		if err != nil {
+			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %v", err)
+		}
+
 		rootCerts, err := corex509.ReadCertificateFile(opts.tsaRootCertificatePath)
 		if err != nil {
 			return notation.SignOptions{}, err
@@ -215,7 +224,6 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 		if len(rootCerts) == 0 {
 			return notation.SignOptions{}, fmt.Errorf("cannot read tsa root certificate from %q", opts.tsaRootCertificatePath)
 		}
-		signOpts.TSAServerURL = opts.tsaServerURL
 		signOpts.TSARootCAs = x509.NewCertPool()
 		signOpts.TSARootCAs.AddCert(rootCerts[0])
 	}
