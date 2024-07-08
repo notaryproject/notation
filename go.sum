@@ -1,9 +1,7 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240703022152-7f0c50591e18 h1:lYX4Y5ZkbWbsAJkdMCSfg0Nc3lxsKWmOaHtnKejoIMY=
-github.com/Two-Hearts/notation-core-go v0.0.0-20240703022152-7f0c50591e18/go.mod h1:6DN+zUYRhXx7swFMVSrai5J+7jqyuOCru1q9G+SbFno=
-github.com/Two-Hearts/notation-go v0.0.0-20240703061359-5aeef6851f90 h1:0it2UpgFWP65TkOigTrxatdbEGHGDgtcc6ihG1sCVz4=
-github.com/Two-Hearts/notation-go v0.0.0-20240703061359-5aeef6851f90/go.mod h1:6GeF4h/9rfOXgaKdk7XTg3iZirpy41np8ccnxVS2bXc=
+github.com/Two-Hearts/notation-go v0.0.0-20240708053958-78999aaba718 h1:9zWXJEbZSPBd+TlE+cCRxU38eDcdGXYXuiRCPUBjqB8=
+github.com/Two-Hearts/notation-go v0.0.0-20240708053958-78999aaba718/go.mod h1:vvCMHkJ7wTRb8RiVbO9u/7G9K84VNGEbc43EOxQ+NM8=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
@@ -39,6 +37,8 @@ github.com/jcmturner/gokrb5/v8 v8.4.4 h1:x1Sv4HaTpepFkXbt2IkL29DXRf8sOfZXo8eRKh6
 github.com/jcmturner/gokrb5/v8 v8.4.4/go.mod h1:1btQEpgT6k+unzCwX1KdWMEwPPkkgBtP+F6aCACiMrs=
 github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZY=
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
+github.com/notaryproject/notation-core-go v1.0.4-0.20240708015912-faac9b7f3f10 h1:kXRTRPpJqj7DuSxYxfrVKcfQ3CijRisPdQQrt/+Y1bE=
+github.com/notaryproject/notation-core-go v1.0.4-0.20240708015912-faac9b7f3f10/go.mod h1:6DN+zUYRhXx7swFMVSrai5J+7jqyuOCru1q9G+SbFno=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
 github.com/notaryproject/tspclient-go v0.0.0-20240702050734-d91848411058 h1:FlGmQAwbf78rw12fXT4+9EkmD9+ZWuqH08v0fE3sqHc=
