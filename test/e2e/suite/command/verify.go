@@ -225,7 +225,7 @@ var _ = Describe("notation verify", func() {
 	})
 
 	It("with timestamp verification", func() {
-		Host(TimestampOptions("", false), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		Host(TimestampOptions(""), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
@@ -235,20 +235,8 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("with timestamp verification skipping tsa cert chain revocation check", func() {
-		Host(TimestampOptions("", true), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
-
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords(VerifySuccessfully).
-				MatchErrKeyWords("Timestamp range:").
-				NoMatchErrKeyWords("Checking timestamping certificate chain revocation...")
-		})
-	})
-
-	It("with timestamp verification after cert expiry", func() {
-		Host(TimestampOptions("afterCertExpiry", false), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+	It("with verifyTimestamp set as afterCertExpiry", func() {
+		Host(TimestampOptions("afterCertExpiry"), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 

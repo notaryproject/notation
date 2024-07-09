@@ -131,15 +131,12 @@ func BaseOptions() []utils.HostOption {
 
 // TimestampOptions returns a list of timestamp Options for a valid
 // notation testing environment.
-func TimestampOptions(verifyTimestamp string, skipTimestampingRevocationCheck bool) []utils.HostOption {
+func TimestampOptions(verifyTimestamp string) []utils.HostOption {
 	var trustPolicyOption utils.HostOption
-	if skipTimestampingRevocationCheck {
-		trustPolicyOption = AddTrustPolicyOption("timestamp_skip_revocation_trustpolicy.json")
-	} else {
-		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json")
-	}
 	if verifyTimestamp == "afterCertExpiry" {
 		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy.json")
+	} else {
+		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json")
 	}
 
 	return Opts(
