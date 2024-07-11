@@ -1,7 +1,7 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
-github.com/Two-Hearts/notation-go v0.0.0-20240709014026-1235960e1938 h1:U0dVPBGnOyZZ9KZipHbst9P9GwXKHl4ESun2Nwpxo1I=
-github.com/Two-Hearts/notation-go v0.0.0-20240709014026-1235960e1938/go.mod h1:vvCMHkJ7wTRb8RiVbO9u/7G9K84VNGEbc43EOxQ+NM8=
+github.com/Two-Hearts/notation-go v0.0.0-20240711021409-d8498e52d53a h1:dnDyhQUVxC7KT6KtaX1EGYxpt77y4d0oRe6ztC4AruI=
+github.com/Two-Hearts/notation-go v0.0.0-20240711021409-d8498e52d53a/go.mod h1:jTde0t1tP8WnvUQOrEoDWWQcD6SXBnzTn4LSSXVB274=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
@@ -43,8 +43,8 @@ github.com/notaryproject/notation-core-go v1.0.4-0.20240708015912-faac9b7f3f10 h
 github.com/notaryproject/notation-core-go v1.0.4-0.20240708015912-faac9b7f3f10/go.mod h1:6DN+zUYRhXx7swFMVSrai5J+7jqyuOCru1q9G+SbFno=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
-github.com/notaryproject/tspclient-go v0.0.0-20240702050734-d91848411058 h1:FlGmQAwbf78rw12fXT4+9EkmD9+ZWuqH08v0fE3sqHc=
-github.com/notaryproject/tspclient-go v0.0.0-20240702050734-d91848411058/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
+github.com/notaryproject/tspclient-go v0.1.0 h1:kmtQuN32iwBAizOhPr+NZsxCErydoGcrfQy1ppJi5Vo=
+github.com/notaryproject/tspclient-go v0.1.0/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0 h1:8SG7/vwALn54lVB/0yZ/MMwhFrPYtpEHQb2IpWsCzug=

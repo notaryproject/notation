@@ -18,7 +18,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/notaryproject/tspclient-go v0.0.0-20240702050734-d91848411058 // indirect
+	github.com/notaryproject/tspclient-go v0.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -30,4 +30,4 @@ require (
 	oras.land/oras-go/v2 v2.5.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240709014026-1235960e1938
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240711021409-d8498e52d53a
