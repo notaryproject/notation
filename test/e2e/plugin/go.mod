@@ -24,10 +24,10 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/veraison/go-cose v1.1.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
-	golang.org/x/mod v0.18.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	oras.land/oras-go/v2 v2.5.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240711072943-45f34958dfa2
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240712083015-e50cf0a1ca90
