@@ -30,4 +30,4 @@ require (
 	oras.land/oras-go/v2 v2.5.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240712083015-e50cf0a1ca90
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240712090932-b94b3fd1fa8e
