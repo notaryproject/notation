@@ -231,7 +231,7 @@ var _ = Describe("notation verify", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully).
-				MatchErrKeyWords("Timestamp range:")
+				MatchErrKeyWords("Performing timestamp verification...")
 		})
 	})
 
