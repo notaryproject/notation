@@ -36,7 +36,7 @@ const referrersTagSchemaDeleteError = "failed to delete dangling referrers index
 
 // TimestampingTimeout is the timeout when requesting timestamp countersignature
 // from a TSA
-const TimestampingTimeout = 5 * time.Second
+const TimestampingTimeout = 15 * time.Second
 
 type signOpts struct {
 	cmd.LoggingFlagOpts
