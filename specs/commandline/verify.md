@@ -96,7 +96,7 @@ An example of `trustpolicy.json` with RFC 3161 timestamp verification support:
             "registryScopes": [ "localhost:5000/net-monitor" ],
             "signatureVerification": {
                 "level": "strict",
-                "verifyTimestamp": "afterCertExpiry"      // Only verify timestamp countersignatures if any code signing certificate has expired.
+                "verifyTimestamp": "afterCertExpiry"                                   // Only verify timestamp countersignatures if any code signing certificate has expired.
             },
             "trustStores": [ "ca:wabbit-networks", "tsa:wabbit-networks-timestamp" ],  // To enable timestamp verification, trust store type `tsa` MUST be configured.
             "trustedIdentities": [
@@ -200,7 +200,7 @@ Successfully verified signature for localhost:5000/net-monitor@sha256:b94d27b993
 ### Verify signatures with RFC 3161 timestamp countersignature on an OCI artifact
 
 ```shell
-# Prerequisites: Configure TSA trust store by adding the root certificate of the TSA into trust store named "wabbit-network-timestamp" of type "tsa"
+# Prerequisites: Configure TSA trust store by adding the root certificate of the trusted TSA into trust store named "wabbit-network-timestamp" of type "tsa"
 notation certificate add --type tsa --store wabbit-networks-timestamp wabbit-networks-tsa.crt
 
 # Verify signatures on an OCI artifact
