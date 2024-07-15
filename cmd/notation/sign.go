@@ -86,7 +86,7 @@ Example - Sign an OCI artifact and store signature using the Referrers API. If i
   notation sign --force-referrers-tag=false <registry>/<repository>@<digest>
 
 Example - Sign an OCI artifact with timestamping:
-  notation sign --tsa-url <trusted_TSA_url> --tsa-root-cert <TSA_root_certificate_filepath> <registry>/<repository>@<digest> 
+  notation sign --tsa-url <TSA_url> --tsa-root-cert <TSA_root_certificate_filepath> <registry>/<repository>@<digest> 
 `
 	experimentalExamples := `
 Example - [Experimental] Sign an OCI artifact referenced in an OCI layout
@@ -144,7 +144,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	command.Flags().StringVar(&opts.tsaServerURL, "tsa-url", "", "timestamp authority server URL")
-	command.Flags().StringVar(&opts.tsaRootCertificatePath, "tsa-root-cert", "", "filepath of trusted tsa root certificate")
+	command.Flags().StringVar(&opts.tsaRootCertificatePath, "tsa-root-cert", "", "filepath of timestamp authority root certificate")
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")

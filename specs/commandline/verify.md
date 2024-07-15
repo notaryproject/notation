@@ -96,7 +96,7 @@ An example of `trustpolicy.json` with RFC 3161 timestamp verification support:
             "registryScopes": [ "localhost:5000/net-monitor" ],
             "signatureVerification": {
                 "level": "strict",
-                "verifyTimestamp": "afterCertExpiry"                                   // Only verify timestamp countersignatures if any code signing certificate has expired.
+                "verifyTimestamp": "afterCertExpiry"                                   // Only verify timestamp countersignatures if any code signing certificate has expired. DEFAULT: `always`
             },
             "trustStores": [ "ca:wabbit-networks", "tsa:wabbit-networks-timestamp" ],  // To enable timestamp verification, trust store type `tsa` MUST be configured.
             "trustedIdentities": [
