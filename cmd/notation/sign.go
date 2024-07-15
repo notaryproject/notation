@@ -34,9 +34,9 @@ import (
 
 const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
 
-// TimestampingTimeout is the timeout when requesting timestamp countersignature
+// timestampingTimeout is the timeout when requesting timestamp countersignature
 // from a TSA
-const TimestampingTimeout = 15 * time.Second
+const timestampingTimeout = 15 * time.Second
 
 type signOpts struct {
 	cmd.LoggingFlagOpts
@@ -217,10 +217,10 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 	}
 	if opts.tsaServerURL != "" {
 		// timestamping
-		fmt.Printf("Timestamping with TSA %q\n", opts.tsaServerURL)
-		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(&http.Client{Timeout: TimestampingTimeout}, opts.tsaServerURL)
+		fmt.Printf("Configured to timestamp with TSA %q\n", opts.tsaServerURL)
+		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(&http.Client{Timeout: timestampingTimeout}, opts.tsaServerURL)
 		if err != nil {
-			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %v", err)
+			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}
 
 		rootCerts, err := corex509.ReadCertificateFile(opts.tsaRootCertificatePath)
@@ -230,8 +230,9 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 		if len(rootCerts) == 0 {
 			return notation.SignOptions{}, fmt.Errorf("cannot read tsa root certificate from %q", opts.tsaRootCertificatePath)
 		}
-		signOpts.TSARootCAs = x509.NewCertPool()
-		signOpts.TSARootCAs.AddCert(rootCerts[0])
+		rootCAs := x509.NewCertPool()
+		rootCAs.AddCert(rootCerts[0])
+		signOpts.TSARootCAs = rootCAs
 	}
 	return signOpts, nil
 }
