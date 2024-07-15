@@ -15,8 +15,8 @@ github.com/google/pprof v0.0.0-20230510103437-eeec1cb781c3 h1:2XF1Vzq06X+inNqgJ9
 github.com/google/pprof v0.0.0-20230510103437-eeec1cb781c3/go.mod h1:79YE0hCXdHag9sBkw2o+N/YnZtTkXi0UT9Nnixa5eYk=
 github.com/notaryproject/notation-core-go v1.0.4-0.20240708015912-faac9b7f3f10 h1:kXRTRPpJqj7DuSxYxfrVKcfQ3CijRisPdQQrt/+Y1bE=
 github.com/notaryproject/notation-core-go v1.0.4-0.20240708015912-faac9b7f3f10/go.mod h1:6DN+zUYRhXx7swFMVSrai5J+7jqyuOCru1q9G+SbFno=
-github.com/notaryproject/tspclient-go v0.0.0-20240702050734-d91848411058 h1:FlGmQAwbf78rw12fXT4+9EkmD9+ZWuqH08v0fE3sqHc=
-github.com/notaryproject/tspclient-go v0.0.0-20240702050734-d91848411058/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
+github.com/notaryproject/tspclient-go v0.1.0 h1:kmtQuN32iwBAizOhPr+NZsxCErydoGcrfQy1ppJi5Vo=
+github.com/notaryproject/tspclient-go v0.1.0/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
 github.com/onsi/ginkgo/v2 v2.11.0 h1:WgqUCUt/lT6yXoQ8Wef0fsNn5cAuMK7+KT9UFRz2tcU=
 github.com/onsi/ginkgo/v2 v2.11.0/go.mod h1:ZhrRA5XmEE3x3rhlzamx/JJvujdZoJ2uvgI7kR0iZvM=
 github.com/onsi/gomega v1.27.10 h1:naR28SdDFlqrG6kScpT8VWpu1xWY5nJRCF3XaYyBjhI=
