@@ -22,14 +22,38 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// NewAuthClient returns an *auth.Client
-func NewAuthClient(ctx context.Context, httpClient *http.Client) *auth.Client {
-	client := &auth.Client{
-		Client:   httpClient,
+// NewClient returns an *http.Client with debug log and user agent set
+func NewClient(ctx context.Context, client *http.Client) *http.Client {
+	client = trace.SetHTTPDebugLog(ctx, client)
+	client.Transport = SetUserAgent(client.Transport)
+	return client
+}
+
+// NewAuthClient returns an *auth.Client with debug log and user agent set
+func NewAuthClient(ctx context.Context, client *http.Client) *auth.Client {
+	return &auth.Client{
+		Client:   NewClient(ctx, client),
 		Cache:    auth.NewCache(),
 		ClientID: "notation",
 	}
-	client.SetUserAgent("notation/" + version.GetVersion())
-	trace.SetHTTPDebugLog(ctx, client)
-	return client
+}
+
+type userAgentTransport struct {
+	base http.RoundTripper
+}
+
+func (t *userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	r := req.Clone(req.Context())
+	if r.Header == nil {
+		r.Header = http.Header{}
+	}
+	r.Header.Set("User-Agent", "notation/"+version.GetVersion())
+	return t.base.RoundTrip(r)
+}
+
+// SetUserAgent sets the user agent for all out-going requests.
+func SetUserAgent(rt http.RoundTripper) http.RoundTripper {
+	return &userAgentTransport{
+		base: rt,
+	}
 }
