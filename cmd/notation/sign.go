@@ -27,9 +27,11 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
@@ -166,7 +168,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	signOpts, err := prepareSigningOpts(cmdOpts)
+	signOpts, err := prepareSigningOpts(ctx, cmdOpts)
 	if err != nil {
 		return err
 	}
@@ -194,7 +196,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	return nil
 }
 
-func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
+func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptions, error) {
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err
@@ -218,7 +220,7 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 	if opts.tsaServerURL != "" {
 		// timestamping
 		fmt.Printf("Configured to timestamp with TSA %q\n", opts.tsaServerURL)
-		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(&http.Client{Timeout: timestampingTimeout}, opts.tsaServerURL)
+		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.tsaServerURL)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}

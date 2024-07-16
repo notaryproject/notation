@@ -24,6 +24,9 @@ import (
 
 // NewClient returns an *http.Client with debug log and user agent set
 func NewClient(ctx context.Context, client *http.Client) *http.Client {
+	if client == nil {
+		client = &http.Client{}
+	}
 	client = trace.SetHTTPDebugLog(ctx, client)
 	client.Transport = SetUserAgent(client.Transport)
 	return client
