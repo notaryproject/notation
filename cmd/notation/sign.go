@@ -143,7 +143,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
-	command.Flags().StringVar(&opts.tsaServerURL, "tsa-url", "", "timestamp authority server URL")
+	command.Flags().StringVar(&opts.tsaServerURL, "tsa-url", "", "RFC3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "tsa-root-cert", "", "filepath of timestamp authority root certificate")
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
@@ -228,7 +228,7 @@ func prepareSigningOpts(opts *signOpts) (notation.SignOptions, error) {
 			return notation.SignOptions{}, err
 		}
 		if len(rootCerts) == 0 {
-			return notation.SignOptions{}, fmt.Errorf("cannot read tsa root certificate from %q", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("cannot find any tsa root certificate from %q. Expecting x509 certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 		}
 		rootCAs := x509.NewCertPool()
 		rootCAs.AddCert(rootCerts[0])

@@ -43,7 +43,7 @@ Flags:
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
        --tsa-root-cert string       filepath of timestamp authority root certificate
-       --tsa-url string             timestamp authority server URL
+       --tsa-url string             RFC3161 Timestamping Authority (TSA) server URL
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -v,  --verbose                    verbose mode
@@ -157,7 +157,7 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
 ```
 
-### Sign an OCI artifact and timestamp the signature with user specified timestamp authority
+### Sign an OCI artifact and timestamp the signature with user specified RFC3161 Timestamp Authority (TSA)
 
 ```shell
 # Prerequisites:
