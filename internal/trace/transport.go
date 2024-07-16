@@ -90,5 +90,12 @@ func SetHTTPDebugLog(ctx context.Context, client *http.Client) *http.Client {
 	if logrusLog, ok := log.GetLogger(ctx).(*logrus.Logger); !ok || logrusLog.Level != logrus.DebugLevel {
 		return client
 	}
-	return NewHTTPClient(client)
+	if client == nil {
+		client = &http.Client{}
+	}
+	if client.Transport == nil {
+		client.Transport = http.DefaultTransport
+	}
+	client.Transport = NewTransport(client.Transport)
+	return client
 }
