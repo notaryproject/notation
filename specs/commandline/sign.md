@@ -42,8 +42,8 @@ Flags:
        --plugin string              signing plugin name. This is mutually exclusive with the --key flag
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-       --tsa-root-cert string       filepath of timestamp authority root certificate
-       --tsa-url string             RFC3161 Timestamping Authority (TSA) server URL
+       --timestamp-root-cert string       filepath of timestamp authority root certificate
+       --timestamp-url string             RFC3161 Timestamping Authority (TSA) server URL
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -v,  --verbose                    verbose mode
@@ -165,10 +165,10 @@ Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da
 # Signer knows the TSA url that they want to use to require a RFC 3161 timestamp.
 # Signer has downloaded the TSA's root certificate in their file system.
 
-# Use option "--tsa-url" to specify the timestamp authority URL.
-# Use option "--tsa-root-cert" to specify the filepath of the tsa root
+# Use option "--timestamp-url" to specify the timestamp authority URL.
+# Use option "--timestamp-root-cert" to specify the filepath of the tsa root
 # certificate.
-notation sign --tsa-url <tsa_url> --tsa-root-cert <tsa_root_certificate_filepath> <registry>/<repository>@<digest>
+notation sign --timestamp-url <tsa_url> --timestamp-root-cert <tsa_root_certificate_filepath> <registry>/<repository>@<digest>
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory

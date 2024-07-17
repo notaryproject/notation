@@ -215,7 +215,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with timestamp verification disabled", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -226,7 +226,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with timestamp verification", func() {
 		Host(TimestampOptions(""), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -237,7 +237,7 @@ var _ = Describe("notation verify", func() {
 
 	It("with verifyTimestamp set as afterCertExpiry", func() {
 		Host(TimestampOptions("afterCertExpiry"), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--tsa-url", "http://timestamp.digicert.com", "--tsa-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
+			notation.Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
