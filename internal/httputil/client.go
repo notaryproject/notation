@@ -46,6 +46,7 @@ type userAgentTransport struct {
 	base http.RoundTripper
 }
 
+// RoundTrip returns t.Base.RoundTrip with user agent set in the request Header
 func (t *userAgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	r := req.Clone(req.Context())
 	if r.Header == nil {

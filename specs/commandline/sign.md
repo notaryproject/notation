@@ -43,7 +43,7 @@ Flags:
        --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
        --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
        --timestamp-root-cert string       filepath of timestamp authority root certificate
-       --timestamp-url string             RFC3161 Timestamping Authority (TSA) server URL
+       --timestamp-url string             RFC 3161 Timestamping Authority (TSA) server URL
   -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
   -v,  --verbose                    verbose mode
