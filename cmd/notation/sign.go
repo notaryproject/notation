@@ -234,7 +234,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 			return notation.SignOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 		}
 		if len(rootCerts) > 1 {
-			return notation.SignOptions{}, fmt.Errorf("find more than one certificates from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("found more than one certificates from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 		}
 		tsaRootCert := rootCerts[0]
 		isRoot, err := nx509.IsRootCertificate(tsaRootCert)
