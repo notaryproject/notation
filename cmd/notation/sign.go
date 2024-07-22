@@ -28,6 +28,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
+	nx509 "github.com/notaryproject/notation/internal/x509"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -230,13 +231,22 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 			return notation.SignOptions{}, err
 		}
 		if len(rootCerts) == 0 {
-			return notation.SignOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting one x509 certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting one x509 root CA certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 		}
 		if len(rootCerts) > 1 {
-			return notation.SignOptions{}, fmt.Errorf("find more than one certificates from %q. Expecting one x509 certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("find more than one certificates from %q. Expecting one x509 root CA certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+		}
+		tsaRootCert := rootCerts[0]
+		isRoot, err := nx509.IsRootCertificate(tsaRootCert)
+		if err != nil {
+			return notation.SignOptions{}, fmt.Errorf("failed to check root certificate with error: %w", err)
+		}
+		if !isRoot {
+			return notation.SignOptions{}, fmt.Errorf("cannot find root CA certificate from %q. Expecting one x509 root CA certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+
 		}
 		rootCAs := x509.NewCertPool()
-		rootCAs.AddCert(rootCerts[0])
+		rootCAs.AddCert(tsaRootCert)
 		signOpts.TSARootCAs = rootCAs
 	}
 	return signOpts, nil
