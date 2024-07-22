@@ -129,6 +129,26 @@ func BaseOptions() []utils.HostOption {
 	)
 }
 
+// TimestampOptions returns a list of timestamp Options for a valid
+// notation testing environment.
+func TimestampOptions(verifyTimestamp string) []utils.HostOption {
+	var trustPolicyOption utils.HostOption
+	if verifyTimestamp == "afterCertExpiry" {
+		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy.json")
+	} else {
+		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json")
+	}
+
+	return Opts(
+		AuthOption("", ""),
+		AddKeyOption("e2e.key", "e2e.crt"),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer")),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer")),
+		trustPolicyOption,
+	)
+}
+
 func BaseOptionsWithExperimental() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
@@ -184,6 +204,16 @@ func AddTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption
 	return func(vhost *utils.VirtualHost) error {
 		vhost.Executor.
 			Exec("cert", "add", "--type", "ca", "--store", namedstore, srcCertPath).
+			MatchKeyWords("Successfully added following certificates")
+		return nil
+	}
+}
+
+// AddTimestampTrustStoreOption adds the test tsa cert to the trust store.
+func AddTimestampTrustStoreOption(namedstore string, srcCertPath string) utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		vhost.Executor.
+			Exec("cert", "add", "--type", "tsa", "--store", namedstore, srcCertPath).
 			MatchKeyWords("Successfully added following certificates")
 		return nil
 	}
