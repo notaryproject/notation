@@ -51,4 +51,17 @@ func TestIsRootCertificate(t *testing.T) {
 	if err == nil || err.Error() != expectedErrMsg {
 		t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 	}
+
+	notSelfIssued, err := corex509.ReadCertificateFile("../testdata/notSelfIssued.crt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedErrMsg = "x509: invalid signature: parent certificate cannot sign this kind of certificate"
+	isRoot, err = IsRootCertificate(notSelfIssued[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if isRoot {
+		t.Fatal("expected IsRootCertificate to return false")
+	}
 }

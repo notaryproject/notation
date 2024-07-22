@@ -231,10 +231,10 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 			return notation.SignOptions{}, err
 		}
 		if len(rootCerts) == 0 {
-			return notation.SignOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting one x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 		}
 		if len(rootCerts) > 1 {
-			return notation.SignOptions{}, fmt.Errorf("find more than one certificates from %q. Expecting one x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("find more than one certificates from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 		}
 		tsaRootCert := rootCerts[0]
 		isRoot, err := nx509.IsRootCertificate(tsaRootCert)
@@ -242,7 +242,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 			return notation.SignOptions{}, fmt.Errorf("failed to check root certificate with error: %w", err)
 		}
 		if !isRoot {
-			return notation.SignOptions{}, fmt.Errorf("certificate from %q is not a root certificate. Expecting one x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+			return notation.SignOptions{}, fmt.Errorf("certificate from %q is not a root certificate. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
 
 		}
 		rootCAs := x509.NewCertPool()
