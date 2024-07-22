@@ -19,12 +19,10 @@ import (
 )
 
 // IsRootCertificate returns true if cert is a root certificate.
-// A root certificate MUST be a self-signed and self-issued CA certificate with
-// valid BasicConstraints.
+// A root certificate MUST be a self-signed and self-issued certificate.
 func IsRootCertificate(cert *x509.Certificate) (bool, error) {
-	// CheckSignatureFrom also checks cert.BasicConstraintsValid
 	if err := cert.CheckSignatureFrom(cert); err != nil {
 		return false, err
 	}
-	return cert.IsCA && bytes.Equal(cert.RawSubject, cert.RawIssuer), nil
+	return bytes.Equal(cert.RawSubject, cert.RawIssuer), nil
 }
