@@ -280,21 +280,21 @@ var _ = Describe("notation sign", func() {
 		})
 	})
 
-	It("with empty tsa server", func() {
+	It("with timestamping and empty tsa server", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("Error: timestamping: tsa url cannot be empty")
 		})
 	})
 
-	It("with empty tsa root cert", func() {
+	It("with timestamping and empty tsa root cert", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "dummy", "--timestamp-root-cert", "", artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("Error: timestamping: tsa root certificate path cannot be empty")
 		})
 	})
 
-	It("with invalid tsa server", func() {
+	It("with timestamping and invalid tsa server", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://invalid.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("Error: timestamp: Post \"http://invalid.com\"").
@@ -302,26 +302,34 @@ var _ = Describe("notation sign", func() {
 		})
 	})
 
-	It("with invalid tsa root certificate", func() {
+	It("with timestamping and invalid tsa root certificate", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "invalid.crt"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("Error: x509: malformed certificate")
 		})
 	})
 
-	It("with more than certificates in tsa root certificate file", func() {
+	It("with timestamping and more than one certificates in tsa root certificate file", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "CertChain.pem"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("find more than one certificates").
-				MatchErrKeyWords("Expecting one x509 root CA certificate in PEM or DER format from the file")
+				MatchErrKeyWords("Expecting one x509 root certificate in PEM or DER format from the file")
 		})
 	})
 
-	It("with empty tsa root certificate file", func() {
+	It("with timestamping and empty tsa root certificate file", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "Empty.txt"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("cannot find any certificate from").
-				MatchErrKeyWords("Expecting one x509 root CA certificate in PEM or DER format from the file")
+				MatchErrKeyWords("Expecting one x509 root certificate in PEM or DER format from the file")
+		})
+	})
+
+	It("with timestamping and intermediate certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "intermediate.pem"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("is not a root certificate").
+				MatchErrKeyWords("Expecting one x509 root certificate in PEM or DER format from the file")
 		})
 	})
 })
