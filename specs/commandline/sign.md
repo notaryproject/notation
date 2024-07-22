@@ -30,21 +30,23 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-       --force-referrers-tag        force to store signatures using the referrers tag schema (default true)
-  -d,  --debug                      debug mode
-  -e,  --expiry duration            optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
-  -h,  --help                       help for sign
-       --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
-       --insecure-registry          use HTTP protocol while connecting to registries. Should be used only for testing
-  -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
-       --oci-layout                 [Experimental] sign the artifact stored as OCI image layout
-  -p,  --password string            password for registry operations (default to $NOTATION_PASSWORD if not specified)
-       --plugin string              signing plugin name. This is mutually exclusive with the --key flag
-       --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
-       --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-  -u,  --username string            username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
-  -v,  --verbose                    verbose mode
+       --force-referrers-tag         force to store signatures using the referrers tag schema (default true)
+  -d,  --debug                       debug mode
+  -e,  --expiry duration             optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
+  -h,  --help                        help for sign
+       --id string                   key id (required if --plugin is set). This is mutually exclusive with the --key flag
+       --insecure-registry           use HTTP protocol while connecting to registries. Should be used only for testing
+  -k,  --key string                  signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
+       --oci-layout                  [Experimental] sign the artifact stored as OCI image layout
+  -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
+       --plugin string               signing plugin name. This is mutually exclusive with the --key flag
+       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
+       --signature-format string     signature envelope format, options: "jws", "cose" (default "jws")
+       --timestamp-root-cert string  filepath of timestamp authority root certificate
+       --timestamp-url string        RFC 3161 Timestamping Authority (TSA) server URL
+  -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
+  -m,  --user-metadata stringArray   {key}={value} pairs that are added to the signature payload
+  -v,  --verbose                     verbose mode
 ```
 
 ### Set config property for OCI image manifest
@@ -153,6 +155,20 @@ An example for a successful signing:
 $ notation sign localhost:5000/net-monitor:v1
 Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(`:v1`) because tags are mutable and a tag reference can point to a different artifact than the one signed.
 Successfully signed localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+```
+
+### Sign an OCI artifact and timestamp the signature with user specified RFC3161 Timestamp Authority (TSA)
+
+```shell
+# Prerequisites:
+# A default signing key is configured using CLI "notation key".
+# Signer knows the TSA url that they want to use to require a RFC 3161 timestamp.
+# Signer has downloaded the TSA's root certificate in their file system.
+
+# Use option "--timestamp-url" to specify the timestamp authority URL.
+# Use option "--timestamp-root-cert" to specify the filepath of the tsa root
+# certificate.
+notation sign --timestamp-url <tsa_url> --timestamp-root-cert <tsa_root_certificate_filepath> <registry>/<repository>@<digest>
 ```
 
 ### [Experimental] Sign container images stored in OCI layout directory
