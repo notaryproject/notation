@@ -308,4 +308,20 @@ var _ = Describe("notation sign", func() {
 				MatchErrKeyWords("Error: x509: malformed certificate")
 		})
 	})
+
+	It("with more than certificates in tsa root certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "CertChain.pem"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("find more than one certificates").
+				MatchErrKeyWords("Expecting one x509 certificate in PEM or DER format from the file")
+		})
+	})
+
+	It("with empty tsa root certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "empty.txt"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("cannot find any certificate from").
+				MatchErrKeyWords("Expecting one x509 certificate in PEM or DER format from the file")
+		})
+	})
 })
