@@ -313,7 +313,7 @@ var _ = Describe("notation sign", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "CertChain.pem"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("find more than one certificates").
-				MatchErrKeyWords("Expecting one x509 certificate in PEM or DER format from the file")
+				MatchErrKeyWords("Expecting one x509 root CA certificate in PEM or DER format from the file")
 		})
 	})
 
@@ -321,7 +321,7 @@ var _ = Describe("notation sign", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "Empty.txt"), artifact.ReferenceWithDigest()).
 				MatchErrKeyWords("cannot find any certificate from").
-				MatchErrKeyWords("Expecting one x509 certificate in PEM or DER format from the file")
+				MatchErrKeyWords("Expecting one x509 root CA certificate in PEM or DER format from the file")
 		})
 	})
 })
