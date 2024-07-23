@@ -4,8 +4,8 @@ go 1.21
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/notaryproject/notation-core-go v1.0.4-0.20240716001320-f45197cbd53b
-	github.com/notaryproject/notation-go v1.1.1-0.20240719045753-83409204754a
+	github.com/notaryproject/notation-core-go v1.1.0-beta.1
+	github.com/notaryproject/notation-go v1.2.0-beta.1
 	github.com/notaryproject/notation-plugin-framework-go v1.0.0
 	github.com/spf13/cobra v1.7.0
 )
