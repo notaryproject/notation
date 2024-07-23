@@ -24,6 +24,7 @@ import (
 
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -198,6 +199,8 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 }
 
 func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptions, error) {
+	logger := log.GetLogger(ctx)
+
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err
@@ -220,7 +223,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 	}
 	if opts.tsaServerURL != "" {
 		// timestamping
-		fmt.Printf("Configured to timestamp with TSA %q\n", opts.tsaServerURL)
+		logger.Infof("Configured to timestamp with TSA %q", opts.tsaServerURL)
 		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.tsaServerURL)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
