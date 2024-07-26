@@ -265,8 +265,15 @@ func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeCo
 			return nil, fmt.Errorf("failed to get timestamp from timestamp countersignature with error: %w", err)
 		}
 		certificates := getCertificates(outputFormat, signedToken.Certificates)
+		var formatTimestamp string
+		switch outputFormat {
+		case cmd.OutputJSON:
+			formatTimestamp = timestamp.Format(time.RFC3339)
+		default:
+			formatTimestamp = timestamp.Format(time.ANSIC)
+		}
 		unsignedAttributes["timestampSignature"] = timestampOutput{
-			Timestamp:             timestamp.Format(time.RFC3339),
+			Timestamp:             formatTimestamp,
 			TimestampCertificates: certificates,
 		}
 	}

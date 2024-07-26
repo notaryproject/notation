@@ -79,7 +79,7 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
     │   │   └── io.wabbit-networks.buildId: 123                             //user defined metadata
     │   ├── unsigned attributes
     │   │   ├── timestampSignature                                          //TSA response
-    |   │   │   ├── timestamp: [2023-06-23T22:04:37Z, 2023-06-23T22:04:38Z]
+    |   │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
     |   │   │   └── timestampCertificates
     |   │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
     |   │   │           ├── issued to: wabbit-com Software Timestamp
@@ -113,7 +113,7 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
         │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
         ├── unsigned attributes
         │   ├── timestampSignature
-        │   │   ├── timestamp: [2023-06-23T22:04:37Z, 2023-06-23T22:04:38Z]
+        │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
         │   │   └── timestampCertificates
         │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
         │   │           ├── issued to: wabbit-com Software Timestamp
@@ -170,7 +170,7 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
     │   │   └── io.wabbit-networks.buildId: 123
     │   ├── unsigned attributes
     │   │   ├── timestampSignature
-    |   │   │   ├── timestamp: [2023-06-23T22:04:37Z, 2023-06-23T22:04:38Z]
+    |   │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
     |   │   │   └── timestampCertificates
     |   │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
     |   │   │           ├── issued to: wabbit-com Software Timestamp
@@ -204,7 +204,7 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
         │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
         ├── unsigned attributes
         │   ├── timestampSignature
-        │   │   ├── timestamp: [2023-06-23T22:04:37Z, 2023-06-23T22:04:38Z]
+        │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
         │   │   └── timestampCertificates
         │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
         │   │           ├── issued to: wabbit-com Software Timestamp
