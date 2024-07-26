@@ -14,34 +14,64 @@
 package command
 
 import (
+	"path/filepath"
+
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 	. "github.com/notaryproject/notation/test/e2e/suite/common"
 	. "github.com/onsi/ginkgo/v2"
 )
 
-var inspectSuccessfully = []string{
-	"└── application/vnd.cncf.notary.signature",
-	"└── sha256:",
-	"├── media type:",
-	"├── signature algorithm:",
-	"├── signed attributes",
-	"signingTime:",
-	"signingScheme:",
-	"├── user defined attributes",
-	"│   └── (empty)",
-	"├── unsigned attributes",
-	"│   └── signingAgent: Notation/",
-	"├── certificates",
-	"│   └── SHA256 fingerprint:",
-	"issued to:",
-	"issued by:",
-	"expiry:",
-	"└── signed artifact",
-	"media type:",
-	"digest:",
-	"size:",
-}
+var (
+	inspectSuccessfully = []string{
+		"└── application/vnd.cncf.notary.signature",
+		"└── sha256:",
+		"├── media type:",
+		"├── signature algorithm:",
+		"├── signed attributes",
+		"signingTime:",
+		"signingScheme:",
+		"├── user defined attributes",
+		"│   └── (empty)",
+		"├── unsigned attributes",
+		"│   └── signingAgent: Notation/",
+		"├── certificates",
+		"│   └── SHA256 fingerprint:",
+		"issued to:",
+		"issued by:",
+		"expiry:",
+		"└── signed artifact",
+		"media type:",
+		"digest:",
+		"size:",
+	}
+
+	inspectSuccessfullyWithTimestamp = []string{
+		"└── application/vnd.cncf.notary.signature",
+		"└── sha256:",
+		"├── media type:",
+		"├── signature algorithm:",
+		"├── signed attributes",
+		"signingTime:",
+		"signingScheme:",
+		"├── user defined attributes",
+		"│   └── (empty)",
+		"├── unsigned attributes",
+		"│   └── signingAgent: Notation/",
+		"│   └── timestampSignature",
+		"│      ├── timestamp:",
+		"│      └── timestampCertificates",
+		"├── certificates",
+		"│   └── SHA256 fingerprint:",
+		"issued to:",
+		"issued by:",
+		"expiry:",
+		"└── signed artifact",
+		"media type:",
+		"digest:",
+		"size:",
+	}
+)
 
 var _ = Describe("notation inspect", func() {
 	It("all signatures of an image", func() {
@@ -129,6 +159,16 @@ var _ = Describe("notation inspect", func() {
 					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
 				).
 				MatchKeyWords(inspectSuccessfully...)
+		})
+	})
+
+	It("with timestamping", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--timestamp-url", "http://rfc3161timestamp.globalsign.com/advanced", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+
+			notation.Exec("inspect", artifact.ReferenceWithDigest()).
+				MatchKeyWords(inspectSuccessfullyWithTimestamp...)
 		})
 	})
 })

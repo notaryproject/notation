@@ -15,7 +15,7 @@ package main
 
 import (
 	"crypto/sha256"
-	b64 "encoding/base64"
+	"crypto/x509"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -33,6 +33,7 @@ import (
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/tree"
+	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -57,7 +58,7 @@ type signatureOutput struct {
 	SignatureAlgorithm    string              `json:"signatureAlgorithm"`
 	SignedAttributes      map[string]string   `json:"signedAttributes"`
 	UserDefinedAttributes map[string]string   `json:"userDefinedAttributes"`
-	UnsignedAttributes    map[string]string   `json:"unsignedAttributes"`
+	UnsignedAttributes    map[string]any      `json:"unsignedAttributes"`
 	Certificates          []certificateOutput `json:"certificates"`
 	SignedArtifact        ocispec.Descriptor  `json:"signedArtifact"`
 }
@@ -67,6 +68,11 @@ type certificateOutput struct {
 	IssuedTo          string `json:"issuedTo"`
 	IssuedBy          string `json:"issuedBy"`
 	Expiry            string `json:"expiry"`
+}
+
+type timestampOutput struct {
+	Timestamp             string              `json:"timestamp"`
+	TimestampCertificates []certificateOutput `json:"timestampCertificates"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -175,14 +181,21 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			return nil
 		}
 
+		unsignedAttributes, err := getUnsignedAttributes(opts.outputFormat, envelopeContent)
+		if err != nil {
+			logSkippedSignature(sigManifestDesc, err)
+			skippedSignatures = true
+			return nil
+		}
+
 		sig := signatureOutput{
 			MediaType:             sigDesc.MediaType,
 			Digest:                sigManifestDesc.Digest.String(),
 			SignatureAlgorithm:    string(signatureAlgorithm),
 			SignedAttributes:      getSignedAttributes(opts.outputFormat, envelopeContent),
 			UserDefinedAttributes: signedArtifactDesc.Annotations,
-			UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
-			Certificates:          getCertificates(opts.outputFormat, envelopeContent),
+			UnsignedAttributes:    unsignedAttributes,
+			Certificates:          getCertificates(opts.outputFormat, envelopeContent.SignerInfo.CertificateChain),
 			SignedArtifact:        *signedArtifactDesc,
 		}
 
@@ -235,18 +248,34 @@ func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeCont
 	return signedAttributes
 }
 
-func getUnsignedAttributes(envContent *signature.EnvelopeContent) map[string]string {
-	unsignedAttributes := map[string]string{}
+func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) (map[string]any, error) {
+	unsignedAttributes := map[string]any{}
 
 	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
-		unsignedAttributes["timestampSignature"] = b64.StdEncoding.EncodeToString(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
+		signedToken, err := tspclient.ParseSignedToken(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse timestamp countersignature with error: %w", err)
+		}
+		info, err := signedToken.Info()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the timestamp TSTInfo with error: %w", err)
+		}
+		timestamp, err := info.Validate(envContent.SignerInfo.Signature)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get timestamp from timestamp countersignature with error: %w", err)
+		}
+		certificates := getCertificates(outputFormat, signedToken.Certificates)
+		unsignedAttributes["timestampSignature"] = timestampOutput{
+			Timestamp:             timestamp.Format(time.RFC3339),
+			TimestampCertificates: certificates,
+		}
 	}
 
 	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
 		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
 	}
 
-	return unsignedAttributes
+	return unsignedAttributes, nil
 }
 
 func formatTimestamp(outputFormat string, t time.Time) string {
@@ -258,10 +287,10 @@ func formatTimestamp(outputFormat string, t time.Time) string {
 	}
 }
 
-func getCertificates(outputFormat string, envContent *signature.EnvelopeContent) []certificateOutput {
+func getCertificates(outputFormat string, certChain []*x509.Certificate) []certificateOutput {
 	certificates := []certificateOutput{}
 
-	for _, cert := range envContent.SignerInfo.CertificateChain {
+	for _, cert := range certChain {
 		h := sha256.Sum256(cert.Raw)
 		fingerprint := strings.ToLower(hex.EncodeToString(h[:]))
 
@@ -304,15 +333,18 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 		addMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
 
 		unsignedAttributesNode := sigNode.Add("unsigned attributes")
-		addMapToTree(unsignedAttributesNode, signature.UnsignedAttributes)
-
-		certListNode := sigNode.Add("certificates")
-		for _, cert := range signature.Certificates {
-			certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
-			certNode.AddPair("issued to", cert.IssuedTo)
-			certNode.AddPair("issued by", cert.IssuedBy)
-			certNode.AddPair("expiry", cert.Expiry)
+		for k, v := range signature.UnsignedAttributes {
+			switch value := v.(type) {
+			case string:
+				unsignedAttributesNode.AddPair(k, value)
+			case timestampOutput:
+				timestampNode := unsignedAttributesNode.Add("timestampSignature")
+				timestampNode.AddPair("timestamp", value.Timestamp)
+				addCertificatesToTree(timestampNode, "timestampCertificates", value.TimestampCertificates)
+			}
 		}
+
+		addCertificatesToTree(sigNode, "certificates", signature.Certificates)
 
 		artifactNode := sigNode.Add("signed artifact")
 		artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
@@ -331,5 +363,15 @@ func addMapToTree(node *tree.Node, m map[string]string) {
 		}
 	} else {
 		node.Add("(empty)")
+	}
+}
+
+func addCertificatesToTree(node *tree.Node, name string, certs []certificateOutput) {
+	certListNode := node.Add(name)
+	for _, cert := range certs {
+		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
+		certNode.AddPair("issued to", cert.IssuedTo)
+		certNode.AddPair("issued by", cert.IssuedBy)
+		certNode.AddPair("expiry", cert.Expiry)
 	}
 }
