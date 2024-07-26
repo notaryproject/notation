@@ -71,8 +71,9 @@ type certificateOutput struct {
 }
 
 type timestampOutput struct {
-	Timestamp             string              `json:"timestamp"`
-	TimestampCertificates []certificateOutput `json:"timestampCertificates"`
+	Timestamp             string              `json:"timestamp,omitempty"`
+	TimestampCertificates []certificateOutput `json:"timestampCertificates,omitempty"`
+	Error                 error               `json:"error,omitempty"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -181,20 +182,13 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			return nil
 		}
 
-		unsignedAttributes, err := getUnsignedAttributes(opts.outputFormat, envelopeContent)
-		if err != nil {
-			logSkippedSignature(sigManifestDesc, err)
-			skippedSignatures = true
-			return nil
-		}
-
 		sig := signatureOutput{
 			MediaType:             sigDesc.MediaType,
 			Digest:                sigManifestDesc.Digest.String(),
 			SignatureAlgorithm:    string(signatureAlgorithm),
 			SignedAttributes:      getSignedAttributes(opts.outputFormat, envelopeContent),
 			UserDefinedAttributes: signedArtifactDesc.Annotations,
-			UnsignedAttributes:    unsignedAttributes,
+			UnsignedAttributes:    getUnsignedAttributes(opts.outputFormat, envelopeContent),
 			Certificates:          getCertificates(opts.outputFormat, envelopeContent.SignerInfo.CertificateChain),
 			SignedArtifact:        *signedArtifactDesc,
 		}
@@ -248,21 +242,34 @@ func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeCont
 	return signedAttributes
 }
 
-func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) (map[string]any, error) {
-	unsignedAttributes := map[string]any{}
+func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) map[string]any {
+	unsignedAttributes := make(map[string]any)
+
+	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
+		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
+	}
 
 	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
 		signedToken, err := tspclient.ParseSignedToken(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse timestamp countersignature with error: %w", err)
+			unsignedAttributes["timestampSignature"] = timestampOutput{
+				Error: errors.New("failed to parse timestamp countersignature"),
+			}
+			return unsignedAttributes
 		}
 		info, err := signedToken.Info()
 		if err != nil {
-			return nil, fmt.Errorf("failed to get the timestamp TSTInfo with error: %w", err)
+			unsignedAttributes["timestampSignature"] = timestampOutput{
+				Error: errors.New("failed to parse timestamp countersignature"),
+			}
+			return unsignedAttributes
 		}
 		timestamp, err := info.Validate(envContent.SignerInfo.Signature)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get timestamp from timestamp countersignature with error: %w", err)
+			unsignedAttributes["timestampSignature"] = timestampOutput{
+				Error: errors.New("failed to parse timestamp countersignature"),
+			}
+			return unsignedAttributes
 		}
 		certificates := getCertificates(outputFormat, signedToken.Certificates)
 		var formatTimestamp string
@@ -278,11 +285,7 @@ func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeCo
 		}
 	}
 
-	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
-		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
-	}
-
-	return unsignedAttributes, nil
+	return unsignedAttributes
 }
 
 func formatTimestamp(outputFormat string, t time.Time) string {
@@ -346,6 +349,10 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 				unsignedAttributesNode.AddPair(k, value)
 			case timestampOutput:
 				timestampNode := unsignedAttributesNode.Add("timestampSignature")
+				if value.Error != nil {
+					timestampNode.AddPair("error", value.Error.Error())
+					break
+				}
 				timestampNode.AddPair("timestamp", value.Timestamp)
 				addCertificatesToTree(timestampNode, "timestampCertificates", value.TimestampCertificates)
 			}
