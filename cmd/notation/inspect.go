@@ -245,12 +245,12 @@ func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeCont
 func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) map[string]any {
 	unsignedAttributes := make(map[string]any)
 
-	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
-		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
+	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
+		unsignedAttributes["timestampSignature"] = parseTimestamp(outputFormat, envContent.SignerInfo)
 	}
 
-	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
-		unsignedAttributes["timestampSignature"] = getTimestamp(outputFormat, envContent)
+	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
+		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
 	}
 
 	return unsignedAttributes
@@ -358,8 +358,8 @@ func addCertificatesToTree(node *tree.Node, name string, certs []certificateOutp
 	}
 }
 
-func getTimestamp(outputFormat string, envContent *signature.EnvelopeContent) timestampOutput {
-	signedToken, err := tspclient.ParseSignedToken(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
+func parseTimestamp(outputFormat string, signerInfo signature.SignerInfo) timestampOutput {
+	signedToken, err := tspclient.ParseSignedToken(signerInfo.UnsignedAttributes.TimestampSignature)
 	if err != nil {
 		return timestampOutput{
 			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
@@ -371,7 +371,7 @@ func getTimestamp(outputFormat string, envContent *signature.EnvelopeContent) ti
 			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
 		}
 	}
-	timestamp, err := info.Validate(envContent.SignerInfo.Signature)
+	timestamp, err := info.Validate(signerInfo.Signature)
 	if err != nil {
 		return timestampOutput{
 			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
