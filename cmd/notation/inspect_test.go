@@ -100,7 +100,7 @@ func TestGetUnsignedAttributes(t *testing.T) {
 	if !ok {
 		t.Fatal("expected to have timestampSignature")
 	}
-	if val.Error == nil || val.Error.Error() != expectedErrMsg {
+	if val.Error != expectedErrMsg {
 		t.Fatalf("expected %s, but got %s", expectedErrMsg, val.Error)
 	}
 }

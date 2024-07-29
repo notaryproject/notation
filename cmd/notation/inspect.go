@@ -73,7 +73,7 @@ type certificateOutput struct {
 type timestampOutput struct {
 	Timestamp             string              `json:"timestamp,omitempty"`
 	TimestampCertificates []certificateOutput `json:"timestampCertificates,omitempty"`
-	Error                 error               `json:"error,omitempty"`
+	Error                 string              `json:"error,omitempty"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -253,21 +253,21 @@ func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeCo
 		signedToken, err := tspclient.ParseSignedToken(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
 		if err != nil {
 			unsignedAttributes["timestampSignature"] = timestampOutput{
-				Error: errors.New("failed to parse timestamp countersignature"),
+				Error: "failed to parse timestamp countersignature",
 			}
 			return unsignedAttributes
 		}
 		info, err := signedToken.Info()
 		if err != nil {
 			unsignedAttributes["timestampSignature"] = timestampOutput{
-				Error: errors.New("failed to parse timestamp countersignature"),
+				Error: "failed to parse timestamp countersignature",
 			}
 			return unsignedAttributes
 		}
 		timestamp, err := info.Validate(envContent.SignerInfo.Signature)
 		if err != nil {
 			unsignedAttributes["timestampSignature"] = timestampOutput{
-				Error: errors.New("failed to parse timestamp countersignature"),
+				Error: "failed to parse timestamp countersignature",
 			}
 			return unsignedAttributes
 		}
@@ -349,8 +349,8 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 				unsignedAttributesNode.AddPair(k, value)
 			case timestampOutput:
 				timestampNode := unsignedAttributesNode.Add("timestampSignature")
-				if value.Error != nil {
-					timestampNode.AddPair("error", value.Error.Error())
+				if value.Error != "" {
+					timestampNode.AddPair("error", value.Error)
 					break
 				}
 				timestampNode.AddPair("timestamp", value.Timestamp)
