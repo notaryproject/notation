@@ -250,39 +250,7 @@ func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeCo
 	}
 
 	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
-		signedToken, err := tspclient.ParseSignedToken(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
-		if err != nil {
-			unsignedAttributes["timestampSignature"] = timestampOutput{
-				Error: "failed to parse timestamp countersignature",
-			}
-			return unsignedAttributes
-		}
-		info, err := signedToken.Info()
-		if err != nil {
-			unsignedAttributes["timestampSignature"] = timestampOutput{
-				Error: "failed to parse timestamp countersignature",
-			}
-			return unsignedAttributes
-		}
-		timestamp, err := info.Validate(envContent.SignerInfo.Signature)
-		if err != nil {
-			unsignedAttributes["timestampSignature"] = timestampOutput{
-				Error: "failed to parse timestamp countersignature",
-			}
-			return unsignedAttributes
-		}
-		certificates := getCertificates(outputFormat, signedToken.Certificates)
-		var formatTimestamp string
-		switch outputFormat {
-		case cmd.OutputJSON:
-			formatTimestamp = timestamp.Format(time.RFC3339)
-		default:
-			formatTimestamp = timestamp.Format(time.ANSIC)
-		}
-		unsignedAttributes["timestampSignature"] = timestampOutput{
-			Timestamp:             formatTimestamp,
-			TimestampCertificates: certificates,
-		}
+		unsignedAttributes["timestampSignature"] = getTimestamp(outputFormat, envContent)
 	}
 
 	return unsignedAttributes
@@ -387,5 +355,38 @@ func addCertificatesToTree(node *tree.Node, name string, certs []certificateOutp
 		certNode.AddPair("issued to", cert.IssuedTo)
 		certNode.AddPair("issued by", cert.IssuedBy)
 		certNode.AddPair("expiry", cert.Expiry)
+	}
+}
+
+func getTimestamp(outputFormat string, envContent *signature.EnvelopeContent) timestampOutput {
+	signedToken, err := tspclient.ParseSignedToken(envContent.SignerInfo.UnsignedAttributes.TimestampSignature)
+	if err != nil {
+		return timestampOutput{
+			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
+		}
+	}
+	info, err := signedToken.Info()
+	if err != nil {
+		return timestampOutput{
+			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
+		}
+	}
+	timestamp, err := info.Validate(envContent.SignerInfo.Signature)
+	if err != nil {
+		return timestampOutput{
+			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
+		}
+	}
+	certificates := getCertificates(outputFormat, signedToken.Certificates)
+	var formatTimestamp string
+	switch outputFormat {
+	case cmd.OutputJSON:
+		formatTimestamp = timestamp.Format(time.RFC3339)
+	default:
+		formatTimestamp = timestamp.Format(time.ANSIC)
+	}
+	return timestampOutput{
+		Timestamp:             formatTimestamp,
+		TimestampCertificates: certificates,
 	}
 }
