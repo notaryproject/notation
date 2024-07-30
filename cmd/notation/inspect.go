@@ -71,9 +71,9 @@ type certificateOutput struct {
 }
 
 type timestampOutput struct {
-	Timestamp             string              `json:"timestamp,omitempty"`
-	TimestampCertificates []certificateOutput `json:"timestampCertificates,omitempty"`
-	Error                 string              `json:"error,omitempty"`
+	Timestamp    string              `json:"timestamp,omitempty"`
+	Certificates []certificateOutput `json:"certificates,omitempty"`
+	Error        string              `json:"error,omitempty"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -316,13 +316,13 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 			case string:
 				unsignedAttributesNode.AddPair(k, value)
 			case timestampOutput:
-				timestampNode := unsignedAttributesNode.Add("timestampSignature")
+				timestampNode := unsignedAttributesNode.Add("timestamp signature")
 				if value.Error != "" {
 					timestampNode.AddPair("error", value.Error)
 					break
 				}
 				timestampNode.AddPair("timestamp", value.Timestamp)
-				addCertificatesToTree(timestampNode, "timestampCertificates", value.TimestampCertificates)
+				addCertificatesToTree(timestampNode, "certificates", value.Certificates)
 			}
 		}
 
@@ -386,7 +386,7 @@ func parseTimestamp(outputFormat string, signerInfo signature.SignerInfo) timest
 		formatTimestamp = timestamp.Format(time.ANSIC)
 	}
 	return timestampOutput{
-		Timestamp:             formatTimestamp,
-		TimestampCertificates: certificates,
+		Timestamp:    formatTimestamp,
+		Certificates: certificates,
 	}
 }
