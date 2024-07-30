@@ -16,6 +16,7 @@ package main
 import (
 	"testing"
 
+	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/internal/cmd"
 )
 
@@ -82,5 +83,24 @@ func TestInspectCommand_MissingArgs(t *testing.T) {
 	}
 	if err := command.Args(command, command.Flags().Args()); err == nil {
 		t.Fatal("Parse Args expected error, but ok")
+	}
+}
+
+func TestGetUnsignedAttributes(t *testing.T) {
+	envContent := &signature.EnvelopeContent{
+		SignerInfo: signature.SignerInfo{
+			UnsignedAttributes: signature.UnsignedAttributes{
+				TimestampSignature: []byte("invalid"),
+			},
+		},
+	}
+	expectedErrMsg := "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
+	unsignedAttr := getUnsignedAttributes(cmd.OutputPlaintext, envContent)
+	val, ok := unsignedAttr["timestampSignature"].(timestampOutput)
+	if !ok {
+		t.Fatal("expected to have timestampSignature")
+	}
+	if val.Error != expectedErrMsg {
+		t.Fatalf("expected %s, but got %s", expectedErrMsg, val.Error)
 	}
 }
