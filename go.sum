@@ -1,5 +1,9 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240731063103-74357d901612 h1:M/QbcNnsTqwuQp0/EhDS+CU89SvbdH2jFfMzg6YIDhI=
+github.com/Two-Hearts/notation-core-go v0.0.0-20240731063103-74357d901612/go.mod h1:t57m88CEK1g1EkZ96vGLOPPDB6mSh/YZXD/aR2mSnRg=
+github.com/Two-Hearts/notation-go v0.0.0-20240731081640-5354b7c7bef5 h1:Lg+nN4Pzm14GBPWzoIRjcrS6fanXTkP+ruRQX0yHxE0=
+github.com/Two-Hearts/notation-go v0.0.0-20240731081640-5354b7c7bef5/go.mod h1:NAgPwigeAiE0CueVS3EB0WcH9RfpQX/jn6xpgid2+9A=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.4/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
@@ -35,10 +39,6 @@ github.com/jcmturner/gokrb5/v8 v8.4.4 h1:x1Sv4HaTpepFkXbt2IkL29DXRf8sOfZXo8eRKh6
 github.com/jcmturner/gokrb5/v8 v8.4.4/go.mod h1:1btQEpgT6k+unzCwX1KdWMEwPPkkgBtP+F6aCACiMrs=
 github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZY=
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
-github.com/notaryproject/notation-core-go v1.1.0-beta.1 h1:Rpg8qhoEo4nIdiAWz597lbEcvEmjKwJLUtvJqXa8M4c=
-github.com/notaryproject/notation-core-go v1.1.0-beta.1/go.mod h1:MdxSbL9F5h63EmtXWfYMWy7hEmGmOmsfN4B6KM2WyhY=
-github.com/notaryproject/notation-go v1.2.0-beta.1 h1:xSDkmdZ5j7kLrVs2ae8MyowdN7kEzwlV0EIhHjKfF90=
-github.com/notaryproject/notation-go v1.2.0-beta.1/go.mod h1:RypdKUKCUZ8QgJAqaaesgUkTRHQIB+puCPdH3/3dVGE=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
 github.com/notaryproject/tspclient-go v0.1.1-0.20240715235637-df25ef8d2172 h1:Q8UsmeFMzyFuMMq4dlbIRJUi7khEKXKUe2H2Hm3W92Y=

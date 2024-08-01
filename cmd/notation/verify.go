@@ -14,18 +14,26 @@
 package main
 
 import (
+	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
 	"reflect"
+	"time"
 
+	"github.com/notaryproject/notation-core-go/revocation"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
@@ -111,7 +119,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	sigVerifier, err := verifier.NewFromConfig()
+	sigVerifier, err := getVerifier(ctx)
 	if err != nil {
 		return err
 	}
@@ -218,4 +226,30 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 		fmt.Println("\nThe artifact was signed with the following user metadata.")
 		ioutil.PrintMetadataMap(os.Stdout, metadata)
 	}
+}
+
+func getVerifier(ctx context.Context) (notation.Verifier, error) {
+	policyDocument, err := trustpolicy.LoadOCIDocument()
+	if err != nil {
+		return nil, err
+	}
+	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
+		OCSPHTTPClient:   httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second}),
+		CertChainPurpose: x509.ExtKeyUsageCodeSigning,
+	})
+	if err != nil {
+		return nil, err
+	}
+	revocationTimestampingValidator, err := revocation.NewWithOptions(revocation.Options{
+		OCSPHTTPClient:   httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second}),
+		CertChainPurpose: x509.ExtKeyUsageTimeStamping,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
+		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
+		RevocationTimestampingValidator: revocationTimestampingValidator,
+	})
 }
