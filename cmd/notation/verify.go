@@ -15,7 +15,6 @@ package main
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -25,6 +24,7 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-core-go/revocation"
+	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
@@ -237,14 +237,14 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
-		CertChainPurpose: x509.ExtKeyUsageCodeSigning,
+		CertChainPurpose: purpose.CodeSigning,
 	})
 	if err != nil {
 		return nil, err
 	}
 	revocationTimestampingValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
-		CertChainPurpose: x509.ExtKeyUsageTimeStamping,
+		CertChainPurpose: purpose.Timestamping,
 	})
 	if err != nil {
 		return nil, err
