@@ -125,7 +125,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchErrKeyWords(`distinguished name (DN) " CN=e2e,L=Seattle,ST=WA,C=US" has no mandatory RDN attribute for "O", it must contain 'C', 'ST', and 'O' RDN attributes at a minimum`)
+				MatchErrKeyWords(`distinguished name (DN) " CN=e2e,L=Seattle,ST=WA,C=US" has no mandatory RDN attribute for "O", it must contain 'C', 'ST' or 'S', and 'O' RDN attributes at a minimum`)
 		})
 	})
 
@@ -135,7 +135,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchErrKeyWords(`distinguished name (DN) " CN=e2e,O=Notary,L=Seattle,C=US" has no mandatory RDN attribute for "ST", it must contain 'C', 'ST', and 'O' RDN attributes at a minimum`)
+				MatchErrKeyWords(`distinguished name (DN) " CN=e2e,O=Notary,L=Seattle,C=US" has no mandatory RDN attribute for "ST", it must contain 'C', 'ST' or 'S', and 'O' RDN attributes at a minimum`)
 		})
 	})
 
@@ -145,7 +145,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchErrKeyWords(`distinguished name (DN) " CN=e2e,O=Notary,L=Seattle,ST=WA" has no mandatory RDN attribute for "C", it must contain 'C', 'ST', and 'O' RDN attributes at a minimum`)
+				MatchErrKeyWords(`distinguished name (DN) " CN=e2e,O=Notary,L=Seattle,ST=WA" has no mandatory RDN attribute for "C", it must contain 'C', 'ST' or 'S', and 'O' RDN attributes at a minimum`)
 		})
 	})
 })
