@@ -3,9 +3,9 @@ module github.com/notaryproject/notation
 go 1.22
 
 require (
-	github.com/notaryproject/notation-core-go v1.1.0-beta.1
+	github.com/notaryproject/notation-core-go v1.1.0-beta.1.0.20240808015012-004b86dbf289
 	github.com/notaryproject/notation-go v1.2.0-beta.1
-	github.com/notaryproject/tspclient-go v0.1.1-0.20240715235637-df25ef8d2172
+	github.com/notaryproject/tspclient-go v0.2.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/sirupsen/logrus v1.9.3
@@ -33,6 +33,4 @@ require (
 	golang.org/x/sys v0.22.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240807050412-d598573c2252
-
-replace github.com/notaryproject/notation-core-go => github.com/Two-Hearts/notation-core-go v0.0.0-20240807034940-02ab652946b1
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240808023431-8b4ecbed15bb
