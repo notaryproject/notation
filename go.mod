@@ -3,7 +3,7 @@ module github.com/notaryproject/notation
 go 1.22
 
 require (
-	github.com/notaryproject/notation-core-go v1.1.0-beta.1.0.20240808015012-004b86dbf289
+	github.com/notaryproject/notation-core-go v1.1.0-rc.1
 	github.com/notaryproject/notation-go v1.2.0-beta.1
 	github.com/notaryproject/tspclient-go v0.2.0
 	github.com/opencontainers/go-digest v1.0.0
