@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/notaryproject/notation-core-go v1.1.0-rc.1
-	github.com/notaryproject/notation-go v1.2.0-beta.1
+	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20240814004621-3c5a659c1d1d
 	github.com/notaryproject/tspclient-go v0.2.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
@@ -32,5 +32,3 @@ require (
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 )
-
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240808023431-8b4ecbed15bb

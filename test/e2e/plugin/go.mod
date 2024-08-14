@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/notaryproject/notation-core-go v1.1.0-rc.1
-	github.com/notaryproject/notation-go v1.2.0-beta.1
+	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20240814004621-3c5a659c1d1d
 	github.com/notaryproject/notation-plugin-framework-go v1.0.0
 	github.com/spf13/cobra v1.7.0
 )
@@ -29,5 +29,3 @@ require (
 	golang.org/x/sync v0.6.0 // indirect
 	oras.land/oras-go/v2 v2.5.0 // indirect
 )
-
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240808023431-8b4ecbed15bb
