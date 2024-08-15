@@ -65,7 +65,7 @@ Notation uses [OCI image manifest][oci-image-spec] to store signatures in regist
 
 ```shell
 # Prerequisites:
-# - A signing plugin is installed. See plugin documentation (https://github.com/notaryproject/notaryproject/blob/v1.1.0/specs/plugin-extensibility.md) for more details.
+# - A signing plugin is installed. See plugin documentation (https://github.com/notaryproject/notaryproject/blob/v1.1.0-rc.1/specs/plugin-extensibility.md) for more details.
 # - Configure the signing plugin as instructed by plugin vendor.
 
 # Add a default signing key referencing the remote key identifier, and the plugin associated with it.

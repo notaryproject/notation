@@ -127,7 +127,7 @@ Example values on trust policy properties:
 | trustedIdentities     | "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder" | User only trusts the identity with specific subject. User can use `notation certificate show` command to get the `subject` info.                                   |
 | trustedIdentities     | "*"                                                                                        | User trusts any identity (signing certificate) issued by the CA(s) in trust stores.                                                                                |
 
-User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/v1.1.0/specs/trust-store-trust-policy.md#trust-policy) for details.
+User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/v1.1.0-rc.1/specs/trust-store-trust-policy.md#trust-policy) for details.
 
 ### Verify signatures on an OCI artifact stored in a registry
 
