@@ -14,8 +14,11 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation-go/dir"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -79,4 +82,15 @@ func TestVerifyCommand_MissingArgs(t *testing.T) {
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err == nil {
 		t.Fatal("Parse Args expected error, but ok")
 	}
+}
+
+func TestGetVerifier(t *testing.T) {
+	t.Run("non-existing trust policy", func(t *testing.T) {
+		dir.UserConfigDir = "/"
+		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
+		_, err := getVerifier(context.Background())
+		if err == nil || err.Error() != expectedErrMsg {
+			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
+		}
+	})
 }
