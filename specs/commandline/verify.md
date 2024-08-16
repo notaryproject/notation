@@ -83,28 +83,6 @@ An example of `trustpolicy.json`:
 }
 ```
 
-An example of `trustpolicy.json` with RFC 3161 timestamp verification support:
-
-```jsonc
-{
-    "version": "1.0",
-    "trustPolicies": [
-        {
-            "name": "wabbit-networks-images",
-            "registryScopes": [ "localhost:5000/net-monitor" ],
-            "signatureVerification": {
-                "level": "strict",
-                "verifyTimestamp": "afterCertExpiry"                                   // Only verify timestamp countersignatures if any code signing certificate has expired. DEFAULT: `always`
-            },
-            "trustStores": [ "ca:wabbit-networks", "tsa:wabbit-networks-timestamp" ],  // To enable timestamp verification, trust store type `tsa` MUST be configured.
-            "trustedIdentities": [
-                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
-            ]
-        }
-    ]
-}
-```
-
 For a Linux user, store file `trustpolicy.json` under directory `${HOME}/.config/notation/`.
 
 For a MacOS user, store file `trustpolicy.json` under directory `${HOME}/Library/Application Support/notation/`.
