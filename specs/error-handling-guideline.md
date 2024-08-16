@@ -32,7 +32,7 @@ Last, error logs can also be useful for post-mortem debugging and can also be wr
 - Provide specific and actionable prompt message with argument suggestion or show the example usage for reference. (e.g, Instead of showing flag or argument options is missing, please provide available argument options and guide users to `--help` to view more examples).
 - If the actionable prompt message is too long to show in the CLI output, consider guide users to Notation user manual or troubleshooting guide with the versioned permanent link.
 - If the error message is not enough for troubleshooting, guide users to use `--verbose` to print much more detailed logs.
-- If server returns an error without any [message or detail](https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc.3/spec.md#error-codes), consider providing customized error logs to make it clearer. The original server logs can be displayed in debug mode.
+- If server returns an error without any [message or detail](https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#error-codes), consider providing customized error logs to make it clearer. The original server logs can be displayed in debug mode.
 - As a security tool, `notation` SHOULD prompt users to stop upon verification errors. 
 
 ### Don'Ts

@@ -5,8 +5,7 @@ This spec contains reference information on using notation commands. Each comman
 ## Notation Commands
 
 | Command                                     | Description                                                            |
-| ------------------------------------------- | ---------------------------------------------------------------------- |
-| [blob](./commandline/blob.md)               | Sign, verify and inspect singatures associated with blobs              |
+| ------------------------------------------- | ---------------------------------------------------------------------- |          |
 | [certificate](./commandline/certificate.md) | Manage certificates in trust store                                     |
 | [inspect](./commandline/inspect.md)         | Inspect OCI signatures                                                 |
 | [key](./commandline/key.md)                 | Manage keys used for signing                                           |
@@ -28,7 +27,6 @@ Usage:
   notation [command]
 
 Available Commands:
-  blob        Sign, verify and inspect signatures associated with blobs
   certificate Manage certificates in trust store
   inspect     Inspect all signatures associated with a signed OCI artifact
   key         Manage keys used for signing
