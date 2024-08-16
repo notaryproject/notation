@@ -19,8 +19,6 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed <registry>/<repository>@<digest>
 ```
 
-NOTE: This command is for signing OCI artifacts only. Use `notation blob sign` command for signing arbitrary blobs.
-
 ## Outline
 
 ```text
@@ -67,7 +65,7 @@ Notation uses [OCI image manifest][oci-image-spec] to store signatures in regist
 
 ```shell
 # Prerequisites:
-# - A signing plugin is installed. See plugin documentation (https://github.com/notaryproject/notaryproject/blob/v1.0.0/specs/plugin-extensibility.md) for more details.
+# - A signing plugin is installed. See plugin documentation (https://github.com/notaryproject/notaryproject/blob/v1.1.0-rc.1/specs/plugin-extensibility.md) for more details.
 # - Configure the signing plugin as instructed by plugin vendor.
 
 # Add a default signing key referencing the remote key identifier, and the plugin associated with it.
@@ -205,7 +203,6 @@ export NOTATION_EXPERIMENTAL=1
 notation list --oci-layout hello-world@sha256:xxx
 ```
 
-[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
 [oci-image-spec]: https://github.com/opencontainers/image-spec/blob/v1.1.0/spec.md
 [oci-referers-api]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#listing-referrers
 [oci-image-layout]: https://github.com/opencontainers/image-spec/blob/v1.1.0/image-layout.md

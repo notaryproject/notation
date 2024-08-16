@@ -229,7 +229,7 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 }
 
 func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	policyDocument, err := trustpolicy.LoadOCIDocument()
+	policyDocument, err := trustpolicy.LoadDocument()
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
+	return verifier.NewWithOptions(policyDocument, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
 		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
 		RevocationTimestampingValidator: revocationTimestampingValidator,
 	})
