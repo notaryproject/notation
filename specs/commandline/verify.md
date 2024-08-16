@@ -58,7 +58,7 @@ Use `notation certificate` command to configure trust stores.
 
 ### Configure Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` or `trustpolicy.oci.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
+Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
 
 An example of `trustpolicy.json`:
 
