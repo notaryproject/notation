@@ -2,9 +2,9 @@
 
 ## Description
 
-As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [OCI trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#oci-trust-policy).
+As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [trust policy specification and examples](https://github.com/notaryproject/specifications/blob/v1.0.0/specs/trust-store-trust-policy.md#trust-policy).
 
-The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. Users who want to manage trust policies for signed arbitrary blobs, please refer to `notation blob policy` command.
+The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file.
 
 To get started, user can refer to the following trust policy configuration sample `trustpolicy.json` that is applicable for verifying signed OCI artifacts using `notation verify` command. In this sample, there are four policies configured for different requirements:
 
@@ -74,7 +74,7 @@ To get started, user can refer to the following trust policy configuration sampl
 ### notation policy command
 
 ```text
-Manage trust policy configuration for OCI artifact signature verification.
+Manage trust policy configuration for signature verification.
 
 Usage:
   notation policy [command]
@@ -90,7 +90,7 @@ Flags:
 ### notation policy import
 
 ```text
-Import OCI trust policy configuration from a JSON file
+Import trust policy configuration from a JSON file
 
 Usage:
   notation policy import [flags] <file_path>
@@ -103,7 +103,7 @@ Flags:
 ### notation policy show
 
 ```text
-Show OCI trust policy configuration
+Show trust policy configuration
 
 Usage:
   notation policy show [flags]
@@ -122,7 +122,7 @@ An example of import trust policy configuration from a JSON file:
 notation policy import ./my_policy.json
 ```
 
-The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
+The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/specifications/blob/v1.0.0/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
 If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
 
@@ -136,27 +136,27 @@ notation policy show
 
 Upon successful execution, the trust policy configuration is printed out to standard output. If trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import trust policy configuration from a JSON file.
 
-### Export OCI trust policy configuration into a JSON file
+### Export trust policy configuration into a JSON file
 
 Users can redirect the output of command `notation policy show` to a JSON file.
 
 ```shell
-notation policy show > ./oci_trust_policy.json
+notation policy show > ./trustpolicy.json
 ```
 
 ### Update trust policy configuration
 
-The steps to update OCI trust policy configuration:
+The steps to update trust policy configuration:
 
 1. Export trust policy configuration into a JSON file.
 
    ```shell
-   notation policy show > ./oci_trust_policy.json
+   notation policy show > ./trustpolicy.json
    ```
 
-2. Edit the exported JSON file "oci_trust_policy.json", update trust policy configuration and save the file.
+2. Edit the exported JSON file "trustpolicy.json", update trust policy configuration and save the file.
 3. Import trust policy configuration from the file.
 
    ```shell
-   notation policy import ./oci_trust_policy.json
+   notation policy import ./trustpolicy.json
    ```

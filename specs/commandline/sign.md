@@ -19,8 +19,6 @@ Warning: Always sign the artifact using digest(`@sha256:...`) rather than a tag(
 Successfully signed <registry>/<repository>@<digest>
 ```
 
-NOTE: This command is for signing OCI artifacts only. Use `notation blob sign` command for signing arbitrary blobs.
-
 ## Outline
 
 ```text
