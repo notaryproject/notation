@@ -25,9 +25,6 @@ The artifact was signed with the following user metadata.
 KEY    VALUE
 <key>  <value>
 ```
-> [!NOTE]
-> This command is for verifying OCI artifacts only. Use `notation blob verify` command for verifying arbitrary blobs.
-
 
 ## Outline
 
@@ -62,7 +59,7 @@ Use `notation certificate` command to configure trust stores.
 
 ### Configure Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` or `trustpolicy.oci.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
+Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
 
 An example of `trustpolicy.json`:
 
@@ -78,7 +75,7 @@ An example of `trustpolicy.json`:
                 "level": "strict"
             },
             "trustStores": [ "ca:wabbit-networks" ],                  // The trust stores that contains the X.509 trusted roots.
-            "trustedIdentities": [                                    // Identities that are trusted to sign the artifact.
+            "trustedIdentities": [                                    // Identities that are trusted to sign the artifact. It only includes identities of `ca` and `signingAuthority`.
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder"
             ]
         }

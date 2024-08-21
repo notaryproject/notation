@@ -24,13 +24,10 @@ Upon successful execution, both the digest of the signed artifact and the digest
         └── <signed artifact>
 ```
 
-> [!NOTE]
-> This command is for inspecting signatures associated with OCI artifacts only. Use `notation blob inspect` command for inspecting signatures associated with arbitrary blobs.
-
 ## Outline
 
 ```text
-Inspect all signatures associated with a signed OCI artifact.
+Inspect all signatures associated with the signed artifact.
 
 Usage:
     notation inspect [flags] <reference>
