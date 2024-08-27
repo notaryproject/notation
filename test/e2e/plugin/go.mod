@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation/test/e2e/plugin
 
-go 1.21
+go 1.23
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
