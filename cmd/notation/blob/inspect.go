@@ -79,7 +79,7 @@ func runBlobInspect(opts *blobInspectOpts) error {
 		return err
 	}
 	output := outputs.InspectOutput{MediaType: mediaType, Signatures: []outputs.SignatureOutput{}}
-	err, output.Signatures = outputs.Signatures(mediaType, "", output, signatureEnv)
+	err, output.Signatures = outputs.Signatures(mediaType, "", output, [][]byte{signatureEnv})
 	if err != nil {
 		return nil
 	}

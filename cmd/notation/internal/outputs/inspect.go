@@ -127,52 +127,55 @@ func formatTimestamp(outputFormat string, t time.Time) string {
 	}
 }
 
-func Signatures(mediaType string, digest string, output InspectOutput, sigFile []byte) (error, []SignatureOutput) {
-	sigEnvelope, err := signature.ParseEnvelope(mediaType, sigFile)
+func Signatures(mediaType string, digest string, output InspectOutput, sigFiles [][]byte) (error, []SignatureOutput) {
 	skippedSignatures := false
-	if err != nil {
-		logSkippedSignature(digest, err)
-		skippedSignatures = true
-		return nil, nil
+
+	for _, sigFile := range sigFiles {
+		sigEnvelope, err := signature.ParseEnvelope(mediaType, sigFile)
+		if err != nil {
+			logSkippedSignature(digest, err)
+			skippedSignatures = true
+			continue
+		}
+
+		envelopeContent, err := sigEnvelope.Content()
+		if err != nil {
+			logSkippedSignature(digest, err)
+			skippedSignatures = true
+			continue
+		}
+
+		signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
+		if err != nil {
+			logSkippedSignature(digest, err)
+			skippedSignatures = true
+			continue
+		}
+
+		signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
+		if err != nil {
+			logSkippedSignature(digest, err)
+			skippedSignatures = true
+			continue
+		}
+
+		sig := SignatureOutput{
+			MediaType:             mediaType,
+			Digest:                digest,
+			SignatureAlgorithm:    string(signatureAlgorithm),
+			SignedAttributes:      getSignedAttributes(InspectOutput{}.outputFormat, envelopeContent),
+			UserDefinedAttributes: signedArtifactDesc.Annotations,
+			UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
+			Certificates:          getCertificates(InspectOutput{}.outputFormat, envelopeContent),
+			SignedArtifact:        *signedArtifactDesc,
+		}
+
+		// clearing annotations from the SignedArtifact field since they're already
+		// displayed as UserDefinedAttributes
+		sig.SignedArtifact.Annotations = nil
+
+		output.Signatures = append(output.Signatures, sig)
 	}
-
-	envelopeContent, err := sigEnvelope.Content()
-	if err != nil {
-		logSkippedSignature(digest, err)
-		skippedSignatures = true
-		return nil, nil
-	}
-
-	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
-	if err != nil {
-		logSkippedSignature(digest, err)
-		skippedSignatures = true
-		return nil, nil
-	}
-
-	signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
-	if err != nil {
-		logSkippedSignature(digest, err)
-		skippedSignatures = true
-		return nil, nil
-	}
-
-	sig := SignatureOutput{
-		MediaType:             mediaType,
-		Digest:                digest,
-		SignatureAlgorithm:    string(signatureAlgorithm),
-		SignedAttributes:      getSignedAttributes(InspectOutput{}.outputFormat, envelopeContent),
-		UserDefinedAttributes: signedArtifactDesc.Annotations,
-		UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
-		Certificates:          getCertificates(InspectOutput{}.outputFormat, envelopeContent),
-		SignedArtifact:        *signedArtifactDesc,
-	}
-
-	// clearing annotations from the SignedArtifact field since they're already
-	// displayed as UserDefinedAttributes
-	sig.SignedArtifact.Annotations = nil
-
-	output.Signatures = append(output.Signatures, sig)
 
 	if skippedSignatures {
 		return errors.New("at least one signature was skipped and not displayed"), nil
@@ -180,6 +183,7 @@ func Signatures(mediaType string, digest string, output InspectOutput, sigFile [
 	return nil, output.Signatures
 }
 
+// PrintOutput prints the inspection output for the given artifact reference.
 func PrintOutput(outputFormat string, ref string, output InspectOutput) error {
 	if outputFormat == cmd.OutputJSON {
 		return ioutil.PrintObjectAsJSON(output)

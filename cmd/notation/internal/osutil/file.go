@@ -20,25 +20,28 @@ import (
 	"os"
 )
 
+// ReadFile reads up to the specified size from the file at the given path.
 func ReadFile(path string, size int64) ([]byte, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 
 	reader := bufio.NewReader(file)
 	limitedReader := &io.LimitedReader{R: reader, N: size}
-	defer file.Close()
-	contents, _ := io.ReadAll(limitedReader)
+	contents, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(contents) == 0 {
 		return nil, fmt.Errorf("file is empty")
 	}
-	if limitedReader.N == 0 {
+
+	if limitedReader.N <= 0 {
 		return nil, fmt.Errorf("unable to read as file size is greater than %v bytes", size)
 	}
 
-	return contents, file.Close()
+	return contents, nil
 }

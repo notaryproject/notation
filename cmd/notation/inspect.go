@@ -113,7 +113,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		}
 		digest := sigManifestDesc.Digest.String()
 		mediaType := sigDesc.MediaType
-		err, output.Signatures = outputs.Signatures(mediaType, digest, output, sigBlob)
+		err, output.Signatures = outputs.Signatures(mediaType, digest, output, [][]byte{sigBlob})
 		if err != nil {
 			return nil
 		}
