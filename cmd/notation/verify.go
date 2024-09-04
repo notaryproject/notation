@@ -14,18 +14,26 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/http"
 	"os"
 	"reflect"
+	"time"
 
+	"github.com/notaryproject/notation-core-go/revocation"
+	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
@@ -60,9 +68,6 @@ Example - Verify a signature on an OCI artifact identified by a tag  (Notation w
   notation verify <registry>/<repository>:<tag>
 `
 	experimentalExamples := `
-Example - [Experimental] Verify an OCI artifact using the Referrers API, if not supported (returns 404), fallback to the Referrers tag schema
-  notation verify --allow-referrers-api <registry>/<repository>@<digest>
-
 Example - [Experimental] Verify a signature on an OCI artifact referenced in an OCI layout using trust policy statement specified by scope.
   notation verify --oci-layout <registry>/<repository>@<digest> --scope <trust_policy_scope>
 
@@ -90,6 +95,9 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			if opts.maxSignatureAttempts <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatureAttempts)
 			}
+			if cmd.Flags().Changed("allow-referrers-api") {
+				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
+			}
 			return runVerify(cmd, opts)
 		},
 	}
@@ -97,12 +105,12 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
+	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
-	experimental.HideFlags(command, experimentalExamples, []string{"allow-referrers-api", "oci-layout", "scope"})
+	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout", "scope"})
 	return command
 }
 
@@ -111,7 +119,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	sigVerifier, err := verifier.NewFromConfig()
+	sigVerifier, err := getVerifier(ctx)
 	if err != nil {
 		return err
 	}
@@ -130,7 +138,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// core verify process
 	reference := opts.reference
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, opts.allowReferrersAPI)
+	// always use the Referrers API, if not supported, automatically fallback to
+	// the referrers tag schema
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, false)
 	if err != nil {
 		return err
 	}
@@ -216,4 +226,31 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 		fmt.Println("\nThe artifact was signed with the following user metadata.")
 		ioutil.PrintMetadataMap(os.Stdout, metadata)
 	}
+}
+
+func getVerifier(ctx context.Context) (notation.Verifier, error) {
+	policyDocument, err := trustpolicy.LoadOCIDocument()
+	if err != nil {
+		return nil, err
+	}
+	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
+	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
+		OCSPHTTPClient:   ocspHttpClient,
+		CertChainPurpose: purpose.CodeSigning,
+	})
+	if err != nil {
+		return nil, err
+	}
+	revocationTimestampingValidator, err := revocation.NewWithOptions(revocation.Options{
+		OCSPHTTPClient:   ocspHttpClient,
+		CertChainPurpose: purpose.Timestamping,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
+		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
+		RevocationTimestampingValidator: revocationTimestampingValidator,
+	})
 }

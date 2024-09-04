@@ -36,7 +36,6 @@ Usage:
     notation inspect [flags] <reference>
 
 Flags:
-      --allow-referrers-api   [Experimental] use the Referrers API to inspect signatures, if not supported (returns 404), fallback to the Referrers tag schema
   -d, --debug                 debug mode
   -h, --help                  help for inspect
       --insecure-registry     use HTTP protocol while connecting to registries. Should be used only for testing
@@ -79,7 +78,13 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
     │   ├── user defined attributes
     │   │   └── io.wabbit-networks.buildId: 123                             //user defined metadata
     │   ├── unsigned attributes
-    │   │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)> //TSA response
+    │   │   ├── timestamp signature                                         //TSA response
+    |   │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+    |   │   │   └── certificates
+    |   │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+    |   │   │           ├── issued to: wabbit-com Software Timestamp
+    |   │   │           ├── issued by: wabbit-com Software Trusted Timestamping
+    |   │   │           └── expiry: Fri Oct 13 23:59:59 2034
     │   │   └── io.cncf.notary.signingAgent: notation/1.0.0                 //client version
     │   ├── certificates
     │   │   ├── SHA256 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
@@ -107,7 +112,13 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
         │   ├── expiry: Sat Jun 29 22:04:01 2024
         │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
         ├── unsigned attributes
-        │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
+        │   ├── timestamp signature
+        │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+        │   │   └── certificates
+        │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+        │   │           ├── issued to: wabbit-com Software Timestamp
+        │   │           ├── issued by: wabbit-com Software Trusted Timestamping
+        │   │           └── expiry: Fri Oct 13 23:59:59 2034
         │   └── io.cncf.notary.signingAgent: notation/1.0.0
         ├── certificates
         │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
@@ -158,7 +169,13 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
     │   ├── user defined attributes
     │   │   └── io.wabbit-networks.buildId: 123
     │   ├── unsigned attributes
-    │   │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
+    │   │   ├── timestamp signature
+    |   │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+    |   │   │   └── certificates
+    |   │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+    |   │   │           ├── issued to: wabbit-com Software Timestamp
+    |   │   │           ├── issued by: wabbit-com Software Trusted Timestamping
+    |   │   │           └── expiry: Fri Oct 13 23:59:59 2034
     │   │   └── io.cncf.notary.signingAgent: notation/1.0.0
     │   ├── certificates
     │   │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
@@ -186,7 +203,13 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
         │   ├── expiry: Sat Jun 29 22:04:01 2024
         │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
         ├── unsigned attributes
-        │   ├── io.cncf.notary.timestampSignature: <Base64(TimeStampToken)>
+        │   ├── timestamp signature
+        │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+        │   │   └── certificates
+        │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+        │   │           ├── issued to: wabbit-com Software Timestamp
+        │   │           ├── issued by: wabbit-com Software Trusted Timestamping
+        │   │           └── expiry: Fri Oct 13 23:59:59 2034
         │   └── io.cncf.notary.signingAgent: notation/1.0.0
         ├── certificates
         │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
@@ -231,8 +254,18 @@ An example output:
         "io.wabbit-networks.buildId": "123"
       },
       "unsignedAttributes": {
-        "io.cncf.notary.timestampSignature": "<Base64(TimeStampToken)>",
-        "io.cncf.notary.signingAgent": "notation/1.0.0"
+         "timestampSignature": {
+            "timestamp": "[2022-02-06T20:50:37Z, 2022-02-06T20:50:37Z]",
+            "certificates": [
+                {
+                    "SHA256Fingerprint": "d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828",
+                    "issuedTo": "wabbit-com Software Timestamp",
+                    "issuedBy": "wabbit-com Software Trusted Timestamping",
+                    "expiry": "2034-10-13T23:59:59Z"
+                }
+            ]
+         },
+        "signingAgent": "notation/1.0.0"
       },
       "certificates": [
         {
@@ -270,9 +303,19 @@ An example output:
         "expiry": "2023-02-06T20:50:17Z",
         "io.cncf.notary.verificationPlugin": "com.example.nv2plugin"
       },
-      "unsignedAttributes": {
-        "io.cncf.notary.timestampSignature": "<Base64(TimeStampToken)>",
-        "io.cncf.notary.signingAgent": "notation/1.0.0"
+     "unsignedAttributes": {
+         "timestampSignature": {
+            "timestamp": "[2022-02-06T20:50:37Z, 2022-02-06T20:50:37Z]",
+            "certificates": [
+                {
+                    "SHA256Fingerprint": "d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828",
+                    "issuedTo": "wabbit-com Software Timestamp",
+                    "issuedBy": "wabbit-com Software Trusted Timestamping",
+                    "expiry": "2034-10-13T23:59:59Z"
+                }
+            ]
+         },
+        "signingAgent": "notation/1.0.0"
       },
       "certificates": [
         {

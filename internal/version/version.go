@@ -15,7 +15,7 @@ package version
 
 var (
 	// Version shows the current notation version, optionally with pre-release.
-	Version = "v1.1.0"
+	Version = "v1.2.0-beta.1"
 
 	// BuildMetadata stores the build metadata.
 	//

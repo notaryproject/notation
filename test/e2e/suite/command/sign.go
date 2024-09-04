@@ -15,6 +15,7 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -75,6 +76,84 @@ var _ = Describe("notation sign", func() {
 			OldNotation().WithDescription("verify COSE signature").
 				Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with force-referrers-tag set", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with referrers tag schema").
+				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag").
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().WithDescription("verify by tag schema").
+				Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with force-referrers-tag set to false", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag=false").
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation(BaseOptionsWithExperimental()...).WithDescription("verify by referrers api").
+				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with allow-referrers-api set", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions, use '--force-referrers-tag=false' instead.",
+				).
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation(BaseOptionsWithExperimental()...).WithDescription("verify by referrers api").
+				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with allow-referrers-api set to false", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with referrers tag schema").
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api=false").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
+				).
+				MatchKeyWords(SignSuccessfully)
+
+			OldNotation().WithDescription("verify by tag schema").
+				Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with both force-referrers-tag and allow-referrers-api set", func() {
+		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				ExpectFailure().
+				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag", "--allow-referrers-api").
+				MatchErrKeyWords(
+					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
+					"[allow-referrers-api force-referrers-tag] were all set",
+				)
+		})
+	})
+
+	It("with allow-referrers-api set and experimental off", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.WithDescription("store signature with Referrers API").
+				ExpectFailure().
+				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
+				MatchErrKeyWords(
+					"Error: flag(s) --allow-referrers-api in \"notation sign\" is experimental and not enabled by default.")
 		})
 	})
 
@@ -177,6 +256,86 @@ var _ = Describe("notation sign", func() {
 
 			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	It("with timestamping", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("sign", "--timestamp-url", "http://rfc3161timestamp.globalsign.com/advanced", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchKeyWords(SignSuccessfully)
+		})
+	})
+
+	It("with timestamp-root-cert but no timestamp-url", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: if any flags in the group [timestamp-url timestamp-root-cert] are set they must all be set; missing [timestamp-url]")
+		})
+	})
+
+	It("with timestamp-url but no timestamp-root-cert", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://rfc3161timestamp.globalsign.com/advanced", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: if any flags in the group [timestamp-url timestamp-root-cert] are set they must all be set; missing [timestamp-root-cert]")
+		})
+	})
+
+	It("with timestamping and empty tsa server", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: timestamping: tsa url cannot be empty")
+		})
+	})
+
+	It("with timestamping and empty tsa root cert", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "dummy", "--timestamp-root-cert", "", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: timestamping: tsa root certificate path cannot be empty")
+		})
+	})
+
+	It("with timestamping and invalid tsa server", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://invalid.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: timestamp: Post \"http://invalid.com\"").
+				MatchErrKeyWords("server misbehaving")
+		})
+	})
+
+	It("with timestamping and invalid tsa root certificate", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "invalid.crt"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Error: x509: malformed certificate")
+		})
+	})
+
+	It("with timestamping and empty tsa root certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "Empty.txt"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("cannot find any certificate from").
+				MatchErrKeyWords("Expecting single x509 root certificate in PEM or DER format from the file")
+		})
+	})
+
+	It("with timestamping and more than one certificates in tsa root certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "CertChain.pem"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("found more than one certificates").
+				MatchErrKeyWords("Expecting single x509 root certificate in PEM or DER format from the file")
+		})
+	})
+
+	It("with timestamping and intermediate certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "intermediate.pem"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("failed to check root certificate with error: crypto/rsa: verification error")
+		})
+	})
+
+	It("with timestamping and not self-issued certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "notSelfIssued.crt"), artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("is not a root certificate. Expecting single x509 root certificate in PEM or DER format from the file")
 		})
 	})
 })
