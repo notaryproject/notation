@@ -31,7 +31,7 @@ var inspectSuccessfully = []string{
 	"├── user defined attributes",
 	"│   └── (empty)",
 	"├── unsigned attributes",
-	"│   └── signingAgent: Notation/",
+	"│   └── signingAgent: notation-go/",
 	"├── certificates",
 	"│   └── SHA256 fingerprint:",
 	"issued to:",
