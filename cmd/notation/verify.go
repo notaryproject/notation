@@ -29,6 +29,7 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/verifier"
+	"github.com/notaryproject/notation-go/verifier/crl"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
@@ -36,6 +37,8 @@ import (
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
+
+	corecrl "github.com/notaryproject/notation-core-go/revocation/crl"
 )
 
 type verifyOpts struct {
@@ -235,8 +238,24 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	}
 	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
 	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
+
+	// crl revocation check
+	crlFetcher, err := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
+	if err != nil {
+		return nil, err
+	}
+	cacheRoot, err := dir.CacheFS().SysPath()
+	if err != nil {
+		return nil, err
+	}
+	crlFetcher.Cache, err = crl.NewFileCache(cacheRoot)
+	if err != nil {
+		return nil, err
+	}
+
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
+		CRLFetcher:       crlFetcher,
 		CertChainPurpose: purpose.CodeSigning,
 	})
 	if err != nil {
@@ -244,6 +263,7 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	}
 	revocationTimestampingValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
+		CRLFetcher:       crlFetcher,
 		CertChainPurpose: purpose.Timestamping,
 	})
 	if err != nil {
