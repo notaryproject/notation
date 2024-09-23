@@ -238,7 +238,7 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	cacheRoot, err := dir.CacheFS().SysPath()
+	cacheRoot, err := dir.CacheFS().SysPath(dir.PathCRLCache)
 	if err != nil {
 		return nil, err
 	}
