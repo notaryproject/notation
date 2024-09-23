@@ -213,12 +213,12 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("user defined NOTATION_CACHE path", func() {
+	It("NOTATION_CACHE", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			vhost.UpdateEnv(map[string]string{"NOTATION_CACHE": "/myFileCache"})
+			vhost.UpdateEnv(map[string]string{"NOTATION_CACHE": vhost.AbsolutePath(NotationDirName)})
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
