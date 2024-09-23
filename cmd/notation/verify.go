@@ -232,14 +232,8 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 }
 
 func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	policyDocument, err := trustpolicy.LoadOCIDocument()
-	if err != nil {
-		return nil, err
-	}
-	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+	// revocation check
 	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
-
-	// crl revocation check
 	crlFetcher, err := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
 	if err != nil {
 		return nil, err
@@ -252,7 +246,6 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
 		CRLFetcher:       crlFetcher,
@@ -269,6 +262,14 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// trust policy and trust store
+	policyDocument, err := trustpolicy.LoadOCIDocument()
+	if err != nil {
+		return nil, err
+	}
+	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+
 	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
 		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
 		RevocationTimestampingValidator: revocationTimestampingValidator,

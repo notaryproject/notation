@@ -93,7 +93,6 @@ func TestGetVerifier(t *testing.T) {
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
-		dir.UserConfigDir = ""
 	})
 
 	t.Run("failed to new crl file cache", func(t *testing.T) {
