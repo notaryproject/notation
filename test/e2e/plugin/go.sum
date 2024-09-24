@@ -1,7 +1,7 @@
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 h1:mFRzDkZVAjdal+s7s0MwaRv9igoPqLRdzOLzw/8Xvq8=
 github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358/go.mod h1:chxPXzSsl7ZWRAuOIE23GDNzjWuZquvFlgA8xmpunjU=
-github.com/Two-Hearts/notation-go v0.0.0-20240923120617-5201cce5bc24 h1:5HtwREMo8S5tESpaA2ncl1LiCppGIz0VcTkcWUqaxcw=
-github.com/Two-Hearts/notation-go v0.0.0-20240923120617-5201cce5bc24/go.mod h1:F6zMQl3PhVdCsI1xlIjK66kCorUQhWkoMtlZdvJWxFI=
+github.com/Two-Hearts/notation-go v0.0.0-20240924001737-6bc17bfbffe5 h1:WRy2Ix7yV42WoulhLyhtjiKi+T0LB2aUwag4SpsTm7k=
+github.com/Two-Hearts/notation-go v0.0.0-20240924001737-6bc17bfbffe5/go.mod h1:F6zMQl3PhVdCsI1xlIjK66kCorUQhWkoMtlZdvJWxFI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa h1:LHTHcTQiSGT7VVbI0o4wBRNQIgn917usHWOd6VAffYI=
 github.com/alexbrainman/sspi v0.0.0-20231016080023-1a75b4708caa/go.mod h1:cEWa1LVoE5KvSD9ONXsZrj0z6KqySlCCNKHlLzbqAt4=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=

@@ -11,7 +11,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
-	golang.org/x/net v0.28.0
+	golang.org/x/net v0.29.0
 	golang.org/x/term v0.24.0
 	oras.land/oras-go/v2 v2.5.0
 )
@@ -33,4 +33,4 @@ require (
 	golang.org/x/sys v0.25.0 // indirect
 )
 
-replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240923120617-5201cce5bc24
+replace github.com/notaryproject/notation-go => github.com/Two-Hearts/notation-go v0.0.0-20240924001737-6bc17bfbffe5
