@@ -2,7 +2,7 @@
 
 ## Description
 
-As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [trust policy specification and examples](https://github.com/notaryproject/specifications/blob/v1.1.0-rc.1/specs/trust-store-trust-policy.md#trust-policy).
+As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [trust policy specification and examples](https://github.com/notaryproject/specifications/blob/v1.1.0/specs/trust-store-trust-policy.md#trust-policy).
 
 The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file.
 
@@ -122,7 +122,7 @@ An example of import trust policy configuration from a JSON file:
 notation policy import ./my_policy.json
 ```
 
-The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/specifications/blob/v1.1.0-rc.1/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
+The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/specifications/blob/v1.1.0/specs/trust-store-trust-policy.md#trust-policy-properties). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
 If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
 

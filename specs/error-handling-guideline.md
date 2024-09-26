@@ -64,5 +64,5 @@ Here is a sample structure of an error message:
 Parts of the content are borrowed from these guidelines:
 
 - [Command Line Interface Guidelines](https://clig.dev/#errors)
-- [ORAS CLI Error Handling Guideline](https://github.com/oras-project/oras/blob/v1.2.0-rc.1/docs/proposals/error-handling-guideline.md)
+- [ORAS CLI Error Handling Guideline](https://github.com/oras-project/oras/blob/v1.2.0/docs/proposals/error-handling-guideline.md)
 - [12 Factor CLI Apps](https://medium.com/@jdxcode/12-factor-cli-apps-dd3c227a0e46)
