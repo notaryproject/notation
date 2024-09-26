@@ -39,6 +39,11 @@ func main() {
 				dir.UserConfigDir = notationConfig
 			}
 
+			// update Notation cache directory
+			if notationCache := os.Getenv("NOTATION_CACHE"); notationCache != "" {
+				dir.UserCacheDir = notationCache
+			}
+
 			// update Notation Libexec directory (for plugins)
 			if notationLibexec := os.Getenv("NOTATION_LIBEXEC"); notationLibexec != "" {
 				dir.UserLibexecDir = notationLibexec
