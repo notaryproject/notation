@@ -16,6 +16,7 @@ package main
 import (
 	"context"
 	"reflect"
+	"runtime"
 	"testing"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -88,6 +89,18 @@ func TestGetVerifier(t *testing.T) {
 	t.Run("non-existing trust policy", func(t *testing.T) {
 		dir.UserConfigDir = "/"
 		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
+		_, err := getVerifier(context.Background())
+		if err == nil || err.Error() != expectedErrMsg {
+			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
+		}
+	})
+
+	t.Run("failed to new crl file cache", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+		dir.UserCacheDir = "/cache"
+		expectedErrMsg := "failed to create crl file cache: mkdir /cache: permission denied"
 		_, err := getVerifier(context.Background())
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
