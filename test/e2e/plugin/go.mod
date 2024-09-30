@@ -7,7 +7,7 @@ require (
 	github.com/notaryproject/notation-core-go v1.2.0-rc.1
 	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20240926015724-84c2ec076201
 	github.com/notaryproject/notation-plugin-framework-go v1.0.0
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.8.1
 )
 
 require (
