@@ -37,8 +37,8 @@ github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZ
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
 github.com/notaryproject/notation-core-go v1.2.0-rc.1 h1:VMFlG+9a1JoNAQ3M96g8iqCq0cDRtE7XBaiTD8Ouvqw=
 github.com/notaryproject/notation-core-go v1.2.0-rc.1/go.mod h1:b/70rA4OgOHlg0A7pb8zTWKJadFO6781zS3a37KHEJQ=
-github.com/notaryproject/notation-go v1.2.0-beta.1.0.20240927002524-3c4948808154 h1:7RMn/jj/DtHlp0H99PMPK1zxyaoEyddhdJviIJtAAog=
-github.com/notaryproject/notation-go v1.2.0-beta.1.0.20240927002524-3c4948808154/go.mod h1:W4o45yolX4Q+3PKlcpGleLLXEKWHa3BshEqw/JX5c6I=
+github.com/notaryproject/notation-go v1.3.0-rc.1 h1:pm9tdUy2tWYqlwyRDZyKXgLwAscDATPUYv0ul2RK/Iw=
+github.com/notaryproject/notation-go v1.3.0-rc.1/go.mod h1:W4o45yolX4Q+3PKlcpGleLLXEKWHa3BshEqw/JX5c6I=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
 github.com/notaryproject/tspclient-go v0.2.0 h1:g/KpQGmyk/h7j60irIRG1mfWnibNOzJ8WhLqAzuiQAQ=
