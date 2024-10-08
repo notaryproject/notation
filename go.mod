@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation
 
-go 1.22
+go 1.23
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.3
