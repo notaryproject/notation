@@ -264,13 +264,13 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	}
 
 	// trust policy and trust store
-	policyDocument, err := trustpolicy.LoadOCIDocument()
+	policyDocument, err := trustpolicy.LoadDocument()
 	if err != nil {
 		return nil, err
 	}
 	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
 
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
+	return verifier.NewWithOptions(policyDocument, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
 		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
 		RevocationTimestampingValidator: revocationTimestampingValidator,
 	})

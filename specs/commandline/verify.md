@@ -25,9 +25,6 @@ The artifact was signed with the following user metadata.
 KEY    VALUE
 <key>  <value>
 ```
-> [!NOTE]
-> This command is for verifying OCI artifacts only. Use `notation blob verify` command for verifying arbitrary blobs.
-
 
 ## Outline
 
@@ -61,7 +58,7 @@ Use `notation certificate` command to configure trust stores.
 
 ### Configure Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` or `trustpolicy.oci.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
+Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
 
 An example of `trustpolicy.json`:
 
@@ -130,7 +127,7 @@ Example values on trust policy properties:
 | trustedIdentities     | "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Finance, CN=SecureBuilder" | User only trusts the identity with specific subject. User can use `notation certificate show` command to get the `subject` info.                                   |
 | trustedIdentities     | "*"                                                                                        | User trusts any identity (signing certificate) issued by the CA(s) in trust stores.                                                                                |
 
-User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/v1.0.0/specs/trust-store-trust-policy.md#trust-policy) for details.
+User can configure multiple trust policies for different scenarios. See [Trust Policy Schema and properties](https://github.com/notaryproject/notaryproject/blob/v1.1.0/specs/trust-store-trust-policy.md#trust-policy) for details.
 
 ### Verify signatures on an OCI artifact stored in a registry
 
