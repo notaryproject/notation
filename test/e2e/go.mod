@@ -1,8 +1,6 @@
 module github.com/notaryproject/notation/test/e2e
 
-go 1.22
-
-toolchain go1.23.0
+go 1.23
 
 require (
 	github.com/notaryproject/notation-core-go v1.0.3
