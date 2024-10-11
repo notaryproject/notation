@@ -89,7 +89,7 @@ func logHeader(header http.Header) string {
 		}
 		return logs.String()
 	} else {
-		return "   Empty header"
+		return "   Empty header\n"
 	}
 }
 
