@@ -87,3 +87,7 @@ func TestTransport_RoundTrip(t *testing.T) {
 		}
 	})
 }
+
+func TestLogHeaderWithNilLogs(t *testing.T) {
+	logHeader(http.Header{}, nil)
+}

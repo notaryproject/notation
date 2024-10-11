@@ -58,7 +58,7 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	var logs strings.Builder
 	fmt.Fprintf(&logs, "> Request: %q %q\n", req.Method, req.URL)
 	fmt.Fprintln(&logs, "> Request headers:")
-	fmt.Fprint(&logs, logHeader(req.Header))
+	logHeader(req.Header, &logs)
 
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
@@ -70,26 +70,27 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	} else {
 		fmt.Fprintf(&logs, "< Response status: %q\n", resp.Status)
 		fmt.Fprintln(&logs, "< Response headers:")
-		fmt.Fprint(&logs, logHeader(resp.Header))
+		logHeader(resp.Header, &logs)
 		e.Debug(logs.String())
 	}
 	return resp, err
 }
 
-// logHeader returns string of provided header keys and values, with auth header
+// logHeader logs the provided header keys and values, with auth header
 // scrubbed.
-func logHeader(header http.Header) string {
+func logHeader(header http.Header, logs *strings.Builder) {
+	if logs == nil {
+		return
+	}
 	if len(header) > 0 {
-		var logs strings.Builder
 		for k, v := range header {
 			if strings.EqualFold(k, "Authorization") {
 				v = []string{"*****"}
 			}
-			fmt.Fprintf(&logs, "   %q: %q\n", k, strings.Join(v, ", "))
+			fmt.Fprintf(logs, "   %q: %q\n", k, strings.Join(v, ", "))
 		}
-		return logs.String()
 	} else {
-		return "   Empty header\n"
+		fmt.Fprintln(logs, "   Empty header")
 	}
 }
 
