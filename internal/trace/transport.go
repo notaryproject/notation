@@ -34,9 +34,22 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	// requestCount records the number of logged request-response pairs and will
+	// be used as the unique id for the next pair.
+	requestCount uint64
+
+	// toScrub is a set of headers that should be scrubbed from the log.
+	toScrub = []string{
+		"Authorization",
+		"Set-Cookie",
+	}
 )
 
 // Transport is an http.RoundTripper that keeps track of the in-flight
@@ -51,47 +64,43 @@ func NewTransport(base http.RoundTripper) *Transport {
 
 // RoundTrip calls base roundtrip while keeping track of the current request.
 func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	id := atomic.AddUint64(&requestCount, 1) - 1
 	ctx := req.Context()
 	e := log.GetLogger(ctx)
 
-	// logs to be printed out
-	var logs strings.Builder
-	fmt.Fprintf(&logs, "> Request: %q %q\n", req.Method, req.URL)
-	fmt.Fprintln(&logs, "> Request headers:")
-	logHeader(req.Header, &logs)
+	// log the request
+	e.Debugf("Request #%d\n> Request: %q %q\n> Request headers:\n%s",
+		id, req.Method, req.URL, logHeader(req.Header))
 
+	// log the response
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
-		e.Debug(logs.String())
 		e.Errorf("Error in getting response: %w", err)
 	} else if resp == nil {
-		e.Debug(logs.String())
 		e.Errorf("No response obtained for request %s %q", req.Method, req.URL)
 	} else {
-		fmt.Fprintf(&logs, "< Response status: %q\n", resp.Status)
-		fmt.Fprintln(&logs, "< Response headers:")
-		logHeader(resp.Header, &logs)
-		e.Debug(logs.String())
+		e.Debugf("Response #%d\n< Response Status: %q\n< Response headers:\n%s",
+			id, resp.Status, logHeader(resp.Header))
 	}
 	return resp, err
 }
 
-// logHeader logs the provided header keys and values, with auth header
+// logHeader prints out the provided header keys and values, with auth header
 // scrubbed.
-func logHeader(header http.Header, logs *strings.Builder) {
-	if logs == nil {
-		return
-	}
+func logHeader(header http.Header) string {
 	if len(header) > 0 {
+		headers := []string{}
 		for k, v := range header {
-			if strings.EqualFold(k, "Authorization") {
-				v = []string{"*****"}
+			for _, h := range toScrub {
+				if strings.EqualFold(k, h) {
+					v = []string{"*****"}
+				}
 			}
-			fmt.Fprintf(logs, "   %q: %q\n", k, strings.Join(v, ", "))
+			headers = append(headers, fmt.Sprintf("   %q: %q", k, strings.Join(v, ", ")))
 		}
-	} else {
-		fmt.Fprintln(logs, "   Empty header")
+		return strings.Join(headers, "\n")
 	}
+	return "   Empty header"
 }
 
 // SetHTTPDebugLog sets up http debug log with logrus.Logger
