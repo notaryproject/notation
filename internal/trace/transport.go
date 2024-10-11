@@ -55,22 +55,23 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	e := log.GetLogger(ctx)
 
 	// logs to be printed out
-	logs := fmt.Sprintf("> Request: %q %q\n", req.Method, req.URL)
-	logs = logs + "> Request headers:\n"
-	logs = logs + logHeader(req.Header)
+	var logs strings.Builder
+	fmt.Fprintf(&logs, "> Request: %q %q\n", req.Method, req.URL)
+	fmt.Fprintln(&logs, "> Request headers:")
+	fmt.Fprintln(&logs, logHeader(req.Header))
 
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
-		e.Debugf(logs)
+		e.Debug(logs.String())
 		e.Errorf("Error in getting response: %w", err)
 	} else if resp == nil {
-		e.Debugf(logs)
+		e.Debug(logs.String())
 		e.Errorf("No response obtained for request %s %q", req.Method, req.URL)
 	} else {
-		logs = logs + fmt.Sprintf("< Response status: %q\n", resp.Status)
-		logs = logs + "< Response headers:\n"
-		logs = logs + logHeader(resp.Header)
-		e.Debugf(logs)
+		fmt.Fprintf(&logs, "< Response status: %q\n", resp.Status)
+		fmt.Fprintln(&logs, "< Response headers:")
+		fmt.Fprintln(&logs, logHeader(resp.Header))
+		e.Debug(logs.String())
 	}
 	return resp, err
 }
@@ -79,14 +80,14 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 // scrubbed.
 func logHeader(header http.Header) string {
 	if len(header) > 0 {
-		var logs string
+		var logs strings.Builder
 		for k, v := range header {
 			if strings.EqualFold(k, "Authorization") {
 				v = []string{"*****"}
 			}
-			logs = logs + fmt.Sprintf("   %q: %q\n", k, strings.Join(v, ", "))
+			fmt.Fprintf(&logs, "   %q: %q\n", k, strings.Join(v, ", "))
 		}
-		return logs
+		return logs.String()
 	} else {
 		return "   Empty header"
 	}

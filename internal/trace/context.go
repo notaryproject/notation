@@ -48,6 +48,7 @@ func WithLoggerLevel(ctx context.Context, level logrus.Level) context.Context {
 
 	// create logger
 	logger := logrus.New()
+	formatter.DisableQuote = true
 	logger.SetFormatter(&formatter)
 	logger.SetLevel(level)
 
