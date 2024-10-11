@@ -58,7 +58,7 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	var logs strings.Builder
 	fmt.Fprintf(&logs, "> Request: %q %q\n", req.Method, req.URL)
 	fmt.Fprintln(&logs, "> Request headers:")
-	fmt.Fprintln(&logs, logHeader(req.Header))
+	fmt.Fprint(&logs, logHeader(req.Header))
 
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
@@ -70,7 +70,7 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	} else {
 		fmt.Fprintf(&logs, "< Response status: %q\n", resp.Status)
 		fmt.Fprintln(&logs, "< Response headers:")
-		fmt.Fprintln(&logs, logHeader(resp.Header))
+		fmt.Fprint(&logs, logHeader(resp.Header))
 		e.Debug(logs.String())
 	}
 	return resp, err
