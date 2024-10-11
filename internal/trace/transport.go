@@ -31,6 +31,7 @@ package trace
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -53,35 +54,41 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	ctx := req.Context()
 	e := log.GetLogger(ctx)
 
-	e.Debugf("> Request: %q %q", req.Method, req.URL)
-	e.Debugf("> Request headers:")
-	logHeader(req.Header, e)
+	// logs to be printed out
+	logs := fmt.Sprintf("> Request: %q %q\n", req.Method, req.URL)
+	logs = logs + "> Request headers:\n"
+	logs = logs + logHeader(req.Header)
 
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
+		e.Debugf(logs)
 		e.Errorf("Error in getting response: %w", err)
 	} else if resp == nil {
+		e.Debugf(logs)
 		e.Errorf("No response obtained for request %s %q", req.Method, req.URL)
 	} else {
-		e.Debugf("< Response status: %q", resp.Status)
-		e.Debugf("< Response headers:")
-		logHeader(resp.Header, e)
+		logs = logs + fmt.Sprintf("< Response status: %q\n", resp.Status)
+		logs = logs + "< Response headers:\n"
+		logs = logs + logHeader(resp.Header)
+		e.Debugf(logs)
 	}
 	return resp, err
 }
 
-// logHeader prints out the provided header keys and values, with auth header
+// logHeader returns string of provided header keys and values, with auth header
 // scrubbed.
-func logHeader(header http.Header, e log.Logger) {
+func logHeader(header http.Header) string {
 	if len(header) > 0 {
+		var logs string
 		for k, v := range header {
 			if strings.EqualFold(k, "Authorization") {
 				v = []string{"*****"}
 			}
-			e.Debugf("   %q: %q", k, strings.Join(v, ", "))
+			logs = logs + fmt.Sprintf("   %q: %q\n", k, strings.Join(v, ", "))
 		}
+		return logs
 	} else {
-		e.Debugf("   Empty header")
+		return "   Empty header"
 	}
 }
 
