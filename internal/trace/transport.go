@@ -31,11 +31,25 @@ package trace
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/sirupsen/logrus"
+)
+
+var (
+	// requestCount records the number of logged request-response pairs and will
+	// be used as the unique id for the next pair.
+	requestCount uint64
+
+	// toScrub is a set of headers that should be scrubbed from the log.
+	toScrub = []string{
+		"Authorization",
+		"Set-Cookie",
+	}
 )
 
 // Transport is an http.RoundTripper that keeps track of the in-flight
@@ -50,39 +64,43 @@ func NewTransport(base http.RoundTripper) *Transport {
 
 // RoundTrip calls base roundtrip while keeping track of the current request.
 func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	id := atomic.AddUint64(&requestCount, 1) - 1
 	ctx := req.Context()
 	e := log.GetLogger(ctx)
 
-	e.Debugf("> Request: %q %q", req.Method, req.URL)
-	e.Debugf("> Request headers:")
-	logHeader(req.Header, e)
+	// log the request
+	e.Debugf("Request #%d\n> Request: %q %q\n> Request headers:\n%s",
+		id, req.Method, req.URL, logHeader(req.Header))
 
+	// log the response
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
 		e.Errorf("Error in getting response: %w", err)
 	} else if resp == nil {
 		e.Errorf("No response obtained for request %s %q", req.Method, req.URL)
 	} else {
-		e.Debugf("< Response status: %q", resp.Status)
-		e.Debugf("< Response headers:")
-		logHeader(resp.Header, e)
+		e.Debugf("Response #%d\n< Response status: %q\n< Response headers:\n%s",
+			id, resp.Status, logHeader(resp.Header))
 	}
 	return resp, err
 }
 
 // logHeader prints out the provided header keys and values, with auth header
 // scrubbed.
-func logHeader(header http.Header, e log.Logger) {
+func logHeader(header http.Header) string {
 	if len(header) > 0 {
+		headers := []string{}
 		for k, v := range header {
-			if strings.EqualFold(k, "Authorization") {
-				v = []string{"*****"}
+			for _, h := range toScrub {
+				if strings.EqualFold(k, h) {
+					v = []string{"*****"}
+				}
 			}
-			e.Debugf("   %q: %q", k, strings.Join(v, ", "))
+			headers = append(headers, fmt.Sprintf("   %q: %q", k, strings.Join(v, ", ")))
 		}
-	} else {
-		e.Debugf("   Empty header")
+		return strings.Join(headers, "\n")
 	}
+	return "   Empty header"
 }
 
 // SetHTTPDebugLog sets up http debug log with logrus.Logger
