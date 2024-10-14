@@ -46,7 +46,7 @@ var _ = Describe("notation plugin verify", func() {
 				MatchErrKeyWords(
 					"Plugin verify-signature request",
 					"Plugin verify-signature response",
-					`{\"verificationResults\":{\"SIGNATURE_VERIFIER.REVOCATION_CHECK\":{\"success\":true},\"SIGNATURE_VERIFIER.TRUSTED_IDENTITY\":{\"success\":true}},\"processedAttributes\":null}`).
+					`{"verificationResults":{"SIGNATURE_VERIFIER.REVOCATION_CHECK":{"success":true},"SIGNATURE_VERIFIER.TRUSTED_IDENTITY":{"success":true}},"processedAttributes":null}`).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -77,7 +77,7 @@ var _ = Describe("notation plugin verify", func() {
 				MatchErrKeyWords(
 					"Plugin verify-signature request",
 					"Plugin verify-signature response",
-					`revocation check by verification plugin \"e2e-plugin\" failed with reason \"revocation check failed\"`,
+					`revocation check by verification plugin "e2e-plugin" failed with reason "revocation check failed"`,
 					VerifyFailed)
 		})
 	})
@@ -108,7 +108,7 @@ var _ = Describe("notation plugin verify", func() {
 				MatchErrKeyWords(
 					"Plugin verify-signature request",
 					"Plugin verify-signature response",
-					`trusted identify verification by plugin \"e2e-plugin\" failed with reason \"trusted identity check failed\"`,
+					`trusted identify verification by plugin "e2e-plugin" failed with reason "trusted identity check failed"`,
 					VerifyFailed)
 		})
 	})
@@ -138,7 +138,7 @@ var _ = Describe("notation plugin verify", func() {
 				MatchErrKeyWords(
 					"Plugin verify-signature request",
 					"Plugin verify-signature response",
-					`{\"verificationResults\":{\"SIGNATURE_VERIFIER.REVOCATION_CHECK\":{\"success\":true},\"SIGNATURE_VERIFIER.TRUSTED_IDENTITY\":{\"success\":true}},\"processedAttributes\":null}`).
+					`{"verificationResults":{"SIGNATURE_VERIFIER.REVOCATION_CHECK":{"success":true},"SIGNATURE_VERIFIER.TRUSTED_IDENTITY":{"success":true}},"processedAttributes":null}`).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -197,7 +197,7 @@ var _ = Describe("notation plugin verify", func() {
 				MatchErrKeyWords(
 					"Plugin verify-signature request",
 					"Plugin verify-signature response",
-					`{\"verificationResults\":{\"SIGNATURE_VERIFIER.REVOCATION_CHECK\":{\"success\":true},\"SIGNATURE_VERIFIER.TRUSTED_IDENTITY\":{\"success\":true}},\"processedAttributes\":null}`).
+					`{"verificationResults":{"SIGNATURE_VERIFIER.REVOCATION_CHECK":{"success":true},"SIGNATURE_VERIFIER.TRUSTED_IDENTITY":{"success":true}},"processedAttributes":null}`).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
