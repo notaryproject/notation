@@ -19,16 +19,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
-	"time"
-
-	"github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation-go/plugin/proto"
-	"github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/outputs"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -36,6 +29,7 @@ import (
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 type inspectOpts struct {
@@ -144,7 +138,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
-	output := inspectOutput{MediaType: manifestDesc.MediaType, Signatures: []signatureOutput{}}
+	output := outputs.InspectOutput{MediaType: manifestDesc.MediaType, Signatures: []outputs.SignatureOutput{}}
 	skippedSignatures := false
 	err = listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
 		sigBlob, sigDesc, err := sigRepo.FetchSignatureBlob(ctx, sigManifestDesc)
@@ -153,32 +147,10 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			skippedSignatures = true
 			return nil
 		}
-
-		sigEnvelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
+		digest := sigManifestDesc.Digest.String()
+		mediaType := sigDesc.MediaType
+		err, output.Signatures = outputs.Signatures(mediaType, digest, output, [][]byte{sigBlob})
 		if err != nil {
-			logSkippedSignature(sigManifestDesc, err)
-			skippedSignatures = true
-			return nil
-		}
-
-		envelopeContent, err := sigEnvelope.Content()
-		if err != nil {
-			logSkippedSignature(sigManifestDesc, err)
-			skippedSignatures = true
-			return nil
-		}
-
-		signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
-		if err != nil {
-			logSkippedSignature(sigManifestDesc, err)
-			skippedSignatures = true
-			return nil
-		}
-
-		signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
-		if err != nil {
-			logSkippedSignature(sigManifestDesc, err)
-			skippedSignatures = true
 			return nil
 		}
 
@@ -206,7 +178,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		return err
 	}
 
-	if err := printOutput(opts.outputFormat, resolvedRef, output); err != nil {
+	if err := outputs.PrintOutput(opts.outputFormat, resolvedRef, output); err != nil {
 		return err
 	}
 
@@ -217,7 +189,6 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if skippedSignatures {
 		return errors.New("at least one signature was skipped and not displayed")
 	}
-
 	return nil
 }
 
