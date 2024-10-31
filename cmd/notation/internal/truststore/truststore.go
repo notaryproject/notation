@@ -63,7 +63,7 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	// core process
 	// get the trust store path
 	trustStorePath, err := dir.ConfigFS().SysPath(dir.TrustStoreDir, "x509", storeType, namedStore)
-	if err := CheckNonErrNotExistError(err); err != nil {
+	if err := CheckNoErrOrNotExist(err); err != nil {
 		return err
 	}
 
@@ -194,8 +194,8 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 	return nil
 }
 
-// CheckNonErrNotExistError returns nil when no err or err is fs.ErrNotExist
-func CheckNonErrNotExistError(err error) error {
+// CheckNoErrOrNotExist returns nil when err is nil or err is fs.ErrNotExist
+func CheckNoErrOrNotExist(err error) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}

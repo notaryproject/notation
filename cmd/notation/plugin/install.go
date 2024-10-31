@@ -132,7 +132,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 		pluginURL, err := url.Parse(opts.pluginSource)
 		if err != nil {
-			return fmt.Errorf("failed to parse plugin download URL %s with error: %w", pluginURL, err)
+			return fmt.Errorf("failed to parse plugin download URL %s with error: %w", opts.pluginSource, err)
 		}
 		if pluginURL.Scheme != "https" {
 			return fmt.Errorf("failed to download plugin from URL: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
@@ -334,12 +334,12 @@ func installPluginWithOptions(ctx context.Context, opts plugin.CLIInstallOptions
 
 		var errExeFile *plugin.PluginExecutableFileError
 		if errors.As(err, &errExeFile) {
-			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is compatible with %s/%s and has appropriate permissions.", err, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is compatible with %s/%s and has appropriate permissions", err, runtime.GOOS, runtime.GOARCH)
 		}
 
 		var errMalformedPlugin *plugin.PluginMalformedError
 		if errors.As(err, &errMalformedPlugin) {
-			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is intact and compatible with %s/%s. Contact the plugin publisher for further assistance.", errMalformedPlugin, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w.\nPlease ensure that the plugin executable file is intact and compatible with %s/%s. Contact the plugin publisher for further assistance", errMalformedPlugin, runtime.GOOS, runtime.GOARCH)
 		}
 		return err
 	}
