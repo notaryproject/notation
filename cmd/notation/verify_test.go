@@ -86,6 +86,18 @@ func TestVerifyCommand_MissingArgs(t *testing.T) {
 }
 
 func TestGetVerifier(t *testing.T) {
+	defer func(oldConfiDir, oldCacheDir string) {
+		dir.UserConfigDir = oldConfiDir
+		dir.UserCacheDir = oldCacheDir
+	}(dir.UserConfigDir, dir.UserCacheDir)
+
+	t.Run("success", func(t *testing.T) {
+		_, err := getVerifier(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
 	t.Run("non-existing trust policy", func(t *testing.T) {
 		dir.UserConfigDir = "/"
 		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
