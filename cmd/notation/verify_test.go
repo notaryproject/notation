@@ -15,11 +15,15 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"testing"
 
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -92,6 +96,15 @@ func TestGetVerifier(t *testing.T) {
 	}(dir.UserConfigDir, dir.UserCacheDir)
 
 	t.Run("success", func(t *testing.T) {
+		tempRoot := t.TempDir()
+		dir.UserConfigDir = tempRoot
+		path := filepath.Join(tempRoot, "trustpolicy.json")
+		policyJson, _ := json.Marshal(dummyOCIPolicyDocument())
+		if err := os.WriteFile(path, policyJson, 0600); err != nil {
+			t.Fatalf("TestLoadOCIDocument write policy file failed. Error: %v", err)
+		}
+		t.Cleanup(func() { os.RemoveAll(tempRoot) })
+
 		_, err := getVerifier(context.Background())
 		if err != nil {
 			t.Fatal(err)
@@ -118,4 +131,19 @@ func TestGetVerifier(t *testing.T) {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
 	})
+}
+
+func dummyOCIPolicyDocument() trustpolicy.OCIDocument {
+	return trustpolicy.OCIDocument{
+		Version: "1.0",
+		TrustPolicies: []trustpolicy.OCITrustPolicy{
+			{
+				Name:                  "test-statement-name",
+				RegistryScopes:        []string{"registry.acme-rockets.io/software/net-monitor"},
+				SignatureVerification: trustpolicy.SignatureVerification{VerificationLevel: "strict"},
+				TrustStores:           []string{"ca:valid-trust-store", "signingAuthority:valid-trust-store"},
+				TrustedIdentities:     []string{"x509.subject:CN=Notation Test Root,O=Notary,L=Seattle,ST=WA,C=US"},
+			},
+		},
+	}
 }
