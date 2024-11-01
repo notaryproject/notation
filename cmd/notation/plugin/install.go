@@ -132,7 +132,7 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 		pluginURL, err := url.Parse(opts.pluginSource)
 		if err != nil {
-			return fmt.Errorf("failed to parse plugin download URL %s with error: %w", pluginURL, err)
+			return fmt.Errorf("failed to parse plugin download URL %s with error: %w", opts.pluginSource, err)
 		}
 		if pluginURL.Scheme != "https" {
 			return fmt.Errorf("failed to download plugin from URL: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
