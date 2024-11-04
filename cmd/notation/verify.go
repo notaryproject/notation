@@ -27,7 +27,6 @@ import (
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/crl"
@@ -233,8 +232,6 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 }
 
 func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	logger := log.GetLogger(ctx)
-
 	// revocation check
 	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
 	crlFetcher, err := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
@@ -249,7 +246,6 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Warnln("Discard any crl cache error")
 	crlFetcher.DiscardCacheError = true // discard cache error
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
