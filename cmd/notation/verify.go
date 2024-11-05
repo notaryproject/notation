@@ -246,6 +246,7 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
+	crlFetcher.DiscardCacheError = true // discard cache error
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
 		CRLFetcher:       crlFetcher,
