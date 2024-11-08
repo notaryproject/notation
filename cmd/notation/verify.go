@@ -248,7 +248,7 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	crlFetcher.Cache = &clicrl.CrlCacheWithLog{
+	crlFetcher.Cache = &clicrl.CacheWithLog{
 		Cache:             fileCache,
 		DiscardCacheError: crlFetcher.DiscardCacheError,
 	}

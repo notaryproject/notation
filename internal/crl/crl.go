@@ -24,8 +24,8 @@ import (
 	"github.com/notaryproject/notation-go/log"
 )
 
-// CrlCacheWithLog implements corecrl.Cache with logging
-type CrlCacheWithLog struct {
+// CacheWithLog implements corecrl.Cache with logging
+type CacheWithLog struct {
 	corecrl.Cache
 
 	//DiscardCacheError is set to true to enable logging the discard cache error
@@ -38,7 +38,10 @@ type CrlCacheWithLog struct {
 }
 
 // Get retrieves the CRL bundle with the given url
-func (c *CrlCacheWithLog) Get(ctx context.Context, url string) (*corecrl.Bundle, error) {
+func (c *CacheWithLog) Get(ctx context.Context, url string) (*corecrl.Bundle, error) {
+	if c.Cache == nil {
+		return nil, errors.New("cache cannot be nil")
+	}
 	logger := log.GetLogger(ctx)
 
 	bundle, err := c.Cache.Get(ctx, url)
@@ -47,12 +50,16 @@ func (c *CrlCacheWithLog) Get(ctx context.Context, url string) (*corecrl.Bundle,
 			c.logDiscardCrlCacheErrorOnce.Do(c.logDiscardCrlCacheError)
 		}
 		logger.Debug(err.Error())
+		return nil, err
 	}
 	return bundle, err
 }
 
 // Set stores the CRL bundle with the given url
-func (c *CrlCacheWithLog) Set(ctx context.Context, url string, bundle *corecrl.Bundle) error {
+func (c *CacheWithLog) Set(ctx context.Context, url string, bundle *corecrl.Bundle) error {
+	if c.Cache == nil {
+		return errors.New("cache cannot be nil")
+	}
 	logger := log.GetLogger(ctx)
 
 	err := c.Cache.Set(ctx, url, bundle)
@@ -61,12 +68,13 @@ func (c *CrlCacheWithLog) Set(ctx context.Context, url string, bundle *corecrl.B
 			c.logDiscardCrlCacheErrorOnce.Do(c.logDiscardCrlCacheError)
 		}
 		logger.Debug(err.Error())
+		return err
 	}
-	return err
+	return nil
 }
 
 // logDiscardCrlCacheError logs the warning when CRL cache error is
 // discarded
-func (c *CrlCacheWithLog) logDiscardCrlCacheError() {
-	fmt.Fprintln(os.Stderr, "Warning: CRL cache error discarded")
+func (c *CacheWithLog) logDiscardCrlCacheError() {
+	fmt.Fprintln(os.Stderr, "Warning: CRL cache error discarded. Enalbe debug log through '-d' for error details.")
 }

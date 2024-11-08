@@ -24,16 +24,23 @@ import (
 )
 
 func TestGet(t *testing.T) {
-	cache := &CrlCacheWithLog{
-		Cache: &dummyCache{},
-	}
-	expectedErrMsg := "cache get failed"
+	cache := &CacheWithLog{}
+	expectedErrMsg := "cache cannot be nil"
 	_, err := cache.Get(context.Background(), "")
 	if err == nil || err.Error() != expectedErrMsg {
 		t.Fatalf("expected error %q, but got %q", expectedErrMsg, err)
 	}
 
-	cache = &CrlCacheWithLog{
+	cache = &CacheWithLog{
+		Cache: &dummyCache{},
+	}
+	expectedErrMsg = "cache get failed"
+	_, err = cache.Get(context.Background(), "")
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatalf("expected error %q, but got %q", expectedErrMsg, err)
+	}
+
+	cache = &CacheWithLog{
 		Cache: &dummyCache{
 			cacheMiss: true,
 		},
@@ -45,18 +52,25 @@ func TestGet(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	cache := &CrlCacheWithLog{
+	cache := &CacheWithLog{}
+	expectedErrMsg := "cache cannot be nil"
+	err := cache.Set(context.Background(), "", nil)
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatalf("expected error %q, but got %q", expectedErrMsg, err)
+	}
+
+	cache = &CacheWithLog{
 		Cache: &dummyCache{},
 	}
-	expectedErrMsg := "cache set failed"
-	err := cache.Set(context.Background(), "", nil)
+	expectedErrMsg = "cache set failed"
+	err = cache.Set(context.Background(), "", nil)
 	if err == nil || err.Error() != expectedErrMsg {
 		t.Fatalf("expected error %q, but got %q", expectedErrMsg, err)
 	}
 }
 
 func TestLogDiscardErrorOnce(t *testing.T) {
-	cache := &CrlCacheWithLog{
+	cache := &CacheWithLog{
 		Cache:             &dummyCache{},
 		DiscardCacheError: true,
 	}
