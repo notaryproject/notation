@@ -67,6 +67,16 @@ func TestSet(t *testing.T) {
 	if err == nil || err.Error() != expectedErrMsg {
 		t.Fatalf("expected error %q, but got %q", expectedErrMsg, err)
 	}
+
+	cache = &CacheWithLog{
+		Cache: &dummyCache{
+			setSuccess: true,
+		},
+	}
+	err = cache.Set(context.Background(), "", nil)
+	if err != nil {
+		t.Fatalf("expected nil error, but got %q", err)
+	}
 }
 
 func TestLogDiscardErrorOnce(t *testing.T) {
@@ -106,7 +116,8 @@ func TestLogDiscardErrorOnce(t *testing.T) {
 }
 
 type dummyCache struct {
-	cacheMiss bool
+	cacheMiss  bool
+	setSuccess bool
 }
 
 func (d *dummyCache) Get(ctx context.Context, url string) (*corecrl.Bundle, error) {
@@ -117,5 +128,8 @@ func (d *dummyCache) Get(ctx context.Context, url string) (*corecrl.Bundle, erro
 }
 
 func (d *dummyCache) Set(ctx context.Context, url string, bundle *corecrl.Bundle) error {
+	if d.setSuccess {
+		return nil
+	}
 	return errors.New("cache set failed")
 }
