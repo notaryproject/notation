@@ -39,7 +39,7 @@ import (
 	"github.com/spf13/cobra"
 
 	corecrl "github.com/notaryproject/notation-core-go/revocation/crl"
-	internalcrl "github.com/notaryproject/notation/internal/crl"
+	clicrl "github.com/notaryproject/notation/internal/crl"
 )
 
 type verifyOpts struct {
@@ -239,6 +239,7 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
+	crlFetcher.DiscardCacheError = true // discard crl cache error
 	cacheRoot, err := dir.CacheFS().SysPath(dir.PathCRLCache)
 	if err != nil {
 		return nil, err
@@ -247,10 +248,10 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	if err != nil {
 		return nil, err
 	}
-	crlFetcher.Cache = &internalcrl.CrlCacheWithLog{
-		Cache: fileCache,
+	crlFetcher.Cache = &clicrl.CrlCacheWithLog{
+		Cache:             fileCache,
+		DiscardCacheError: crlFetcher.DiscardCacheError,
 	}
-	crlFetcher.DiscardCacheError = true // discard cache error
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,
 		CRLFetcher:       crlFetcher,

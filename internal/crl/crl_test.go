@@ -57,7 +57,8 @@ func TestSet(t *testing.T) {
 
 func TestLogDiscardErrorOnce(t *testing.T) {
 	cache := &CrlCacheWithLog{
-		Cache: &dummyCache{},
+		Cache:             &dummyCache{},
+		DiscardCacheError: true,
 	}
 	oldStderr := os.Stderr
 	defer func() {
@@ -75,6 +76,7 @@ func TestLogDiscardErrorOnce(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			cache.Get(context.Background(), "")
+			cache.Set(context.Background(), "", nil)
 		}()
 	}
 	wg.Wait()
