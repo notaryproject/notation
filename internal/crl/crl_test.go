@@ -109,7 +109,7 @@ func TestLogDiscardErrorOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedMsg := "Warning: CRL cache error discarded. Enalbe debug log through '-d' for error details.\n"
+	expectedMsg := "Warning: CRL cache error discarded. Enable debug log through '-d' for error details.\n"
 	if string(b) != expectedMsg {
 		t.Fatalf("expected to get %q, but got %q", expectedMsg, string(b))
 	}

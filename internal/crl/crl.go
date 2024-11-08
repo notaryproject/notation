@@ -76,5 +76,5 @@ func (c *CacheWithLog) Set(ctx context.Context, url string, bundle *corecrl.Bund
 // logDiscardCrlCacheError logs the warning when CRL cache error is
 // discarded
 func (c *CacheWithLog) logDiscardCrlCacheError() {
-	fmt.Fprintln(os.Stderr, "Warning: CRL cache error discarded. Enalbe debug log through '-d' for error details.")
+	fmt.Fprintln(os.Stderr, "Warning: CRL cache error discarded. Enable debug log through '-d' for error details.")
 }
