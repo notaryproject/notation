@@ -38,7 +38,7 @@ func NewVirtualHost(binPath string, options ...HostOption) (*VirtualHost, error)
 	vhost.userDir = ginkgo.GinkgoT().TempDir()
 
 	// set user dir environment variables
-	vhost.UpdateEnv(UserConfigEnv(vhost.userDir))
+	vhost.UpdateEnv(UserEnv(vhost.userDir))
 
 	// set options
 	vhost.SetOption(options...)
@@ -77,11 +77,13 @@ func (h *VirtualHost) SetOption(options ...HostOption) {
 // HostOption is a function to set the host configuration.
 type HostOption func(vhost *VirtualHost) error
 
-// UserConfigEnv creates environment variable for changing
-// user config dir (By setting $XDG_CONFIG_HOME).
-func UserConfigEnv(dir string) map[string]string {
+// UserEnv creates environment variable for changing
+// user config dir by setting $XDG_CONFIG_HOME and user cache dir by
+// setting $NOTATION_CACHE.
+func UserEnv(dir string) map[string]string {
 	// create and set user dir for linux
 	return map[string]string{
 		"XDG_CONFIG_HOME": dir,
+		"NOTATION_CACHE":  filepath.Join(dir, ".cache"),
 	}
 }
