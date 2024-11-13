@@ -53,35 +53,37 @@ type SigningKeys struct {
 
 // AddKeyPairs creates the signingkeys.json file and the localkeys directory
 // with e2e.key and e2e.crt
-func AddKeyPairs(dir, keyName, certName string) error {
+func AddKeyPairs(destNotationConfigDir, srcKeyPath, srcCertPath string) error {
+	keyName := filepath.Base(srcKeyPath)
+	certName := filepath.Base(srcCertPath)
 	// create signingkeys.json files
 	if err := saveJSON(
-		generateSigningKeys(dir),
-		filepath.Join(dir, SigningKeysFileName)); err != nil {
+		generateSigningKeys(destNotationConfigDir, keyName, certName),
+		filepath.Join(destNotationConfigDir, SigningKeysFileName)); err != nil {
 		return err
 	}
 
 	// create localkeys directory
-	localKeysDir := filepath.Join(dir, LocalKeysDirName)
+	localKeysDir := filepath.Join(destNotationConfigDir, LocalKeysDirName)
 	os.MkdirAll(localKeysDir, 0700)
 
 	// copy key and cert files
-	if err := copyFile(filepath.Join(NotationE2ELocalKeysDir, keyName), filepath.Join(localKeysDir, "e2e.key")); err != nil {
+	if err := copyFile(srcKeyPath, filepath.Join(localKeysDir, keyName)); err != nil {
 		return err
 	}
-	return copyFile(filepath.Join(NotationE2ELocalKeysDir, certName), filepath.Join(localKeysDir, "e2e.crt"))
+	return copyFile(srcCertPath, filepath.Join(localKeysDir, certName))
 }
 
 // generateSigningKeys generates the signingkeys.json for notation.
-func generateSigningKeys(dir string) *SigningKeys {
+func generateSigningKeys(dir, keyName, certName string) *SigningKeys {
 	return &SigningKeys{
 		Default: "e2e",
 		Keys: []KeySuite{
 			{
 				Name: "e2e",
 				X509KeyPair: &X509KeyPair{
-					KeyPath:         filepath.Join(dir, "localkeys", "e2e.key"),
-					CertificatePath: filepath.Join(dir, "localkeys", "e2e.crt"),
+					KeyPath:         filepath.Join(dir, "localkeys", keyName),
+					CertificatePath: filepath.Join(dir, "localkeys", certName),
 				},
 			},
 		},
