@@ -246,11 +246,13 @@ func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	}
 	fileCache, err := crl.NewFileCache(cacheRoot)
 	if err != nil {
-		return nil, err
-	}
-	crlFetcher.Cache = &clicrl.CacheWithLog{
-		Cache:             fileCache,
-		DiscardCacheError: crlFetcher.DiscardCacheError,
+		// discard NewFileCache error as cache errors are not critical
+		fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+	} else {
+		crlFetcher.Cache = &clicrl.CacheWithLog{
+			Cache:             fileCache,
+			DiscardCacheError: crlFetcher.DiscardCacheError,
+		}
 	}
 	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
 		OCSPHTTPClient:   ocspHttpClient,

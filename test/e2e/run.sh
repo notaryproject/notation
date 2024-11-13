@@ -69,7 +69,7 @@ if [ ! -f "$NOTATION_E2E_OLD_BINARY_PATH" ]; then
 fi
 
 # install dependency
-go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.11.0
+go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.21.0
 
 # build e2e plugin and tar.gz
 PLUGIN_NAME=notation-e2e-plugin
@@ -95,9 +95,16 @@ esac
 
 setup_registry
 
+# run the CRL server in the background
+python3 ./scripts/crl_server.py &
+CRL_SERVER_PID=$!
+
 # defer cleanup registry
 function cleanup {
+    echo "Cleaning up..."
     cleanup_registry
+    echo "Stopping CRL server..."
+    kill $CRL_SERVER_PID
 }
 trap cleanup EXIT
 
