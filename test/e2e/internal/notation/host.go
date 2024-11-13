@@ -123,7 +123,7 @@ func Opts(options ...utils.HostOption) []utils.HostOption {
 func BaseOptions() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
-		AddKeyOption("e2e.key", "e2e.crt"),
+		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustPolicyOption("trustpolicy.json"),
 	)
@@ -141,7 +141,7 @@ func TimestampOptions(verifyTimestamp string) []utils.HostOption {
 
 	return Opts(
 		AuthOption("", ""),
-		AddKeyOption("e2e.key", "e2e.crt"),
+		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer")),
 		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer")),
@@ -149,10 +149,19 @@ func TimestampOptions(verifyTimestamp string) []utils.HostOption {
 	)
 }
 
+func CRLOptions() []utils.HostOption {
+	return Opts(
+		AuthOption("", ""),
+		AddKeyOption(filepath.Join(NotationE2EConfigPath, "crl", "leaf.key"), filepath.Join(NotationE2EConfigPath, "crl", "certchain_with_crl.pem")),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "crl", "root.crt")),
+		AddTrustPolicyOption("trustpolicy.json"),
+	)
+}
+
 func BaseOptionsWithExperimental() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
-		AddKeyOption("e2e.key", "e2e.crt"),
+		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustPolicyOption("trustpolicy.json"),
 		EnableExperimental(),
@@ -163,7 +172,7 @@ func BaseOptionsWithExperimental() []utils.HostOption {
 // testing environment.
 func TestLoginOptions() []utils.HostOption {
 	return Opts(
-		AddKeyOption("e2e.key", "e2e.crt"),
+		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustPolicyOption("trustpolicy.json"),
 		AddConfigJsonOption("pass_credential_helper_config.json"),
@@ -193,9 +202,9 @@ func AuthOption(username, password string) utils.HostOption {
 
 // AddKeyOption adds the test signingkeys.json, key and cert files to
 // the notation directory.
-func AddKeyOption(keyName, certName string) utils.HostOption {
+func AddKeyOption(keyPath, certPath string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {
-		return AddKeyPairs(vhost.AbsolutePath(NotationDirName), keyName, certName)
+		return AddKeyPairs(vhost.AbsolutePath(NotationDirName), keyPath, certPath)
 	}
 }
 

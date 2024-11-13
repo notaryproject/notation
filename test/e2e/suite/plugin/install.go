@@ -154,8 +154,8 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with invalid plugin URL", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--url", "https://invalid", "--sha256sum", "abcd").
-				MatchErrKeyWords("failed to download plugin from URL https://invalid")
+			notation.ExpectFailure().Exec("plugin", "install", "--url", "https://invalid.test", "--sha256sum", "abcd").
+				MatchErrKeyWords("failed to download plugin from URL https://invalid.test")
 		})
 	})
 })
