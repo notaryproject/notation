@@ -32,16 +32,10 @@ import (
 // NewRevocationValidator returns a revocation.Validator given the certificate
 // purpose
 func NewRevocationValidator(ctx context.Context, purpose purpose.Purpose) (revocation.Validator, error) {
-	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
-	crlFetcher, err := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
-	if err != nil {
-		return nil, err
-	}
-	crlFetcher.DiscardCacheError = true // discard crl cache error
-	cacheRoot, err := dir.CacheFS().SysPath(dir.PathCRLCache)
-	if err != nil {
-		return nil, err
-	}
+	// err is always nil
+	crlFetcher, _ := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
+	crlFetcher.DiscardCacheError = true                     // discard crl cache error
+	cacheRoot, _ := dir.CacheFS().SysPath(dir.PathCRLCache) // err is always nil
 	fileCache, err := crl.NewFileCache(cacheRoot)
 	if err != nil {
 		// discard NewFileCache error as cache errors are not critical
@@ -53,7 +47,7 @@ func NewRevocationValidator(ctx context.Context, purpose purpose.Purpose) (revoc
 		}
 	}
 	return revocation.NewWithOptions(revocation.Options{
-		OCSPHTTPClient:   ocspHttpClient,
+		OCSPHTTPClient:   httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second}),
 		CRLFetcher:       crlFetcher,
 		CertChainPurpose: purpose,
 	})
