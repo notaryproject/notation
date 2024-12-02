@@ -253,11 +253,11 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 		rootCAs := x509.NewCertPool()
 		rootCAs.AddCert(tsaRootCert)
 		signOpts.TSARootCAs = rootCAs
-		revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
 		}
-		signOpts.RevocationTimestampingValidator = revocationTimestampingValidator
+		signOpts.TSARevocationValidator = tsaRevocationValidator
 	}
 	return signOpts, nil
 }
