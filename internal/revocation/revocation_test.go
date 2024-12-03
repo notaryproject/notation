@@ -15,12 +15,16 @@ package revocation
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"runtime"
 	"testing"
+	"time"
 
+	corecrl "github.com/notaryproject/notation-core-go/revocation/crl"
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/internal/httputil"
 )
 
 func TestNewRevocationValidator(t *testing.T) {
@@ -56,4 +60,16 @@ func TestNewRevocationValidator(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+}
+
+func TestNilError(t *testing.T) {
+	_, err := corecrl.NewHTTPFetcher(httputil.NewClient(context.Background(), &http.Client{Timeout: 5 * time.Second}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = dir.CacheFS().SysPath(dir.PathCRLCache)
+	if err != nil {
+		t.Fatal(err)
+	}
 }

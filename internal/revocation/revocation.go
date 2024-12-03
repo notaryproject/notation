@@ -25,8 +25,8 @@ import (
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/crl"
-	clicrl "github.com/notaryproject/notation/internal/crl"
 	"github.com/notaryproject/notation/internal/httputil"
+	clicrl "github.com/notaryproject/notation/internal/revocation/crl"
 )
 
 // NewRevocationValidator returns a revocation.Validator given the certificate
