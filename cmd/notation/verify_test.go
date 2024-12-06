@@ -120,10 +120,10 @@ func TestGetVerifier(t *testing.T) {
 	})
 }
 
-func dummyOCIPolicyDocument() trustpolicy.OCIDocument {
-	return trustpolicy.OCIDocument{
+func dummyOCIPolicyDocument() trustpolicy.Document {
+	return trustpolicy.Document{
 		Version: "1.0",
-		TrustPolicies: []trustpolicy.OCITrustPolicy{
+		TrustPolicies: []trustpolicy.TrustPolicy{
 			{
 				Name:                  "test-statement-name",
 				RegistryScopes:        []string{"registry.acme-rockets.io/software/net-monitor"},
