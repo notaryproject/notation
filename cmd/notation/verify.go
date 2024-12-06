@@ -18,28 +18,22 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"net/http"
 	"os"
 	"reflect"
-	"time"
 
-	"github.com/notaryproject/notation-core-go/revocation"
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/verifier"
-	"github.com/notaryproject/notation-go/verifier/crl"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 
-	corecrl "github.com/notaryproject/notation-core-go/revocation/crl"
-	clicrl "github.com/notaryproject/notation/internal/crl"
+	clirev "github.com/notaryproject/notation/internal/revocation"
 )
 
 type verifyOpts struct {
@@ -234,39 +228,11 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 
 func getVerifier(ctx context.Context) (notation.Verifier, error) {
 	// revocation check
-	ocspHttpClient := httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second})
-	crlFetcher, err := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
+	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
 	if err != nil {
 		return nil, err
 	}
-	crlFetcher.DiscardCacheError = true // discard crl cache error
-	cacheRoot, err := dir.CacheFS().SysPath(dir.PathCRLCache)
-	if err != nil {
-		return nil, err
-	}
-	fileCache, err := crl.NewFileCache(cacheRoot)
-	if err != nil {
-		// discard NewFileCache error as cache errors are not critical
-		fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
-	} else {
-		crlFetcher.Cache = &clicrl.CacheWithLog{
-			Cache:             fileCache,
-			DiscardCacheError: crlFetcher.DiscardCacheError,
-		}
-	}
-	revocationCodeSigningValidator, err := revocation.NewWithOptions(revocation.Options{
-		OCSPHTTPClient:   ocspHttpClient,
-		CRLFetcher:       crlFetcher,
-		CertChainPurpose: purpose.CodeSigning,
-	})
-	if err != nil {
-		return nil, err
-	}
-	revocationTimestampingValidator, err := revocation.NewWithOptions(revocation.Options{
-		OCSPHTTPClient:   ocspHttpClient,
-		CRLFetcher:       crlFetcher,
-		CertChainPurpose: purpose.Timestamping,
-	})
+	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
 	if err != nil {
 		return nil, err
 	}

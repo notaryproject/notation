@@ -229,7 +229,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords("Timestamp verification disabled")
 		})
@@ -240,7 +240,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords("Performing timestamp verification...")
 		})
@@ -251,7 +251,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", "--timestamp-url", "http://timestamp.digicert.com", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords("Timestamp verification disabled: verifyTimestamp is set to \"afterCertExpiry\" and signing cert chain unexpired")
 		})
