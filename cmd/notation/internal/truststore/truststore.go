@@ -194,7 +194,7 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 	return nil
 }
 
-// CheckNonErrNotExistError returns nil when no err or err is fs.ErrNotExist
+// CheckNonErrNotExistError returns nil when err is nil or err is fs.ErrNotExist
 func CheckNonErrNotExistError(err error) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
