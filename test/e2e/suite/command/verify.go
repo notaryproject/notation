@@ -253,7 +253,7 @@ var _ = Describe("notation verify", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully).
-				MatchErrKeyWords("Timestamp verification disabled: verifyTimestamp is set to \\\"afterCertExpiry\\\" and signing cert chain unexpired")
+				MatchErrKeyWords("Timestamp verification disabled: verifyTimestamp is set to \"afterCertExpiry\" and signing cert chain unexpired")
 		})
 	})
 })
