@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"context"
+
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
@@ -35,7 +37,6 @@ import (
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
