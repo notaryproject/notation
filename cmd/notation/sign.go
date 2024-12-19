@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -21,8 +22,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"context"
 
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	corex509 "github.com/notaryproject/notation-core-go/x509"
