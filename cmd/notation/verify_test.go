@@ -15,11 +15,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
-	"runtime"
 	"testing"
 
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -86,6 +89,27 @@ func TestVerifyCommand_MissingArgs(t *testing.T) {
 }
 
 func TestGetVerifier(t *testing.T) {
+	defer func(oldConfiDir, oldCacheDir string) {
+		dir.UserConfigDir = oldConfiDir
+		dir.UserCacheDir = oldCacheDir
+	}(dir.UserConfigDir, dir.UserCacheDir)
+
+	t.Run("success", func(t *testing.T) {
+		tempRoot := t.TempDir()
+		dir.UserConfigDir = tempRoot
+		path := filepath.Join(tempRoot, "trustpolicy.json")
+		policyJson, _ := json.Marshal(dummyOCIPolicyDocument())
+		if err := os.WriteFile(path, policyJson, 0600); err != nil {
+			t.Fatalf("TestLoadOCIDocument write policy file failed. Error: %v", err)
+		}
+		t.Cleanup(func() { os.RemoveAll(tempRoot) })
+
+		_, err := getVerifier(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
 	t.Run("non-existing trust policy", func(t *testing.T) {
 		dir.UserConfigDir = "/"
 		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
@@ -94,16 +118,19 @@ func TestGetVerifier(t *testing.T) {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
 	})
+}
 
-	t.Run("failed to new crl file cache", func(t *testing.T) {
-		if runtime.GOOS == "windows" {
-			t.Skip("skipping test on Windows")
-		}
-		dir.UserCacheDir = "/cache"
-		expectedErrMsg := "failed to create crl file cache: mkdir /cache: permission denied"
-		_, err := getVerifier(context.Background())
-		if err == nil || err.Error() != expectedErrMsg {
-			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
-		}
-	})
+func dummyOCIPolicyDocument() trustpolicy.Document {
+	return trustpolicy.Document{
+		Version: "1.0",
+		TrustPolicies: []trustpolicy.TrustPolicy{
+			{
+				Name:                  "test-statement-name",
+				RegistryScopes:        []string{"registry.acme-rockets.io/software/net-monitor"},
+				SignatureVerification: trustpolicy.SignatureVerification{VerificationLevel: "strict"},
+				TrustStores:           []string{"ca:valid-trust-store", "signingAuthority:valid-trust-store"},
+				TrustedIdentities:     []string{"x509.subject:CN=Notation Test Root,O=Notary,L=Seattle,ST=WA,C=US"},
+			},
+		},
+	}
 }

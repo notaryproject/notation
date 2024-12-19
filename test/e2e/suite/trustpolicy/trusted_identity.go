@@ -77,7 +77,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 	It("with multiple trusted identity", func() {
 		Host(nil, func(notation *utils.ExecOpts, artifact1 *Artifact, vhost *utils.VirtualHost) {
 			// artifact1 signed with new_e2e.crt
-			OldNotation(AuthOption("", ""), AddKeyOption("e2e.key", "new_e2e.crt")).
+			OldNotation(AuthOption("", ""), AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt"))).
 				Exec("sign", artifact1.ReferenceWithDigest(), "-v").
 				MatchKeyWords(SignSuccessfully)
 
