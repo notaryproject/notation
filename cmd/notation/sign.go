@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
@@ -30,6 +31,7 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
+	clirev "github.com/notaryproject/notation/internal/revocation"
 	nx509 "github.com/notaryproject/notation/internal/x509"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -251,6 +253,11 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 		rootCAs := x509.NewCertPool()
 		rootCAs.AddCert(tsaRootCert)
 		signOpts.TSARootCAs = rootCAs
+		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+		if err != nil {
+			return notation.SignOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
+		}
+		signOpts.TSARevocationValidator = tsaRevocationValidator
 	}
 	return signOpts, nil
 }
