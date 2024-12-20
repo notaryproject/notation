@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"crypto/x509"
 	"errors"
 	"fmt"
@@ -35,7 +36,6 @@ import (
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-	"golang.org/x/net/context"
 )
 
 const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
