@@ -93,7 +93,7 @@ Flags:
 ### notation blob inspect
 
 ```text
-Inspect a signature associated with a blob
+Inspect a signature associated with a blob.
 
 Usage:
   notation blob inspect [flags] <signature_path>
@@ -124,7 +124,7 @@ Flags:
 ### notation blob policy import
 
 ```text
-Import blob trust policy configuration from a JSON file
+Import blob trust policy configuration from a JSON file.
 
 Usage:
   notation blob policy import [flags] <file_path>
@@ -137,7 +137,7 @@ Flags:
 ### notation blob policy show
 
 ```text
-Show blob trust policy configuration
+Show blob trust policy configuration.
 
 Usage:
   notation blob policy show [flags]
@@ -149,7 +149,7 @@ Flags:
 ### notation blob verify
 
 ```text
-Verify a signature associated with a blob
+Verify a signature associated with a blob.
 
 Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
