@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. 
+Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission.
 
 Users can use `notation blob policy` command to manage trust policies for verifying a blob signature. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
 
@@ -21,7 +21,7 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
+            "trustStores": [
               "ca:wabbit-networks",
             ],
             "trustedIdentities": [
@@ -31,7 +31,7 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
         {
             "name": "skip-verification-policy",
             "signatureVerification": {
-              "level" : "skip" 
+              "level" : "skip"
             }
         },
         {
@@ -52,7 +52,7 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
 ### notation blob command
 
 ```text
-Sign, inspect, and verify signatures and configure trust policies.
+Sign, verify, inspect signatures of blob. Configure blob trust policy.
 
 Usage:
   notation blob [command]
@@ -76,7 +76,7 @@ Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-       --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
+       --signature-directory string optional directory where the blob signature needs to be placed (default: currently working directory)
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -129,7 +129,7 @@ Import blob trust policy configuration from a JSON file
 Usage:
   notation blob policy import [flags] <file_path>
 
-Flags:    
+Flags:
       --force     override the existing trust policy configuration, never prompt
   -h, --help      help for import
 ```
@@ -329,7 +329,7 @@ notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 
 An example of import trust policy configuration from a JSON file:
 
-```shell  
+```shell
 notation blob policy import ./my_policy.json
 ```
 
@@ -387,7 +387,7 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
+            "trustStores": [
               "ca:wabbit-networks",
             ],
             "trustedIdentities": [

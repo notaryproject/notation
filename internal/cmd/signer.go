@@ -34,7 +34,7 @@ func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, erro
 		if err != nil {
 			return nil, err
 		}
-		return signer.NewFromPlugin(plugin, opts.KeyID, map[string]string{})
+		return signer.NewPluginSigner(plugin, opts.KeyID, map[string]string{})
 	}
 
 	// Construct a signer from preconfigured key pair in config.json
@@ -54,7 +54,42 @@ func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, erro
 		if err != nil {
 			return nil, err
 		}
-		return signer.NewFromPlugin(plugin, key.ExternalKey.ID, key.PluginConfig)
+		return signer.NewPluginSigner(plugin, key.ExternalKey.ID, key.PluginConfig)
 	}
-	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
+	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check https://notaryproject.dev/docs/user-guides/how-to/notation-config-file/ for details")
+}
+
+// GetBlobSigner returns a blob signer according to the CLI context.
+func GetBlobSigner(ctx context.Context, opts *SignerFlagOpts) (notation.BlobSigner, error) {
+	// Check if using on-demand key
+	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
+		// Construct a signer from on-demand key
+		mgr := plugin.NewCLIManager(dir.PluginFS())
+		plugin, err := mgr.Get(ctx, opts.PluginName)
+		if err != nil {
+			return nil, err
+		}
+		return signer.NewPluginSigner(plugin, opts.KeyID, map[string]string{})
+	}
+
+	// Construct a signer from preconfigured key pair in config.json
+	// if key name is provided as the CLI argument
+	key, err := configutil.ResolveKey(opts.Key)
+	if err != nil {
+		return nil, err
+	}
+	if key.X509KeyPair != nil {
+		return signer.NewGenericSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
+	}
+	// Construct a plugin signer if key name provided as the CLI argument
+	// corresponds to an external key
+	if key.ExternalKey != nil {
+		mgr := plugin.NewCLIManager(dir.PluginFS())
+		plugin, err := mgr.Get(ctx, key.PluginName)
+		if err != nil {
+			return nil, err
+		}
+		return signer.NewPluginSigner(plugin, key.ExternalKey.ID, key.PluginConfig)
+	}
+	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check https://notaryproject.dev/docs/user-guides/how-to/notation-config-file/ for details")
 }
