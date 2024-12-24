@@ -118,4 +118,4 @@ export NOTATION_E2E_PLUGIN_TAR_GZ_PATH=$CWD/plugin/bin/$PLUGIN_NAME.tar.gz
 export NOTATION_E2E_MALICIOUS_PLUGIN_ARCHIVE_PATH=$CWD/testdata/malicious-plugin
 
 # run tests
-ginkgo -r -p -v --focus "blob trust policy maintainer"
+ginkgo -r -p -v 

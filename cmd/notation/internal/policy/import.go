@@ -86,6 +86,15 @@ func Import(filePath string, force, isOCIPolicy bool) error {
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
 		return fmt.Errorf("failed to write trust policy file: %w", err)
 	}
+
+	// cleanup old trust policy
+	if isOCIPolicy {
+		oldPolicyPath, _ := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
+		if err := osutil.RemoveIfExists(oldPolicyPath); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Warning: failed to cleanup old trust policy %q: %v\n", oldPolicyPath, err)
+		}
+	}
+
 	_, err = fmt.Fprintln(os.Stdout, "Trust policy configuration imported successfully.")
 	return err
 }
