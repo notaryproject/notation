@@ -22,7 +22,7 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
                 "level": "strict"
             },
             "trustStores": [
-              "ca:wabbit-networks",
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
@@ -388,7 +388,7 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
                 "level": "strict"
             },
             "trustStores": [
-              "ca:wabbit-networks",
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
