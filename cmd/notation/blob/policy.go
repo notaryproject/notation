@@ -20,6 +20,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func policyCmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "policy [command]",
+		Short: "manage trust policy configuration for signed blobs",
+		Long:  "Manage trust policy configuration for arbitrary blob signature verification.",
+	}
+
+	command.AddCommand(
+		importCmd(),
+		showCmd(),
+	)
+
+	return command
+}
+
 type importOpts struct {
 	filePath string
 	force    bool

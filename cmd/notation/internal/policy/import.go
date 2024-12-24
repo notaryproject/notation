@@ -89,9 +89,12 @@ func Import(filePath string, force, isOCIPolicy bool) error {
 
 	// cleanup old trust policy
 	if isOCIPolicy {
-		oldPolicyPath, _ := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
+		oldPolicyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
+		if err != nil {
+			return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
+		}
 		if err := osutil.RemoveIfExists(oldPolicyPath); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Warning: failed to cleanup old trust policy %q: %v\n", oldPolicyPath, err)
+			_, _ = fmt.Fprintf(os.Stderr, "Warning: failed to clear old trust policy %q: %v\n", oldPolicyPath, err)
 		}
 	}
 

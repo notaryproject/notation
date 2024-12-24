@@ -74,6 +74,7 @@ func loadOCIDocument() ([]byte, error) {
 			return nil, err
 		}
 	}
+	defer f.Close()
 	return io.ReadAll(f)
 }
 
@@ -82,5 +83,6 @@ func loadBlobDocument() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	return io.ReadAll(f)
 }

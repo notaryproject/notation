@@ -15,6 +15,7 @@ package blob
 
 import "github.com/spf13/cobra"
 
+// Cmd returns the command for blob
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "blob [commnad]",
@@ -24,21 +25,6 @@ func Cmd() *cobra.Command {
 
 	command.AddCommand(
 		policyCmd(),
-	)
-
-	return command
-}
-
-func policyCmd() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "policy [command]",
-		Short: "manage trust policy configuration for signed blobs",
-		Long:  "Manage trust policy configuration for arbitrary blob signature verification.",
-	}
-
-	command.AddCommand(
-		importCmd(),
-		showCmd(),
 	)
 
 	return command

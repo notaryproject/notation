@@ -44,7 +44,7 @@ var _ = Describe("trust policy maintainer", func() {
 			})
 		})
 
-		It("should show exist policy", func() {
+		It("should show exist old policy", func() {
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName))
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -61,6 +61,16 @@ var _ = Describe("trust policy maintainer", func() {
 				notation.Exec("policy", "show").
 					MatchErrKeyWords("existing trust policy configuration is invalid").
 					MatchContent(string(content))
+			})
+		})
+
+		It("should failed if without permission to read policy", func() {
+			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
+				os.Chmod(trustPolicyPath, 0000)
+				notation.ExpectFailure().
+					Exec("policy", "show").
+					MatchErrKeyWords("failed to show trust policy", "permission denied")
 			})
 		})
 	})
@@ -88,6 +98,13 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "import", "/??/???")
+			})
+		})
+
+		It("should failed if provide file is malformed json", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.ExpectFailure().
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, "invalid_format_trustpolicy.json"))
 			})
 		})
 
@@ -121,6 +138,21 @@ var _ = Describe("trust policy maintainer", func() {
 		It("should import successfully by force", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force")
+			})
+		})
+
+		It("should failed if without permission to write policy", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName))
+
+				trustPolicyPath := vhost.AbsolutePath(NotationDirName)
+				os.Chmod(trustPolicyPath, 0000)
+				defer os.Chmod(trustPolicyPath, 0755)
+
+				notation.ExpectFailure().
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force").
+					MatchErrKeyWords("failed to write trust policy file")
 			})
 		})
 	})

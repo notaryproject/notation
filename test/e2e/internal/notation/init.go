@@ -25,6 +25,7 @@ import (
 const (
 	NotationDirName     = "notation"
 	TrustPolicyName     = "trustpolicy.json"
+	OCITrustPolicyName  = "trustpolicy.oci.json"
 	BlobTrustPolicyName = "trustpolicy.blob.json"
 	TrustStoreDirName   = "truststore"
 	TrustStoreTypeCA    = "ca"
