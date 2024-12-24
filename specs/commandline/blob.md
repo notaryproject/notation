@@ -387,8 +387,8 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
-              "ca:wabbit-networks",
+            "trustStores": [
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
