@@ -11,31 +11,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package policy
+package blob
 
-import (
-	"github.com/notaryproject/notation/cmd/notation/internal/policy"
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-func showCmd() *cobra.Command {
+func Cmd() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "show [flags]",
-		Short: "Show trust policy configuration",
-		Long: `Show trust policy configuration.
-
-** This command is in preview and under development. **
-
-Example - Show current trust policy configuration:
-  notation policy show
-
-Example - Save current trust policy configuration to a file:
-  notation policy show > my_policy.json
-`,
-		Args: cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return policy.Show(true)
-		},
+		Use:   "blob [commnad]",
+		Short: "Sign, verify and inspect singatures associated with blobs",
+		Long:  "Sign, inspect, and verify signatures and configure trust policies.",
 	}
+
+	command.AddCommand(
+		policyCmd(),
+	)
+
+	return command
+}
+
+func policyCmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "policy [command]",
+		Short: "manage trust policy configuration for signed blobs",
+		Long:  "Manage trust policy configuration for arbitrary blob signature verification.",
+	}
+
+	command.AddCommand(
+		importCmd(),
+		showCmd(),
+	)
+
 	return command
 }

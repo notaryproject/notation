@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package policy
+package blob
 
 import (
 	"fmt"
@@ -29,25 +29,43 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "Import trust policy configuration from a JSON file",
-		Long: `Import trust policy configuration from a JSON file.
-
-** This command is in preview and under development. **
+		Short: "import trust policy configuration from a JSON file",
+		Long: `Import blob trust policy configuration from a JSON file.
 
 Example - Import trust policy configuration from a file:
-  notation policy import my_policy.json
+  notation blob policy import my_policy.json
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation policy import <path-to-policy.json>\nPlease specify a trust policy file location as the argument", len(args))
+				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation blob policy import <path-to-policy.json>\nPlease specify a trust policy file location as the argument", len(args))
 			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.filePath = args[0]
-			return policy.Import(opts.filePath, opts.force, true)
+			return policy.Import(opts.filePath, opts.force, false)
 		},
 	}
 	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy configuration, never prompt")
+	return command
+}
+
+func showCmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "show [flags]",
+		Short: "show trust policy configuration",
+		Long: `Show blob trust policy configuration.
+
+Example - Show current blob trust policy configuration:
+  notation blob policy show
+
+Example - Save current blob trust policy configuration to a file:
+  notation blob policy show > my_policy.json
+`,
+		Args: cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return policy.Show(false)
+		},
+	}
 	return command
 }
