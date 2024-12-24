@@ -31,9 +31,9 @@ import (
 // Otherwise, it will show blob trust policy configuration.
 func Show(isOCIPolicy bool) error {
 	var (
+		doc        policy
 		policyJSON []byte
 		err        error
-		doc        policy
 	)
 	if isOCIPolicy {
 		doc = &trustpolicy.OCIDocument{}
