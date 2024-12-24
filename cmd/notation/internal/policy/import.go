@@ -55,7 +55,6 @@ func Import(filePath string, force, isOCIPolicy bool) error {
 
 	// optional confirmation
 	if !force {
-		var err error
 		if isOCIPolicy {
 			_, err = trustpolicy.LoadDocument()
 		} else {
@@ -87,7 +86,7 @@ func Import(filePath string, force, isOCIPolicy bool) error {
 		return fmt.Errorf("failed to write trust policy file: %w", err)
 	}
 
-	// cleanup old trust policy
+	// clear old trust policy
 	if isOCIPolicy {
 		oldPolicyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
 		if err != nil {

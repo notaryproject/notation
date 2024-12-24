@@ -66,8 +66,10 @@ var _ = Describe("trust policy maintainer", func() {
 
 		It("should failed if without permission to read policy", func() {
 			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
-				os.Chmod(trustPolicyPath, 0000)
+				notationPath := vhost.AbsolutePath(NotationDirName)
+				os.Chmod(notationPath, 0000)
+				defer os.Chmod(notationPath, 0755)
+
 				notation.ExpectFailure().
 					Exec("policy", "show").
 					MatchErrKeyWords("failed to show trust policy", "permission denied")
