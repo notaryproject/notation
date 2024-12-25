@@ -26,41 +26,33 @@ import (
 
 // GetSigner returns a signer according to the CLI context.
 func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, error) {
-	// Check if using on-demand key
-	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
-		// Construct a signer from on-demand key
-		mgr := plugin.NewCLIManager(dir.PluginFS())
-		plugin, err := mgr.Get(ctx, opts.PluginName)
-		if err != nil {
-			return nil, err
-		}
-		return signer.NewPluginSigner(plugin, opts.KeyID, map[string]string{})
-	}
-
-	// Construct a signer from preconfigured key pair in config.json
-	// if key name is provided as the CLI argument
-	key, err := configutil.ResolveKey(opts.Key)
+	s, err := signerCore(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
-	if key.X509KeyPair != nil {
-		return signer.NewFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
-	}
-	// Construct a plugin signer if key name provided as the CLI argument
-	// corresponds to an external key
-	if key.ExternalKey != nil {
-		mgr := plugin.NewCLIManager(dir.PluginFS())
-		plugin, err := mgr.Get(ctx, key.PluginName)
-		if err != nil {
-			return nil, err
-		}
-		return signer.NewPluginSigner(plugin, key.ExternalKey.ID, key.PluginConfig)
-	}
-	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check https://notaryproject.dev/docs/user-guides/how-to/notation-config-file/ for details")
+
+	// always true, as signerCore returns either signer.PluginSigner or
+	// signer.GenericSigner.
+	notationSigner, _ := s.(notation.Signer)
+	return notationSigner, nil
 }
 
 // GetBlobSigner returns a blob signer according to the CLI context.
 func GetBlobSigner(ctx context.Context, opts *SignerFlagOpts) (notation.BlobSigner, error) {
+	s, err := signerCore(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	// always true, as signerCore returns either signer.PluginSigner or
+	// signer.GenericSigner.
+	notationBlobSigner, _ := s.(notation.BlobSigner)
+	return notationBlobSigner, nil
+}
+
+// signerCore returns a signer.PluginSigner or signer.GenericSigner based on
+// user opts.
+func signerCore(ctx context.Context, opts *SignerFlagOpts) (any, error) {
 	// Check if using on-demand key
 	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
 		// Construct a signer from on-demand key
@@ -81,6 +73,7 @@ func GetBlobSigner(ctx context.Context, opts *SignerFlagOpts) (notation.BlobSign
 	if key.X509KeyPair != nil {
 		return signer.NewGenericSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
 	}
+
 	// Construct a plugin signer if key name provided as the CLI argument
 	// corresponds to an external key
 	if key.ExternalKey != nil {

@@ -14,20 +14,33 @@
 package blob
 
 import (
+	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/revocation/purpose"
+	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/osutil"
+	clirev "github.com/notaryproject/notation/internal/revocation"
+	nx509 "github.com/notaryproject/notation/internal/x509"
+	"github.com/notaryproject/tspclient-go"
 	"github.com/spf13/cobra"
 )
+
+// timestampingTimeout is the timeout when requesting timestamp countersignature
+// from a TSA
+const timestampingTimeout = 15 * time.Second
 
 type blobSignOpts struct {
 	cmd.LoggingFlagOpts
@@ -36,6 +49,7 @@ type blobSignOpts struct {
 	pluginConfig           []string
 	userMetadata           []string
 	blobPath               string
+	blobMediaType          string
 	signatureDirectory     string
 	tsaServerURL           string
 	tsaRootCertificatePath string
@@ -46,7 +60,7 @@ func signCommand(opts *blobSignOpts) *cobra.Command {
 	if opts == nil {
 		opts = &blobSignOpts{}
 	}
-	longMessage := `Sign blob artifacts
+	longMessage := `Produce a detached signature for a given blob.
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
@@ -82,7 +96,7 @@ Example - Sign a blob artifact with timestamping:
 `
 
 	command := &cobra.Command{
-		Use:   "blob sign [flags] <blobPath>",
+		Use:   "sign [flags] <blobPath>",
 		Short: "Sign blob artifacts",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -101,6 +115,7 @@ Example - Sign a blob artifact with timestamping:
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	command.Flags().StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
 	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
@@ -116,20 +131,24 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	if err != nil {
 		return err
 	}
-	blobOpts, err := prepareBlobSigningOpts(cmdOpts)
+	blobOpts, err := prepareBlobSigningOpts(ctx, cmdOpts)
 	if err != nil {
 		return err
 	}
-	contents, err := os.ReadFile(cmdOpts.blobPath)
+	blobFile, err := os.Open(cmdOpts.blobPath)
 	if err != nil {
 		return err
 	}
+	defer blobFile.Close()
+
 	// core process
-	sig, _, err := notation.SignBlob(ctx, signer, strings.NewReader(string(contents)), blobOpts)
+	sig, _, err := notation.SignBlob(ctx, signer, blobFile, blobOpts)
 	if err != nil {
 		return err
 	}
 	signaturePath := signatureFilepath(cmdOpts.signatureDirectory, cmdOpts.blobPath, cmdOpts.SignatureFormat)
+	fmt.Printf("Writing signature to file %q...\n", signaturePath)
+
 	// optional confirmation
 	if !cmdOpts.force {
 		if _, err := os.Stat(signaturePath); err == nil {
@@ -144,16 +163,18 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	} else {
 		fmt.Fprintln(os.Stderr, "Warning: existing signature file will be overwritten")
 	}
+
 	// write signature to file
 	if err := osutil.WriteFile(signaturePath, sig); err != nil {
-		return fmt.Errorf("failed to write signature file: %w", err)
+		return fmt.Errorf("failed to write signature to file: %w", err)
 	}
-
-	fmt.Printf("Successfully signed %s. Saved signature file at %s\n", cmdOpts.blobPath, signaturePath)
+	fmt.Printf("Successfully signed %q. Saved signature file at %q\n", cmdOpts.blobPath, signaturePath)
 	return nil
 }
 
-func prepareBlobSigningOpts(opts *blobSignOpts) (notation.SignBlobOptions, error) {
+func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.SignBlobOptions, error) {
+	logger := log.GetLogger(ctx)
+
 	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
@@ -166,17 +187,55 @@ func prepareBlobSigningOpts(opts *blobSignOpts) (notation.SignBlobOptions, error
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	blobOpts := notation.SignBlobOptions{
+	signBlobOpts := notation.SignBlobOptions{
 		SignerSignOptions: notation.SignerSignOptions{
 			SignatureMediaType: mediaType,
 			ExpiryDuration:     opts.expiry,
 			PluginConfig:       pluginConfig,
 		},
-		UserMetadata: userMetadata,
+		ContentMediaType: opts.blobMediaType,
+		UserMetadata:     userMetadata,
 	}
-	return blobOpts, nil
+	if opts.tsaServerURL != "" {
+		// timestamping
+		logger.Infof("Configured to timestamp with TSA %q", opts.tsaServerURL)
+		signBlobOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.tsaServerURL)
+		if err != nil {
+			return notation.SignBlobOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
+		}
+
+		rootCerts, err := corex509.ReadCertificateFile(opts.tsaRootCertificatePath)
+		if err != nil {
+			return notation.SignBlobOptions{}, err
+		}
+		if len(rootCerts) == 0 {
+			return notation.SignBlobOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+		}
+		if len(rootCerts) > 1 {
+			return notation.SignBlobOptions{}, fmt.Errorf("found more than one certificates from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+		}
+		tsaRootCert := rootCerts[0]
+		isRoot, err := nx509.IsRootCertificate(tsaRootCert)
+		if err != nil {
+			return notation.SignBlobOptions{}, fmt.Errorf("failed to check root certificate with error: %w", err)
+		}
+		if !isRoot {
+			return notation.SignBlobOptions{}, fmt.Errorf("certificate from %q is not a root certificate. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
+
+		}
+		rootCAs := x509.NewCertPool()
+		rootCAs.AddCert(tsaRootCert)
+		signBlobOpts.TSARootCAs = rootCAs
+		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+		if err != nil {
+			return notation.SignBlobOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
+		}
+		signBlobOpts.TSARevocationValidator = tsaRevocationValidator
+	}
+	return signBlobOpts, nil
 }
 
+// signatureFilepath returns the path to the signature file.
 func signatureFilepath(signatureDirectory, blobPath, signatureFormat string) string {
 	blobFilename := filepath.Base(blobPath)
 	signatureFilename := fmt.Sprintf("%s.%s.sig", blobFilename, signatureFormat)
