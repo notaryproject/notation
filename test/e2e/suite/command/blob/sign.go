@@ -71,9 +71,10 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with signature directory", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", "--signature-directory", filepath.Dir(blobPath), blobPath).
+			blobDir := filepath.Dir(blobPath)
+			notation.Exec("blob", "sign", "--signature-directory", blobDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %q", filepath.Dir(blobPath)))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %q", filepath.Join(blobDir, "blobFile.jws.sig")))
 		})
 	})
 
