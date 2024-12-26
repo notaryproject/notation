@@ -48,7 +48,7 @@ var _ = Describe("notation blob sign", func() {
 			notation.Exec("cert", "generate-test", keyName).
 				MatchKeyWords(fmt.Sprintf("notation/localkeys/%s.crt", keyName))
 
-			notation.Exec("blob", "sign", "--key", keyName, blobPath).
+			notation.Exec("blob", "sign", "--force", "--key", keyName, blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -63,7 +63,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with expiry in 24h", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", "--expiry", "24h", blobPath).
+			notation.Exec("blob", "sign", "--expiry", "24h", "--force", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -71,17 +71,14 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with signature directory", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", "--signature-directory", blobPath, blobPath).
+			notation.Exec("blob", "sign", "--signature-directory", filepath.Dir(blobPath), blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %q", blobPath))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %q", filepath.Dir(blobPath)))
 		})
 	})
 
 	It("with force saving signature", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", blobPath).
-				MatchKeyWords(SignSuccessfully)
-
 			notation.Exec("blob", "sign", "--force", blobPath).
 				MatchErrKeyWords("Warning: existing signature file will be overwritten").
 				MatchKeyWords(SignSuccessfully).
@@ -91,7 +88,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with timestamping", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
+			notation.Exec("blob", "sign", "--force", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})

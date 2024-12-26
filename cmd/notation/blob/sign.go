@@ -109,6 +109,15 @@ Example - Sign a blob artifact with timestamping:
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// timestamping
+			if cmd.Flags().Changed("timestamp-url") {
+				if opts.tsaServerURL == "" {
+					return errors.New("timestamping: tsa url cannot be empty")
+				}
+				if opts.tsaRootCertificatePath == "" {
+					return errors.New("timestamping: tsa root certificate path cannot be empty")
+				}
+			}
 			return runBlobSign(cmd, opts)
 		},
 	}
