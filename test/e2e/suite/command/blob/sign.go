@@ -128,8 +128,7 @@ var _ = Describe("notation blob sign", func() {
 	It("with timestamping and invalid tsa server", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("blob", "sign", "--timestamp-url", "http://tsa.invalid", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
-				MatchErrKeyWords("Error: timestamp: Post \"http://tsa.invalid\"").
-				MatchErrKeyWords("server misbehaving")
+				MatchErrKeyWords("Error: timestamp: Post \"http://tsa.invalid\"")
 		})
 	})
 

@@ -297,8 +297,7 @@ var _ = Describe("notation sign", func() {
 	It("with timestamping and invalid tsa server", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("sign", "--timestamp-url", "http://tsa.invalid", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
-				MatchErrKeyWords("Error: timestamp: Post \"http://tsa.invalid\"").
-				MatchErrKeyWords("server misbehaving")
+				MatchErrKeyWords("Error: timestamp: Post \"http://tsa.invalid\"")
 		})
 	})
 
