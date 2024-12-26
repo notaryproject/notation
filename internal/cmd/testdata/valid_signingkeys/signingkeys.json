@@ -3,7 +3,7 @@
         {
             "name": "test",
             "id": "testKey",
-            "pluginName": "testPlugin"
+            "pluginName": "testplugin"
         }
     ]
 }
