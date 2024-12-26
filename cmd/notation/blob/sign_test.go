@@ -32,6 +32,8 @@ func TestBlobSignCommand_BasicArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
+		signatureDirectory: ".",
+		blobMediaType:      "application/octet-stream",
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
@@ -55,7 +57,9 @@ func TestBlobSignCommand_MoreArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
 		},
-		expiry: 24 * time.Hour,
+		expiry:             24 * time.Hour,
+		signatureDirectory: ".",
+		blobMediaType:      "application/octet-stream",
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
@@ -81,8 +85,10 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
 		},
-		expiry:       365 * 24 * time.Hour,
-		pluginConfig: []string{"key0=val0", "key1=val1"},
+		expiry:             365 * 24 * time.Hour,
+		pluginConfig:       []string{"key0=val0", "key1=val1"},
+		signatureDirectory: ".",
+		blobMediaType:      "application/octet-stream",
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
@@ -128,6 +134,8 @@ func TestBlobSignCommand_OnDemandKeyOptions(t *testing.T) {
 			PluginName:      "pluginName",
 			SignatureFormat: envelope.JWS,
 		},
+		signatureDirectory: ".",
+		blobMediaType:      "application/octet-stream",
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
@@ -155,6 +163,8 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
+			signatureDirectory: ".",
+			blobMediaType:      "application/octet-stream",
 		}
 		if err := command.ParseFlags([]string{
 			expected.blobPath,
@@ -184,6 +194,8 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
+			signatureDirectory: ".",
+			blobMediaType:      "application/octet-stream",
 		}
 		if err := command.ParseFlags([]string{
 			expected.blobPath,
@@ -212,6 +224,8 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
+			signatureDirectory: ".",
+			blobMediaType:      "application/octet-stream",
 		}
 		if err := command.ParseFlags([]string{
 			expected.blobPath,
@@ -239,6 +253,8 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 				KeyID:           "keyID",
 				SignatureFormat: envelope.JWS,
 			},
+			signatureDirectory: ".",
+			blobMediaType:      "application/octet-stream",
 		}
 		if err := command.ParseFlags([]string{
 			expected.blobPath,
@@ -265,6 +281,8 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 				PluginName:      "pluginName",
 				SignatureFormat: envelope.JWS,
 			},
+			signatureDirectory: ".",
+			blobMediaType:      "application/octet-stream",
 		}
 		if err := command.ParseFlags([]string{
 			expected.blobPath,

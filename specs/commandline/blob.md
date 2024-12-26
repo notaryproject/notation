@@ -22,7 +22,7 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
                 "level": "strict"
             },
             "trustStores": [
-              "ca:wabbit-networks",
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
@@ -70,7 +70,9 @@ Flags:
 ### notation blob sign
 
 ```text
-Produce a detached signature for a given blob. The signature file will be written to the currently working directory with `blob file name` + `signature format` + `.sig` as the signature's file name. For example, signature file name for "myBlob.bin" will be "myBlob.bin.sig.jws" for JWS signature format or "myBlob.bin.sig.cose" for COSE signature format.
+Produce a detached signature for a given blob.
+
+The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig".
 
 Usage:
   notation blob sign [flags] <blobPath>
@@ -172,6 +174,7 @@ Flags:
 ## Usage
 
 ## Produce blob signatures
+The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig". For example, signature file name for "myBlob.bin" will be "myBlob.bin.jws.sig" for JWS signature format or "myBlob.bin.cose.sig" for COSE signature format.
 
 ### Sign a blob by adding a new key
 
@@ -191,22 +194,22 @@ An example for a successful signing:
 
 ```console
 $ notation blob sign /tmp/my-blob.bin
-Successfully signed /tmp/my-blob.bin
-Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.jws
+Successfully signed "/tmp/my-blob.bin"
+Signature file written to "/absolute/path/to/cwd/my-blob.bin.jws.sig"
 ```
 
 ### Sign a blob by generating the signature in a particular directory
 ```console
 $ notation blob sign --signature-directory /tmp/xyz/sigs /tmp/my-blob.bin
-Successfully signed /tmp/my-blob.bin
-Signature file written to /tmp/xyz/sigs/my-blob.bin.sig.jws
+Successfully signed "/tmp/my-blob.bin"
+Signature file written to "/tmp/xyz/sigs/my-blob.bin.jws.sig"
 ```
 
 ### Sign a blob using a relative path
 ```console
 $ notation blob sign ./relative/path/my-blob.bin
-Successfully signed ./relative/path/my-blob.bin
-Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.jws
+Successfully signed "./relative/path/my-blob.bin"
+Signature file written to "/absolute/path/to/cwd/my-blob.bin.jws.sig"
 ```
 
 ### Sign a blob with a plugin
@@ -223,8 +226,8 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 
 # Use option "--signature-format" to set the signature format to COSE.
 $ notation blob sign --signature-format cose /tmp/my-blob.bin
-Successfully signed /tmp/my-blob.bin
-Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.cose
+Successfully signed "/tmp/my-blob.bin"
+Signature file written to "/absolute/path/to/cwd/my-blob.bin.cose.sig"
 ```
 
 ### Sign a blob using the default signing key
@@ -391,7 +394,7 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
                 "level": "strict"
             },
             "trustStores": [
-              "ca:wabbit-networks",
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"

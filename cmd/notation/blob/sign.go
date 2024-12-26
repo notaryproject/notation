@@ -62,6 +62,8 @@ func signCommand(opts *blobSignOpts) *cobra.Command {
 	}
 	longMessage := `Produce a detached signature for a given blob.
 
+The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig".
+
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
 Example - Sign a blob artifact using the default signing key, with the default JWS envelope, and store the signature at current directory:
@@ -168,7 +170,8 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	if err := osutil.WriteFile(signaturePath, sig); err != nil {
 		return fmt.Errorf("failed to write signature to file: %w", err)
 	}
-	fmt.Printf("Successfully signed %q. Saved signature file at %q\n", cmdOpts.blobPath, signaturePath)
+	fmt.Printf("Successfully signed %q\n ", cmdOpts.blobPath)
+	fmt.Printf("Signature file written to %q\n", signaturePath)
 	return nil
 }
 
