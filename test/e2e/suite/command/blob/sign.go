@@ -23,14 +23,14 @@ import (
 var _ = Describe("notation blob sign", func() {
 	It("blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob sign", blobPath).
+			notation.Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
 
 	It("with COSE format", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob sign", "--signature-format", "cose", blobPath).
+			notation.Exec("blob", "sign", "--signature-format", "cose", blobPath).
 				MatchKeyWords(SignSuccessfully)
 		})
 	})
