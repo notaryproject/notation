@@ -122,6 +122,7 @@ Example - Sign a blob artifact with timestamping:
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 	command.Flags().BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")
+	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
 	return command
 }
 
