@@ -45,7 +45,34 @@ func TestPluginSignerImpl(t *testing.T) {
 	}
 }
 
-func TestGetSigner(t *testing.T) {
+func TestGetSignerFromOpts(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on Windows")
+	}
+
+	defer func(oldLibexeDir string) {
+		dir.UserLibexecDir = oldLibexeDir
+	}(dir.UserLibexecDir)
+
+	dir.UserLibexecDir = "./testdata/plugins"
+	ctx := context.Background()
+	opts := &SignerFlagOpts{
+		KeyID:      "testKeyId",
+		PluginName: "testPlugin",
+	}
+
+	_, err := GetSigner(ctx, opts)
+	if err != nil {
+		t.Fatalf("expected nil error, but got %s", err)
+	}
+
+	_, err = GetBlobSigner(ctx, opts)
+	if err != nil {
+		t.Fatalf("expected nil error, but got %s", err)
+	}
+}
+
+func TestGetSignerFromConfig(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping test on Windows")
 	}
