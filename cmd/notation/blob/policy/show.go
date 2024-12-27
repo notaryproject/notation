@@ -23,38 +23,45 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	"github.com/spf13/cobra"
 )
 
-// Show shows trust policy configuration.
-//
-// - If isOciPolicy is true, it will show OCI trust policy configuration.
-// Otherwise, it will show blob trust policy configuration.
-func Show(isOCIPolicy bool) error {
-	var (
-		doc        policy
-		policyJSON []byte
-		err        error
-	)
-	if isOCIPolicy {
-		doc = &trustpolicy.OCIDocument{}
-		policyJSON, err = loadOCIDocument()
-	} else {
-		doc = &trustpolicy.BlobDocument{}
-		policyJSON, err = loadBlobDocument()
+func showCmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "show [flags]",
+		Short: "show trust policy configuration",
+		Long: `Show blob trust policy configuration.
+
+Example - Show current blob trust policy configuration:
+  notation blob policy show
+
+Example - Save current blob trust policy configuration to a file:
+  notation blob policy show > my_policy.json
+`,
+		Args: cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runShow()
+		},
 	}
+	return command
+}
+
+func runShow() error {
+	policyJSON, err := loadBlobDocument()
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
+			return fmt.Errorf("failed to show blob trust policy as the trust policy file does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show trust policy: %w", err)
 	}
 
+	doc := &trustpolicy.BlobDocument{}
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {
 		err = doc.Validate()
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		fmt.Fprintf(os.Stderr, "Existing trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
+		fmt.Fprintf(os.Stderr, "Existing blob trust policy configuration is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`\n")
 		// not returning to show the invalid policy configuration
 	}
 
@@ -63,21 +70,8 @@ func Show(isOCIPolicy bool) error {
 	return err
 }
 
-func loadOCIDocument() ([]byte, error) {
-	f, err := dir.ConfigFS().Open(dir.PathOCITrustPolicy)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, err
-		}
-		f, err = dir.ConfigFS().Open(dir.PathTrustPolicy)
-		if err != nil {
-			return nil, err
-		}
-	}
-	defer f.Close()
-	return io.ReadAll(f)
-}
-
+// loadBlobDocument loads the blob trust policy from notation configuration
+// directory.
 func loadBlobDocument() ([]byte, error) {
 	f, err := dir.ConfigFS().Open(dir.PathBlobTrustPolicy)
 	if err != nil {

@@ -14,7 +14,15 @@
 package policy
 
 import (
-	"github.com/notaryproject/notation/cmd/notation/internal/policy"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"io/fs"
+	"os"
+
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/spf13/cobra"
 )
 
@@ -34,8 +42,51 @@ Example - Save current trust policy configuration to a file:
 `,
 		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return policy.Show(true)
+			return runShow()
 		},
 	}
 	return command
+}
+
+func runShow() error {
+	policyJSON, err := loadOCIDocument()
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
+		}
+		return fmt.Errorf("failed to show trust policy: %w", err)
+	}
+
+	doc := &trustpolicy.OCIDocument{}
+	if err = json.Unmarshal(policyJSON, &doc); err == nil {
+		err = doc.Validate()
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Existing trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
+		// not returning to show the invalid policy configuration
+	}
+
+	// show policy content
+	_, err = os.Stdout.Write(policyJSON)
+	return err
+}
+
+// loadOCIDocument loads OCI trust policy from notation configuration directory.
+//
+// It tries to load OCI trust policy (trustpolicy.oci.json) first, if it does
+// not exist, it falls back to old trust policy (trustpolicy.json).
+func loadOCIDocument() ([]byte, error) {
+	f, err := dir.ConfigFS().Open(dir.PathOCITrustPolicy)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		f, err = dir.ConfigFS().Open(dir.PathTrustPolicy)
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer f.Close()
+	return io.ReadAll(f)
 }

@@ -22,30 +22,47 @@ import (
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/spf13/cobra"
 )
 
-type policy interface {
-	Validate() error
+type importOpts struct {
+	filePath string
+	force    bool
 }
 
-// Import imports trust policy configuration from a JSON file.
-//
-// - If force is true, it will override the existing trust policy configuration
-// without prompting.
-// - If isOciPolicy is true, it will import OCI trust policy configuration.
-// Otherwise, it will import blob trust policy configuration.
-func Import(filePath string, force, isOCIPolicy bool) error {
+func importCmd() *cobra.Command {
+	var opts importOpts
+	command := &cobra.Command{
+		Use:   "import [flags] <file_path>",
+		Short: "import trust policy configuration from a JSON file",
+		Long: `Import blob trust policy configuration from a JSON file.
+
+Example - Import trust policy configuration from a file:
+  notation blob policy import my_policy.json
+`,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation blob policy import <path-to-policy.json>\nPlease specify a trust policy file location as the argument", len(args))
+			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts.filePath = args[0]
+			return runImport(opts)
+		},
+	}
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy configuration, never prompt")
+	return command
+}
+
+func runImport(opts importOpts) error {
 	// read configuration
-	policyJSON, err := os.ReadFile(filePath)
+	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read trust policy file: %w", err)
 	}
 
-	// parse and validate
-	var doc policy = &trustpolicy.OCIDocument{}
-	if !isOCIPolicy {
-		doc = &trustpolicy.BlobDocument{}
-	}
+	doc := &trustpolicy.BlobDocument{}
 	if err = json.Unmarshal(policyJSON, doc); err != nil {
 		return fmt.Errorf("failed to parse trust policy configuration: %w", err)
 	}
@@ -54,14 +71,10 @@ func Import(filePath string, force, isOCIPolicy bool) error {
 	}
 
 	// optional confirmation
-	if !force {
-		if isOCIPolicy {
-			_, err = trustpolicy.LoadDocument()
-		} else {
-			_, err = trustpolicy.LoadBlobDocument()
-		}
+	if !opts.force {
+		_, err = trustpolicy.LoadBlobDocument()
 		if err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy file already exists, do you want to overwrite it?", force)
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy file already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}
@@ -74,27 +87,12 @@ func Import(filePath string, force, isOCIPolicy bool) error {
 	}
 
 	// write
-	trustPolicyName := dir.PathOCITrustPolicy
-	if !isOCIPolicy {
-		trustPolicyName = dir.PathBlobTrustPolicy
-	}
-	policyPath, err := dir.ConfigFS().SysPath(trustPolicyName)
+	policyPath, err := dir.ConfigFS().SysPath(dir.PathBlobTrustPolicy)
 	if err != nil {
 		return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
 	}
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
 		return fmt.Errorf("failed to write trust policy file: %w", err)
-	}
-
-	// clear old trust policy
-	if isOCIPolicy {
-		oldPolicyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
-		if err != nil {
-			return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
-		}
-		if err := osutil.RemoveIfExists(oldPolicyPath); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to clear old trust policy %q: %v\n", oldPolicyPath, err)
-		}
 	}
 
 	_, err = fmt.Fprintln(os.Stdout, "Trust policy configuration imported successfully.")

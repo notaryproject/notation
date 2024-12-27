@@ -11,21 +11,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package policy provides the import and show command for OCI trust policy.
+// Package policy provides the import and show command for blob trust policy.
 package policy
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+)
 
+// Cmd returns the command for policy including import and show.
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "policy [command]",
-		Short: "Manage trust policy configuration",
-		Long:  "Manage trust policy configuration for signature verification.",
+		Short: "manage trust policy configuration for signed blobs",
+		Long:  "Manage trust policy configuration for arbitrary blob signature verification.",
 	}
 
 	command.AddCommand(
-		showCmd(),
 		importCmd(),
+		showCmd(),
 	)
 
 	return command

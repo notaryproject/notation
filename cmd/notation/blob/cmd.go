@@ -14,7 +14,10 @@
 // Package blob provides the command for blob trust policy configuration.
 package blob
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/notaryproject/notation/cmd/notation/blob/policy"
+	"github.com/spf13/cobra"
+)
 
 // Cmd returns the command for blob
 func Cmd() *cobra.Command {
@@ -25,7 +28,7 @@ func Cmd() *cobra.Command {
 	}
 
 	command.AddCommand(
-		policyCmd(),
+		policy.Cmd(),
 	)
 
 	return command

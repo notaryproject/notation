@@ -32,7 +32,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("blob", "policy", "show").
-					MatchErrKeyWords("failed to show trust policy", "notation policy import")
+					MatchErrKeyWords("failed to show blob trust policy", "notation blob policy import")
 			})
 		})
 
@@ -61,7 +61,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddBlobTrustPolicyOption(policyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.Exec("blob", "policy", "show").
-					MatchErrKeyWords("existing trust policy configuration is invalid").
+					MatchErrKeyWords("existing blob trust policy configuration is invalid").
 					MatchContent(string(content))
 			})
 		})
