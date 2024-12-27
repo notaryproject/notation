@@ -42,6 +42,14 @@ var _ = Describe("notation blob sign", func() {
 		})
 	})
 
+	It("with specified media-type", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.Exec("blob", "sign", "--force", "--media-type", "other-media-type", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+		})
+	})
+
 	It("with specific key", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			const keyName = "sKey"
@@ -82,6 +90,14 @@ var _ = Describe("notation blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.Exec("blob", "sign", "--force", blobPath).
 				MatchErrKeyWords("Warning: existing signature file will be overwritten").
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+		})
+	})
+
+	It("with user metadata", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.Exec("blob", "sign", "--force", "--user-metadata", "k1=v1", "--user-metadata", "k2=v2", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
