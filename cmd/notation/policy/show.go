@@ -15,10 +15,8 @@ package policy
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -51,7 +49,7 @@ Example - Save current trust policy configuration to a file:
 func runShow() error {
 	policyJSON, err := loadOCITrustPolicy()
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
+		if os.IsNotExist(err) {
 			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show trust policy: %w", err)
