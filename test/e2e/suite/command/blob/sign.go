@@ -15,6 +15,7 @@ package blob
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -26,6 +27,7 @@ import (
 const tsaURL = "http://timestamp.digicert.com"
 
 var _ = Describe("notation blob sign", func() {
+	// Success cases
 	It("with blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.Exec("blob", "sign", blobPath).
@@ -59,13 +61,6 @@ var _ = Describe("notation blob sign", func() {
 			notation.Exec("blob", "sign", "--force", "--key", keyName, blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
-		})
-	})
-
-	It("with invalid key", func() {
-		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("blob", "sign", "--key", "invalid", blobPath).
-				MatchErrKeyWords("signing key not found")
 		})
 	})
 
@@ -108,6 +103,61 @@ var _ = Describe("notation blob sign", func() {
 			notation.Exec("blob", "sign", "--force", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
+		})
+	})
+
+	// Failure cases
+	It("with undefined signature format", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "sign", "--signature-format", "invalid", blobPath).
+				MatchErrKeyWords(`signature format "invalid" not supported`)
+		})
+	})
+
+	It("with invalid key", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "sign", "--key", "invalid", blobPath).
+				MatchErrKeyWords("signing key not found")
+		})
+	})
+
+	It("with invalid plugin-config", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "sign", "--plugin-config", "invalid", blobPath).
+				MatchErrKeyWords(`could not parse flag plugin-config: key-value pair requires "=" as separator`)
+		})
+	})
+
+	It("with invalid user metadata", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "sign", "--user-metadata", "invalid", blobPath).
+				MatchErrKeyWords(`could not parse flag user-metadata: key-value pair requires "=" as separator`)
+		})
+	})
+
+	It("with no permission to read the blob file", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			if err := os.Chmod(blobPath, 0000); err != nil {
+				Fail(err.Error())
+			}
+			defer os.Chmod(blobPath, 0700)
+
+			notation.ExpectFailure().Exec("blob", "sign", blobPath).
+				MatchErrKeyWords("permission denied")
+		})
+	})
+
+	It("with no permission to write the signature file", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			blobDir := filepath.Dir(blobPath)
+			sigPath := filepath.Join(blobDir, "blobFile.jws.sig")
+			if err := os.MkdirAll(sigPath, 0000); err != nil {
+				Fail(err.Error())
+			}
+			defer os.Chmod(sigPath, 0700)
+
+			notation.ExpectFailure().Exec("blob", "sign", "--force", blobPath).
+				MatchErrKeyWords("permission denied")
 		})
 	})
 
