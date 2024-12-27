@@ -64,8 +64,9 @@ func runImport(opts importOpts) error {
 		return fmt.Errorf("failed to read trust policy file: %w", err)
 	}
 
-	doc := &trustpolicy.OCIDocument{}
-	if err = json.Unmarshal(policyJSON, doc); err != nil {
+	// parse and validate
+	var doc trustpolicy.Document
+	if err = json.Unmarshal(policyJSON, &doc); err != nil {
 		return fmt.Errorf("failed to parse trust policy configuration: %w", err)
 	}
 	if err = doc.Validate(); err != nil {
@@ -74,8 +75,7 @@ func runImport(opts importOpts) error {
 
 	// optional confirmation
 	if !opts.force {
-		_, err = trustpolicy.LoadDocument()
-		if err == nil {
+		if _, err := trustpolicy.LoadOCIDocument(); err == nil {
 			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy file already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err

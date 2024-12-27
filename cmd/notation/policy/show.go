@@ -57,7 +57,7 @@ func runShow() error {
 		return fmt.Errorf("failed to show trust policy: %w", err)
 	}
 
-	doc := &trustpolicy.OCIDocument{}
+	var doc trustpolicy.Document
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {
 		err = doc.Validate()
 	}

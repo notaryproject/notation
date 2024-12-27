@@ -55,7 +55,7 @@ func runShow() error {
 		return fmt.Errorf("failed to show trust policy: %w", err)
 	}
 
-	doc := &trustpolicy.BlobDocument{}
+	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {
 		err = doc.Validate()
 	}

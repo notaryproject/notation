@@ -23,7 +23,7 @@ import (
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "blob [commnad]",
-		Short: "Sign, verify and inspect singatures associated with blobs",
+		Short: "Sign, verify and inspect signatures associated with blobs",
 		Long:  "Sign, inspect, and verify signatures and configure trust policies.",
 	}
 
