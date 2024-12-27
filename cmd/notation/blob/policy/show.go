@@ -47,7 +47,7 @@ Example - Save current blob trust policy configuration to a file:
 }
 
 func runShow() error {
-	policyJSON, err := loadBlobDocument()
+	policyJSON, err := loadBlobTrustPolicy()
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show blob trust policy as the trust policy file does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
@@ -69,9 +69,9 @@ func runShow() error {
 	return err
 }
 
-// loadBlobDocument loads the blob trust policy from notation configuration
+// loadBlobTrustPolicy loads the blob trust policy from notation configuration
 // directory.
-func loadBlobDocument() ([]byte, error) {
+func loadBlobTrustPolicy() ([]byte, error) {
 	f, err := dir.ConfigFS().Open(dir.PathBlobTrustPolicy)
 	if err != nil {
 		return nil, err

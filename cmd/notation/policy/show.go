@@ -49,7 +49,7 @@ Example - Save current trust policy configuration to a file:
 }
 
 func runShow() error {
-	policyJSON, err := loadOCIDocument()
+	policyJSON, err := loadOCITrustPolicy()
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
@@ -71,11 +71,11 @@ func runShow() error {
 	return err
 }
 
-// loadOCIDocument loads OCI trust policy from notation configuration directory.
+// loadOCITrustPolicy loads OCI trust policy from notation configuration directory.
 //
 // It tries to load OCI trust policy (trustpolicy.oci.json) first, if it does
 // not exist, it falls back to old trust policy (trustpolicy.json).
-func loadOCIDocument() ([]byte, error) {
+func loadOCITrustPolicy() ([]byte, error) {
 	f, err := dir.ConfigFS().Open(dir.PathOCITrustPolicy)
 	if err != nil {
 		if !os.IsNotExist(err) {

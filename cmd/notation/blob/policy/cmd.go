@@ -18,7 +18,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Cmd returns the command for policy including import and show.
+// Cmd returns the commands for policy including import and show.
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "policy [command]",
