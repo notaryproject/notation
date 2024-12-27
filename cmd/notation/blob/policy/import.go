@@ -59,21 +59,21 @@ func runImport(opts importOpts) error {
 	// read configuration
 	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read trust policy file: %w", err)
+		return fmt.Errorf("failed to read blob trust policy file: %w", err)
 	}
 
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
-		return fmt.Errorf("failed to parse trust policy configuration: %w", err)
+		return fmt.Errorf("failed to parse blob trust policy configuration: %w", err)
 	}
 	if err = doc.Validate(); err != nil {
-		return fmt.Errorf("failed to validate trust policy: %w", err)
+		return fmt.Errorf("failed to validate blob trust policy: %w", err)
 	}
 
 	// optional confirmation
 	if !opts.force {
 		if _, err = trustpolicy.LoadBlobDocument(); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy file already exists, do you want to overwrite it?", opts.force)
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy file already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}
@@ -82,18 +82,18 @@ func runImport(opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration file will be overwritten")
 	}
 
 	// write
 	policyPath, err := dir.ConfigFS().SysPath(dir.PathBlobTrustPolicy)
 	if err != nil {
-		return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
+		return fmt.Errorf("failed to obtain path of blob trust policy file: %w", err)
 	}
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
-		return fmt.Errorf("failed to write trust policy file: %w", err)
+		return fmt.Errorf("failed to write blob trust policy file: %w", err)
 	}
 
-	_, err = fmt.Fprintln(os.Stdout, "Trust policy configuration imported successfully.")
+	_, err = fmt.Fprintln(os.Stdout, "Blob trust policy configuration imported successfully.")
 	return err
 }
