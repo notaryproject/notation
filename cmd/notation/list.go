@@ -23,7 +23,7 @@ import (
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/opencontainers/go-digest"
+	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -119,42 +119,24 @@ func runList(ctx context.Context, opts *listOpts) error {
 // printSignatureManifestDigests returns the signature manifest digests of
 // the subject manifest.
 func printSignatureManifestDigests(ctx context.Context, targetDesc ocispec.Descriptor, sigRepo notationregistry.Repository, ref string, maxSigs int) error {
-	titlePrinted := false
-	printTitle := func() {
-		if !titlePrinted {
-			fmt.Println(ref)
-			fmt.Printf("└── %s\n", notationregistry.ArtifactTypeNotation)
-			titlePrinted = true
-		}
-	}
+	treeRoot := ioutil.New(ref)
+	notationNode := treeRoot.Add(notationregistry.ArtifactTypeNotation)
 
-	var prevDigest digest.Digest
 	err := listSignatures(ctx, sigRepo, targetDesc, maxSigs, func(sigManifestDesc ocispec.Descriptor) error {
-		// print the previous signature digest
-		if prevDigest != "" {
-			printTitle()
-			fmt.Printf("    ├── %s\n", prevDigest)
-		}
-		prevDigest = sigManifestDesc.Digest
+		notationNode.Add(sigManifestDesc.Digest.String())
 		return nil
 	})
-	// print the last signature digest
-	if prevDigest != "" {
-		printTitle()
-		fmt.Printf("    └── %s\n", prevDigest)
-	}
+
 	if err != nil {
-		var errExceedMaxSignatures cmderr.ErrorExceedMaxSignatures
-		if !errors.As(err, &errExceedMaxSignatures) {
-			return err
-		}
-		fmt.Println("Warning:", errExceedMaxSignatures)
+		return err
 	}
 
-	if !titlePrinted {
+	if treeRoot.Children[0].Children == nil {
 		fmt.Printf("%s has no associated signature\n", ref)
+		return nil
 	}
-	return nil
+
+	return ioutil.PrintObjectAsTree(treeRoot)
 }
 
 // listSignatures lists signatures associated with manifestDesc with number of
