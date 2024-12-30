@@ -50,14 +50,14 @@ Example - Import trust policy configuration from a file:
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.filePath = args[0]
-			return runImport(opts)
+			return runImport(cmd, opts)
 		},
 	}
 	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy configuration, never prompt")
 	return command
 }
 
-func runImport(opts importOpts) error {
+func runImport(command *cobra.Command, opts importOpts) error {
 	// read configuration
 	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
@@ -75,7 +75,7 @@ func runImport(opts importOpts) error {
 
 	// optional confirmation
 	if !opts.force {
-		if _, err := trustpolicy.LoadOCIDocument(); err == nil {
+		if _, err := trustpolicy.LoadDocument(); err == nil {
 			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The trust policy file already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
@@ -85,27 +85,17 @@ func runImport(opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing trust policy file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
 	}
 
 	// write
-	policyPath, err := dir.ConfigFS().SysPath(dir.PathOCITrustPolicy)
+	policyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
 	if err != nil {
 		return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
 	}
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
 		return fmt.Errorf("failed to write trust policy file: %w", err)
 	}
-
-	// clear old trust policy
-	oldPolicyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
-	if err != nil {
-		return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
-	}
-	if err := osutil.RemoveIfExists(oldPolicyPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to clear old trust policy %q: %v\n", oldPolicyPath, err)
-	}
-
-	_, err = fmt.Fprintln(os.Stdout, "Successfully imported trust policy file.")
+	_, err = fmt.Fprintln(os.Stdout, "Trust policy configuration imported successfully.")
 	return err
 }

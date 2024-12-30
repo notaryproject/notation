@@ -17,7 +17,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 
@@ -26,7 +25,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type showOpts struct {
+}
+
 func showCmd() *cobra.Command {
+	var opts showOpts
 	command := &cobra.Command{
 		Use:   "show [flags]",
 		Short: "Show trust policy configuration",
@@ -42,14 +45,21 @@ Example - Save current trust policy configuration to a file:
 `,
 		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShow()
+			return runShow(cmd, opts)
 		},
 	}
 	return command
 }
 
-func runShow() error {
-	policyJSON, err := loadOCITrustPolicy()
+func runShow(command *cobra.Command, opts showOpts) error {
+	// get policy file path
+	policyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
+	if err != nil {
+		return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
+	}
+
+	// core process
+	policyJSON, err := os.ReadFile(policyPath)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
@@ -62,30 +72,11 @@ func runShow() error {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		fmt.Fprintf(os.Stderr, "Existing trust policy file is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
+		fmt.Fprintf(os.Stderr, "Existing trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
 		// not returning to show the invalid policy configuration
 	}
 
 	// show policy content
 	_, err = os.Stdout.Write(policyJSON)
 	return err
-}
-
-// loadOCITrustPolicy loads OCI trust policy from notation configuration directory.
-//
-// It tries to load OCI trust policy (trustpolicy.oci.json) first, if it does
-// not exist, it falls back to old trust policy (trustpolicy.json).
-func loadOCITrustPolicy() ([]byte, error) {
-	f, err := dir.ConfigFS().Open(dir.PathOCITrustPolicy)
-	if err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			return nil, err
-		}
-		f, err = dir.ConfigFS().Open(dir.PathTrustPolicy)
-		if err != nil {
-			return nil, err
-		}
-	}
-	defer f.Close()
-	return io.ReadAll(f)
 }

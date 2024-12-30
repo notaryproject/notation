@@ -14,8 +14,6 @@
 package command
 
 import (
-	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,7 +44,7 @@ var _ = Describe("trust policy maintainer", func() {
 			})
 		})
 
-		It("should show exist old policy", func() {
+		It("should show exist policy", func() {
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName))
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -63,18 +61,6 @@ var _ = Describe("trust policy maintainer", func() {
 				notation.Exec("policy", "show").
 					MatchErrKeyWords("existing trust policy configuration is invalid").
 					MatchContent(string(content))
-			})
-		})
-
-		It("should failed if without permission to read policy", func() {
-			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				notationPath := vhost.AbsolutePath(NotationDirName)
-				os.Chmod(notationPath, 0000)
-				defer os.Chmod(notationPath, 0755)
-
-				notation.ExpectFailure().
-					Exec("policy", "show").
-					MatchErrKeyWords("failed to show trust policy", "permission denied")
 			})
 		})
 	})
@@ -102,13 +88,6 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "import", "/??/???")
-			})
-		})
-
-		It("should failed if provide file is malformed json", func() {
-			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				notation.ExpectFailure().
-					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, "invalid_format_trustpolicy.json"))
 			})
 		})
 
@@ -142,21 +121,6 @@ var _ = Describe("trust policy maintainer", func() {
 		It("should import successfully by force", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force")
-			})
-		})
-
-		It("should failed if without permission to write policy", func() {
-			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				notation.
-					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName))
-
-				trustPolicyPath := vhost.AbsolutePath(NotationDirName)
-				os.Chmod(trustPolicyPath, 0000)
-				defer os.Chmod(trustPolicyPath, 0755)
-
-				notation.ExpectFailure().
-					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force").
-					MatchErrKeyWords("failed to write trust policy file")
 			})
 		})
 	})
@@ -249,43 +213,6 @@ var _ = Describe("trust policy maintainer", func() {
 					MatchKeyWords("Trust policy configuration imported successfully.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
-				Expect(err).NotTo(HaveOccurred())
-				notation.Exec("policy", "show").MatchContent(string(content))
-			})
-		})
-	})
-
-	When("importing policy with existing old policy", func() {
-		It("should delete old policy", func() {
-			Host(Opts(AddTrustPolicyOption("trustpolicy.json")), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				newPolicyName := "any_registry_scope_trust_policy.json"
-				notation.WithInput(strings.NewReader("Y\n")).Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, newPolicyName)).
-					MatchKeyWords("Trust policy configuration imported successfully.")
-				// validate
-				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, newPolicyName))
-				Expect(err).NotTo(HaveOccurred())
-				notation.Exec("policy", "show").MatchContent(string(content))
-
-				// check old policy doesn't exist
-				oldPolicyPath := vhost.AbsolutePath(NotationDirName, "trustpolicy.json")
-				_, err = os.Stat(oldPolicyPath)
-				Expect(errors.Is(err, fs.ErrNotExist)).To(BeTrue())
-			})
-		})
-	})
-
-	When("showing policy when both the old and oci policy exist", func() {
-		It("should show the oci policy", func() {
-			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				// add oci policy
-				newPolicyName := "any_registry_scope_trust_policy.json"
-				notation.WithInput(strings.NewReader("Y\n")).Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, newPolicyName)).
-					MatchKeyWords("Trust policy configuration imported successfully.")
-
-				// add old policy
-				vhost.SetOption(AddTrustPolicyOption("trustpolicy.json"))
-
-				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, newPolicyName))
 				Expect(err).NotTo(HaveOccurred())
 				notation.Exec("policy", "show").MatchContent(string(content))
 			})

@@ -11,7 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package policy provides the import and show command for OCI trust policy.
 package policy
 
 import "github.com/spf13/cobra"
