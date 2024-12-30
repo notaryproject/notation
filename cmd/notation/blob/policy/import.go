@@ -51,7 +51,7 @@ Example - Import trust policy configuration from a file:
 			return runImport(opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy configuration, never prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration, never prompt")
 	return command
 }
 
@@ -82,7 +82,7 @@ func runImport(opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy file will be overwritten")
 	}
 
 	// write
@@ -94,6 +94,6 @@ func runImport(opts importOpts) error {
 		return fmt.Errorf("failed to write blob trust policy file: %w", err)
 	}
 
-	_, err = fmt.Fprintln(os.Stdout, "Blob trust policy configuration imported successfully.")
+	_, err = fmt.Fprintln(os.Stdout, "Successfully imported blob trust policy file.")
 	return err
 }

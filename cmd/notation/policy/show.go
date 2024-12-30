@@ -62,7 +62,7 @@ func runShow() error {
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		fmt.Fprintf(os.Stderr, "Existing trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
+		fmt.Fprintf(os.Stderr, "Existing trust policy file is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
 		// not returning to show the invalid policy configuration
 	}
 

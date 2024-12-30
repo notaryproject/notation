@@ -85,7 +85,7 @@ func runImport(opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing trust policy configuration file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing trust policy file will be overwritten")
 	}
 
 	// write
@@ -106,6 +106,6 @@ func runImport(opts importOpts) error {
 		fmt.Fprintf(os.Stderr, "Warning: failed to clear old trust policy %q: %v\n", oldPolicyPath, err)
 	}
 
-	_, err = fmt.Fprintln(os.Stdout, "Trust policy configuration imported successfully.")
+	_, err = fmt.Fprintln(os.Stdout, "Successfully imported trust policy file.")
 	return err
 }

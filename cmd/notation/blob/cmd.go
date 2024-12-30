@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package blob provides the command for blob trust policy configuration.
+// Package blob provides blob sign, verify, inspect, and policy commands.
 package blob
 
 import (
