@@ -16,7 +16,6 @@ package osutil
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -59,17 +58,6 @@ func WriteFileWithPermission(path string, data []byte, perm fs.FileMode, overwri
 		return err
 	}
 	return file.Close()
-}
-
-// RemoveIfExists removes a file if it exists.
-func RemoveIfExists(filepath string) error {
-	if _, err := os.Stat(filepath); err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			return nil
-		}
-		return err
-	}
-	return os.Remove(filepath)
 }
 
 // CopyToDir copies the src file to dst. Existing file will be overwritten.

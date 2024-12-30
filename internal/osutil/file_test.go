@@ -15,8 +15,6 @@ package osutil
 
 import (
 	"bytes"
-	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -270,49 +268,4 @@ func TestValidateChecksum(t *testing.T) {
 	if err := ValidateSHA256Sum("./testdata/test", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); err != nil {
 		t.Fatalf("expected nil err, but got %v", err)
 	}
-}
-
-func TestRemoveIfExists(t *testing.T) {
-	t.Run("remove existing file", func(t *testing.T) {
-		tempDir := t.TempDir()
-		filename := filepath.Join(tempDir, "file.txt")
-		data := []byte("data")
-		if err := WriteFile(filename, data); err != nil {
-			t.Fatal(err)
-		}
-		if err := RemoveIfExists(filename); err != nil {
-			t.Fatal(err)
-		}
-		if _, err := os.Stat(filename); !errors.Is(err, fs.ErrNotExist) {
-			t.Fatal("file should be removed")
-		}
-	})
-
-	t.Run("remove non-existing file", func(t *testing.T) {
-		tempDir := t.TempDir()
-		filename := filepath.Join(tempDir, "file.txt")
-		if err := RemoveIfExists(filename); err != nil {
-			t.Fatal(err)
-		}
-	})
-
-	t.Run("remove file in directory without permission", func(t *testing.T) {
-		if runtime.GOOS == "windows" {
-			t.Skip("skipping test on Windows")
-		}
-		tempDir := t.TempDir()
-		filename := filepath.Join(tempDir, "file.txt")
-		data := []byte("data")
-		if err := WriteFile(filename, data); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.Chmod(tempDir, 0000); err != nil {
-			t.Fatal(err)
-		}
-		defer os.Chmod(tempDir, 0700)
-
-		if err := RemoveIfExists(filename); err == nil {
-			t.Fatal("expected an error when removing file from restricted directory")
-		}
-	})
 }
