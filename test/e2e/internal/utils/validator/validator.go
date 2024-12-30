@@ -14,6 +14,8 @@
 package validator
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 
 	. "github.com/onsi/gomega"
@@ -29,5 +31,5 @@ func CheckFileExist(f string) {
 func CheckFileNotExist(f string) {
 	_, err := os.Stat(f)
 	Expect(err).Should(HaveOccurred())
-	Expect(os.IsNotExist(err)).To(BeTrue())
+	Expect(errors.Is(err, fs.ErrNotExist)).To(BeTrue())
 }

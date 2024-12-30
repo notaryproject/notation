@@ -16,6 +16,7 @@ package osutil
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -63,7 +64,7 @@ func WriteFileWithPermission(path string, data []byte, perm fs.FileMode, overwri
 // RemoveIfExists removes a file if it exists.
 func RemoveIfExists(filepath string) error {
 	if _, err := os.Stat(filepath); err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return nil
 		}
 		return err

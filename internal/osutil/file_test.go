@@ -15,6 +15,8 @@ package osutil
 
 import (
 	"bytes"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -281,7 +283,7 @@ func TestRemoveIfExists(t *testing.T) {
 		if err := RemoveIfExists(filename); err != nil {
 			t.Fatal(err)
 		}
-		if _, err := os.Stat(filename); !os.IsNotExist(err) {
+		if _, err := os.Stat(filename); !errors.Is(err, fs.ErrNotExist) {
 			t.Fatal("file should be removed")
 		}
 	})

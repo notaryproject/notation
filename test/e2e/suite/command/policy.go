@@ -14,6 +14,8 @@
 package command
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -267,7 +269,7 @@ var _ = Describe("trust policy maintainer", func() {
 				// check old policy doesn't exist
 				oldPolicyPath := vhost.AbsolutePath(NotationDirName, "trustpolicy.json")
 				_, err = os.Stat(oldPolicyPath)
-				Expect(os.IsNotExist(err)).To(BeTrue())
+				Expect(errors.Is(err, fs.ErrNotExist)).To(BeTrue())
 			})
 		})
 	})

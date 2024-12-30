@@ -34,7 +34,7 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "import trust policy configuration from a JSON file",
+		Short: "Import trust policy configuration from a JSON file",
 		Long: `Import blob trust policy configuration from a JSON file.
 
 Example - Import trust policy configuration from a file:

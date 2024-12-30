@@ -15,8 +15,10 @@ package policy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -27,7 +29,7 @@ import (
 func showCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "show trust policy configuration",
+		Short: "Show trust policy configuration",
 		Long: `Show blob trust policy configuration.
 
 Example - Show current blob trust policy configuration:
@@ -47,7 +49,7 @@ Example - Save current blob trust policy configuration to a file:
 func runShow() error {
 	policyJSON, err := loadBlobTrustPolicy()
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show blob trust policy as the trust policy file does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show trust policy: %w", err)
