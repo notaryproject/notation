@@ -111,6 +111,28 @@ var _ = Describe("blob trust policy maintainer", func() {
 				notation.Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, validBlobTrustPolicyName), "--force")
 			})
 		})
+
+		It("should failed if without permission to write policy", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.
+					Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, validBlobTrustPolicyName))
+
+				trustPolicyPath := vhost.AbsolutePath(NotationDirName)
+				os.Chmod(trustPolicyPath, 0000)
+				defer os.Chmod(trustPolicyPath, 0755)
+
+				notation.ExpectFailure().
+					Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, validBlobTrustPolicyName), "--force").
+					MatchErrKeyWords("failed to write blob trust policy file")
+			})
+		})
+
+		It("should failed if provide file is malformed json", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.ExpectFailure().
+					Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, "invalid_format_trustpolicy.json"))
+			})
+		})
 	})
 
 	When("importing configuration with existing trust policy configuration", func() {
