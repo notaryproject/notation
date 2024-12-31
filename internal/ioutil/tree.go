@@ -1,3 +1,16 @@
+// Copyright The Notary Project Authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package ioutil
 
 import (
@@ -55,7 +68,21 @@ func PrintObjectAsTree(root *Node) error {
 			prefix = treeItemPrefix
 		}
 		fmt.Printf("%s%s\n", prefix, mainChild.Value)
-		printNodeDetails(mainChild, subTreePrefixLast)
+
+		// If there is no associated signature (this is associated to --oci-layout with no signature cmd)
+		if len(mainChild.Children) == 0 {
+			fmt.Printf("%s has no associated signature\n", mainChild.Value)
+			continue
+		}
+
+		// For root level, use subTreePrefixLast for the last child
+		initialPrefix := ""
+		if isLast {
+			initialPrefix = subTreePrefixLast
+		} else {
+			initialPrefix = subTreePrefix
+		}
+		printNodeDetails(mainChild, initialPrefix)
 	}
 
 	return nil
@@ -65,8 +92,16 @@ func PrintObjectAsTree(root *Node) error {
 func printNodeDetails(node *Node, prefix string) {
 	// Print pairs
 	if node.Pairs != nil {
+		lastIdx := len(node.Pairs) - 1
+		i := 0
 		for key, value := range node.Pairs {
-			fmt.Printf("%s%s%s: %s\n", prefix, treeItemPrefix, key, value)
+			isLast := i == lastIdx
+			connector := treeItemPrefix
+			if isLast {
+				connector = treeItemPrefixLast
+			}
+			fmt.Printf("%s%s%s: %s\n", prefix, connector, key, value)
+			i++
 		}
 	}
 
@@ -97,19 +132,59 @@ func printNodeDetails(node *Node, prefix string) {
 
 // handleSpecialNode handles special nodes that require special formatting when printing
 func handleSpecialNode(node *Node, prefix string) {
+	pairsList := make([]struct {
+		key   string
+		value string
+	}, 0)
+
+	// Collect pairs in a slice to handle last item properly
 	if node.Pairs != nil {
 		for key, value := range node.Pairs {
 			if value == "(empty)" {
-				fmt.Printf("%s    %s\n", prefix, value)
+				pairsList = append(pairsList, struct {
+					key   string
+					value string
+				}{key: "", value: "(empty)"})
 			} else {
-				fmt.Printf("%s    %s: %s\n", prefix, key, value)
+				pairsList = append(pairsList, struct {
+					key   string
+					value string
+				}{key: key, value: value})
 			}
 		}
 	}
 
-	for _, child := range node.Children {
-		fmt.Printf("%s    %s\n", prefix, child.Value)
-		childPrefix := prefix + subTreePrefixLast
-		printNodeDetails(child, childPrefix)
+	// Print pairs with proper tree structure
+	for i, pair := range pairsList {
+		isLast := i == len(pairsList)-1 && len(node.Children) == 0
+		connector := treeItemPrefix
+		if isLast {
+			connector = treeItemPrefixLast
+		}
+
+		if pair.value == "(empty)" {
+			fmt.Printf("%s%s%s\n", prefix, connector, pair.value)
+		} else {
+			fmt.Printf("%s%s%s: %s\n", prefix, connector, pair.key, pair.value)
+		}
+	}
+
+	// Process children if any
+	for i, child := range node.Children {
+		isLast := i == len(node.Children)-1
+		connector := treeItemPrefix
+		if isLast {
+			connector = treeItemPrefixLast
+		}
+
+		fmt.Printf("%s%s%s\n", prefix, connector, child.Value)
+
+		nextPrefix := prefix
+		if isLast {
+			nextPrefix += subTreePrefixLast
+		} else {
+			nextPrefix += subTreePrefix
+		}
+		printNodeDetails(child, nextPrefix)
 	}
 }
