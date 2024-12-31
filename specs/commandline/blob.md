@@ -75,7 +75,7 @@ Produce a detached signature for a given blob.
 The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig".
 
 Usage:
-  notation blob sign [flags] <blobPath>
+  notation blob sign [flags] <blob_path>
 
 Flags:
   -d, --debug                        debug mode
@@ -194,22 +194,22 @@ An example for a successful signing:
 
 ```console
 $ notation blob sign /tmp/my-blob.bin
-Successfully signed "/tmp/my-blob.bin"
-Signature file written to "/absolute/path/to/cwd/my-blob.bin.jws.sig"
+Successfully signed /tmp/my-blob.bin
+Signature file written to /absolute/path/to/cwd/my-blob.bin.jws.sig
 ```
 
 ### Sign a blob by generating the signature in a particular directory
 ```console
 $ notation blob sign --signature-directory /tmp/xyz/sigs /tmp/my-blob.bin
-Successfully signed "/tmp/my-blob.bin"
-Signature file written to "/tmp/xyz/sigs/my-blob.bin.jws.sig"
+Successfully signed /tmp/my-blob.bin
+Signature file written to /tmp/xyz/sigs/my-blob.bin.jws.sig
 ```
 
 ### Sign a blob using a relative path
 ```console
 $ notation blob sign ./relative/path/my-blob.bin
-Successfully signed "./relative/path/my-blob.bin"
-Signature file written to "/absolute/path/to/cwd/my-blob.bin.jws.sig"
+Successfully signed ./relative/path/my-blob.bin
+Signature file written to /absolute/path/to/cwd/my-blob.bin.jws.sig
 ```
 
 ### Sign a blob with a plugin
@@ -226,8 +226,8 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 
 # Use option "--signature-format" to set the signature format to COSE.
 $ notation blob sign --signature-format cose /tmp/my-blob.bin
-Successfully signed "/tmp/my-blob.bin"
-Signature file written to "/absolute/path/to/cwd/my-blob.bin.cose.sig"
+Successfully signed /tmp/my-blob.bin
+Signature file written to /absolute/path/to/cwd/my-blob.bin.cose.sig
 ```
 
 ### Sign a blob using the default signing key

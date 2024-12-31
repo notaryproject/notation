@@ -30,7 +30,7 @@ var _ = Describe("notation blob sign", func() {
 	// Success cases
 	It("with blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", blobPath).
+			notation.Exec("blob", "sign", "--force", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -38,7 +38,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with COSE format", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", "--signature-format", "cose", blobPath).
+			notation.Exec("blob", "sign", "--signature-format", "cose", "--force", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -75,18 +75,9 @@ var _ = Describe("notation blob sign", func() {
 	It("with signature directory", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			blobDir := filepath.Dir(blobPath)
-			notation.Exec("blob", "sign", "--signature-directory", blobDir, blobPath).
+			notation.Exec("blob", "sign", "--force", "--signature-directory", blobDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords(fmt.Sprintf("Signature file written to %q", filepath.Join(blobDir, "blobFile.jws.sig")))
-		})
-	})
-
-	It("with force saving signature", func() {
-		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.Exec("blob", "sign", "--force", blobPath).
-				MatchErrKeyWords("Warning: existing signature file will be overwritten").
-				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords("Signature file written to")
 		})
 	})
 

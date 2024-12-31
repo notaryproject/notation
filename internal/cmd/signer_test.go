@@ -66,7 +66,7 @@ func TestGetSignerFromOpts(t *testing.T) {
 		t.Fatalf("expected nil error, but got %s", err)
 	}
 
-	_, err = GetBlobSigner(ctx, opts)
+	_, err = GetSigner(ctx, opts)
 	if err != nil {
 		t.Fatalf("expected nil error, but got %s", err)
 	}
@@ -94,7 +94,7 @@ func TestGetSignerFromConfig(t *testing.T) {
 		t.Fatalf("expected nil error, but got %s", err)
 	}
 
-	_, err = GetBlobSigner(ctx, opts)
+	_, err = GetSigner(ctx, opts)
 	if err != nil {
 		t.Fatalf("expected nil error, but got %s", err)
 	}
@@ -115,20 +115,25 @@ func TestGetFailed(t *testing.T) {
 	if err == nil {
 		t.Fatal("GetSigner should return an error")
 	}
-
-	_, err = GetBlobSigner(ctx, opts)
-	if err == nil {
-		t.Fatal("GetBlobSigner should return an error")
-	}
 }
 
-func TestSignerCore(t *testing.T) {
+func TestGetSignerFailed(t *testing.T) {
 	ctx := context.Background()
 
 	defer func(oldLibexeDir, oldConfigDir string) {
 		dir.UserLibexecDir = oldLibexeDir
 		dir.UserConfigDir = oldConfigDir
 	}(dir.UserLibexecDir, dir.UserConfigDir)
+
+	t.Run("get failed", func(t *testing.T) {
+		opts := &SignerFlagOpts{}
+		dir.UserLibexecDir = "./testdata/plugins"
+		dir.UserConfigDir = "./testdata/invalid_signingkeys"
+		_, err := GetSigner(ctx, opts)
+		if err == nil {
+			t.Fatal("GetSigner should return an error")
+		}
+	})
 
 	t.Run("invalid plugin name in opts", func(t *testing.T) {
 		if runtime.GOOS == "windows" {
@@ -142,7 +147,7 @@ func TestSignerCore(t *testing.T) {
 			PluginName: "invalid",
 		}
 		expectedErrMsg := `plugin executable file is either not found or inaccessible: stat testdata/plugins/plugins/invalid/notation-invalid: no such file or directory`
-		_, err := signerCore(ctx, opts)
+		_, err := GetSigner(ctx, opts)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -151,7 +156,7 @@ func TestSignerCore(t *testing.T) {
 	t.Run("failed to resolve key", func(t *testing.T) {
 		dir.UserConfigDir = "./testdata/valid_signingkeys"
 		expectedErrMsg := `default signing key not set. Please set default signing key or specify a key name`
-		_, err := signerCore(ctx, &SignerFlagOpts{})
+		_, err := GetSigner(ctx, &SignerFlagOpts{})
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -163,7 +168,7 @@ func TestSignerCore(t *testing.T) {
 		opts := &SignerFlagOpts{
 			Key: "invalid",
 		}
-		_, err := signerCore(ctx, opts)
+		_, err := GetSigner(ctx, opts)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -175,7 +180,7 @@ func TestSignerCore(t *testing.T) {
 		opts := &SignerFlagOpts{
 			Key: "test2",
 		}
-		_, err := signerCore(ctx, opts)
+		_, err := GetSigner(ctx, opts)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -192,7 +197,7 @@ func TestSignerCore(t *testing.T) {
 		opts := &SignerFlagOpts{
 			Key: "invalidExternal",
 		}
-		_, err := signerCore(ctx, opts)
+		_, err := GetSigner(ctx, opts)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -204,7 +209,7 @@ func TestSignerCore(t *testing.T) {
 		opts := &SignerFlagOpts{
 			Key: "empty",
 		}
-		_, err := signerCore(ctx, opts)
+		_, err := GetSigner(ctx, opts)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}

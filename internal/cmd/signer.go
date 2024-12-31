@@ -24,35 +24,14 @@ import (
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
-// GetSigner returns a signer according to the CLI context.
-func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, error) {
-	s, err := signerCore(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	// always true, as signerCore returns either signer.PluginSigner or
-	// signer.GenericSigner.
-	notationSigner, _ := s.(notation.Signer)
-	return notationSigner, nil
+// Signer is embedded with notation.BlobSigner and notation.Signer.
+type Signer interface {
+	notation.BlobSigner
+	notation.Signer
 }
 
-// GetBlobSigner returns a blob signer according to the CLI context.
-func GetBlobSigner(ctx context.Context, opts *SignerFlagOpts) (notation.BlobSigner, error) {
-	s, err := signerCore(ctx, opts)
-	if err != nil {
-		return nil, err
-	}
-
-	// always true, as signerCore returns either signer.PluginSigner or
-	// signer.GenericSigner.
-	notationBlobSigner, _ := s.(notation.BlobSigner)
-	return notationBlobSigner, nil
-}
-
-// signerCore returns a signer.PluginSigner or signer.GenericSigner based on
-// user opts.
-func signerCore(ctx context.Context, opts *SignerFlagOpts) (any, error) {
+// GetSigner returns a Signer based on user opts.
+func GetSigner(ctx context.Context, opts *SignerFlagOpts) (Signer, error) {
 	// Check if using on-demand key
 	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
 		// Construct a signer from on-demand key

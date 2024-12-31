@@ -139,7 +139,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	// set log level
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
-	signer, err := cmd.GetBlobSigner(ctx, &cmdOpts.SignerFlagOpts)
+	blobSigner, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
 	if err != nil {
 		return err
 	}
@@ -154,12 +154,12 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	defer blobFile.Close()
 
 	// core process
-	sig, _, err := notation.SignBlob(ctx, signer, blobFile, blobOpts)
+	sig, _, err := notation.SignBlob(ctx, blobSigner, blobFile, blobOpts)
 	if err != nil {
 		return err
 	}
 	signaturePath := signatureFilepath(cmdOpts.signatureDirectory, cmdOpts.blobPath, cmdOpts.SignatureFormat)
-	fmt.Printf("Writing signature to file %q...\n", signaturePath)
+	fmt.Printf("Writing signature to file %s\n", signaturePath)
 
 	// optional confirmation
 	if !cmdOpts.force {
@@ -180,8 +180,8 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	if err := osutil.WriteFile(signaturePath, sig); err != nil {
 		return fmt.Errorf("failed to write signature to file: %w", err)
 	}
-	fmt.Printf("Successfully signed %q\n ", cmdOpts.blobPath)
-	fmt.Printf("Signature file written to %q\n", signaturePath)
+	fmt.Printf("Successfully signed %s\n ", cmdOpts.blobPath)
+	fmt.Printf("Signature file written to %s\n", signaturePath)
 	return nil
 }
 
