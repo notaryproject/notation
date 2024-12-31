@@ -77,7 +77,7 @@ var _ = Describe("notation blob sign", func() {
 			blobDir := filepath.Dir(blobPath)
 			notation.Exec("blob", "sign", "--force", "--signature-directory", blobDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %q", filepath.Join(blobDir, "blobFile.jws.sig")))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", filepath.Join(blobDir, "blobFile.jws.sig")))
 		})
 	})
 
