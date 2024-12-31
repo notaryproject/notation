@@ -17,6 +17,7 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/cmd/notation/blob"
 	"github.com/notaryproject/notation/cmd/notation/cert"
 	"github.com/notaryproject/notation/cmd/notation/plugin"
 	"github.com/notaryproject/notation/cmd/notation/policy"
@@ -62,6 +63,7 @@ func main() {
 		logoutCommand(nil),
 		versionCommand(),
 		inspectCommand(nil),
+		blob.Cmd(),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

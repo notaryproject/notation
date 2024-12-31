@@ -35,6 +35,12 @@ type CoreTestFunc func(notation *utils.ExecOpts, artifact *Artifact, vhost *util
 // vhost is the VirtualHost instance.
 type OCILayoutTestFunc func(notation *utils.ExecOpts, ocilayout *OCILayout, vhost *utils.VirtualHost)
 
+// BlobTestFunc is the test function running in a VirtualHost for blob commands.
+//
+// notation is an Executor isolated by $XDG_CONFIG_HOME.
+// vhost is the VirtualHost instance.
+type BlobTestFunc func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost)
+
 // Host creates a virtualized notation testing host by modify
 // the "XDG_CONFIG_HOME" environment variable of the Executor.
 //
@@ -85,6 +91,22 @@ func HostWithOCILayout(options []utils.HostOption, fn OCILayoutTestFunc) {
 
 	// run the main logic
 	fn(vhost.Executor, ocilayout, vhost)
+}
+
+// HostWithBlob creates a virtualized notation testing host by modify
+// the "XDG_CONFIG_HOME" environment variable of the Executor.
+//
+// options is the required testing environment options
+// fn is the callback function containing the testing logic.
+func HostWithBlob(options []utils.HostOption, fn BlobTestFunc) {
+	// create a notation vhost
+	vhost, err := createNotationHost(NotationBinPath, options...)
+	if err != nil {
+		panic(err)
+	}
+
+	// run the main logic
+	fn(vhost.Executor, BlobPath, vhost)
 }
 
 // OldNotation create an old version notation ExecOpts in a VirtualHost

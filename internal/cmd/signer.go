@@ -24,8 +24,14 @@ import (
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
-// GetSigner returns a signer according to the CLI context.
-func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, error) {
+// Signer is embedded with notation.BlobSigner and notation.Signer.
+type Signer interface {
+	notation.BlobSigner
+	notation.Signer
+}
+
+// GetSigner returns a Signer based on user opts.
+func GetSigner(ctx context.Context, opts *SignerFlagOpts) (Signer, error) {
 	// Check if using on-demand key
 	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
 		// Construct a signer from on-demand key
@@ -34,7 +40,7 @@ func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, erro
 		if err != nil {
 			return nil, err
 		}
-		return signer.NewFromPlugin(plugin, opts.KeyID, map[string]string{})
+		return signer.NewPluginSigner(plugin, opts.KeyID, map[string]string{})
 	}
 
 	// Construct a signer from preconfigured key pair in config.json
@@ -44,8 +50,9 @@ func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, erro
 		return nil, err
 	}
 	if key.X509KeyPair != nil {
-		return signer.NewFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
+		return signer.NewGenericSignerFromFiles(key.X509KeyPair.KeyPath, key.X509KeyPair.CertificatePath)
 	}
+
 	// Construct a plugin signer if key name provided as the CLI argument
 	// corresponds to an external key
 	if key.ExternalKey != nil {
@@ -54,7 +61,7 @@ func GetSigner(ctx context.Context, opts *SignerFlagOpts) (notation.Signer, erro
 		if err != nil {
 			return nil, err
 		}
-		return signer.NewFromPlugin(plugin, key.ExternalKey.ID, key.PluginConfig)
+		return signer.NewPluginSigner(plugin, key.ExternalKey.ID, key.PluginConfig)
 	}
-	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check [DOC_PLACEHOLDER] for details")
+	return nil, errors.New("unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check https://notaryproject.dev/docs/user-guides/how-to/notation-config-file/ for details")
 }

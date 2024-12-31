@@ -1,0 +1,17 @@
+{
+    "keys": [
+        {
+            "name": "invalid",
+            "keypath": "",
+            "certpath": ""
+        },
+        {
+            "name": "invalidExternal",
+            "id": "invalid",
+            "pluginName": "invalid"
+        },
+        {
+          "name": "empty"
+        }
+    ]
+}
