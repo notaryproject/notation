@@ -2,7 +2,7 @@
 
 ## Description
 
-Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission. 
+Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission.
 
 Users can use `notation blob policy` command to manage trust policies for verifying a blob signature. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
 
@@ -21,8 +21,8 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
-              "ca:wabbit-networks",
+            "trustStores": [
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
@@ -31,7 +31,7 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
         {
             "name": "skip-verification-policy",
             "signatureVerification": {
-              "level" : "skip" 
+              "level" : "skip"
             }
         },
         {
@@ -70,13 +70,13 @@ Flags:
 ### notation blob sign
 
 ```text
-Produce a signature for a given blob. A detached signature file will be written to the currently working directory with blob file name + ".sig" + signature format as the file extension. For example, signature file name for "myBlob.bin" will be "myBlob.bin.sig.jws" for JWS signature format or "myBlob.bin.sig.cose" for COSE signature format.
+Produce a signature for a given blob. A detached signature file will be written to the currently working directory with blob file name + signature format + ".sig" as the file extension. For example, signature file name for "myBlob.bin" will be "myBlob.bin.jws.sig" for JWS signature format or "myBlob.bin.cose.sig" for COSE signature format.
 
 Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-       --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory) 
+       --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory)
        --media-type string          optional media type of the blob (default: "application/octet-stream")
   -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
        --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
@@ -93,7 +93,7 @@ Flags:
 ### notation blob inspect
 
 ```text
-Inspect a signature associated with a blob
+Inspect a signature associated with a blob.
 
 Usage:
   notation blob inspect [flags] <signature_path>
@@ -124,12 +124,12 @@ Flags:
 ### notation blob policy import
 
 ```text
-Import blob trust policy configuration from a JSON file
+Import blob trust policy configuration from a JSON file.
 
 Usage:
   notation blob policy import [flags] <file_path>
 
-Flags:    
+Flags:
       --force     override the existing trust policy configuration, never prompt
   -h, --help      help for import
 ```
@@ -137,7 +137,7 @@ Flags:
 ### notation blob policy show
 
 ```text
-Show blob trust policy configuration
+Show blob trust policy configuration.
 
 Usage:
   notation blob policy show [flags]
@@ -149,7 +149,7 @@ Flags:
 ### notation blob verify
 
 ```text
-Verify a signature associated with a blob
+Verify a signature associated with a blob.
 
 Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
@@ -189,21 +189,21 @@ An example for a successful signing:
 ```console
 $ notation blob sign /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.jws
+Signature file written to /absolute/path/to/cwd/my-blob.bin.jws.sig
 ```
 
 ### Sign a blob by generating the signature in a particular directory
 ```console
 $ notation blob sign --signature-directory /tmp/xyz/sigs /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to /tmp/xyz/sigs/my-blob.bin.sig.jws
+Signature file written to /tmp/xyz/sigs/my-blob.bin.jws.sig
 ```
 
 ### Sign a blob using a relative path
 ```console
 $ notation blob sign ./relative/path/my-blob.bin
 Successfully signed ./relative/path/my-blob.bin
-Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.jws
+Signature file written to /absolute/path/to/cwd/my-blob.bin.jws.sig
 ```
 
 ### Sign a blob with a plugin
@@ -221,7 +221,7 @@ notation blob sign --plugin <plugin_name> --id <remote_key_id> /tmp/my-blob.bin
 # Use option "--signature-format" to set the signature format to COSE.
 $ notation blob sign --signature-format cose /tmp/my-blob.bin
 Successfully signed /tmp/my-blob.bin
-Signature file written to /absolute/path/to/cwd/my-blob.bin.sig.cose
+Signature file written to /absolute/path/to/cwd/my-blob.bin.cose.sig
 ```
 
 ### Sign a blob using the default signing key
@@ -274,19 +274,19 @@ notation blob sign --key <key_name> /tmp/my-blob.bin
 
 
 ```text
-notation blob inspect [flags] /tmp/my-blob.bin.sig.jws
+notation blob inspect [flags] /tmp/my-blob.bin.jws.sig
 ```
 
 ### Inspect the given blob signature
 
 ```shell
 # Prerequisites: Signatures is produced by notation blob sign command
-notation blob inspect /tmp/my-blob.bin.sig.jws
+notation blob inspect /tmp/my-blob.bin.jws.sig
 ```
 
 An example output:
 ```shell
-/tmp/my-blob.bin.sig.jws
+/tmp/my-blob.bin.jws.sig
     ├── signature algorithm: RSASSA-PSS-SHA-256
     ├── signature envelope type: jws
     ├── signed attributes
@@ -320,7 +320,7 @@ An example output:
 ### Inspect the given blob signature with JSON Output
 
 ```shell
-notation blob inspect -o json /tmp/my-blob.bin.sig.jws
+notation blob inspect -o json /tmp/my-blob.bin.jws.sig
 ```
 
 ## Import/Export trust policy configuration files
@@ -329,7 +329,7 @@ notation blob inspect -o json /tmp/my-blob.bin.sig.jws
 
 An example of import trust policy configuration from a JSON file:
 
-```shell  
+```shell
 notation blob policy import ./my_policy.json
 ```
 
@@ -387,8 +387,8 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
-              "ca:wabbit-networks",
+            "trustStores": [
+              "ca:wabbit-networks"
             ],
             "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
@@ -420,13 +420,13 @@ notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 # Setup the trust policy in a JSON file named "trustpolicy.blob.json" under directory "{NOTATION_CONFIG}".
 
 # Verify the blob signature
-notation blob verify --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
+notation blob verify --signature /tmp/my-blob.bin.jws.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.sig.jws
+Successfully verified signature /tmp/my-blob.bin.jws.sig
 ```
 
 ### Verify the signature with user metadata
@@ -435,13 +435,13 @@ Use the `--user-metadata` flag to verify that provided key-value pairs are prese
 
 ```shell
 # Verify the signature and verify that io.wabbit-networks.buildId=123 is present in the signed payload
-notation blob verify --user-metadata io.wabbit-networks.buildId=123 --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
+notation blob verify --user-metadata io.wabbit-networks.buildId=123 --signature /tmp/my-blob.bin.jws.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.sig.jws
+Successfully verified signature /tmp/my-blob.bin.jws.sig
 
 The signature contains the following user metadata:
 
@@ -461,13 +461,13 @@ Use the `--media-type` flag to verify that signature is for the provided media-t
 
 ```shell
 # Verify the signature and verify that application/my-media-octet-stream is the media type
-notation blob verify --media-type application/my-media-octet-stream --signature /tmp/my-blob.bin.sig.jws /tmp/my-blob.bin
+notation blob verify --media-type application/my-media-octet-stream --signature /tmp/my-blob.bin.jws.sig /tmp/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.sig.jws
+Successfully verified signature /tmp/my-blob.bin.jws.sig
 
 The blob is of media type `application/my-media-octet-stream`.
 
@@ -484,13 +484,13 @@ Error: Signature verification failed due to a mismatch in the blob's media type 
 Use the `--policy-name` flag to select a policy to verify the signature against.
 
 ```shell
-notation blob verify --policy-name wabbit-networks-policy --signature ./sigs/my-blob.bin.sig.jws ./blobs/my-blob.bin
+notation blob verify --policy-name wabbit-networks-policy --signature ./sigs/my-blob.bin.jws.sig ./blobs/my-blob.bin
 ```
 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature ./sigs/my-blob.bin.sig.jws using policy `wabbit-networks-policy`
+Successfully verified signature ./sigs/my-blob.bin.jws.sig using policy `wabbit-networks-policy`
 
 ```
 An example of output messages for an unsuccessful verification:
