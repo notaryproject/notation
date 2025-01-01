@@ -11,25 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package validator
+package blob
 
 import (
-	"errors"
-	"io/fs"
-	"os"
+	"testing"
 
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-// CheckFileExist checks file exists.
-func CheckFileExist(f string) {
-	_, err := os.Stat(f)
-	Expect(err).ShouldNot(HaveOccurred())
-}
-
-// CheckFileNotExist checks file not exist.
-func CheckFileNotExist(f string) {
-	_, err := os.Stat(f)
-	Expect(err).Should(HaveOccurred())
-	Expect(errors.Is(err, fs.ErrNotExist)).To(BeTrue())
+func TestCommand(t *testing.T) {
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Blob Command Suite")
 }

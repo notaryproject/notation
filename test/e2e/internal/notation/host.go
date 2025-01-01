@@ -238,6 +238,16 @@ func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
 	}
 }
 
+// AddBlobTrustPolicyOption adds a valid trust policy for testing.
+func AddBlobTrustPolicyOption(trustpolicyName string) utils.HostOption {
+	return func(vhost *utils.VirtualHost) error {
+		return copyFile(
+			filepath.Join(NotationE2ETrustPolicyDir, trustpolicyName),
+			vhost.AbsolutePath(NotationDirName, BlobTrustPolicyName),
+		)
+	}
+}
+
 // AddConfigJsonOption adds a valid config.json for testing.
 func AddConfigJsonOption(configJsonName string) utils.HostOption {
 	return func(vhost *utils.VirtualHost) error {

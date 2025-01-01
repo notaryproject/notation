@@ -11,25 +11,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package validator
+// Package blob provides blob sign, verify, inspect, and policy commands.
+package blob
 
 import (
-	"errors"
-	"io/fs"
-	"os"
-
-	. "github.com/onsi/gomega"
+	"github.com/notaryproject/notation/cmd/notation/blob/policy"
+	"github.com/spf13/cobra"
 )
 
-// CheckFileExist checks file exists.
-func CheckFileExist(f string) {
-	_, err := os.Stat(f)
-	Expect(err).ShouldNot(HaveOccurred())
-}
+// Cmd returns the command for blob
+func Cmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "blob [commnad]",
+		Short: "Sign, verify and inspect signatures associated with blobs",
+		Long:  "Sign, inspect, and verify signatures and configure trust policies.",
+	}
 
-// CheckFileNotExist checks file not exist.
-func CheckFileNotExist(f string) {
-	_, err := os.Stat(f)
-	Expect(err).Should(HaveOccurred())
-	Expect(errors.Is(err, fs.ErrNotExist)).To(BeTrue())
+	command.AddCommand(
+		policy.Cmd(),
+	)
+
+	return command
 }

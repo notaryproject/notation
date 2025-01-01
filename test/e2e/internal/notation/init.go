@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	NotationDirName   = "notation"
-	TrustPolicyName   = "trustpolicy.json"
-	TrustStoreDirName = "truststore"
-	TrustStoreTypeCA  = "ca"
-	PluginDirName     = "plugins"
-	PluginName        = "e2e-plugin"
-	ConfigJsonName    = "config.json"
+	NotationDirName     = "notation"
+	TrustPolicyName     = "trustpolicy.json"
+	BlobTrustPolicyName = "trustpolicy.blob.json"
+	TrustStoreDirName   = "truststore"
+	TrustStoreTypeCA    = "ca"
+	PluginDirName       = "plugins"
+	PluginName          = "e2e-plugin"
+	ConfigJsonName      = "config.json"
 )
 
 const (
