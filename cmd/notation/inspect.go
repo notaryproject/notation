@@ -289,6 +289,10 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 		return ioutil.PrintObjectAsJSON(output)
 	}
 
+	if outputFormat != cmd.OutputJSON && outputFormat != cmd.OutputPlaintext {
+		return fmt.Errorf("unrecognized output format %s", outputFormat)
+	}
+
 	if len(output.Signatures) == 0 {
 		fmt.Printf("%s has no associated signature\n", ref)
 		return nil

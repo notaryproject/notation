@@ -78,3 +78,86 @@ func TestListCommand_MissingArgs(t *testing.T) {
 		t.Fatal("Parse Args expected error, but ok")
 	}
 }
+
+func TestListCommand_InvalidMaxSignatures(t *testing.T) {
+	opts := &listOpts{}
+	cmd := listCommand(opts)
+	if err := cmd.ParseFlags([]string{
+		"--max-signatures", "0",
+		"ref"}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("Expected error for invalid max-signatures value, but got none")
+	}
+}
+
+func TestListCommand_OCILayoutFlag(t *testing.T) {
+	// Set the experimental flag
+	t.Setenv("NOTATION_EXPERIMENTAL", "1")
+
+	opts := &listOpts{}
+	cmd := listCommand(opts)
+	expected := &listOpts{
+		reference: "oci-layout-ref",
+		ociLayout: true,
+		inputType: inputTypeOCILayout,
+	}
+	if err := cmd.ParseFlags([]string{
+		"--oci-layout",
+		expected.reference}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
+		t.Fatalf("Parse Args failed: %v", err)
+	}
+	if err := cmd.PreRunE(cmd, cmd.Flags().Args()); err != nil {
+		t.Fatalf("PreRunE failed: %v", err)
+	}
+	if opts.inputType != expected.inputType {
+		t.Fatalf("Expected inputType %v, got %v", expected.inputType, opts.inputType)
+	}
+	if opts.ociLayout != expected.ociLayout {
+		t.Fatalf("Expected ociLayout %v, got %v", expected.ociLayout, opts.ociLayout)
+	}
+}
+
+func TestListCommand_CustomMaxSignatures(t *testing.T) {
+	opts := &listOpts{}
+	cmd := listCommand(opts)
+	expected := &listOpts{
+		reference:     "ref",
+		maxSignatures: 50,
+	}
+	if err := cmd.ParseFlags([]string{
+		"--max-signatures", "50",
+		expected.reference}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
+		t.Fatalf("Parse Args failed: %v", err)
+	}
+	if opts.maxSignatures != expected.maxSignatures {
+		t.Fatalf("Expected maxSignatures %d, got %d", expected.maxSignatures, opts.maxSignatures)
+	}
+}
+
+func TestListCommand_AllowReferrersAPIFlag(t *testing.T) {
+	opts := &listOpts{}
+	cmd := listCommand(opts)
+	expected := &listOpts{
+		reference:         "ref",
+		allowReferrersAPI: true,
+	}
+	if err := cmd.ParseFlags([]string{
+		"--allow-referrers-api",
+		expected.reference}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := cmd.Args(cmd, cmd.Flags().Args()); err != nil {
+		t.Fatalf("Parse Args failed: %v", err)
+	}
+	if opts.allowReferrersAPI != expected.allowReferrersAPI {
+		t.Fatalf("Expected allowReferrersAPI %v, got %v", expected.allowReferrersAPI, opts.allowReferrersAPI)
+	}
+}
