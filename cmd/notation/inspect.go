@@ -32,7 +32,6 @@ import (
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
-	"github.com/notaryproject/notation/internal/tree"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -290,13 +289,17 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 		return ioutil.PrintObjectAsJSON(output)
 	}
 
+	if outputFormat != cmd.OutputJSON && outputFormat != cmd.OutputPlaintext {
+		return fmt.Errorf("unrecognized output format %s", outputFormat)
+	}
+
 	if len(output.Signatures) == 0 {
 		fmt.Printf("%s has no associated signature\n", ref)
 		return nil
 	}
 
 	fmt.Println("Inspecting all signatures for signed artifact")
-	root := tree.New(ref)
+	root := ioutil.New(ref)
 	cncfSigNode := root.Add(registry.ArtifactTypeNotation)
 
 	for _, signature := range output.Signatures {
@@ -334,11 +337,15 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 		artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
 	}
 
-	root.Print()
+	err := ioutil.PrintObjectAsTree(root)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func addMapToTree(node *tree.Node, m map[string]string) {
+func addMapToTree(node *ioutil.Node, m map[string]string) {
 	if len(m) > 0 {
 		for k, v := range m {
 			node.AddPair(k, v)
@@ -348,7 +355,7 @@ func addMapToTree(node *tree.Node, m map[string]string) {
 	}
 }
 
-func addCertificatesToTree(node *tree.Node, name string, certs []certificateOutput) {
+func addCertificatesToTree(node *ioutil.Node, name string, certs []certificateOutput) {
 	certListNode := node.Add(name)
 	for _, cert := range certs {
 		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)

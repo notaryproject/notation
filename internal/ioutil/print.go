@@ -87,7 +87,6 @@ func PrintObjectAsJSON(i interface{}) error {
 		return err
 	}
 
-	fmt.Println(string(jsonBytes))
-
+	fmt.Print(string(jsonBytes))
 	return nil
 }
