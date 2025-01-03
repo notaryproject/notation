@@ -94,17 +94,16 @@ Example - Inspect a signature:
 }
 
 func runInspect(opts *inspectOpts) error {
-	// set log level
 	if opts.outputFormat != cmd.OutputJSON && opts.outputFormat != cmd.OutputPlaintext {
 		return fmt.Errorf("unrecognized output format %s", opts.outputFormat)
 	}
 
-	sigBlob, err := os.ReadFile(opts.sigPath)
+	envelopeMediaType, err := parseEnvelopeMediaType(filepath.Base(opts.sigPath))
 	if err != nil {
 		return err
 	}
 
-	envelopeMediaType, err := parseEnvelopeMediaType(filepath.Base(opts.sigPath))
+	sigBlob, err := os.ReadFile(opts.sigPath)
 	if err != nil {
 		return err
 	}
