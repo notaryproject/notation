@@ -44,8 +44,7 @@ func (parent *Node) Add(value any) *Node {
 
 // adds a new child node with the formatted pair as the value
 func (parent *Node) AddPair(key string, value any) *Node {
-	s := fmt.Sprintf("%s: %v", key, value)
-	return parent.Add(s)
+	return parent.Add(fmt.Sprintf("%s: %v", key, value))
 }
 
 // prints the tree represented by the root node
