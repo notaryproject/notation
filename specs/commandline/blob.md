@@ -160,12 +160,11 @@ Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
-      --signature string      location of the blob signature file
+      --signature string      filepath of the signature to be verified
       --media-type string     optional media type of the blob to verify
-      --policy-name string    optional policy name to verify against. If not provided, notation verifies against the global policy if it exists.
+      --policy-name string    optional policy name to verify against. If not provided, the global policy is used if exists
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -o, --output string         output format, options: 'json', 'text' (default "text")
   -d, --debug                 debug mode
   -v, --verbose               verbose mode
   -h, --help                  help for inspect
@@ -379,7 +378,7 @@ The steps to update blob trust policy configuration:
    ```
 
 ## Verify blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with Policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
 - Policy  named "global-verification-policy" is for auditing verification results when user doesn't not provide `--policy-name` argument in `notation blob verify` command.

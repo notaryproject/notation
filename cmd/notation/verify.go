@@ -14,26 +14,19 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"reflect"
 
-	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
-
-	clirev "github.com/notaryproject/notation/internal/revocation"
 )
 
 type verifyOpts struct {
@@ -117,12 +110,12 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	sigVerifier, err := getVerifier(ctx)
+	sigVerifier, err := cmd.GetVerifier(ctx, false)
 	if err != nil {
 		return err
 	}
 
-	// set up verification plugin config.
+	// set up verification plugin config
 	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return err
@@ -224,28 +217,4 @@ func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
 		fmt.Println("\nThe artifact was signed with the following user metadata.")
 		ioutil.PrintMetadataMap(os.Stdout, metadata)
 	}
-}
-
-func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	// revocation check
-	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
-	if err != nil {
-		return nil, err
-	}
-	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
-	if err != nil {
-		return nil, err
-	}
-
-	// trust policy and trust store
-	policyDocument, err := trustpolicy.LoadOCIDocument()
-	if err != nil {
-		return nil, err
-	}
-	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
-
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
-		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
-		RevocationTimestampingValidator: revocationTimestampingValidator,
-	})
 }
