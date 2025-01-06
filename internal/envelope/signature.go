@@ -18,10 +18,12 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/notaryproject/notation-plugin-framework-go/plugin"
 	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/internal/tree"
 
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
@@ -161,5 +163,61 @@ func parseTimestamp(signerInfo signature.SignerInfo) TimestampInfo {
 	return TimestampInfo{
 		Timestamp:    ioutil.Timestamp(*timestamp),
 		Certificates: certificates,
+	}
+}
+
+func (s *SignatureInfo) ToTreeNode(sigName string) *tree.Node {
+	sigNode := tree.New(sigName)
+	sigNode.AddPair("signature algorithm", s.SignatureAlgorithm)
+	sigNode.AddPair("signature envelope type", s.MediaType)
+
+	signedAttributesNode := sigNode.Add("signed attributes")
+	addMapToTree(signedAttributesNode, s.SignedAttributes)
+
+	userDefinedAttributesNode := sigNode.Add("user defined attributes")
+	addMapToTree(userDefinedAttributesNode, s.UserDefinedAttributes)
+
+	unsignedAttributesNode := sigNode.Add("unsigned attributes")
+	for k, v := range s.UnsignedAttributes {
+		switch value := v.(type) {
+		case string:
+			unsignedAttributesNode.AddPair(k, value)
+		case TimestampInfo:
+			timestampNode := unsignedAttributesNode.Add("timestamp signature")
+			if value.Error != "" {
+				timestampNode.AddPair("error", value.Error)
+				break
+			}
+			timestampNode.AddPair("timestamp", value.Timestamp)
+			addCertificatesToTree(timestampNode, "certificates", value.Certificates)
+		}
+	}
+
+	addCertificatesToTree(sigNode, "certificates", s.Certificates)
+
+	artifactNode := sigNode.Add("signed artifact")
+	artifactNode.AddPair("media type", s.SignedArtifact.MediaType)
+	artifactNode.AddPair("digest", s.SignedArtifact.Digest.String())
+	artifactNode.AddPair("size", strconv.FormatInt(s.SignedArtifact.Size, 10))
+	return sigNode
+}
+
+func addMapToTree[T any](node *tree.Node, m map[string]T) {
+	if len(m) > 0 {
+		for k, v := range m {
+			node.AddPair(k, v)
+		}
+	} else {
+		node.Add("(empty)")
+	}
+}
+
+func addCertificatesToTree(node *tree.Node, name string, certs []CertificateInfo) {
+	certListNode := node.Add(name)
+	for _, cert := range certs {
+		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
+		certNode.AddPair("issued to", cert.IssuedTo)
+		certNode.AddPair("issued by", cert.IssuedBy)
+		certNode.AddPair("expiry", cert.Expiry)
 	}
 }

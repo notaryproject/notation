@@ -18,15 +18,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
-	"github.com/notaryproject/notation-core-go/signature/cose"
-	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
-	"github.com/notaryproject/notation/internal/tree"
 	"github.com/spf13/cobra"
 )
 
@@ -84,79 +80,14 @@ func runInspect(opts *inspectOpts) error {
 	// displayed as UserDefinedAttributes
 	sig.SignedArtifact.Annotations = nil
 
-	return printOutput(opts.sigPath, sig, opts.outputFormat)
-}
-
-func printOutput(sigPath string, signature *envelope.SignatureInfo, outputFormat string) error {
-	if outputFormat == cmd.OutputJSON {
-		return ioutil.PrintObjectAsJSON(signature)
+	switch opts.outputFormat {
+	case cmd.OutputJSON:
+		return ioutil.PrintObjectAsJSON(sig)
+	case cmd.OutputPlaintext:
+		treeNode := sig.ToTreeNode(opts.sigPath)
+		treeNode.Print()
 	}
-
-	sigNode := tree.New(sigPath)
-	sigNode.AddPair("signature algorithm", signature.SignatureAlgorithm)
-	sigNode.AddPair("signature envelope type", signature.MediaType)
-
-	signedAttributesNode := sigNode.Add("signed attributes")
-	addMapToTree(signedAttributesNode, signature.SignedAttributes)
-
-	userDefinedAttributesNode := sigNode.Add("user defined attributes")
-	addStringMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
-
-	unsignedAttributesNode := sigNode.Add("unsigned attributes")
-	for k, v := range signature.UnsignedAttributes {
-		switch value := v.(type) {
-		case string:
-			unsignedAttributesNode.AddPair(k, value)
-		case envelope.TimestampInfo:
-			timestampNode := unsignedAttributesNode.Add("timestamp signature")
-			if value.Error != "" {
-				timestampNode.AddPair("error", value.Error)
-				break
-			}
-			timestampNode.AddPair("timestamp", value.Timestamp)
-			addCertificatesToTree(timestampNode, "certificates", value.Certificates)
-		}
-	}
-
-	addCertificatesToTree(sigNode, "certificates", signature.Certificates)
-
-	artifactNode := sigNode.Add("signed artifact")
-	artifactNode.AddPair("media type", signature.SignedArtifact.MediaType)
-	artifactNode.AddPair("digest", signature.SignedArtifact.Digest.String())
-	artifactNode.AddPair("size", strconv.FormatInt(signature.SignedArtifact.Size, 10))
-
-	sigNode.Print()
 	return nil
-}
-
-func addMapToTree(node *tree.Node, m map[string]any) {
-	if len(m) > 0 {
-		for k, v := range m {
-			node.AddPair(k, v)
-		}
-	} else {
-		node.Add("(empty)")
-	}
-}
-
-func addStringMapToTree(node *tree.Node, m map[string]string) {
-	if len(m) > 0 {
-		for k, v := range m {
-			node.AddPair(k, v)
-		}
-	} else {
-		node.Add("(empty)")
-	}
-}
-
-func addCertificatesToTree(node *tree.Node, name string, certs []envelope.CertificateInfo) {
-	certListNode := node.Add(name)
-	for _, cert := range certs {
-		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
-		certNode.AddPair("issued to", cert.IssuedTo)
-		certNode.AddPair("issued by", cert.IssuedBy)
-		certNode.AddPair("expiry", cert.Expiry)
-	}
 }
 
 func parseEnvelopeMediaType(filename string) (string, error) {
@@ -164,13 +95,5 @@ func parseEnvelopeMediaType(filename string) (string, error) {
 	if len(parts) < 3 {
 		return "", fmt.Errorf("invalid signature filename: %s", filename)
 	}
-	mediaType := strings.ToLower(parts[len(parts)-2])
-	switch mediaType {
-	case "jws":
-		return jws.MediaTypeEnvelope, nil
-	case "cose":
-		return cose.MediaTypeEnvelope, nil
-	default:
-		return "", fmt.Errorf("unsupported signature format: %s", mediaType)
-	}
+	return envelope.GetEnvelopeMediaType(strings.ToLower(parts[len(parts)-2]))
 }
