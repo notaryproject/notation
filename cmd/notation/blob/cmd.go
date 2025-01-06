@@ -19,11 +19,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Cmd returns the command for blob
+// Cmd returns the commands for blob
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "blob [commnad]",
-		Short: "Sign, verify and inspect signatures associated with blobs",
+		Use:   "blob [command]",
+		Short: "Sign, inspect, and verify signatures and configure trust policies",
 		Long:  "Sign, inspect, and verify signatures and configure trust policies.",
 	}
 

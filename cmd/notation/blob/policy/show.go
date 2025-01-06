@@ -29,7 +29,7 @@ import (
 func showCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "Show trust policy configuration",
+		Short: "Show blob trust policy configuration",
 		Long: `Show blob trust policy configuration.
 
 Example - Show current blob trust policy configuration:
@@ -59,7 +59,7 @@ func runShow() error {
 		err = doc.Validate()
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Existing blob trust policy file is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`\n")
+		fmt.Fprintf(os.Stderr, "Existing blob trust policy file is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`. Please visit https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#trust-policy-for-blobs to find a valid blob trust policy example.\n")
 		os.Stdout.Write(policyJSON)
 		return err
 	}

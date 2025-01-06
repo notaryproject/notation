@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package policy provides the import and show command for blob trust policy.
+// Package policy provides the import and show commands for blob trust policy.
 package policy
 
 import (
