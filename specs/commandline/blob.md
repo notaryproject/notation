@@ -58,10 +58,10 @@ Usage:
   notation blob [command]
 
 Available Commands:
-  inspect   inspect a signature associated with a blob
-  policy    manage trust policy configuration for signed blobs
-  sign      produce a detached signature for a given blob
-  verify    verify a signature associated with a blob
+  inspect   Inspect a signature associated with a blob
+  policy    Manage trust policy configuration for signed blobs
+  sign      Produce a detached signature for a given blob
+  verify    Verify a signature associated with a blob
 
 Flags:
   -h, --help   help for blob
@@ -72,7 +72,7 @@ Flags:
 ```text
 Produce a detached signature for a given blob.
 
-The signature file will be written to the currently working directory with file name `{blob file name}.{signature format}.sig`.
+The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig".
 
 Usage:
   notation blob sign [flags] <blob_path>

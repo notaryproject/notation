@@ -70,7 +70,7 @@ Example - Sign a blob artifact using the default signing key, with the default J
   notation blob sign <blob_path>
 
 Example - Sign a blob artifact by generating the signature in a particular directory: 
-  notation blob sign --signature-directory <directory_path> <blob_path>
+  notation blob sign --signature-directory <signature_directory_path> <blob_path>
 
 Example - Sign a blob artifact and skip user confirmations when overwriting existing signature:
   notation blob sign --force <blob_path> 
@@ -94,12 +94,12 @@ Example - Sign a blob artifact and specify the signature expiry duration, for ex
   notation blob sign --expiry 24h <blob_path>
 
 Example - Sign a blob artifact with timestamping:
-  notation blob sign --timestamp-url <TSA_url> --timestamp-root-cert <TSA_root_certificate_filepath> <registry>/<repository>@<digest> 
+  notation blob sign --timestamp-url <TSA_url> --timestamp-root-cert <TSA_root_certificate_filepath> <blob_path>
 `
 
 	command := &cobra.Command{
-		Use:   "sign [flags] <blobPath>",
-		Short: "Sign blob artifacts",
+		Use:   "sign [flags] <blob_path>",
+		Short: "Produce a detached signature for a given blob",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
