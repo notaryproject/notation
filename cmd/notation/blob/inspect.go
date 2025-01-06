@@ -14,57 +14,25 @@
 package blob
 
 import (
-	"crypto/sha256"
-	"crypto/x509"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-core-go/signature/cose"
 	"github.com/notaryproject/notation-core-go/signature/jws"
-	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/notaryproject/notation/internal/tree"
-	"github.com/notaryproject/tspclient-go"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
 type inspectOpts struct {
 	sigPath      string
 	outputFormat string
-}
-
-type signatureOutput struct {
-	MediaType             string              `json:"mediaType"`
-	Digest                string              `json:"digest"`
-	SignatureAlgorithm    string              `json:"signatureAlgorithm"`
-	SignedAttributes      map[string]string   `json:"signedAttributes"`
-	UserDefinedAttributes map[string]string   `json:"userDefinedAttributes"`
-	UnsignedAttributes    map[string]any      `json:"unsignedAttributes"`
-	Certificates          []certificateOutput `json:"certificates"`
-	SignedArtifact        ocispec.Descriptor  `json:"signedArtifact"`
-}
-
-type certificateOutput struct {
-	SHA256Fingerprint string `json:"SHA256Fingerprint"`
-	IssuedTo          string `json:"issuedTo"`
-	IssuedBy          string `json:"issuedBy"`
-	Expiry            string `json:"expiry"`
-}
-
-type timestampOutput struct {
-	Timestamp    string              `json:"timestamp,omitempty"`
-	Certificates []certificateOutput `json:"certificates,omitempty"`
-	Error        string              `json:"error,omitempty"`
 }
 
 func inspectCommand() *cobra.Command {
@@ -108,104 +76,18 @@ func runInspect(opts *inspectOpts) error {
 		return err
 	}
 
-	sigEnvelope, err := signature.ParseEnvelope(envelopeMediaType, sigBlob)
+	sig, err := envelope.Parse(sigBlob, envelopeMediaType)
 	if err != nil {
 		return err
 	}
 
-	envelopeContent, err := sigEnvelope.Content()
-	if err != nil {
-		return err
-	}
-
-	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
-	if err != nil {
-		return err
-	}
-
-	signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
-	if err != nil {
-		return err
-	}
-
-	sig := signatureOutput{
-		MediaType:             envelopeMediaType,
-		SignatureAlgorithm:    string(signatureAlgorithm),
-		SignedAttributes:      getSignedAttributes(opts.outputFormat, envelopeContent),
-		UserDefinedAttributes: signedArtifactDesc.Annotations,
-		UnsignedAttributes:    getUnsignedAttributes(opts.outputFormat, envelopeContent),
-		Certificates:          getCertificates(opts.outputFormat, envelopeContent.SignerInfo.CertificateChain),
-		SignedArtifact:        *signedArtifactDesc,
-	}
-
-	// clearing annotations from the SignedArtifact field since they're already
 	// displayed as UserDefinedAttributes
 	sig.SignedArtifact.Annotations = nil
 
 	return printOutput(opts.sigPath, sig, opts.outputFormat)
 }
 
-func getSignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) map[string]string {
-	signedAttributes := map[string]string{
-		"signingScheme": string(envContent.SignerInfo.SignedAttributes.SigningScheme),
-		"signingTime":   formatTimestamp(outputFormat, envContent.SignerInfo.SignedAttributes.SigningTime),
-	}
-	expiry := envContent.SignerInfo.SignedAttributes.Expiry
-	if !expiry.IsZero() {
-		signedAttributes["expiry"] = formatTimestamp(outputFormat, expiry)
-	}
-
-	for _, attribute := range envContent.SignerInfo.SignedAttributes.ExtendedAttributes {
-		signedAttributes[fmt.Sprint(attribute.Key)] = fmt.Sprint(attribute.Value)
-	}
-
-	return signedAttributes
-}
-
-func getUnsignedAttributes(outputFormat string, envContent *signature.EnvelopeContent) map[string]any {
-	unsignedAttributes := make(map[string]any)
-
-	if envContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
-		unsignedAttributes["timestampSignature"] = parseTimestamp(outputFormat, envContent.SignerInfo)
-	}
-
-	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
-		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
-	}
-
-	return unsignedAttributes
-}
-
-func formatTimestamp(outputFormat string, t time.Time) string {
-	switch outputFormat {
-	case cmd.OutputJSON:
-		return t.Format(time.RFC3339)
-	default:
-		return t.Format(time.ANSIC)
-	}
-}
-
-func getCertificates(outputFormat string, certChain []*x509.Certificate) []certificateOutput {
-	certificates := []certificateOutput{}
-
-	for _, cert := range certChain {
-		h := sha256.Sum256(cert.Raw)
-		fingerprint := strings.ToLower(hex.EncodeToString(h[:]))
-
-		certificate := certificateOutput{
-			SHA256Fingerprint: fingerprint,
-			IssuedTo:          cert.Subject.String(),
-			IssuedBy:          cert.Issuer.String(),
-			Expiry:            formatTimestamp(outputFormat, cert.NotAfter),
-		}
-
-		certificates = append(certificates, certificate)
-	}
-
-	return certificates
-}
-
-func printOutput(sigPath string, signature signatureOutput, outputFormat string) error {
+func printOutput(sigPath string, signature *envelope.SignatureInfo, outputFormat string) error {
 	if outputFormat == cmd.OutputJSON {
 		return ioutil.PrintObjectAsJSON(signature)
 	}
@@ -218,14 +100,14 @@ func printOutput(sigPath string, signature signatureOutput, outputFormat string)
 	addMapToTree(signedAttributesNode, signature.SignedAttributes)
 
 	userDefinedAttributesNode := sigNode.Add("user defined attributes")
-	addMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
+	addStringMapToTree(userDefinedAttributesNode, signature.UserDefinedAttributes)
 
 	unsignedAttributesNode := sigNode.Add("unsigned attributes")
 	for k, v := range signature.UnsignedAttributes {
 		switch value := v.(type) {
 		case string:
 			unsignedAttributesNode.AddPair(k, value)
-		case timestampOutput:
+		case envelope.TimestampInfo:
 			timestampNode := unsignedAttributesNode.Add("timestamp signature")
 			if value.Error != "" {
 				timestampNode.AddPair("error", value.Error)
@@ -247,7 +129,7 @@ func printOutput(sigPath string, signature signatureOutput, outputFormat string)
 	return nil
 }
 
-func addMapToTree(node *tree.Node, m map[string]string) {
+func addMapToTree(node *tree.Node, m map[string]any) {
 	if len(m) > 0 {
 		for k, v := range m {
 			node.AddPair(k, v)
@@ -257,46 +139,23 @@ func addMapToTree(node *tree.Node, m map[string]string) {
 	}
 }
 
-func addCertificatesToTree(node *tree.Node, name string, certs []certificateOutput) {
+func addStringMapToTree(node *tree.Node, m map[string]string) {
+	if len(m) > 0 {
+		for k, v := range m {
+			node.AddPair(k, v)
+		}
+	} else {
+		node.Add("(empty)")
+	}
+}
+
+func addCertificatesToTree(node *tree.Node, name string, certs []envelope.CertificateInfo) {
 	certListNode := node.Add(name)
 	for _, cert := range certs {
 		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
 		certNode.AddPair("issued to", cert.IssuedTo)
 		certNode.AddPair("issued by", cert.IssuedBy)
 		certNode.AddPair("expiry", cert.Expiry)
-	}
-}
-
-func parseTimestamp(outputFormat string, signerInfo signature.SignerInfo) timestampOutput {
-	signedToken, err := tspclient.ParseSignedToken(signerInfo.UnsignedAttributes.TimestampSignature)
-	if err != nil {
-		return timestampOutput{
-			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
-		}
-	}
-	info, err := signedToken.Info()
-	if err != nil {
-		return timestampOutput{
-			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
-		}
-	}
-	timestamp, err := info.Validate(signerInfo.Signature)
-	if err != nil {
-		return timestampOutput{
-			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
-		}
-	}
-	certificates := getCertificates(outputFormat, signedToken.Certificates)
-	var formatTimestamp string
-	switch outputFormat {
-	case cmd.OutputJSON:
-		formatTimestamp = timestamp.Format(time.RFC3339)
-	default:
-		formatTimestamp = timestamp.Format(time.ANSIC)
-	}
-	return timestampOutput{
-		Timestamp:    formatTimestamp,
-		Certificates: certificates,
 	}
 }
 
