@@ -67,12 +67,12 @@ func runInspect(opts *inspectOpts) error {
 		return err
 	}
 
-	sigBlob, err := os.ReadFile(opts.sigPath)
+	envelopeBytes, err := os.ReadFile(opts.sigPath)
 	if err != nil {
 		return err
 	}
 
-	sig, err := envelope.Parse(sigBlob, envelopeMediaType)
+	sig, err := envelope.Parse(envelopeMediaType, envelopeBytes)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func runInspect(opts *inspectOpts) error {
 	case cmd.OutputJSON:
 		return ioutil.PrintObjectAsJSON(sig)
 	case cmd.OutputPlaintext:
-		sig.SignatureNode(opts.sigPath).Print()
+		sig.ToNode(opts.sigPath).Print()
 	}
 	return nil
 }

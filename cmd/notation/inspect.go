@@ -39,8 +39,8 @@ type inspectOpts struct {
 }
 
 type inspectOutput struct {
-	MediaType  string                    `json:"mediaType"`
-	Signatures []*envelope.SignatureInfo `json:"signatures"`
+	MediaType  string                `json:"mediaType"`
+	Signatures []*envelope.Signature `json:"signatures"`
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -111,7 +111,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
-	output := inspectOutput{MediaType: manifestDesc.MediaType, Signatures: []*envelope.SignatureInfo{}}
+	output := inspectOutput{MediaType: manifestDesc.MediaType, Signatures: []*envelope.Signature{}}
 	skippedSignatures := false
 	err = listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
 		sigBlob, sigDesc, err := sigRepo.FetchSignatureBlob(ctx, sigManifestDesc)
@@ -121,7 +121,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			return nil
 		}
 
-		sig, err := envelope.Parse(sigBlob, sigDesc.MediaType)
+		sig, err := envelope.Parse(sigDesc.MediaType, sigBlob)
 		if err != nil {
 			logSkippedSignature(sigManifestDesc, err)
 			skippedSignatures = true
@@ -178,7 +178,7 @@ func printOutput(outputFormat string, ref string, output inspectOutput) error {
 	cncfSigNode := root.Add(registry.ArtifactTypeNotation)
 
 	for _, signature := range output.Signatures {
-		cncfSigNode.Children = append(cncfSigNode.Children, signature.SignatureNode(signature.Digest))
+		cncfSigNode.Children = append(cncfSigNode.Children, signature.ToNode(signature.Digest))
 	}
 
 	root.Print()

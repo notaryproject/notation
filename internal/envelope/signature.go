@@ -31,33 +31,41 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-// SignatureInfo is the signature envelope with human readable fields.
-type SignatureInfo struct {
+// Signature is the signature envelope for printing in human readable format.
+type Signature struct {
 	MediaType             string                    `json:"mediaType"`
 	Digest                string                    `json:"digest,omitempty"`
 	SignatureAlgorithm    plugin.SignatureAlgorithm `json:"signatureAlgorithm"`
 	SignedAttributes      map[string]any            `json:"signedAttributes"`
 	UserDefinedAttributes map[string]string         `json:"userDefinedAttributes"`
 	UnsignedAttributes    map[string]any            `json:"unsignedAttributes"`
-	Certificates          []CertificateInfo         `json:"certificates"`
+	Certificates          []Certificate             `json:"certificates"`
 	SignedArtifact        ocispec.Descriptor        `json:"signedArtifact"`
 }
 
-type CertificateInfo struct {
+// Certificate is the certificate information for printing in human readable
+// format.
+type Certificate struct {
 	SHA256Fingerprint string      `json:"SHA256Fingerprint"`
 	IssuedTo          string      `json:"issuedTo"`
 	IssuedBy          string      `json:"issuedBy"`
 	Expiry            ioutil.Time `json:"expiry"`
 }
 
-type TimestampInfo struct {
-	Timestamp    ioutil.Timestamp  `json:"timestamp,omitempty"`
-	Certificates []CertificateInfo `json:"certificates,omitempty"`
-	Error        string            `json:"error,omitempty"`
+// Timestamp is the timestamp information for printing in human readable.
+type Timestamp struct {
+	Timestamp    ioutil.Timestamp `json:"timestamp,omitempty"`
+	Certificates []Certificate    `json:"certificates,omitempty"`
+	Error        string           `json:"error,omitempty"`
 }
 
-func Parse(sig []byte, envelopeMediaType string) (*SignatureInfo, error) {
-	sigEnvelope, err := signature.ParseEnvelope(envelopeMediaType, sig)
+// Parse parses the signature blob and returns a Signature object.
+//
+// envelopeMediaType supports
+// - application/jose+json
+// - application/cose
+func Parse(envelopeMediaType string, envelopeBytes []byte) (*Signature, error) {
+	sigEnvelope, err := signature.ParseEnvelope(envelopeMediaType, envelopeBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -76,8 +84,7 @@ func Parse(sig []byte, envelopeMediaType string) (*SignatureInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return &SignatureInfo{
+	return &Signature{
 		MediaType:             envelopeMediaType,
 		SignatureAlgorithm:    signatureAlgorithm,
 		SignedAttributes:      getSignedAttributes(envelopeContent),
@@ -93,15 +100,13 @@ func getSignedAttributes(envContent *signature.EnvelopeContent) map[string]any {
 		"signingScheme": envContent.SignerInfo.SignedAttributes.SigningScheme,
 		"signingTime":   ioutil.Time(envContent.SignerInfo.SignedAttributes.SigningTime),
 	}
-	expiry := envContent.SignerInfo.SignedAttributes.Expiry
-	if !expiry.IsZero() {
+	if expiry := envContent.SignerInfo.SignedAttributes.Expiry; !expiry.IsZero() {
 		signedAttributes["expiry"] = ioutil.Time(expiry)
 	}
 
 	for _, attribute := range envContent.SignerInfo.SignedAttributes.ExtendedAttributes {
 		signedAttributes[fmt.Sprint(attribute.Key)] = fmt.Sprint(attribute.Value)
 	}
-
 	return signedAttributes
 }
 
@@ -115,57 +120,52 @@ func getUnsignedAttributes(envContent *signature.EnvelopeContent) map[string]any
 	if envContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
 		unsignedAttributes["signingAgent"] = envContent.SignerInfo.UnsignedAttributes.SigningAgent
 	}
-
 	return unsignedAttributes
 }
 
-func getCertificates(certChain []*x509.Certificate) []CertificateInfo {
-	certificates := []CertificateInfo{}
+func getCertificates(certChain []*x509.Certificate) []Certificate {
+	certificates := []Certificate{}
 
 	for _, cert := range certChain {
-		h := sha256.Sum256(cert.Raw)
-		fingerprint := strings.ToLower(hex.EncodeToString(h[:]))
+		hash := sha256.Sum256(cert.Raw)
 
-		certificate := CertificateInfo{
-			SHA256Fingerprint: fingerprint,
+		certificates = append(certificates, Certificate{
+			SHA256Fingerprint: strings.ToLower(hex.EncodeToString(hash[:])),
 			IssuedTo:          cert.Subject.String(),
 			IssuedBy:          cert.Issuer.String(),
 			Expiry:            ioutil.Time(cert.NotAfter),
-		}
-
-		certificates = append(certificates, certificate)
+		})
 	}
-
 	return certificates
 }
 
-func parseTimestamp(signerInfo signature.SignerInfo) TimestampInfo {
+func parseTimestamp(signerInfo signature.SignerInfo) Timestamp {
 	signedToken, err := tspclient.ParseSignedToken(signerInfo.UnsignedAttributes.TimestampSignature)
 	if err != nil {
-		return TimestampInfo{
-			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
+		return Timestamp{
+			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err),
 		}
 	}
 	info, err := signedToken.Info()
 	if err != nil {
-		return TimestampInfo{
-			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
+		return Timestamp{
+			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err),
 		}
 	}
 	timestamp, err := info.Validate(signerInfo.Signature)
 	if err != nil {
-		return TimestampInfo{
-			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
+		return Timestamp{
+			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err),
 		}
 	}
-	return TimestampInfo{
+	return Timestamp{
 		Timestamp:    ioutil.Timestamp(*timestamp),
 		Certificates: getCertificates(signedToken.Certificates),
 	}
 }
 
-// SignatureNode returns a tree node that represents the signature.
-func (s *SignatureInfo) SignatureNode(sigName string) *tree.Node {
+// ToNode returns a tree node that represents the signature.
+func (s *Signature) ToNode(sigName string) *tree.Node {
 	sigNode := tree.New(sigName)
 	sigNode.AddPair("signature algorithm", s.SignatureAlgorithm)
 	sigNode.AddPair("signature envelope type", s.MediaType)
@@ -181,7 +181,7 @@ func (s *SignatureInfo) SignatureNode(sigName string) *tree.Node {
 		switch value := v.(type) {
 		case string:
 			unsignedAttributesNode.AddPair(k, value)
-		case TimestampInfo:
+		case Timestamp:
 			timestampNode := unsignedAttributesNode.Add("timestamp signature")
 			if value.Error != "" {
 				timestampNode.AddPair("error", value.Error)
@@ -202,16 +202,17 @@ func (s *SignatureInfo) SignatureNode(sigName string) *tree.Node {
 }
 
 func addMapToTree[T any](node *tree.Node, m map[string]T) {
-	if len(m) > 0 {
-		for k, v := range m {
-			node.AddPair(k, v)
-		}
-	} else {
+	if len(m) == 0 {
 		node.Add("(empty)")
+		return
+	}
+
+	for k, v := range m {
+		node.AddPair(k, v)
 	}
 }
 
-func addCertificatesToTree(node *tree.Node, name string, certs []CertificateInfo) {
+func addCertificatesToTree(node *tree.Node, name string, certs []Certificate) {
 	certListNode := node.Add(name)
 	for _, cert := range certs {
 		certNode := certListNode.AddPair("SHA256 fingerprint", cert.SHA256Fingerprint)
