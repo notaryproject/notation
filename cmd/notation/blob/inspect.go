@@ -84,8 +84,7 @@ func runInspect(opts *inspectOpts) error {
 	case cmd.OutputJSON:
 		return ioutil.PrintObjectAsJSON(sig)
 	case cmd.OutputPlaintext:
-		treeNode := sig.ToTreeNode(opts.sigPath)
-		treeNode.Print()
+		sig.SignatureNode(opts.sigPath).Print()
 	}
 	return nil
 }

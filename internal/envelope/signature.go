@@ -34,7 +34,7 @@ import (
 // SignatureInfo is the signature envelope with human readable fields.
 type SignatureInfo struct {
 	MediaType             string                    `json:"mediaType"`
-	Digest                string                    `json:"digest"`
+	Digest                string                    `json:"digest,omitempty"`
 	SignatureAlgorithm    plugin.SignatureAlgorithm `json:"signatureAlgorithm"`
 	SignedAttributes      map[string]any            `json:"signedAttributes"`
 	UserDefinedAttributes map[string]string         `json:"userDefinedAttributes"`
@@ -158,15 +158,14 @@ func parseTimestamp(signerInfo signature.SignerInfo) TimestampInfo {
 			Error: fmt.Sprintf("failed to parse timestamp countersignature: %s", err.Error()),
 		}
 	}
-	certificates := getCertificates(signedToken.Certificates)
-
 	return TimestampInfo{
 		Timestamp:    ioutil.Timestamp(*timestamp),
-		Certificates: certificates,
+		Certificates: getCertificates(signedToken.Certificates),
 	}
 }
 
-func (s *SignatureInfo) ToTreeNode(sigName string) *tree.Node {
+// SignatureNode returns a tree node that represents the signature.
+func (s *SignatureInfo) SignatureNode(sigName string) *tree.Node {
 	sigNode := tree.New(sigName)
 	sigNode.AddPair("signature algorithm", s.SignatureAlgorithm)
 	sigNode.AddPair("signature envelope type", s.MediaType)
