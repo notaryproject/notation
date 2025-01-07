@@ -69,12 +69,12 @@ func runInspect(opts *inspectOpts) error {
 
 	envelopeBytes, err := os.ReadFile(opts.sigPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read signature file: %w", err)
 	}
 
 	sig, err := envelope.Parse(envelopeMediaType, envelopeBytes)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse signature: %w", err)
 	}
 
 	// displayed as UserDefinedAttributes

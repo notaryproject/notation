@@ -14,6 +14,7 @@
 package blob
 
 import (
+	"os"
 	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -25,9 +26,60 @@ const (
 	jwsBlobSig = "LICENSE.jws.sig"
 )
 
+var (
+	testSignatureDir = filepath.Join(NotationE2ETestDataPath, "signatures")
+)
+
 var _ = Describe("notation blob inspect", func() {
+	It("missing required arguments", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "inspect").
+				MatchErrKeyWords("missing signature path")
+		})
+	})
+
+	It("unknown output format", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "inspect", "--output", "unknown", filepath.Join(testSignatureDir, jwsBlobSig)).
+				MatchErrKeyWords("unrecognized output format")
+		})
+	})
+
+	It("unknown signature file name", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "inspect", "unknown.sig").
+				MatchErrKeyWords("invalid signature filename")
+
+			notation.ExpectFailure().Exec("blob", "inspect", "hello.unknown.sig").
+				MatchErrKeyWords("signature format \"unknown\" not supported")
+		})
+	})
+
+	It("missing permission to read signature file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			err := os.Chmod(vhost.AbsolutePath(), 0000)
+			if err != nil {
+				Fail("failed to change permission of the directory")
+			}
+			defer os.Chmod(vhost.AbsolutePath(), 0755)
+
+			notation.ExpectFailure().Exec("blob", "inspect", vhost.AbsolutePath("blob.jws.sig")).
+				MatchErrKeyWords(
+					"failed to read signature file",
+					"permission denied",
+				)
+		})
+	})
+
+	It("malformed signature file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "inspect", filepath.Join(testSignatureDir, "malformed.jws.sig")).
+				MatchErrKeyWords("failed to parse signature")
+		})
+	})
+
 	It("with timestamping", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			expectedKeyWords := `├── signature algorithm: RSASSA-PSS-SHA-256
 ├── signature envelope type: application/jose+json
 ├── signed attributes
@@ -58,13 +110,13 @@ var _ = Describe("notation blob inspect", func() {
     ├── digest: sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4
     └── size: 11357
 `
-			notation.Exec("blob", "inspect", filepath.Join(NotationE2EConfigPath, "signatures", jwsBlobSig)).
+			notation.Exec("blob", "inspect", filepath.Join(testSignatureDir, jwsBlobSig)).
 				MatchKeyWords(expectedKeyWords)
 		})
 	})
 
 	It("with timestamping and output as json", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			expectedContent := `{
     "mediaType": "application/jose+json",
     "signatureAlgorithm": "RSASSA-PSS-SHA-256",
@@ -108,9 +160,8 @@ var _ = Describe("notation blob inspect", func() {
     }
 }
 `
-			notation.Exec("blob", "inspect", "--output", "json", filepath.Join(NotationE2EConfigPath, "signatures", jwsBlobSig)).
+			notation.Exec("blob", "inspect", "--output", "json", filepath.Join(testSignatureDir, jwsBlobSig)).
 				MatchContent(expectedContent)
 		})
 	})
-
 })
