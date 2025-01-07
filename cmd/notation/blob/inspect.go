@@ -77,15 +77,17 @@ func runInspect(opts *inspectOpts) error {
 		return fmt.Errorf("failed to parse signature: %w", err)
 	}
 
+	// clearing annotations from the SignedArtifact field since they're already
 	// displayed as UserDefinedAttributes
 	sig.SignedArtifact.Annotations = nil
 
-	switch opts.outputFormat {
-	case cmd.OutputJSON:
+	if opts.outputFormat == cmd.OutputJSON {
+		// print in JSON format
 		return ioutil.PrintObjectAsJSON(sig)
-	case cmd.OutputPlaintext:
-		sig.ToNode(opts.sigPath).Print()
 	}
+
+	// print in plaintext format
+	sig.ToNode(opts.sigPath).Print()
 	return nil
 }
 
