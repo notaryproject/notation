@@ -27,8 +27,8 @@ import (
 
 type blobVerifyOpts struct {
 	cmd.LoggingFlagOpts
-	signaturePath       string
 	blobPath            string
+	signaturePath       string
 	pluginConfig        []string
 	userMetadata        []string
 	policyStatementName string

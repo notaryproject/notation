@@ -22,14 +22,12 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 	opts := &blobVerifyOpts{}
 	command := verifyCommand(opts)
 	expected := &blobVerifyOpts{
-		signaturePath: "path",
-		blobPath:      "path",
-		pluginConfig:  []string{"key1=val1"},
+		blobPath:      "blob_path",
+		signaturePath: "sig_path",
 	}
 	if err := command.ParseFlags([]string{
-		expected.signaturePath,
 		expected.blobPath,
-		"--plugin-config", "key1=val1"}); err != nil {
+		"--signature", expected.signaturePath}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -44,13 +42,13 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 	opts := &blobVerifyOpts{}
 	command := verifyCommand(opts)
 	expected := &blobVerifyOpts{
-		signaturePath: "path",
-		blobPath:      "path",
+		blobPath:      "blob_path",
+		signaturePath: "sig_path",
 		pluginConfig:  []string{"key1=val1", "key2=val2"},
 	}
 	if err := command.ParseFlags([]string{
-		expected.signaturePath,
 		expected.blobPath,
+		"--signature", expected.signaturePath,
 		"--plugin-config", "key1=val1",
 		"--plugin-config", "key2=val2",
 	}); err != nil {
