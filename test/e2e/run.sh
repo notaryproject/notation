@@ -119,4 +119,4 @@ export NOTATION_E2E_MALICIOUS_PLUGIN_ARCHIVE_PATH=$CWD/testdata/malicious-plugin
 export NOTATION_E2E_TEST_DATA_PATH=$CWD/testdata
 
 # run tests
-ginkgo -r -p -v --focus "notation blob inspect"
+ginkgo -r -p -v
