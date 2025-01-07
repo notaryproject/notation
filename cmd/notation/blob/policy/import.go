@@ -41,7 +41,7 @@ Example - Import blob trust policy configuration from a file:
   notation blob policy import my_policy.json
 
 Example - Import blob trust policy and override existing configuration without prompt:
-  notation blob policy import my_policy.json --force
+  notation blob policy import --force my_policy.json
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
