@@ -15,11 +15,13 @@ package blob
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
@@ -86,44 +88,56 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 	return command
 }
 
-func runVerify(command *cobra.Command, opts *blobVerifyOpts) error {
+func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
+	blobFile, err := os.Open(cmdOpts.blobPath)
+	if err != nil {
+		return err
+	}
+	defer blobFile.Close()
+
+	signatureBytes, err := os.ReadFile(cmdOpts.signaturePath)
+	if err != nil {
+		return err
+	}
+
 	blobVerifier, err := cmd.GetVerifier(ctx, true)
 	if err != nil {
 		return err
 	}
 
 	// set up verification plugin config
-	pluginConfigs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfigs, err := cmd.ParseFlagMap(cmdOpts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := cmd.ParseFlagMap(cmdOpts.userMetadata, cmd.PflagUserMetadata.Name)
 	if err != nil {
 		return err
 	}
 
 	verifyBlobOpts := notation.VerifyBlobOptions{
 		BlobVerifierVerifyOptions: notation.BlobVerifierVerifyOptions{
-			SignatureMediaType: signatureFormat(opts.signaturePath),
+			SignatureMediaType: signatureFormat(cmdOpts.signaturePath),
 			PluginConfig:       pluginConfigs,
 			UserMetadata:       userMetadata,
-			TrustPolicyName:    opts.policyStatementName,
+			TrustPolicyName:    cmdOpts.policyStatementName,
 		},
-		ContentMediaType: opts.blobMediaType,
+		ContentMediaType: cmdOpts.blobMediaType,
 	}
-	_, outcomes, err := notation.VerifyBlob(ctx, blobVerifier, verifyBlobOpts)
-	// printOut := "placeholder"
-	// err = sharedutils.CheckVerificationFailure(outcomes, printOut, err)
-	// if err != nil {
-	// 	return err
-	// }
-	// sharedutils.ReportVerificationSuccess(outcomes, printOut)
+
+	_, outcome, err := notation.VerifyBlob(ctx, blobVerifier, blobFile, signatureBytes, verifyBlobOpts)
+	outcomes := []*notation.VerificationOutcome{outcome}
+	err = ioutil.PrintVerificationFailure(outcomes, cmdOpts.blobPath, err, true)
+	if err != nil {
+		return err
+	}
+	ioutil.PrintVerificationSuccess(outcomes, cmdOpts.blobPath)
 	return nil
 }
 
