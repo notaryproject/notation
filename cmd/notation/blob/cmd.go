@@ -23,8 +23,8 @@ import (
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "blob [command]",
-		Short: "Sign, inspect, and verify signatures and configure trust policies",
-		Long:  "Sign, inspect, and verify signatures and configure trust policies.",
+		Short: "Sign, inspect, verify signatures, and configure trust policies for blob artifacts",
+		Long:  "Sign, inspect, verify signatures, and configure trust policies for blob artifacts.",
 	}
 
 	command.AddCommand(

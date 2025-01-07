@@ -40,7 +40,7 @@ func importCmd() *cobra.Command {
 Example - Import blob trust policy configuration from a file:
   notation blob policy import my_policy.json
 
-Example - Import blob trust policy and override existing configuration:
+Example - Import blob trust policy and override existing configuration without prompt:
   notation blob policy import my_policy.json --force
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -54,7 +54,7 @@ Example - Import blob trust policy and override existing configuration:
 			return runImport(opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration, never prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration without prompt")
 	return command
 }
 
