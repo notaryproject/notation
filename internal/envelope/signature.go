@@ -165,8 +165,10 @@ func parseTimestamp(signerInfo signature.SignerInfo) Timestamp {
 }
 
 // ToNode returns a tree node that represents the signature.
-func (s *Signature) ToNode(sigName string) *tree.Node {
-	sigNode := tree.New(sigName)
+//
+// name is the name of the signature tree node.
+func (s *Signature) ToNode(name string) *tree.Node {
+	sigNode := tree.New(name)
 	sigNode.AddPair("signature algorithm", s.SignatureAlgorithm)
 	sigNode.AddPair("signature envelope type", s.MediaType)
 
