@@ -129,7 +129,6 @@ func getCertificates(certChain []*x509.Certificate) []Certificate {
 
 	for _, cert := range certChain {
 		hash := sha256.Sum256(cert.Raw)
-
 		certificates = append(certificates, Certificate{
 			SHA256Fingerprint: strings.ToLower(hex.EncodeToString(hash[:])),
 			IssuedTo:          cert.Subject.String(),

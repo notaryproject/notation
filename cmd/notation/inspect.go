@@ -123,17 +123,17 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 
 		sig, err := envelope.Parse(sigDesc.MediaType, sigBlob)
 		if err != nil {
-			logSkippedSignature(sigManifestDesc, err)
+			fmt.Fprintf(os.Stderr, "Warning: Skipping signature %s because of error: %v\n", sigDesc.Digest, err)
 			skippedSignatures = true
 			return nil
 		}
 
+		// adding digest to the signature
+		sig.Digest = sigManifestDesc.Digest.String()
+
 		// clearing annotations from the SignedArtifact field since they're already
 		// displayed as UserDefinedAttributes
 		sig.SignedArtifact.Annotations = nil
-
-		// adding digest to the signature info
-		sig.Digest = sigManifestDesc.Digest.String()
 
 		output.Signatures = append(output.Signatures, sig)
 
@@ -157,10 +157,6 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	}
 
 	return nil
-}
-
-func logSkippedSignature(sigDesc ocispec.Descriptor, err error) {
-	fmt.Fprintf(os.Stderr, "Warning: Skipping signature %s because of error: %v\n", sigDesc.Digest.String(), err)
 }
 
 func printOutput(outputFormat string, ref string, output inspectOutput) error {
