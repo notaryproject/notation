@@ -15,7 +15,6 @@ package blob
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,7 +23,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
-	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
@@ -138,6 +136,7 @@ Example - Sign a blob artifact with timestamping:
 func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	// set log level
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
+	logger := log.GetLogger(ctx)
 
 	blobSigner, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
 	if err != nil {
@@ -159,7 +158,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 		return err
 	}
 	signaturePath := signatureFilepath(cmdOpts.signatureDirectory, cmdOpts.blobPath, cmdOpts.SignatureFormat)
-	fmt.Printf("Writing signature to file %s\n", signaturePath)
+	logger.Infof("Writing signature to file %s", signaturePath)
 
 	// optional confirmation
 	if !cmdOpts.force {
@@ -216,29 +215,10 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 		if err != nil {
 			return notation.SignBlobOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}
-
-		rootCerts, err := corex509.ReadCertificateFile(opts.tsaRootCertificatePath)
+		signBlobOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.tsaRootCertificatePath)
 		if err != nil {
 			return notation.SignBlobOptions{}, err
 		}
-		if len(rootCerts) == 0 {
-			return notation.SignBlobOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
-		}
-		if len(rootCerts) > 1 {
-			return notation.SignBlobOptions{}, fmt.Errorf("found more than one certificates from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
-		}
-		tsaRootCert := rootCerts[0]
-		isRoot, err := nx509.IsRootCertificate(tsaRootCert)
-		if err != nil {
-			return notation.SignBlobOptions{}, fmt.Errorf("failed to check root certificate with error: %w", err)
-		}
-		if !isRoot {
-			return notation.SignBlobOptions{}, fmt.Errorf("certificate from %q is not a root certificate. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
-
-		}
-		rootCAs := x509.NewCertPool()
-		rootCAs.AddCert(tsaRootCert)
-		signBlobOpts.TSARootCAs = rootCAs
 		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
 		if err != nil {
 			return notation.SignBlobOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
