@@ -29,6 +29,8 @@ const (
 
 var (
 	testSignatureDir = filepath.Join(NotationE2ETestDataPath, "signatures")
+	jwsBlobSigPath   = filepath.Join(testSignatureDir, jwsBlobSig)
+	coseBlobSigPath  = filepath.Join(testSignatureDir, coseBlobSig)
 )
 
 var _ = Describe("notation blob inspect", func() {
@@ -81,7 +83,8 @@ var _ = Describe("notation blob inspect", func() {
 
 	It("with timestamping", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			expectedKeyWords := `├── signature algorithm: RSASSA-PSS-SHA-256
+			expectedContent := jwsBlobSigPath + `
+├── signature algorithm: RSASSA-PSS-SHA-256
 ├── signature envelope type: application/jose+json
 ├── signed attributes
 │   ├── signingScheme: notary.x509
@@ -111,8 +114,8 @@ var _ = Describe("notation blob inspect", func() {
     ├── digest: sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4
     └── size: 11357
 `
-			notation.Exec("blob", "inspect", filepath.Join(testSignatureDir, jwsBlobSig)).
-				MatchKeyWords(expectedKeyWords)
+			notation.Exec("blob", "inspect", jwsBlobSigPath).
+				MatchContent(expectedContent)
 		})
 	})
 
@@ -161,14 +164,15 @@ var _ = Describe("notation blob inspect", func() {
     }
 }
 `
-			notation.Exec("blob", "inspect", "--output", "json", filepath.Join(testSignatureDir, jwsBlobSig)).
+			notation.Exec("blob", "inspect", "--output", "json", jwsBlobSigPath).
 				MatchContent(expectedContent)
 		})
 	})
 
 	It("with cose signature", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			expectedKeyWords := `├── signature algorithm: RSASSA-PSS-SHA-256
+			expectedContent := coseBlobSigPath + `
+├── signature algorithm: RSASSA-PSS-SHA-256
 ├── signature envelope type: application/cose
 ├── signed attributes
 │   ├── signingScheme: notary.x509
@@ -199,14 +203,14 @@ var _ = Describe("notation blob inspect", func() {
     └── size: 11357
 `
 
-			notation.Exec("blob", "inspect", filepath.Join(testSignatureDir, coseBlobSig)).
-				MatchKeyWords(expectedKeyWords)
+			notation.Exec("blob", "inspect", coseBlobSigPath).
+				MatchContent(expectedContent)
 		})
 	})
 
 	It("with cose signature and output as json", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			expectedKeyWords := `{
+			expectedContent := `{
     "mediaType": "application/cose",
     "signatureAlgorithm": "RSASSA-PSS-SHA-256",
     "signedAttributes": {
@@ -249,8 +253,8 @@ var _ = Describe("notation blob inspect", func() {
     }
 }
 `
-			notation.Exec("blob", "inspect", "--output", "json", filepath.Join(testSignatureDir, coseBlobSig)).
-				MatchKeyWords(expectedKeyWords)
+			notation.Exec("blob", "inspect", "--output", "json", coseBlobSigPath).
+				MatchContent(expectedContent)
 		})
 	})
 })
