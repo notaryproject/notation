@@ -92,18 +92,18 @@ var _ = Describe("notation blob inspect", func() {
 ├── user defined attributes
 │   └── (empty)
 ├── unsigned attributes
-│   ├── timestamp signature
-│   │   ├── timestamp: [Tue Dec 31 08:05:29 2024, Tue Dec 31 08:05:30 2024]
-│   │   └── certificates
-│   │       ├── SHA256 fingerprint: 36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8
-│   │       │   ├── issued to: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
-│   │       │   ├── issued by: CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US
-│   │       │   └── expiry: Mon Nov 19 20:42:31 2035
-│   │       └── SHA256 fingerprint: 93db2732c49e2624cf0a5cc03ad04acc0927fcaf5e7afdd4a3e23b6fc196aedc
-│   │           ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=nShield TSS ESN:7800-05E0-D947,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
-│   │           ├── issued by: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
-│   │           └── expiry: Sat Feb 15 20:36:12 2025
-│   └── signingAgent: notation-go/1.3.0+unreleased
+│   ├── signingAgent: notation-go/1.3.0+unreleased
+│   └── timestamp signature
+│       ├── timestamp: [Tue Dec 31 08:05:29 2024, Tue Dec 31 08:05:30 2024]
+│       └── certificates
+│           ├── SHA256 fingerprint: 36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8
+│           │   ├── issued to: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
+│           │   ├── issued by: CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US
+│           │   └── expiry: Mon Nov 19 20:42:31 2035
+│           └── SHA256 fingerprint: 93db2732c49e2624cf0a5cc03ad04acc0927fcaf5e7afdd4a3e23b6fc196aedc
+│               ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=nShield TSS ESN:7800-05E0-D947,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
+│               ├── issued by: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
+│               └── expiry: Sat Feb 15 20:36:12 2025
 ├── certificates
 │   └── SHA256 fingerprint: dadee19c843e94b94daae9854d0de7ad93642b6075e2d1523b860b1770b64a03
 │       ├── issued to: CN=testcert2,O=Notary,L=Seattle,ST=WA,C=US
@@ -180,18 +180,18 @@ var _ = Describe("notation blob inspect", func() {
 ├── user defined attributes
 │   └── (empty)
 ├── unsigned attributes
-│   ├── timestamp signature
-│   │   ├── timestamp: [Tue Jan  7 08:42:43 2025, Tue Jan  7 08:42:44 2025]
-│   │   └── certificates
-│   │       ├── SHA256 fingerprint: 36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8
-│   │       │   ├── issued to: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
-│   │       │   ├── issued by: CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US
-│   │       │   └── expiry: Mon Nov 19 20:42:31 2035
-│   │       └── SHA256 fingerprint: 3403d75002d22e2b8c49a8a113957d9eb225c901b946837fd61ff3ce32c51f65
-│   │           ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:45D6-96C5-5E63,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
-│   │           ├── issued by: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
-│   │           └── expiry: Sat Feb 15 20:35:56 2025
-│   └── signingAgent: notation-go/1.3.0+unreleased
+│   ├── signingAgent: notation-go/1.3.0+unreleased
+│   └── timestamp signature
+│       ├── timestamp: [Tue Jan  7 08:42:43 2025, Tue Jan  7 08:42:44 2025]
+│       └── certificates
+│           ├── SHA256 fingerprint: 36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8
+│           │   ├── issued to: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
+│           │   ├── issued by: CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US
+│           │   └── expiry: Mon Nov 19 20:42:31 2035
+│           └── SHA256 fingerprint: 3403d75002d22e2b8c49a8a113957d9eb225c901b946837fd61ff3ce32c51f65
+│               ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:45D6-96C5-5E63,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
+│               ├── issued by: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
+│               └── expiry: Sat Feb 15 20:35:56 2025
 ├── certificates
 │   └── SHA256 fingerprint: 3678adce9daa3a82f4f55fd65e0c87c398b3d9bcd5338c06bbf8850df8c6641d
 │       ├── issued to: CN=testcert3,O=Notary,L=Seattle,ST=WA,C=US

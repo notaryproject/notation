@@ -62,7 +62,7 @@ func runInspect(opts *inspectOpts) error {
 		return fmt.Errorf("unrecognized output format %s", opts.outputFormat)
 	}
 
-	envelopeMediaType, err := parseEnvelopeMediaType(filepath.Base(opts.sigPath))
+	envelopeMediaType, err := parseEnvelopeType(filepath.Base(opts.sigPath))
 	if err != nil {
 		return err
 	}
@@ -91,9 +91,10 @@ func runInspect(opts *inspectOpts) error {
 	return nil
 }
 
-func parseEnvelopeMediaType(filename string) (string, error) {
+// parseEnvelopeType returns the envelope media type based on the filename.
+func parseEnvelopeType(filename string) (string, error) {
 	parts := strings.Split(filename, ".")
-	if len(parts) < 3 {
+	if len(parts) < 3 || parts[len(parts)-1] != "sig" {
 		return "", fmt.Errorf("invalid signature filename: %s", filename)
 	}
 	return envelope.GetEnvelopeMediaType(strings.ToLower(parts[len(parts)-2]))

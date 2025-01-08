@@ -18,6 +18,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -179,7 +180,8 @@ func (s *Signature) ToNode(name string) *tree.Node {
 	addMapToTree(userDefinedAttributesNode, s.UserDefinedAttributes)
 
 	unsignedAttributesNode := sigNode.Add("unsigned attributes")
-	for k, v := range s.UnsignedAttributes {
+	for _, k := range orderedKeys(s.UnsignedAttributes) {
+		v := s.UnsignedAttributes[k]
 		switch value := v.(type) {
 		case string:
 			unsignedAttributesNode.AddPair(k, value)
@@ -187,7 +189,7 @@ func (s *Signature) ToNode(name string) *tree.Node {
 			timestampNode := unsignedAttributesNode.Add("timestamp signature")
 			if value.Error != "" {
 				timestampNode.AddPair("error", value.Error)
-				break
+				continue
 			}
 			timestampNode.AddPair("timestamp", value.Timestamp)
 			addCertificatesToTree(timestampNode, "certificates", value.Certificates)
@@ -198,7 +200,7 @@ func (s *Signature) ToNode(name string) *tree.Node {
 
 	artifactNode := sigNode.Add("signed artifact")
 	artifactNode.AddPair("media type", s.SignedArtifact.MediaType)
-	artifactNode.AddPair("digest", s.SignedArtifact.Digest.String())
+	artifactNode.AddPair("digest", s.SignedArtifact.Digest)
 	artifactNode.AddPair("size", strconv.FormatInt(s.SignedArtifact.Size, 10))
 	return sigNode
 }
@@ -209,9 +211,19 @@ func addMapToTree[T any](node *tree.Node, m map[string]T) {
 		return
 	}
 
-	for k, v := range m {
-		node.AddPair(k, v)
+	// Add each entry in sorted order
+	for _, k := range orderedKeys(m) {
+		node.AddPair(k, m[k])
 	}
+}
+
+func orderedKeys[T any](m map[string]T) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+	return keys
 }
 
 func addCertificatesToTree(node *tree.Node, name string, certs []Certificate) {
