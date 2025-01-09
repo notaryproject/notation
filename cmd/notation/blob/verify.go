@@ -15,10 +15,13 @@ package blob
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/notaryproject/notation-core-go/signature/cose"
+	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
@@ -120,9 +123,13 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 		return err
 	}
 
+	signatureMediaType, err := parseSignatureMediaType(cmdOpts.signaturePath)
+	if err != nil {
+		return err
+	}
 	verifyBlobOpts := notation.VerifyBlobOptions{
 		BlobVerifierVerifyOptions: notation.BlobVerifierVerifyOptions{
-			SignatureMediaType: signatureFormat(cmdOpts.signaturePath),
+			SignatureMediaType: signatureMediaType,
 			PluginConfig:       pluginConfigs,
 			UserMetadata:       userMetadata,
 			TrustPolicyName:    cmdOpts.policyStatementName,
@@ -139,8 +146,16 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	return nil
 }
 
-// signatureFormat returns the format of the signature file
-func signatureFormat(signaturePath string) string {
+// parseSignatureMediaType returns the media type of the signature file.
+// `application/jose+json` and `application/cose` are supported.
+func parseSignatureMediaType(signaturePath string) (string, error) {
 	signatureFileName := filepath.Base(signaturePath)
-	return strings.Split(signatureFileName, ".")[1]
+	format := strings.Split(signatureFileName, ".")[1]
+	switch format {
+	case "cose":
+		return cose.MediaTypeEnvelope, nil
+	case "jws":
+		return jws.MediaTypeEnvelope, nil
+	}
+	return "", fmt.Errorf("unsupported signature format %s", format)
 }

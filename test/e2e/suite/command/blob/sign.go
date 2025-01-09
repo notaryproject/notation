@@ -128,12 +128,20 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with no permission to read the blob file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			if err := os.Chmod(blobPath, 0000); err != nil {
+			blobDir := filepath.Dir(blobPath)
+			noPermissionBlobPath := filepath.Join(blobDir, "noPermissionBlob")
+			newBlobFile, err := os.Create(noPermissionBlobPath)
+			if err != nil {
 				Fail(err.Error())
 			}
-			defer os.Chmod(blobPath, 0700)
+			defer newBlobFile.Close()
 
-			notation.ExpectFailure().Exec("blob", "sign", blobPath).
+			if err := os.Chmod(noPermissionBlobPath, 0000); err != nil {
+				Fail(err.Error())
+			}
+			defer os.Chmod(noPermissionBlobPath, 0700)
+
+			notation.ExpectFailure().Exec("blob", "sign", noPermissionBlobPath).
 				MatchErrKeyWords("permission denied")
 		})
 	})
