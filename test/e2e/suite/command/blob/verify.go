@@ -16,10 +16,7 @@ package blob
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
-	"github.com/notaryproject/notation-core-go/signature/cose"
-	"github.com/notaryproject/notation-core-go/signature/jws"
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 	. "github.com/notaryproject/notation/test/e2e/suite/common"
@@ -36,27 +33,11 @@ var _ = Describe("notation blob verify", func() {
 				MatchKeyWords("Signature file written to")
 
 			signaturePath := signatureFilepath(blobDir, blobPath, "jws")
-			signatureMediaType, err := parseSignatureMediaType(signaturePath)
-			if err != nil {
-				Fail(err.Error())
-			}
-			notation.Exec("blob", "verify", "--signature", signatureMediaType, blobPath).
+			notation.Exec("blob", "verify", "--signature", signaturePath, blobPath).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 })
-
-func parseSignatureMediaType(signaturePath string) (string, error) {
-	signatureFileName := filepath.Base(signaturePath)
-	format := strings.Split(signatureFileName, ".")[1]
-	switch format {
-	case "cose":
-		return cose.MediaTypeEnvelope, nil
-	case "jws":
-		return jws.MediaTypeEnvelope, nil
-	}
-	return "", fmt.Errorf("unsupported signature format %s", format)
-}
 
 func signatureFilepath(signatureDirectory, blobPath, signatureFormat string) string {
 	blobFilename := filepath.Base(blobPath)
