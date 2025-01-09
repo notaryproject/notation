@@ -85,7 +85,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 	})
 
 	It("Create a trust policy", func() {
-		vhost.SetOption(AddTrustPolicyOption("quickstart_trustpolicy.json"))
+		vhost.SetOption(AddTrustPolicyOption("quickstart_trustpolicy.json", false))
 		validator.CheckFileExist(vhost.AbsolutePath(NotationDirName, TrustPolicyName))
 	})
 

@@ -103,7 +103,6 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	if err != nil {
 		return err
 	}
-
 	blobVerifier, err := cmd.GetVerifier(ctx, true)
 	if err != nil {
 		return err
@@ -130,7 +129,6 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 		},
 		ContentMediaType: cmdOpts.blobMediaType,
 	}
-
 	_, outcome, err := notation.VerifyBlob(ctx, blobVerifier, blobFile, signatureBytes, verifyBlobOpts)
 	outcomes := []*notation.VerificationOutcome{outcome}
 	err = ioutil.PrintVerificationFailure(outcomes, cmdOpts.blobPath, err, true)

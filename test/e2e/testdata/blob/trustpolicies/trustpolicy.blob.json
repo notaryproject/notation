@@ -1,0 +1,26 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "test-blob-statement",
+            "signatureVerification": {
+                "level" : "strict"
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        },
+        {
+          "name": "test-blob-global-statement",
+          "signatureVerification": {
+              "level" : "audit"
+          },
+          "trustStores": [ "ca:e2e" ],
+          "trustedIdentities": [
+              "*"
+          ],
+          "globalPolicy": true
+      }
+    ]
+}

@@ -35,7 +35,7 @@ var _ = Describe("trust policy maintainer", func() {
 		})
 
 		It("should show error and hint if policy without read permission", func() {
-			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			Host(Opts(AddTrustPolicyOption(TrustPolicyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
 				os.Chmod(trustPolicyPath, 0200)
 				notation.ExpectFailure().
@@ -47,7 +47,7 @@ var _ = Describe("trust policy maintainer", func() {
 		It("should show exist policy", func() {
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName))
 			Expect(err).NotTo(HaveOccurred())
-			Host(Opts(AddTrustPolicyOption(TrustPolicyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			Host(Opts(AddTrustPolicyOption(TrustPolicyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.Exec("policy", "show").
 					MatchContent(string(content))
 			})
@@ -57,7 +57,7 @@ var _ = Describe("trust policy maintainer", func() {
 			policyName := "invalid_format_trustpolicy.json"
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyName))
 			Expect(err).NotTo(HaveOccurred())
-			Host(Opts(AddTrustPolicyOption(policyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			Host(Opts(AddTrustPolicyOption(policyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.Exec("policy", "show").
 					MatchErrKeyWords("existing trust policy configuration is invalid").
 					MatchContent(string(content))
@@ -126,7 +126,7 @@ var _ = Describe("trust policy maintainer", func() {
 	})
 
 	When("importing configuration with existing trust policy configuration", func() {
-		opts := Opts(AddTrustPolicyOption(TrustPolicyName))
+		opts := Opts(AddTrustPolicyOption(TrustPolicyName, false))
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
@@ -183,7 +183,7 @@ var _ = Describe("trust policy maintainer", func() {
 		})
 
 		It("should skip confirmation if existing policy is malformed", func() {
-			Host(Opts(AddTrustPolicyOption("invalid_format_trustpolicy.json")), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			Host(Opts(AddTrustPolicyOption("invalid_format_trustpolicy.json", false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).MatchKeyWords().
 					MatchKeyWords("Trust policy configuration imported successfully.")

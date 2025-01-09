@@ -25,7 +25,7 @@ import (
 var _ = Describe("notation trust policy trusted identity test", func() {
 	It("with unset trusted identity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("unset_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("unset_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -35,7 +35,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with valid trusted identity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("valid_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("valid_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -45,7 +45,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with invalid trusted identity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("invalid_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("invalid_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -56,7 +56,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with malformed trusted identity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("malformed_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("malformed_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -66,7 +66,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with empty trusted identity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("empty_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("empty_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -86,7 +86,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 			// setup multiple trusted identity
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("multiple_trusted_identity_trustpolicy.json"),
+				AddTrustPolicyOption("multiple_trusted_identity_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 			)
@@ -101,7 +101,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with overlapped trusted identities", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("overlapped_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("overlapped_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -111,7 +111,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with wildcard plus other trusted identities", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("wildcard_plus_other_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("wildcard_plus_other_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -121,7 +121,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with trusted identities missing organization", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("missing_organization_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("missing_organization_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -131,7 +131,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with trusted identities missing state", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("missing_state_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("missing_state_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
@@ -141,7 +141,7 @@ var _ = Describe("notation trust policy trusted identity test", func() {
 
 	It("with trusted identities missing country", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("missing_country_trusted_identity_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("missing_country_trusted_identity_trustpolicy.json", false))
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
