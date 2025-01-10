@@ -26,7 +26,7 @@ import (
 
 const tsaURL = "http://timestamp.digicert.com"
 
-var _ = Describe("notation blob sign", Serial, func() {
+var _ = Describe("notation blob sign", func() {
 	// Success cases
 	It("with blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
@@ -76,7 +76,7 @@ var _ = Describe("notation blob sign", Serial, func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.Exec("blob", "sign", "--force", "--signature-directory", vhost.AbsolutePath(), blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", filepath.Join(vhost.AbsolutePath(), "blobFile.jws.sig")))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", filepath.Join(vhost.AbsolutePath("blobFile.jws.sig"))))
 		})
 	})
 
@@ -127,7 +127,7 @@ var _ = Describe("notation blob sign", Serial, func() {
 
 	It("with no permission to read the blob file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			noPermissionBlobPath := filepath.Join(vhost.AbsolutePath(), "noPermissionBlob")
+			noPermissionBlobPath := filepath.Join(vhost.AbsolutePath("noPermissionBlob"))
 			newBlobFile, err := os.Create(noPermissionBlobPath)
 			if err != nil {
 				Fail(err.Error())
@@ -146,7 +146,7 @@ var _ = Describe("notation blob sign", Serial, func() {
 
 	It("with no permission to write the signature file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			sigDir := filepath.Join(vhost.AbsolutePath(), "signature")
+			sigDir := filepath.Join(vhost.AbsolutePath("signature"))
 			if err := os.MkdirAll(sigDir, 0000); err != nil {
 				Fail(err.Error())
 			}
