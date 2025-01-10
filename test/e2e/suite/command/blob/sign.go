@@ -76,7 +76,7 @@ var _ = Describe("notation blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.Exec("blob", "sign", "--signature-directory", vhost.AbsolutePath(), blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", filepath.Join(vhost.AbsolutePath("blobFile.jws.sig"))))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.jws.sig")))
 		})
 	})
 
@@ -101,11 +101,11 @@ var _ = Describe("notation blob sign", func() {
 			sigDir := vhost.AbsolutePath()
 			notation.Exec("blob", "sign", "--signature-directory", sigDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", filepath.Join(vhost.AbsolutePath("blobFile.jws.sig"))))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.jws.sig")))
 
 			notation.Exec("blob", "sign", "--force", "--signature-directory", sigDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", filepath.Join(vhost.AbsolutePath("blobFile.jws.sig"))))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.jws.sig")))
 		})
 	})
 
@@ -140,7 +140,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with no permission to read the blob file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			noPermissionBlobPath := filepath.Join(vhost.AbsolutePath("noPermissionBlob"))
+			noPermissionBlobPath := vhost.AbsolutePath("noPermissionBlob")
 			newBlobFile, err := os.Create(noPermissionBlobPath)
 			if err != nil {
 				Fail(err.Error())
@@ -159,7 +159,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with no permission to write the signature file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			sigDir := filepath.Join(vhost.AbsolutePath("signature"))
+			sigDir := vhost.AbsolutePath("signature")
 			if err := os.MkdirAll(sigDir, 0000); err != nil {
 				Fail(err.Error())
 			}
