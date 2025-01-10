@@ -60,7 +60,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 `
 	command := &cobra.Command{
 		Use:   "verify [flags] --signature <signature_path> <blob_path>",
-		Short: "verify a signature associated with a blob",
+		Short: "Verify a signature associated with a blob",
 		Long:  longMessage,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

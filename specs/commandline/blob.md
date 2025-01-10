@@ -160,14 +160,14 @@ Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
-      --signature string      filepath of the signature to be verified
-      --media-type string     optional media type of the blob to verify
-      --policy-name string    optional policy name to verify against. If not provided, the global policy is used if exists
-  -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -d, --debug                       debug mode
+  -h, --help                        help for verify
+      --media-type string           media type of the blob to verify
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -d, --debug                 debug mode
-  -v, --verbose               verbose mode
-  -h, --help                  help for inspect
+      --policy-name string          policy name to verify against. If not provided, the global policy is used if exists
+      --signature string            filepath of the signature to be verified
+  -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -v, --verbose                     verbose mode
 ```
 
 ## Usage
