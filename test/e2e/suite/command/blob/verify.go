@@ -15,6 +15,7 @@ package blob
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -35,6 +36,31 @@ var _ = Describe("notation blob verify", func() {
 			signaturePath := signatureFilepath(blobDir, blobPath, "jws")
 			notation.Exec("blob", "verify", "--signature", signaturePath, blobPath).
 				MatchKeyWords(VerifySuccessfully)
+		})
+	})
+
+	// Failure cases
+	It("with blob verify no permission to read blob", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			noPermissionBlobPath := filepath.Join(vhost.AbsolutePath(), "noPermissionBlob")
+			newBlobFile, err := os.Create(noPermissionBlobPath)
+			if err != nil {
+				Fail(err.Error())
+			}
+			defer newBlobFile.Close()
+
+			blobDir := filepath.Dir(noPermissionBlobPath)
+			notation.Exec("blob", "sign", "--force", "--signature-directory", blobDir, blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+			if err := os.Chmod(noPermissionBlobPath, 0000); err != nil {
+				Fail(err.Error())
+			}
+			defer os.Chmod(noPermissionBlobPath, 0700)
+
+			signaturePath := signatureFilepath(blobDir, blobPath, "jws")
+			notation.ExpectFailure().Exec("blob", "verify", "--signature", signaturePath, blobPath).
+				MatchErrKeyWords("permission denied")
 		})
 	})
 })
