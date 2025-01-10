@@ -146,12 +146,13 @@ var _ = Describe("notation blob sign", Serial, func() {
 
 	It("with no permission to write the signature file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			if err := os.MkdirAll(vhost.AbsolutePath(), 0000); err != nil {
+			sigDir := filepath.Join(vhost.AbsolutePath(), "signature")
+			if err := os.MkdirAll(sigDir, 0000); err != nil {
 				Fail(err.Error())
 			}
-			defer os.Chmod(vhost.AbsolutePath(), 0700)
+			defer os.Chmod(sigDir, 0700)
 
-			notation.ExpectFailure().Exec("blob", "sign", "--signature-directory", vhost.AbsolutePath(), blobPath).
+			notation.ExpectFailure().Exec("blob", "sign", "--signature-directory", sigDir, blobPath).
 				MatchErrKeyWords("permission denied")
 		})
 	})
