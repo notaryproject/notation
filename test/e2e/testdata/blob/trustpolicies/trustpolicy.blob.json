@@ -14,10 +14,9 @@
         {
           "name": "test-blob-global-statement",
           "signatureVerification": {
-            "level" : "strict",
-            "verifyTimestamp": "always"
+            "level" : "strict"
           },
-          "trustStores": [ "ca:e2e", "tsa:e2e" ],
+          "trustStores": [ "ca:e2e" ],
           "trustedIdentities": [
             "*"
           ],
