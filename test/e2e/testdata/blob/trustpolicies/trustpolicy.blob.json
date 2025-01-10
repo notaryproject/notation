@@ -14,11 +14,12 @@
         {
           "name": "test-blob-global-statement",
           "signatureVerification": {
-              "level" : "audit"
+            "level" : "strict",
+            "verifyTimestamp": "always"
           },
-          "trustStores": [ "ca:e2e" ],
+          "trustStores": [ "ca:e2e", "tsa:e2e" ],
           "trustedIdentities": [
-              "*"
+            "*"
           ],
           "globalPolicy": true
       }

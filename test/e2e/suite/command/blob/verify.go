@@ -28,29 +28,97 @@ var _ = Describe("notation blob verify", func() {
 	// Success cases
 	It("with blob verify", func() {
 		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			blobDir := filepath.Dir(blobPath)
-			notation.Exec("blob", "sign", "--force", "--signature-directory", blobDir, blobPath).
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 
-			signaturePath := signatureFilepath(blobDir, blobPath, "jws")
-			notation.Exec("blob", "verify", "--signature", signaturePath, blobPath).
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			notation.Exec("blob", "verify", "-d", "--signature", signaturePath, blobPath).
+				MatchKeyWords(VerifySuccessfully).
+				// debug log message outputs to stderr
+				MatchErrKeyWords(
+					"Verify signature of media type application/jose+json",
+					"Name: test-blob-global-statement",
+				)
+		})
+	})
+
+	It("with COSE signature", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "--signature-format", "cose", "sign", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "cose")
+			notation.Exec("blob", "verify", "-d", "--signature", signaturePath, blobPath).
+				MatchKeyWords(VerifySuccessfully).
+				// debug log message outputs to stderr
+				MatchErrKeyWords(
+					"Verify signature of media type application/cose",
+				)
+		})
+	})
+
+	It("with policy name", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			notation.Exec("blob", "verify", "-d", "--policy-name", "test-blob-statement", "--signature", signaturePath, blobPath).
+				MatchKeyWords(VerifySuccessfully).
+				// debug log message outputs to stderr
+				MatchErrKeyWords(
+					"Name: test-blob-statement",
+				)
+		})
+	})
+
+	It("with media type", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", "--media-type", "image/jpeg", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			notation.Exec("blob", "verify", "-d", "--media-type", "image/jpeg", "--signature", signaturePath, blobPath).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
-	// Failure cases
-	It("with blob verify no permission to read blob", func() {
+	It("with timestamping", func() {
 		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			noPermissionBlobPath := filepath.Join(vhost.AbsolutePath(), "noPermissionBlob")
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath, "-d").
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			notation.Exec("blob", "verify", "-d", "--signature", signaturePath, blobPath).
+				MatchKeyWords(VerifySuccessfully).
+				MatchErrKeyWords(
+					"Timestamp verification: Success",
+				)
+		})
+	})
+
+	// Failure cases
+	It("with no permission to read blob", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			noPermissionBlobPath := filepath.Join(workDir, "noPermissionBlob")
 			newBlobFile, err := os.Create(noPermissionBlobPath)
 			if err != nil {
 				Fail(err.Error())
 			}
 			defer newBlobFile.Close()
 
-			blobDir := filepath.Dir(noPermissionBlobPath)
-			notation.Exec("blob", "sign", "--force", "--signature-directory", blobDir, blobPath).
+			notation.Exec("blob", "sign", "--force", "--signature-directory", workDir, noPermissionBlobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 			if err := os.Chmod(noPermissionBlobPath, 0000); err != nil {
@@ -58,8 +126,8 @@ var _ = Describe("notation blob verify", func() {
 			}
 			defer os.Chmod(noPermissionBlobPath, 0700)
 
-			signaturePath := signatureFilepath(blobDir, blobPath, "jws")
-			notation.ExpectFailure().Exec("blob", "verify", "--signature", signaturePath, blobPath).
+			signaturePath := signatureFilepath(workDir, noPermissionBlobPath, "jws")
+			notation.ExpectFailure().Exec("blob", "verify", "--signature", signaturePath, noPermissionBlobPath).
 				MatchErrKeyWords("permission denied")
 		})
 	})
