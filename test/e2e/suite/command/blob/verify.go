@@ -151,7 +151,7 @@ var _ = Describe("notation blob verify", func() {
 	})
 
 	It("with invalid plugin-config", func() {
-		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			workDir := vhost.AbsolutePath()
 			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
@@ -164,7 +164,7 @@ var _ = Describe("notation blob verify", func() {
 	})
 
 	It("with invalid user metadata", func() {
-		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			workDir := vhost.AbsolutePath()
 			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
@@ -203,6 +203,19 @@ var _ = Describe("notation blob verify", func() {
 			signaturePath := signatureFilepath(workDir, blobPath, "jws")
 			notation.ExpectFailure().Exec("blob", "verify", "--media-type", "image/jpeg", "--signature", signaturePath, blobPath).
 				MatchErrKeyWords("integrity check failed. signature does not match the given blob")
+		})
+	})
+
+	It("with no trust policy", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			notation.ExpectFailure().Exec("blob", "verify", "--signature", signaturePath, blobPath).
+				MatchErrKeyWords(`trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy`)
 		})
 	})
 })
