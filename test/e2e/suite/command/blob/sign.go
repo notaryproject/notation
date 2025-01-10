@@ -128,8 +128,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with no permission to read the blob file", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			blobDir := filepath.Dir(blobPath)
-			noPermissionBlobPath := filepath.Join(blobDir, "noPermissionBlob")
+			noPermissionBlobPath := filepath.Join(vhost.AbsolutePath(), "noPermissionBlob")
 			newBlobFile, err := os.Create(noPermissionBlobPath)
 			if err != nil {
 				Fail(err.Error())
