@@ -39,7 +39,7 @@ var _ = Describe("notation blob verify", func() {
 				// debug log message outputs to stderr
 				MatchErrKeyWords(
 					"Verify signature of media type application/jose+json",
-					"Name: test-blob-global-statement",
+					"Name:test-blob-global-statement",
 				)
 		})
 	})
@@ -73,7 +73,7 @@ var _ = Describe("notation blob verify", func() {
 				MatchKeyWords(VerifySuccessfully).
 				// debug log message outputs to stderr
 				MatchErrKeyWords(
-					"Name: test-blob-statement",
+					"Name:test-blob-statement",
 				)
 		})
 	})

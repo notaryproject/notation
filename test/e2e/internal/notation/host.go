@@ -158,6 +158,8 @@ func BaseBlobOptions() []utils.HostOption {
 		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustPolicyOption("trustpolicy.blob.json", true),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer")),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer")),
 	)
 }
 
