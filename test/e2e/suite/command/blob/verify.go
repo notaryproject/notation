@@ -99,7 +99,7 @@ var _ = Describe("notation blob verify", func() {
 				MatchKeyWords("Signature file written to")
 
 			signaturePath := signatureFilepath(workDir, blobPath, "jws")
-			notation.Exec("blob", "verify", "-d", "--signature", signaturePath, blobPath).
+			notation.Exec("blob", "verify", "-d", "--policy-name", "test-blob-with-timestamping", "--signature", signaturePath, blobPath).
 				MatchKeyWords(VerifySuccessfully).
 				MatchErrKeyWords(
 					"Timestamp verification: Success",

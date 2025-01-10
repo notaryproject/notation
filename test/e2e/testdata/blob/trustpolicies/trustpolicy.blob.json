@@ -22,6 +22,17 @@
             "*"
           ],
           "globalPolicy": true
-      }
+      },
+      {
+        "name": "test-blob-with-timestamping",
+        "signatureVerification": {
+          "level" : "strict",
+          "verifyTimestamp": "always"
+        },
+        "trustStores": [ "ca:e2e", "tsa:e2e" ],
+        "trustedIdentities": [
+          "*"
+        ]
+    }
     ]
 }
