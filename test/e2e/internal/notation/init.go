@@ -46,11 +46,13 @@ const (
 	envKeyOCILayoutPath                     = "NOTATION_E2E_OCI_LAYOUT_PATH"
 	envKeyTestRepo                          = "NOTATION_E2E_TEST_REPO"
 	envKeyTestTag                           = "NOTATION_E2E_TEST_TAG"
+	envKeyBlobPath                          = "NOTATION_E2E_BLOB_PATH"
 )
 
 var (
 	// NotationBinPath is the notation binary path.
 	NotationBinPath string
+
 	// NotationOldBinPath is the path of an old version notation binary for
 	// testing forward compatibility.
 	NotationOldBinPath                    string
@@ -68,21 +70,23 @@ var (
 	TestRepoUri         string
 	TestTag             string
 	RegistryStoragePath string
+	BlobPath            string
 )
 
 func init() {
 	RegisterFailHandler(Fail)
-	setUpRegistry()
+	setUp()
 	setUpNotationValues()
 }
 
-func setUpRegistry() {
+func setUp() {
 	setValue(envKeyRegistryHost, &TestRegistry.Host)
 	setValue(envKeyRegistryUsername, &TestRegistry.Username)
 	setValue(envKeyRegistryPassword, &TestRegistry.Password)
 	setValue(envKeyDomainRegistryHost, &TestRegistry.DomainHost)
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
+	setPathValue(envKeyBlobPath, &BlobPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)
 }

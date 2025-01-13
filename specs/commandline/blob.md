@@ -52,16 +52,16 @@ The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blob
 ### notation blob command
 
 ```text
-Sign, inspect, and verify signatures and configure trust policies.
+Sign, verify, inspect signatures of blob. Configure blob trust policy.
 
 Usage:
   notation blob [command]
 
 Available Commands:
-  inspect   inspect a signature associated with a blob
-  policy    manage trust policy configuration for signed blobs
-  sign      produce a detached signature for a given blob
-  verify    verify a signature associated with a blob
+  inspect   Inspect a signature associated with a blob
+  policy    Manage trust policy configuration for signed blobs
+  sign      Produce a detached signature for a given blob
+  verify    Verify a signature associated with a blob
 
 Flags:
   -h, --help   help for blob
@@ -70,24 +70,29 @@ Flags:
 ### notation blob sign
 
 ```text
-Produce a signature for a given blob. A detached signature file will be written to the currently working directory with blob file name + signature format + ".sig" as the file extension. For example, signature file name for "myBlob.bin" will be "myBlob.bin.jws.sig" for JWS signature format or "myBlob.bin.cose.sig" for COSE signature format.
+Produce a detached signature for a given blob.
+
+The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig".
 
 Usage:
   notation blob sign [flags] <blob_path>
 
 Flags:
-       --signature-directory string optional path where the blob signature needs to be placed (default: currently working directory)
-       --media-type string          optional media type of the blob (default: "application/octet-stream")
-  -e,  --expiry duration            optional expiry that provides a "best by use" time for the blob. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
-       --id string                  key id (required if --plugin is set). This is mutually exclusive with the --key flag
-  -k,  --key string                 signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
-       --plugin string              signing plugin name. This is mutually exclusive with the --key flag
-       --plugin-config stringArray  {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values.
-       --signature-format string    signature envelope format, options: "jws", "cose" (default "jws")
-  -m,  --user-metadata stringArray  {key}={value} pairs that are added to the signature payload
-  -d,  --debug                      debug mode
-  -v,  --verbose                    verbose mode
-  -h,  --help                       help for sign
+  -d, --debug                        debug mode
+  -e, --expiry duration              optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
+      --force                        override the existing signature file, never prompt
+  -h, --help                         help for sign
+      --id string                    key id (required if --plugin is set). This is mutually exclusive with the --key flag
+  -k, --key string                   signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags
+      --media-type string            media type of the blob (default "application/octet-stream")
+      --plugin string                signing plugin name (required if --id is set). This is mutually exclusive with the --key flag
+      --plugin-config stringArray    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
+      --signature-directory string   directory where the blob signature needs to be placed (default ".")
+      --signature-format string      signature envelope format, options: "jws", "cose" (default "jws")
+      --timestamp-root-cert string   filepath of timestamp authority root certificate
+      --timestamp-url string         RFC 3161 Timestamping Authority (TSA) server URL
+  -m, --user-metadata stringArray    {key}={value} pairs that are added to the signature payload
+  -v, --verbose                      verbose mode
 ```
 
 ### notation blob inspect
@@ -169,6 +174,7 @@ Flags:
 ## Usage
 
 ## Produce blob signatures
+The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig". For example, signature file name for "myBlob.bin" will be "myBlob.bin.jws.sig" for JWS signature format or "myBlob.bin.cose.sig" for COSE signature format.
 
 ### Sign a blob by adding a new key
 
