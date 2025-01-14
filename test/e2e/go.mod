@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/notaryproject/notation-core-go v1.2.0-rc.2
 	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250107003620-26ce0894a624
-	github.com/onsi/ginkgo/v2 v2.22.1
+	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
 	github.com/opencontainers/image-spec v1.1.0
 	oras.land/oras-go/v2 v2.5.0
