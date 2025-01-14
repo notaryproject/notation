@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package blob provides blob sign, verify, inspect, and policy commands.
+// Package blob provides the implementation of the `notation blob` command
 package blob
 
 import (
@@ -19,15 +19,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Cmd returns the commands for blob
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
-		Use:   "blob [command]",
-		Short: "Sign, inspect, verify signatures, and configure trust policies for blob artifacts",
-		Long:  "Sign, inspect, verify signatures, and configure trust policies for blob artifacts.",
+		Use:   "blob",
+		Short: "Commands for blob",
+		Long:  "Sign, verify, inspect signatures of blob. Configure blob trust policy.",
 	}
 
 	command.AddCommand(
+		signCommand(nil),
 		policy.Cmd(),
 	)
 
