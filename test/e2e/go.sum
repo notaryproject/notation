@@ -16,8 +16,8 @@ github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250107003620-26ce0894a624
 github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250107003620-26ce0894a624/go.mod h1:1QaHYG/UOeAYhfLBipsSxquu3BheRm7a+5RODcc5nQg=
 github.com/notaryproject/tspclient-go v1.0.0-rc.1 h1:KcHxlqg6Adt4kzGLw012i0YMLlwGwToiR129c6IQ7Ys=
 github.com/notaryproject/tspclient-go v1.0.0-rc.1/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
-github.com/onsi/ginkgo/v2 v2.22.1 h1:QW7tbJAUDyVDVOM5dFa7qaybo+CRfR7bemlQUN6Z8aM=
-github.com/onsi/ginkgo/v2 v2.22.1/go.mod h1:S6aTpoRsSq2cZOd+pssHAlKW/Q/jZt6cPrPlnj4a1xM=
+github.com/onsi/ginkgo/v2 v2.22.2 h1:/3X8Panh8/WwhU/3Ssa6rCKqPLuAkVY2I0RoyDLySlU=
+github.com/onsi/ginkgo/v2 v2.22.2/go.mod h1:oeMosUL+8LtarXBHu/c0bx2D/K9zyQ6uX3cTyztHwsk=
 github.com/onsi/gomega v1.36.2 h1:koNYke6TVk6ZmnyHrCXba/T/MoLBXFjeC1PtvYgw0A8=
 github.com/onsi/gomega v1.36.2/go.mod h1:DdwyADRjrc825LhMEkD76cHR5+pUnjhUN8GlHlRPHzY=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
