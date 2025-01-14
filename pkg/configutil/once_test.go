@@ -14,7 +14,13 @@
 package configutil
 
 import (
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/notaryproject/notation-go/dir"
 )
 
 func TestLoadConfigOnce(t *testing.T) {
@@ -26,7 +32,26 @@ func TestLoadConfigOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal("LoadConfigOnce failed.")
 	}
-	if config1 != config2 {
-		t.Fatal("LoadConfigOnce is invalid.")
+	if !reflect.DeepEqual(config1, config2) {
+		t.Fatal("Configs differ in content.")
+	}
+}
+
+func TestLoadConfigOnceError(t *testing.T) {
+	dir.UserConfigDir = t.TempDir()
+	defer func() {
+		dir.UserConfigDir = ""
+	}()
+	if err := os.WriteFile(filepath.Join(dir.UserConfigDir, dir.PathConfigFile), []byte("invalid json"), 0600); err != nil {
+		t.Fatal("Failed to create file.")
+	}
+
+	_, err := LoadConfigOnce()
+	if err == nil || !strings.Contains(err.Error(), "invalid character") {
+		t.Fatal("LoadConfigOnce should fail.")
+	}
+	_, err = LoadConfigOnce()
+	if err == nil || !strings.Contains(err.Error(), "invalid character") {
+		t.Fatal("LoadConfigOnce should fail.")
 	}
 }

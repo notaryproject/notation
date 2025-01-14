@@ -18,18 +18,15 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/notaryproject/notation-go/dir"
 )
 
 func TestIsRegistryInsecure(t *testing.T) {
-	configOnce = sync.Once{}
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		configOnce = sync.Once{}
 	}(dir.UserConfigDir)
 	// update config dir
 	dir.UserConfigDir = "testdata"
@@ -56,11 +53,9 @@ func TestIsRegistryInsecure(t *testing.T) {
 }
 
 func TestIsRegistryInsecureMissingConfig(t *testing.T) {
-	configOnce = sync.Once{}
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		configOnce = sync.Once{}
 	}(dir.UserConfigDir)
 	// update config dir
 	dir.UserConfigDir = "./testdata2"
@@ -93,7 +88,6 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 	defer func(oldDir string) error {
 		// restore permission
 		dir.UserConfigDir = oldDir
-		configOnce = sync.Once{}
 		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
 	}(dir.UserConfigDir)
 
