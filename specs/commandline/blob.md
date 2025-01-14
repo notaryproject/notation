@@ -6,11 +6,11 @@ Use `notation blob` command to sign, verify, and inspect signatures associated w
 
 Users can use `notation blob policy` command to manage trust policies for verifying a blob signature. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
 
-The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample trust policy file, contains three different statements for different usecases:
+The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample trust policy file, contains three different statements for different use cases:
 
-- The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
-- Policy named "skip-verification-policy" is for skipping verification on blob artifacts.
-- Policy "global-verification-policy" is for auditing verification results when user does not provide `--policy-name` argument in `notation blob verify` command.
+- The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
+- The policy named "skip-verification-policy" is for skipping verification on blob artifacts.
+- The policy "global-verification-policy" is for auditing verification results when user does not set the `--policy-name` flag in `notation blob verify` command.
 
 ```jsonc
 {
@@ -380,8 +380,8 @@ The steps to update blob trust policy configuration:
 ## Verify blob signatures
 The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
 
-- The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
-- Policy  named "global-verification-policy" is for auditing verification results when user doesn't not provide `--policy-name` argument in `notation blob verify` command.
+- The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
+- The policy named "global-verification-policy" is for auditing verification results when user does not set the `--policy-name` flag in `notation blob verify` command.
 
 ```jsonc
 {
