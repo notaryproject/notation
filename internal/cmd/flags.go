@@ -44,14 +44,14 @@ var (
 		Usage: "signature envelope format, options: \"jws\", \"cose\"",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		defaultSignatureFormat := envelope.JWS
-		// load config to get signatureFormat
 		config, err := configutil.LoadConfigOnce()
-		if err == nil && config.SignatureFormat != "" {
-			defaultSignatureFormat = config.SignatureFormat
+		if err != nil || config.SignatureFormat == "" {
+			fs.StringVar(p, PflagSignatureFormat.Name, envelope.JWS, PflagSignatureFormat.Usage)
+			return
 		}
 
-		fs.StringVar(p, PflagSignatureFormat.Name, defaultSignatureFormat, PflagSignatureFormat.Usage)
+		// set signatureFormat from config
+		fs.StringVar(p, PflagSignatureFormat.Name, config.SignatureFormat, PflagSignatureFormat.Usage)
 	}
 
 	PflagID = &pflag.Flag{
