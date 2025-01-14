@@ -169,7 +169,7 @@ var _ = Describe("notation sign", func() {
 			// copy the generated cert file and create the new trust policy for verify signature with generated new key.
 			OldNotation(AuthOption("", ""),
 				AddTrustStoreOption(keyName, vhost.AbsolutePath(NotationDirName, LocalKeysDirName, keyName+".crt")),
-				AddTrustPolicyOption("generate_test_trustpolicy.json"),
+				AddTrustPolicyOption("generate_test_trustpolicy.json", false),
 			).Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 		})

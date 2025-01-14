@@ -25,7 +25,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("", "test-repo8")
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_the_same_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_the_same_registry_scope_trustpolicy.json", false))
 
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
@@ -38,7 +38,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("e2e-valid-signature", "test-repo9")
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_wildcard_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_wildcard_registry_scope_trustpolicy.json", false))
 
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
@@ -51,7 +51,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("", "test-repo10")
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_the_same_name_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_the_same_name_trustpolicy.json", false))
 
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
@@ -63,7 +63,7 @@ var _ = Describe("notation trust policy multi-statements test", func() {
 	It("multiple statements with multi-wildcard registry scopes", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_multi_wildcard_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("multi_statements_with_multi_wildcard_registry_scope_trustpolicy.json", false))
 
 			// test localhost:5000/test-repo
 			notation.Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)

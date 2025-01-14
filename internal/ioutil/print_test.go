@@ -11,20 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package blob provides the implementation of the `notation blob` command
-package blob
+package ioutil
 
-import "github.com/spf13/cobra"
+import (
+	"testing"
 
-func Cmd() *cobra.Command {
-	command := &cobra.Command{
-		Use:   "blob",
-		Short: "Commands for blob",
-		Long:  "Sign, verify, inspect signatures of blob. Configure blob trust policy.",
+	"github.com/notaryproject/notation-go"
+)
+
+func TestBlobVerificateFailure(t *testing.T) {
+	var outcomes []*notation.VerificationOutcome
+	expectedErrMsg := "provided signature verification failed against blob myblob"
+	err := PrintVerificationFailure(outcomes, "myblob", nil, true)
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 	}
-	command.AddCommand(
-		signCommand(nil),
-		verifyCommand(nil),
-	)
-	return command
 }

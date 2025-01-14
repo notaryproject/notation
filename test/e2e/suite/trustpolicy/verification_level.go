@@ -38,7 +38,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-with-expired-cert", "")
 
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("trustpolicy.json"),
+				AddTrustPolicyOption("trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
@@ -51,7 +51,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("strict level with invalid authenticity", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("trustpolicy.json"),
+				AddTrustPolicyOption("trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 
@@ -77,7 +77,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("permissive level with expired signature", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("permissive_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("permissive_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
@@ -92,7 +92,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-with-expired-cert", "")
 
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("permissive_trustpolicy.json"),
+				AddTrustPolicyOption("permissive_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
@@ -106,7 +106,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("permissive level with invalid authenticity", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("permissive_trustpolicy.json"),
+				AddTrustPolicyOption("permissive_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 
@@ -122,7 +122,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("permissive level with invalid integrity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("permissive_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("permissive_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
@@ -134,7 +134,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("audit level with expired signature", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("audit_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("audit_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
@@ -150,7 +150,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-with-expired-cert", "")
 
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("audit_trustpolicy.json"),
+				AddTrustPolicyOption("audit_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
@@ -164,7 +164,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("audit level with invalid authenticity", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("audit_trustpolicy.json"),
+				AddTrustPolicyOption("audit_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 
@@ -181,7 +181,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("audit level with invalid integrity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("audit_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("audit_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
@@ -193,7 +193,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("skip level with invalid integrity", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("skip_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("skip_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
@@ -204,7 +204,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("strict level with Expiry overridden as log level", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("override_strict_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("override_strict_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
@@ -220,7 +220,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			artifact := GenerateArtifact("e2e-with-expired-cert", "")
 
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("override_strict_trustpolicy.json"),
+				AddTrustPolicyOption("override_strict_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
@@ -234,7 +234,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("strict level with Authenticity overridden as log level", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("override_strict_trustpolicy.json"),
+				AddTrustPolicyOption("override_strict_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 
@@ -251,7 +251,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("permissive level with Expiry overridden as enforce level", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("override_permissive_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("override_permissive_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
@@ -263,12 +263,12 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("permissive level with Authentic timestamp overridden as enforce level", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("override_permissive_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("override_permissive_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-with-expired-cert", "")
 
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("trustpolicy.json"),
+				AddTrustPolicyOption("trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
@@ -281,7 +281,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("permissive level with Authenticity overridden as log level", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("override_permissive_trustpolicy.json"),
+				AddTrustPolicyOption("override_permissive_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 
@@ -297,7 +297,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("permissive level with Integrity overridden as log level", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("override_integrity_for_permissive_trustpolicy.json"),
+				AddTrustPolicyOption("override_integrity_for_permissive_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 
@@ -310,7 +310,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("audit level with Expiry overridden as enforce level", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("override_audit_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("override_audit_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
@@ -322,12 +322,12 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 	It("audit level with Authentic timestamp overridden as enforce level", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("override_audit_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("override_audit_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-with-expired-cert", "")
 
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("trustpolicy.json"),
+				AddTrustPolicyOption("trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
@@ -340,7 +340,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 	It("audit level with Authenticity overridden as enforce level", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("override_audit_trustpolicy.json"),
+				AddTrustPolicyOption("override_audit_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 			)
 

@@ -29,7 +29,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("empty registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("empty_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("empty_registry_scope_trustpolicy.json", false))
 
 			// test localhost:5000/test-repo
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
@@ -41,7 +41,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("malformed registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("malformed_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("malformed_registry_scope_trustpolicy.json", false))
 
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest()).
@@ -52,7 +52,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("registryScope with a repository", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("registry_scope_trustpolicy.json", false))
 
 			// generate an artifact with given repository name
 			artifact := GenerateArtifact("", "test-repo")
@@ -66,7 +66,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("registryScope with multiple repositories", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("multiple_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("multiple_registry_scope_trustpolicy.json", false))
 
 			// generate an artifact with given repository name
 			artifact2 := GenerateArtifact("", "test-repo2")
@@ -85,7 +85,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("registryScope with any(*) repository", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("any_registry_scope_trust_policy.json"))
+			vhost.SetOption(AddTrustPolicyOption("any_registry_scope_trust_policy.json", false))
 
 			// generate an artifact with given repository name
 			artifact4 := GenerateArtifact("", "test-repo4")
@@ -104,7 +104,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("overlapped registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("overlapped_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("overlapped_registry_scope_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("", "test-repo6")
 
@@ -118,7 +118,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("wildcard plus specific repo registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("wildcard_plus_other_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("wildcard_plus_other_registry_scope_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("", "test-repo7")
 
@@ -132,7 +132,7 @@ var _ = Describe("notation trust policy registryScope test", func() {
 	It("invalid registryScope", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			// update trustpolicy.json
-			vhost.SetOption(AddTrustPolicyOption("invalid_registry_scope_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("invalid_registry_scope_trustpolicy.json", false))
 
 			// test localhost:5000/test-repo
 			OldNotation().Exec("sign", artifact.ReferenceWithDigest()).MatchKeyWords(SignSuccessfully)

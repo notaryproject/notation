@@ -14,26 +14,15 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
-	"reflect"
 
-	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/verifier"
-	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
-
-	clirev "github.com/notaryproject/notation/internal/revocation"
 )
 
 type verifyOpts struct {
@@ -117,12 +106,12 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	sigVerifier, err := getVerifier(ctx)
+	sigVerifier, err := cmd.GetVerifier(ctx, false)
 	if err != nil {
 		return err
 	}
 
-	// set up verification plugin config.
+	// set up verification plugin config
 	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return err
@@ -155,97 +144,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
-	err = checkVerificationFailure(outcomes, resolvedRef, err)
+	err = ioutil.PrintVerificationFailure(outcomes, resolvedRef, err, false)
 	if err != nil {
 		return err
 	}
-	reportVerificationSuccess(outcomes, resolvedRef)
+	ioutil.PrintVerificationSuccess(outcomes, resolvedRef)
 	return nil
-}
-
-func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
-	// write out on failure
-	if err != nil || len(outcomes) == 0 {
-		if err != nil {
-			var errTrustStore truststore.TrustStoreError
-			if errors.As(err, &errTrustStore) {
-				if errors.Is(err, fs.ErrNotExist) {
-					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
-				} else {
-					return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
-				}
-			}
-
-			var errCertificate truststore.CertificateError
-			if errors.As(err, &errCertificate) {
-				if errors.Is(err, fs.ErrNotExist) {
-					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
-				} else {
-					return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
-				}
-			}
-
-			var errorVerificationFailed notation.ErrorVerificationFailed
-			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", err)
-			}
-		}
-		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
-	}
-	return nil
-}
-
-func reportVerificationSuccess(outcomes []*notation.VerificationOutcome, printout string) {
-	// write out on success
-	outcome := outcomes[0]
-	// print out warning for any failed result with logged verification action
-	for _, result := range outcome.VerificationResults {
-		if result.Error != nil {
-			// at this point, the verification action has to be logged and
-			// it's failed
-			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
-		}
-	}
-	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", printout)
-	} else {
-		fmt.Println("Successfully verified signature for", printout)
-		printMetadataIfPresent(outcome)
-	}
-}
-
-func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
-	// the signature envelope is parsed as part of verification.
-	// since user metadata is only printed on successful verification,
-	// this error can be ignored
-	metadata, _ := outcome.UserMetadata()
-
-	if len(metadata) > 0 {
-		fmt.Println("\nThe artifact was signed with the following user metadata.")
-		ioutil.PrintMetadataMap(os.Stdout, metadata)
-	}
-}
-
-func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	// revocation check
-	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
-	if err != nil {
-		return nil, err
-	}
-	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
-	if err != nil {
-		return nil, err
-	}
-
-	// trust policy and trust store
-	policyDocument, err := trustpolicy.LoadOCIDocument()
-	if err != nil {
-		return nil, err
-	}
-	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
-
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
-		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
-		RevocationTimestampingValidator: revocationTimestampingValidator,
-	})
 }
