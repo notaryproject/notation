@@ -17,17 +17,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 
-	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/internal/envelope"
 )
 
 func TestLoadConfigOnce(t *testing.T) {
 	defer func() {
-		LoadConfigOnce = resetLoadConfigOnce()
+		LoadConfigOnce = loadConfigOnce()
 	}()
 	config1, err := LoadConfigOnce()
 	if err != nil {
@@ -46,7 +43,7 @@ func TestLoadConfigOnceError(t *testing.T) {
 	dir.UserConfigDir = t.TempDir()
 	defer func() {
 		dir.UserConfigDir = ""
-		LoadConfigOnce = resetLoadConfigOnce()
+		LoadConfigOnce = loadConfigOnce()
 	}()
 	if err := os.WriteFile(filepath.Join(dir.UserConfigDir, dir.PathConfigFile), []byte("invalid json"), 0600); err != nil {
 		t.Fatal("Failed to create file.")
@@ -60,19 +57,4 @@ func TestLoadConfigOnceError(t *testing.T) {
 	if err != err2 {
 		t.Fatal("LoadConfigOnce should return the same error.")
 	}
-}
-
-func resetLoadConfigOnce() func() (*config.Config, error) {
-	return sync.OnceValues(func() (*config.Config, error) {
-		configInfo, err := config.LoadConfig()
-		if err != nil {
-			return nil, err
-		}
-		// set default value
-		configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
-		if configInfo.SignatureFormat == "" {
-			configInfo.SignatureFormat = envelope.JWS
-		}
-		return configInfo, nil
-	})
 }

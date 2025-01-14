@@ -27,7 +27,7 @@ func TestIsRegistryInsecure(t *testing.T) {
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		LoadConfigOnce = resetLoadConfigOnce()
+		LoadConfigOnce = loadConfigOnce()
 	}(dir.UserConfigDir)
 	// update config dir
 	dir.UserConfigDir = "testdata"
@@ -57,7 +57,7 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		LoadConfigOnce = resetLoadConfigOnce()
+		LoadConfigOnce = loadConfigOnce()
 	}(dir.UserConfigDir)
 	// update config dir
 	dir.UserConfigDir = "./testdata2"
@@ -90,7 +90,7 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 	defer func(oldDir string) error {
 		// restore permission
 		dir.UserConfigDir = oldDir
-		LoadConfigOnce = resetLoadConfigOnce()
+		LoadConfigOnce = loadConfigOnce()
 		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
 	}(dir.UserConfigDir)
 
@@ -110,7 +110,7 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 func TestResolveKey(t *testing.T) {
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		LoadConfigOnce = resetLoadConfigOnce()
+		LoadConfigOnce = loadConfigOnce()
 	}(dir.UserConfigDir)
 
 	t.Run("valid e2e key", func(t *testing.T) {
