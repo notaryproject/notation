@@ -25,17 +25,15 @@ import (
 // If previous config file does not exist, it reads the config from file
 // or return a default config if not found.
 // The returned config is only suitable for read only scenarios for short-lived processes.
-func LoadConfigOnce() (*config.Config, error) {
-	return sync.OnceValues(func() (*config.Config, error) {
-		configInfo, err := config.LoadConfig()
-		if err != nil {
-			return nil, err
-		}
-		// set default value
-		configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
-		if configInfo.SignatureFormat == "" {
-			configInfo.SignatureFormat = envelope.JWS
-		}
-		return configInfo, nil
-	})()
-}
+var LoadConfigOnce = sync.OnceValues(func() (*config.Config, error) {
+	configInfo, err := config.LoadConfig()
+	if err != nil {
+		return nil, err
+	}
+	// set default value
+	configInfo.SignatureFormat = strings.ToLower(configInfo.SignatureFormat)
+	if configInfo.SignatureFormat == "" {
+		configInfo.SignatureFormat = envelope.JWS
+	}
+	return configInfo, nil
+})

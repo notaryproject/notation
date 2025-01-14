@@ -16,7 +16,6 @@ package configutil
 import (
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -32,8 +31,8 @@ func TestLoadConfigOnce(t *testing.T) {
 	if err != nil {
 		t.Fatal("LoadConfigOnce failed.")
 	}
-	if !reflect.DeepEqual(config1, config2) {
-		t.Fatal("Configs differ in content.")
+	if config1 != config2 {
+		t.Fatal("LoadConfigOnce should return the same config.")
 	}
 }
 
@@ -50,8 +49,8 @@ func TestLoadConfigOnceError(t *testing.T) {
 	if err == nil || !strings.Contains(err.Error(), "invalid character") {
 		t.Fatal("LoadConfigOnce should fail.")
 	}
-	_, err = LoadConfigOnce()
-	if err == nil || !strings.Contains(err.Error(), "invalid character") {
-		t.Fatal("LoadConfigOnce should fail.")
+	_, err2 := LoadConfigOnce()
+	if err != err2 {
+		t.Fatal("LoadConfigOnce should return the same error.")
 	}
 }
