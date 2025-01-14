@@ -1,0 +1,9 @@
+{
+    "keys": [
+        {
+            "name": "test",
+            "id": "testKey",
+            "pluginName": "testPlugin"
+        }
+    ]
+}

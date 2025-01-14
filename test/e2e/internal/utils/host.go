@@ -22,9 +22,8 @@ import (
 // VirtualHost is a virtualized host machine isolated by environment variable.
 type VirtualHost struct {
 	Executor *ExecOpts
-
-	userDir string
-	env     map[string]string
+	userDir  string
+	env      map[string]string
 }
 
 // NewVirtualHost creates a temporary user-level directory and updates

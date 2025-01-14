@@ -15,7 +15,6 @@ package main
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,7 +23,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
-	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
@@ -230,29 +228,10 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}
-
-		rootCerts, err := corex509.ReadCertificateFile(opts.tsaRootCertificatePath)
+		signOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.tsaRootCertificatePath)
 		if err != nil {
 			return notation.SignOptions{}, err
 		}
-		if len(rootCerts) == 0 {
-			return notation.SignOptions{}, fmt.Errorf("cannot find any certificate from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
-		}
-		if len(rootCerts) > 1 {
-			return notation.SignOptions{}, fmt.Errorf("found more than one certificates from %q. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
-		}
-		tsaRootCert := rootCerts[0]
-		isRoot, err := nx509.IsRootCertificate(tsaRootCert)
-		if err != nil {
-			return notation.SignOptions{}, fmt.Errorf("failed to check root certificate with error: %w", err)
-		}
-		if !isRoot {
-			return notation.SignOptions{}, fmt.Errorf("certificate from %q is not a root certificate. Expecting single x509 root certificate in PEM or DER format from the file", opts.tsaRootCertificatePath)
-
-		}
-		rootCAs := x509.NewCertPool()
-		rootCAs.AddCert(tsaRootCert)
-		signOpts.TSARootCAs = rootCAs
 		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
