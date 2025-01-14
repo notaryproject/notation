@@ -17,6 +17,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -24,7 +25,7 @@ import (
 
 func TestLoadConfigOnce(t *testing.T) {
 	defer func() {
-		LoadConfigOnce = loadConfigOnce()
+		loadConfigOnce = sync.OnceValues(loadConfig)
 	}()
 	config1, err := LoadConfigOnce()
 	if err != nil {
@@ -43,7 +44,7 @@ func TestLoadConfigOnceError(t *testing.T) {
 	dir.UserConfigDir = t.TempDir()
 	defer func() {
 		dir.UserConfigDir = ""
-		LoadConfigOnce = loadConfigOnce()
+		loadConfigOnce = sync.OnceValues(loadConfig)
 	}()
 	if err := os.WriteFile(filepath.Join(dir.UserConfigDir, dir.PathConfigFile), []byte("invalid json"), 0600); err != nil {
 		t.Fatal("Failed to create file.")
