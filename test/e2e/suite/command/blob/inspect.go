@@ -19,6 +19,7 @@ import (
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
+	. "github.com/notaryproject/notation/test/e2e/suite/common"
 	. "github.com/onsi/ginkgo/v2"
 )
 
@@ -255,6 +256,44 @@ var _ = Describe("notation blob inspect", func() {
 `
 			notation.Exec("blob", "inspect", "--output", "json", coseBlobSigPath).
 				MatchContent(expectedContent)
+		})
+	})
+
+	It("with blob sign in jws", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			sigName := filepath.Base(blobPath) + ".jws.sig"
+			notation.Exec("blob", "inspect", vhost.AbsolutePath(sigName)).
+				MatchKeyWords(
+					"signature algorithm",
+					"signature envelope type",
+					"signed attributes",
+					"user defined attributes",
+					"unsigned attributes",
+					"certificates",
+					"signed artifact")
+		})
+	})
+
+	It("with blob sign in cose", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--signature-format", "cose", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			sigName := filepath.Base(blobPath) + ".cose.sig"
+			notation.Exec("blob", "inspect", vhost.AbsolutePath(sigName)).
+				MatchKeyWords(
+					"signature algorithm",
+					"signature envelope type",
+					"signed attributes",
+					"user defined attributes",
+					"unsigned attributes",
+					"certificates",
+					"signed artifact")
 		})
 	})
 })
