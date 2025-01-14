@@ -25,6 +25,7 @@ func Cmd() *cobra.Command {
 
 	command.AddCommand(
 		signCommand(nil),
+		inspectCommand(),
 	)
 
 	return command

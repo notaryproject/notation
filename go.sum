@@ -38,12 +38,12 @@ github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZ
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
 github.com/notaryproject/notation-core-go v1.2.0-rc.2 h1:0jOItalNwBNUhyuc5PPHQxO3jIZ5xRYq+IvRMQXNbuE=
 github.com/notaryproject/notation-core-go v1.2.0-rc.2/go.mod h1:7aIcavfywFvBQoYyfVFJB501kt7Etqyubrt5mhJBG2c=
-github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250107003620-26ce0894a624 h1:JCJ+64H1A/aYhNaUak+1DV4dY2uL3L5GFMRLzrh9tDM=
-github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250107003620-26ce0894a624/go.mod h1:1QaHYG/UOeAYhfLBipsSxquu3BheRm7a+5RODcc5nQg=
+github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250114004447-851cbabbc40a h1:4YIVP+nzfUtT3JgDRuQKBeyKSHaCe8lRIbui+nQYchc=
+github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250114004447-851cbabbc40a/go.mod h1:JA4E4DjnL8ojwRu1VnGtiAWgcg69KFvRTlAAMZ/VQ58=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
-github.com/notaryproject/tspclient-go v1.0.0 h1:AwQ4x0gX8IHnyiZB1tggpn5NFqHpTEm1SDX8YNv4Dg4=
-github.com/notaryproject/tspclient-go v1.0.0/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
+github.com/notaryproject/tspclient-go v1.0.0-rc.1 h1:KcHxlqg6Adt4kzGLw012i0YMLlwGwToiR129c6IQ7Ys=
+github.com/notaryproject/tspclient-go v1.0.0-rc.1/go.mod h1:LGyA/6Kwd2FlM0uk8Vc5il3j0CddbWSHBj/4kxQDbjs=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=
 github.com/opencontainers/go-digest v1.0.0/go.mod h1:0JzlMkj0TRzQZfJkVvzbP0HBR3IKzErnv2BNG4W4MAM=
 github.com/opencontainers/image-spec v1.1.0 h1:8SG7/vwALn54lVB/0yZ/MMwhFrPYtpEHQb2IpWsCzug=
@@ -77,8 +77,9 @@ golang.org/x/crypto v0.6.0/go.mod h1:OFC/31mSvZgRz0V1QTNCzfAI1aIRzbiufJtkMIlEp58
 golang.org/x/crypto v0.13.0/go.mod h1:y6Z2r+Rw4iayiXXAIxJIDAJ1zMW4yaTpebo8fPOliYc=
 golang.org/x/crypto v0.19.0/go.mod h1:Iy9bg/ha4yyC70EfRS8jz+B6ybOBKMaSxLj6P6oBDfU=
 golang.org/x/crypto v0.23.0/go.mod h1:CKFgDieR+mRhux2Lsu27y0fO304Db0wZe70UKqHu0v8=
-golang.org/x/crypto v0.31.0 h1:ihbySMvVjLAeSH1IbfcRTkD/iNscyz8rGzjF/E5hV6U=
 golang.org/x/crypto v0.31.0/go.mod h1:kDsLvtWBEx7MV9tJOj9bnXsPbxwJQ6csT/x4KIN4Ssk=
+golang.org/x/crypto v0.32.0 h1:euUpcYgM8WcP71gNpTqQCn6rC2t6ULUPiOzfWaXVVfc=
+golang.org/x/crypto v0.32.0/go.mod h1:ZnnJkOaASj8g0AjIduWNlq2NRxL0PlBrbKVyZ6V/Ugc=
 golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4/go.mod h1:jJ57K6gSWd91VN4djpZkiMVwK6gcyfeH4XE8wZrZaV4=
 golang.org/x/mod v0.8.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
 golang.org/x/mod v0.12.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=

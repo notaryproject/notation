@@ -26,25 +26,25 @@ const (
 
 // represents a Node in a tree
 type Node struct {
-	Value    string
+	Value    any
 	Children []*Node
 }
 
 // creates a new Node with the given value
-func New(value string) *Node {
+func New(value any) *Node {
 	return &Node{Value: value}
 }
 
 // adds a new child node with the given value
-func (parent *Node) Add(value string) *Node {
+func (parent *Node) Add(value any) *Node {
 	node := New(value)
 	parent.Children = append(parent.Children, node)
 	return node
 }
 
 // adds a new child node with the formatted pair as the value
-func (parent *Node) AddPair(key string, value string) *Node {
-	return parent.Add(key + ": " + value)
+func (parent *Node) AddPair(key string, value any) *Node {
+	return parent.Add(fmt.Sprintf("%s: %s", key, value))
 }
 
 // prints the tree represented by the root node
@@ -53,7 +53,7 @@ func (root *Node) Print() {
 }
 
 func print(prefix string, itemMarker string, nextPrefix string, n *Node) {
-	fmt.Println(prefix + itemMarker + n.Value)
+	fmt.Printf("%s%s%s\n", prefix, itemMarker, n.Value)
 
 	nextItemPrefix := treeItemPrefix
 	nextSubTreePrefix := subTreePrefix

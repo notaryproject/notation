@@ -52,6 +52,7 @@ func main() {
 		},
 	}
 	cmd.AddCommand(
+		blob.Cmd(),
 		signCommand(nil),
 		verifyCommand(nil),
 		listCommand(nil),
