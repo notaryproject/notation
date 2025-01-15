@@ -1,0 +1,32 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "wabbit-networks-policy",
+            "signatureVerification": {
+                "level": "strict"
+            },
+            "trustStores": [
+              "ca:wabbit-networks"
+            ],
+            "trustedIdentities": [
+                "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io, OU=Security Tools"
+            ]
+        },
+        {
+            "name": "skip-verification-policy",
+            "signatureVerification": {
+              "level" : "skip" 
+            }
+        },
+        {
+            "name": "global-verification-policy",
+            "globalPolicy": true,
+            "signatureVerification": {
+              "level" : "audit"
+            },
+            "trustStores": ["ca:acme-rockets"],
+            "trustedIdentities": ["*"]
+        }
+    ]
+}
