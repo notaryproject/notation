@@ -39,17 +39,16 @@ func (h *InspectHandler) SetReference(reference string) {
 func (h *InspectHandler) SetMediaType(_ string) {}
 
 func (h *InspectHandler) AddSignature(digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error {
+	if h.root == nil || h.cncfSigNode == nil {
+		return fmt.Errorf("artifact reference is not set")
+	}
+
 	sig, err := model.NewSignature(digest, envelopeMediaType, sigEnvelope, formatter)
 	if err != nil {
 		return err
 	}
 
-	if h.root == nil || h.cncfSigNode == nil {
-		return fmt.Errorf("artifact reference is not set")
-	}
-
-	sigNode := toTreeNode(sig)
-	h.cncfSigNode.Children = append(h.cncfSigNode.Children, sigNode)
+	h.cncfSigNode.Children = append(h.cncfSigNode.Children, toTreeNode(sig))
 	return nil
 }
 
