@@ -11,20 +11,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package json
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/signature"
 )
-
-func dummyFormatter(v any) string {
-	return fmt.Sprintf("%v", v)
-}
 
 func TestGetUnsignedAttributes(t *testing.T) {
 	envContent := &signature.EnvelopeContent{
@@ -35,7 +30,7 @@ func TestGetUnsignedAttributes(t *testing.T) {
 		},
 	}
 	expectedErrMsg := "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
-	unsignedAttr := getUnsignedAttributes(envContent, dummyFormatter)
+	unsignedAttr := getUnsignedAttributes(envContent)
 	val, ok := unsignedAttr["timestampSignature"].(Timestamp)
 	if !ok {
 		t.Fatal("expected to have timestampSignature")
@@ -60,9 +55,9 @@ func TestGetSignedAttributes(t *testing.T) {
 			},
 		},
 	}
-	signedAttr := getSignedAttributes(envContent, dummyFormatter)
-	if signedAttr["expiry"] != dummyFormatter(expiry) {
-		t.Fatalf("expected %s, but got %s", dummyFormatter(expiry), signedAttr["expiry"])
+	signedAttr := getSignedAttributes(envContent)
+	if signedAttr["expiry"] != expiry {
+		t.Fatalf("expected %s, but got %s", expiry, signedAttr["expiry"])
 	}
 
 	if signedAttr["keyName"] != "value" {
@@ -77,7 +72,7 @@ func TestParseTimestamp(t *testing.T) {
 				TimestampSignature: []byte("invalid"),
 			},
 		}
-		val := parseTimestamp(signerInfo, dummyFormatter)
+		val := parseTimestamp(signerInfo)
 		expectedErrMsg := "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
 		if val.Error != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, val.Error)
@@ -95,7 +90,7 @@ func TestParseTimestamp(t *testing.T) {
 				TimestampSignature: tsaToken,
 			},
 		}
-		val := parseTimestamp(signerInfo, dummyFormatter)
+		val := parseTimestamp(signerInfo)
 		expectedErrMsg := "failed to parse timestamp countersignature: invalid TSTInfo: mismatched message"
 
 		if val.Error != expectedErrMsg {

@@ -9,8 +9,8 @@ type InspectHandler interface {
 	// SetMediaType sets the media type for the handler.
 	SetMediaType(mediaType string)
 
-	// AddSignature adds a signature to the handler.
-	AddSignature(digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error
+	// InspectSignature inspects a signature to get it ready to be rendered.
+	InspectSignature(digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error
 
 	// Print prints the metadata.
 	Print() error

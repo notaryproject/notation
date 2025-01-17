@@ -135,7 +135,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			return nil
 		}
 
-		if err := displayHandler.AddSignature(sigManifestDesc.Digest.String(), sigDesc.MediaType, sigEnvelope); err != nil {
+		if err := displayHandler.InspectSignature(sigManifestDesc.Digest.String(), sigDesc.MediaType, sigEnvelope); err != nil {
 			logSkippedSignature(sigManifestDesc, err)
 			skippedSignatures = true
 			return nil
