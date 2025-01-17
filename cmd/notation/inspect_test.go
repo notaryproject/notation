@@ -14,15 +14,19 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 
-	"github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	opts := &inspectOpts{}
 	command := inspectCommand(opts)
+	format := option.Format{
+		FormatFlag: "text",
+	}
+	format.SetTypes(option.FormatTypeText, option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
@@ -30,7 +34,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 			InsecureRegistry: true,
 			Username:         "user",
 		},
-		outputFormat:  cmd.OutputPlaintext,
+		Format:        format,
 		maxSignatures: 100,
 	}
 	if err := command.ParseFlags([]string{
@@ -44,8 +48,8 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if *opts != *expected {
-		t.Fatalf("Expect inspect opts: %v, got: %v", expected, opts)
+	if !reflect.DeepEqual(opts, expected) {
+		t.Fatalf("Expect opts: %v, got: %v", expected, opts)
 	}
 }
 
@@ -53,13 +57,17 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	t.Setenv(defaultPasswordEnv, "password")
 	opts := &inspectOpts{}
+
+	format := option.Format{}
+	format.SetTypes(option.FormatTypeText, option.FormatTypeJSON)
+	format.FormatFlag = "json"
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},
-		outputFormat:  cmd.OutputJSON,
+		Format:        format,
 		maxSignatures: 100,
 	}
 	command := inspectCommand(opts)
@@ -71,8 +79,8 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if *opts != *expected {
-		t.Fatalf("Expect inspect opts: %v, got: %v", expected, opts)
+	if !reflect.DeepEqual(opts, expected) {
+		t.Fatalf("Expect opts: %v, got: %v", expected, opts)
 	}
 }
 
@@ -83,24 +91,5 @@ func TestInspectCommand_MissingArgs(t *testing.T) {
 	}
 	if err := command.Args(command, command.Flags().Args()); err == nil {
 		t.Fatal("Parse Args expected error, but ok")
-	}
-}
-
-func TestGetUnsignedAttributes(t *testing.T) {
-	envContent := &signature.EnvelopeContent{
-		SignerInfo: signature.SignerInfo{
-			UnsignedAttributes: signature.UnsignedAttributes{
-				TimestampSignature: []byte("invalid"),
-			},
-		},
-	}
-	expectedErrMsg := "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
-	unsignedAttr := getUnsignedAttributes(cmd.OutputPlaintext, envContent)
-	val, ok := unsignedAttr["timestampSignature"].(timestampOutput)
-	if !ok {
-		t.Fatal("expected to have timestampSignature")
-	}
-	if val.Error != expectedErrMsg {
-		t.Fatalf("expected %s, but got %s", expectedErrMsg, val.Error)
 	}
 }

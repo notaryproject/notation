@@ -14,6 +14,7 @@
 package tree
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
@@ -49,7 +50,7 @@ func TestNodeAddPair(t *testing.T) {
 
 func ExampleRootPrint() {
 	root := New("root")
-	root.Print()
+	root.Print(os.Stdout)
 
 	// Output:
 	// root
@@ -59,7 +60,7 @@ func ExampleSingleLayerPrint() {
 	root := New("root")
 	root.Add("child1")
 	root.Add("child2")
-	root.Print()
+	root.Print(os.Stdout)
 
 	// Output:
 	// root
@@ -74,7 +75,7 @@ func ExampleMultiLayerPrint() {
 	child2 := root.Add("child2")
 	child2.Add("child2.1")
 	child2.Add("child2.2")
-	root.Print()
+	root.Print(os.Stdout)
 
 	// Output:
 	// root

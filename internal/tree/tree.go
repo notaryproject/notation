@@ -15,6 +15,7 @@ package tree
 
 import (
 	"fmt"
+	"io"
 )
 
 const (
@@ -48,12 +49,14 @@ func (parent *Node) AddPair(key string, value string) *Node {
 }
 
 // prints the tree represented by the root node
-func (root *Node) Print() {
-	print("", "", "", root)
+func (root *Node) Print(w io.Writer) error {
+	return print(w, "", "", "", root)
 }
 
-func print(prefix string, itemMarker string, nextPrefix string, n *Node) {
-	fmt.Println(prefix + itemMarker + n.Value)
+func print(w io.Writer, prefix string, itemMarker string, nextPrefix string, n *Node) error {
+	if _, err := fmt.Fprintln(w, prefix+itemMarker+n.Value); err != nil {
+		return err
+	}
 
 	nextItemPrefix := treeItemPrefix
 	nextSubTreePrefix := subTreePrefix
@@ -64,7 +67,11 @@ func print(prefix string, itemMarker string, nextPrefix string, n *Node) {
 				nextItemPrefix = treeItemPrefixLast
 				nextSubTreePrefix = subTreePrefixLast
 			}
-			print(nextPrefix, nextItemPrefix, nextPrefix+nextSubTreePrefix, child)
+			if err := print(w, nextPrefix, nextItemPrefix, nextPrefix+nextSubTreePrefix, child); err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
