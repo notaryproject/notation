@@ -31,7 +31,6 @@ package output
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -54,21 +53,35 @@ func (mw *mockWriter) String() string {
 	return mw.written
 }
 
-func TestPrinter_Println(t *testing.T) {
+func TestPrinter_Print(t *testing.T) {
 	mockWriter := &mockWriter{}
 	printer := NewPrinter(mockWriter, os.Stderr)
-	err := printer.Println("boom")
-	if mockWriter.errorCount != 1 {
-		t.Error("Expected one error actual <" + strconv.Itoa(mockWriter.errorCount) + ">")
-	}
-	if err == nil {
-		t.Error("Expected error got <nil>")
-	}
-	err = printer.Printf("boom")
-	if mockWriter.errorCount != 2 {
-		t.Error("Expected two errors actual <" + strconv.Itoa(mockWriter.errorCount) + ">")
-	}
-	if err != nil {
-		t.Error("Expected error to be ignored")
-	}
+
+	t.Run("Println success", func(t *testing.T) {
+		err := printer.Println("hello")
+		if err != nil {
+			t.Errorf("Expected no error got <%v>", err)
+		}
+		if mockWriter.String() != "hello\n" {
+			t.Errorf("Expected hello got <%s>", mockWriter.String())
+		}
+	})
+	t.Run("Println failed", func(t *testing.T) {
+		err := printer.Println("boom")
+		if mockWriter.errorCount != 1 {
+			t.Errorf("Expected one error actual <%d>", mockWriter.errorCount)
+		}
+		if err == nil {
+			t.Error("Expected error got <nil>")
+		}
+	})
+	t.Run("Printf failed", func(t *testing.T) {
+		err := printer.Printf("boom")
+		if mockWriter.errorCount != 2 {
+			t.Errorf("Expected two errors actual <%d>", mockWriter.errorCount)
+		}
+		if err != nil {
+			t.Error("Expected error to be ignored")
+		}
+	})
 }

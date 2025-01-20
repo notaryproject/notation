@@ -93,3 +93,22 @@ func TestInspectCommand_MissingArgs(t *testing.T) {
 		t.Fatal("Parse Args expected error, but ok")
 	}
 }
+
+func TestInspectCommand_Invalid_Output(t *testing.T) {
+	opts := &inspectOpts{}
+	command := inspectCommand(opts)
+	if err := command.ParseFlags([]string{
+		"ref",
+		"--output", "invalidFormat"}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := command.Args(command, command.Flags().Args()); err != nil {
+		t.Fatalf("Parse Args failed: %v", err)
+	}
+	if err := command.PreRunE(command, command.Flags().Args()); err == nil || err.Error() != "invalid format type: \"invalidFormat\"" {
+		t.Fatalf("PreRunE expected error 'invalid format type: \"invalidFormat\"', got: %v", err)
+	}
+	if err := command.RunE(command, command.Flags().Args()); err == nil || err.Error() != "unrecognized output format invalidFormat" {
+		t.Fatalf("RunE expected error 'unrecognized output format invalidFormat', got: %v", err)
+	}
+}

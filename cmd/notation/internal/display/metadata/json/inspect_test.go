@@ -125,3 +125,11 @@ func TestInspectSignature_NewSignatureError(t *testing.T) {
 		t.Fatalf("expected error 'mock content error', got %v", err)
 	}
 }
+
+func TestRenderNoMediaType(t *testing.T) {
+	h := NewInspectHandler(nil)
+	err := h.Render()
+	if err == nil || !strings.Contains(err.Error(), "media type is not set") {
+		t.Fatalf("expected error 'media type is not set', got %v", err)
+	}
+}
