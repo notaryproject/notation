@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/notaryproject/notation-core-go v1.2.0
-	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250115061529-96b71337184c
+	github.com/notaryproject/notation-go v1.3.0
 	github.com/notaryproject/notation-plugin-framework-go v1.0.0
 	github.com/spf13/cobra v1.8.1
 )
