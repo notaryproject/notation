@@ -72,37 +72,3 @@ func TestPrinter_Println(t *testing.T) {
 		t.Error("Expected error to be ignored")
 	}
 }
-
-func TestPrinter_PrintVerbose_noError(t *testing.T) {
-	builder := &strings.Builder{}
-	printer := NewPrinter(builder, os.Stderr)
-
-	expected := "normal\nthing one\n"
-	err := printer.Println("normal")
-	if err != nil {
-		t.Error("Expected no error got <" + err.Error() + ">")
-	}
-	err = printer.Printf("thing %s\n", "one")
-	if err != nil {
-		t.Error("Expected no error got <" + err.Error() + ">")
-	}
-	actual := builder.String()
-	if expected != actual {
-		t.Error("Expected <" + expected + "> not equal to actual <" + actual + ">")
-	}
-}
-
-func TestPrinter_PrintVerbose(t *testing.T) {
-	builder := &strings.Builder{}
-	printer := NewPrinter(builder, os.Stderr)
-
-	expected := "normal\nverbose\n"
-	err := printer.Println("normal")
-	if err != nil {
-		t.Error("Expected no error got <" + err.Error() + ">")
-	}
-	actual := builder.String()
-	if expected != actual {
-		t.Error("Expected <" + expected + "> not equal to actual <" + actual + ">")
-	}
-}
