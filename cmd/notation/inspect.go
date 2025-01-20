@@ -23,7 +23,6 @@ import (
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/cmd/notation/internal/output"
 	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -32,6 +31,7 @@ import (
 type inspectOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
+	option.Common
 	option.Format
 	reference         string
 	allowReferrersAPI bool
@@ -68,6 +68,9 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			if err := opts.Format.Parse(cmd); err != nil {
 				return err
 			}
+			if err := opts.Common.Parse(cmd); err != nil {
+				return err
+			}
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -95,9 +98,8 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
-	printer := output.NewPrinter(command.OutOrStdout(), command.OutOrStderr())
 
-	displayHandler, err := display.NewInpsectHandler(printer, opts.Format)
+	displayHandler, err := display.NewInpsectHandler(opts.Printer, opts.Format)
 	if err != nil {
 		return err
 	}
@@ -114,10 +116,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	if err != nil {
 		return err
 	}
-
-	// set output headers
-	displayHandler.SetMediaType(manifestDesc.MediaType)
-	displayHandler.SetReference(resolvedRef)
+	displayHandler.OnReferenceResolved(resolvedRef, manifestDesc.MediaType)
 
 	skippedSignatures := false
 	err = listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
@@ -147,7 +146,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 		return err
 	}
 
-	if err := displayHandler.Print(); err != nil {
+	if err := displayHandler.Render(); err != nil {
 		return err
 	}
 

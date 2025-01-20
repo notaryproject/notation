@@ -1,3 +1,16 @@
+// Copyright The Notary Project Authors.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package tree
 
 import (
@@ -32,18 +45,18 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 	}
 }
 
-// SetReference sets the artifact reference for the handler.
-func (h *InspectHandler) SetReference(reference string) {
+// OnReferenceResolved sets the artifact reference and media type for the
+// handler.
+//
+// mediaType is a no-op for this handler.
+func (h *InspectHandler) OnReferenceResolved(reference, mediaType string) {
 	if h.root == nil {
 		h.root = tree.New(reference)
 		h.cncfSigNode = h.root.Add(registry.ArtifactTypeNotation)
 	}
 }
 
-// SetMediaType sets the media type for the handler. It is a no-op for this
-// handler.
-func (h *InspectHandler) SetMediaType(_ string) {}
-
+// InspectSignature inspects a signature to get it ready to be rendered.
 func (h *InspectHandler) InspectSignature(digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error {
 	if h.root == nil || h.cncfSigNode == nil {
 		return fmt.Errorf("artifact reference is not set")
@@ -52,7 +65,8 @@ func (h *InspectHandler) InspectSignature(digest string, envelopeMediaType strin
 	return addSignature(h.cncfSigNode, digest, envelopeMediaType, sigEnvelope)
 }
 
-func (h *InspectHandler) Print() error {
+// Render renders the metadata information when an operation is complete.
+func (h *InspectHandler) Render() error {
 	if h.root == nil {
 		return fmt.Errorf("artifact reference is not set")
 	}
