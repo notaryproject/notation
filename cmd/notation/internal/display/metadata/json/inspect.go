@@ -131,7 +131,6 @@ func getSignedAttributes(envelopeContent *signature.EnvelopeContent) map[string]
 	if expiry := envelopeContent.SignerInfo.SignedAttributes.Expiry; !expiry.IsZero() {
 		signedAttributes["expiry"] = expiry
 	}
-
 	for _, attribute := range envelopeContent.SignerInfo.SignedAttributes.ExtendedAttributes {
 		signedAttributes[fmt.Sprint(attribute.Key)] = fmt.Sprint(attribute.Value)
 	}
@@ -140,20 +139,17 @@ func getSignedAttributes(envelopeContent *signature.EnvelopeContent) map[string]
 
 func getUnsignedAttributes(envelopeContent *signature.EnvelopeContent) map[string]any {
 	unsignedAttributes := make(map[string]any)
-
-	if envelopeContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
-		unsignedAttributes["timestampSignature"] = parseTimestamp(envelopeContent.SignerInfo)
-	}
-
 	if envelopeContent.SignerInfo.UnsignedAttributes.SigningAgent != "" {
 		unsignedAttributes["signingAgent"] = envelopeContent.SignerInfo.UnsignedAttributes.SigningAgent
+	}
+	if envelopeContent.SignerInfo.UnsignedAttributes.TimestampSignature != nil {
+		unsignedAttributes["timestampSignature"] = parseTimestamp(envelopeContent.SignerInfo)
 	}
 	return unsignedAttributes
 }
 
 func getCertificates(certChain []*x509.Certificate) []Certificate {
-	certificates := []Certificate{}
-
+	var certificates []Certificate
 	for _, cert := range certChain {
 		hash := sha256.Sum256(cert.Raw)
 		certificates = append(certificates, Certificate{

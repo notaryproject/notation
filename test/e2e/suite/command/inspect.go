@@ -29,12 +29,12 @@ var (
 		"├── media type:",
 		"├── signature algorithm:",
 		"├── signed attributes",
-		"signingTime:",
-		"signingScheme:",
+		"signing time:",
+		"signing scheme:",
 		"├── user defined attributes",
 		"│   └── (empty)",
 		"├── unsigned attributes",
-		"│   └── signingAgent: notation-go/",
+		"│   └── signing agent: notation-go/",
 		"├── certificates",
 		"│   └── SHA256 fingerprint:",
 		"issued to:",
@@ -52,12 +52,12 @@ var (
 		"├── media type:",
 		"├── signature algorithm:",
 		"├── signed attributes",
-		"signingTime:",
-		"signingScheme:",
+		"signing time:",
+		"signing scheme:",
 		"├── user defined attributes",
 		"│   └── (empty)",
 		"├── unsigned attributes",
-		"signingAgent: notation-go/",
+		"signing agent: notation-go/",
 		"timestamp signature",
 		"timestamp:",
 		"certificates",
@@ -182,12 +182,12 @@ var _ = Describe("notation inspect", func() {
         ├── signature algorithm: RSASSA-PSS-SHA-256
         ├── signature envelope type: application/jose+json
         ├── signed attributes
-        │   ├── signingScheme: notary.x509
-        │   └── signingTime: Fri Jan 17 06:36:19 2025
+        │   ├── signing scheme: notary.x509
+        │   └── signing time: Fri Jan 17 06:36:19 2025
         ├── user defined attributes
         │   └── (empty)
         ├── unsigned attributes
-        │   ├── signingAgent: notation-go/1.3.0+unreleased
+        │   ├── signing agent: notation-go/1.3.0+unreleased
         │   └── timestamp signature
         │       ├── timestamp: [Fri Jan 17 06:36:19 2025, Fri Jan 17 06:36:20 2025]
         │       └── certificates
@@ -233,7 +233,7 @@ var _ = Describe("notation inspect", func() {
       "unsignedAttributes": {
         "signingAgent": "notation-go/1.3.0+unreleased",
         "timestampSignature": {
-          "timestamp": "[2025-01-17T06:36:19Z, 2025-01-17T06:36:20Z]",
+          "timestamp": "[2025-01-17T06:36:19.734Z, 2025-01-17T06:36:20.734Z]",
           "certificates": [
             {
               "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
