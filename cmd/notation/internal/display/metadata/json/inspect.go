@@ -63,11 +63,12 @@ type Timestamp struct {
 	Error        string        `json:"error,omitempty"`
 }
 
+// InspectHandler is the handler for inspecting metadata information and
+// rendering it in JSON format.
 type InspectHandler struct {
-	output inspectOutput
-
-	// printer is the printer for output.
 	printer *output.Printer
+
+	output inspectOutput
 }
 
 // NewInspectHandler creates a new InspectHandler.
@@ -98,6 +99,9 @@ func (h *InspectHandler) InspectSignature(digest string, envelopeMediaType strin
 }
 
 func (h *InspectHandler) Render() error {
+	if h.output.MediaType == "" {
+		return fmt.Errorf("media type is not set")
+	}
 	return output.PrintPrettyJSON(h.printer, h.output)
 }
 

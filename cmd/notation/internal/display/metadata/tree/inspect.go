@@ -33,12 +33,16 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
+// InspectHandler is a handler for inspecting metadata information and rendering
+// it in a tree format.
 type InspectHandler struct {
+	printer *output.Printer
+
 	root        *tree.Node
 	cncfSigNode *tree.Node
-	printer     *output.Printer
 }
 
+// NewInspectHandler creates a new InspectHandler.
 func NewInspectHandler(printer *output.Printer) *InspectHandler {
 	return &InspectHandler{
 		printer: printer,

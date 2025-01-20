@@ -13,47 +13,106 @@
 
 package tree
 
-// func TestToTreeNode(t *testing.T) {
-// 	t.Run("timestamp error", func(t *testing.T) {
-// 		tsaToken, err := os.ReadFile("./testdata/TimeStampTokenWithInvalidSignature.p7s")
-// 		if err != nil {
-// 			t.Fatal(err)
-// 		}
+import (
+	"fmt"
+	"testing"
+	"time"
 
-// 		envelopeContent := signature.EnvelopeContent{
-// 			SignerInfo: signature.SignerInfo{
-// 				UnsignedAttributes: signature.UnsignedAttributes{
-// 					TimestampSignature: tsaToken,
-// 				},
-// 			},
-// 		}
-// 		sig := &model.Signature{
-// 			MediaType:          "mediaType",
-// 			SignatureAlgorithm: "sha256",
-// 			UnsignedAttributes: getUnsignedAttributes(&envelopeContent, dummyFormatter),
-// 		}
+	"github.com/notaryproject/notation-core-go/signature"
+	"github.com/notaryproject/notation/internal/tree"
+)
 
-// 		node := sig.ToNode("name")
+func TestInspectSignatureNoRoot(t *testing.T) {
+	h := NewInspectHandler(nil)
+	err := h.InspectSignature("test-digest", "application/notation", nil)
+	if err == nil || err.Error() != "artifact reference is not set" {
+		t.Fatalf("expected error 'artifact reference is not set', got: %v", err)
+	}
+}
 
-// 		if len(node.Children) != 7 {
-// 			t.Fatalf("expected 7 children, but got %d", len(node.Children))
-// 		}
+func TestRenderNoRoot(t *testing.T) {
+	h := NewInspectHandler(nil)
+	err := h.Render()
+	if err == nil || err.Error() != "artifact reference is not set" {
+		t.Fatalf("expected error 'artifact reference is not set', got: %v", err)
+	}
+}
 
-// 		unsignedNode := node.Children[4]
-// 		if len(unsignedNode.Children) != 1 {
-// 			t.Fatalf("expected 1 child, but got %d", len(unsignedNode.Children))
-// 		}
-// 		timestampNode := unsignedNode.Children[0]
-// 		if len(timestampNode.Children) != 1 {
-// 			t.Fatalf("expected 1 child, but got %d", len(timestampNode.Children))
-// 		}
-// 		if timestampError, ok := timestampNode.Children[0].Value.(string); ok {
-// 			expectedErrorMsg := "error: failed to parse timestamp countersignature: invalid TSTInfo: mismatched message"
-// 			if timestampError != expectedErrorMsg {
-// 				t.Fatalf("expected %s, but got %s", expectedErrorMsg, timestampError)
-// 			}
-// 		} else {
-// 			t.Fatal("expected timestamp node")
-// 		}
-// 	})
-// }
+func TestAddSignedAttributes(t *testing.T) {
+	t.Run("empty envelopeContent", func(t *testing.T) {
+		node := tree.New("root")
+		ec := &signature.EnvelopeContent{}
+		addSignedAttributes(node, ec)
+		// No error or panic expected; minimal check or just ensure it doesn't crash.
+	})
+
+	t.Run("with expiry and extented node", func(t *testing.T) {
+		node := tree.New("root")
+		expiryTime := time.Now().Add(time.Hour)
+		ec := &signature.EnvelopeContent{
+			SignerInfo: signature.SignerInfo{
+				SignedAttributes: signature.SignedAttributes{
+					Expiry: expiryTime,
+					ExtendedAttributes: []signature.Attribute{
+						{
+							Key:   "key",
+							Value: "value",
+						},
+					},
+				},
+			},
+		}
+		addSignedAttributes(node, ec)
+		// Verify node was added; for brevity, just check no panic
+		if len(node.Children) == 0 {
+			t.Fatal("expected children to be added")
+		}
+		signedAttrNode := node.Children[0]
+		if signedAttrNode.Value != "signed attributes" {
+			t.Fatalf("expected name 'signed attributes', got: %v", signedAttrNode.Value)
+		}
+		if len(signedAttrNode.Children) != 4 {
+			t.Fatalf("expected 3 children, got: %v", len(signedAttrNode.Children))
+		}
+		// verify expiry node
+		expiryNode := signedAttrNode.Children[2]
+		if expiryNode.Value != fmt.Sprintf("expiry: %s", expiryTime.Format(time.ANSIC)) {
+			t.Fatalf("expected expiry node, got: %v", expiryNode.Value)
+		}
+		// verify extended attribute node
+		extendedAttrNode := signedAttrNode.Children[3]
+		if extendedAttrNode.Value != "key: value" {
+			t.Fatalf("expected extended attribute node, got: %v", extendedAttrNode.Value)
+		}
+	})
+}
+
+func TestAddUserDefinedAttributes(t *testing.T) {
+	t.Run("empty map", func(t *testing.T) {
+		node := tree.New("root")
+		addUserDefinedAttributes(node, nil)
+		if len(node.Children) == 0 {
+			t.Fatal("expected node to have children")
+		}
+		udaNode := node.Children[0]
+		if udaNode.Value != "user defined attributes" {
+			t.Fatalf("expected 'user defined attributes' node, got %s", udaNode.Value)
+		}
+		if len(udaNode.Children) == 0 || udaNode.Children[0].Value != "(empty)" {
+			t.Fatalf("expected '(empty)' node, got %v", udaNode.Children)
+		}
+	})
+
+	t.Run("non-empty map", func(t *testing.T) {
+		node := tree.New("root")
+		annotations := map[string]string{"key1": "val1", "key2": "val2"}
+		addUserDefinedAttributes(node, annotations)
+		udaNode := node.Children[0]
+		if udaNode.Value != "user defined attributes" {
+			t.Fatalf("expected 'user defined attributes' node, got %s", udaNode.Value)
+		}
+		if len(udaNode.Children) != len(annotations) {
+			t.Fatalf("expected %d children, got %d", len(annotations), len(udaNode.Children))
+		}
+	})
+}

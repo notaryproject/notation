@@ -14,12 +14,28 @@
 package json
 
 import (
+	"errors"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/signature"
 )
+
+type errorEnvelope struct{}
+
+func (e errorEnvelope) Sign(req *signature.SignRequest) ([]byte, error) {
+	return nil, errors.New("mock sign error")
+}
+
+func (e errorEnvelope) Verify() (*signature.EnvelopeContent, error) {
+	return nil, errors.New("mock verify error")
+}
+
+func (e errorEnvelope) Content() (*signature.EnvelopeContent, error) {
+	return nil, errors.New("mock content error")
+}
 
 func TestGetUnsignedAttributes(t *testing.T) {
 	envContent := &signature.EnvelopeContent{
@@ -97,4 +113,15 @@ func TestParseTimestamp(t *testing.T) {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, val.Error)
 		}
 	})
+}
+
+func TestInspectSignature_NewSignatureError(t *testing.T) {
+	h := NewInspectHandler(nil)
+	// ...existing code to ensure h.output.MediaType is set...
+	h.OnReferenceResolved("test-ref", "test-media-type")
+
+	err := h.InspectSignature("fake-digest", "fake-media-type", errorEnvelope{})
+	if err == nil || !strings.Contains(err.Error(), "mock content error") {
+		t.Fatalf("expected error 'mock content error', got %v", err)
+	}
 }
