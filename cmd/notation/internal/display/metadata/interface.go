@@ -20,6 +20,8 @@ type Renderer interface {
 	Render() error
 }
 
+// InspectHandler is a handler for inspecting metadata information and rendering
+// it in a specific format.
 type InspectHandler interface {
 	Renderer
 

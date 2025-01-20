@@ -15,6 +15,7 @@ package tree
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -113,6 +114,62 @@ func TestAddUserDefinedAttributes(t *testing.T) {
 		}
 		if len(udaNode.Children) != len(annotations) {
 			t.Fatalf("expected %d children, got %d", len(annotations), len(udaNode.Children))
+		}
+	})
+}
+
+func TestParseTimestamp(t *testing.T) {
+	t.Run("invalid timestamp signature", func(t *testing.T) {
+		node := tree.New("root")
+		signerInfo := signature.SignerInfo{
+			UnsignedAttributes: signature.UnsignedAttributes{
+				TimestampSignature: []byte("invalid"),
+			},
+		}
+		addTimestamp(node, signerInfo)
+		if len(node.Children) == 0 {
+			t.Fatal("expected node to have children")
+		}
+		timestampNode := node.Children[0]
+		if timestampNode.Value != "timestamp signature" {
+			t.Fatalf("expected 'timestamp signature' node, got %s", timestampNode.Value)
+		}
+		if len(timestampNode.Children) == 0 {
+			t.Fatal("expected node to have children")
+		}
+		errNode := timestampNode.Children[0]
+		expectedErrMsg := "error: failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
+		if errNode.Value != expectedErrMsg {
+			t.Fatalf("expected error node, got %s", errNode.Value)
+		}
+	})
+
+	t.Run("timestamp validation error", func(t *testing.T) {
+		tsaToken, err := os.ReadFile("../testdata/TimeStampTokenWithInvalidSignature.p7s")
+		if err != nil {
+			t.Fatal(err)
+		}
+		signerInfo := signature.SignerInfo{
+			UnsignedAttributes: signature.UnsignedAttributes{
+				TimestampSignature: tsaToken,
+			},
+		}
+		node := tree.New("root")
+		addTimestamp(node, signerInfo)
+		if len(node.Children) == 0 {
+			t.Fatal("expected node to have children")
+		}
+		timestampNode := node.Children[0]
+		if timestampNode.Value != "timestamp signature" {
+			t.Fatalf("expected 'timestamp signature' node, got %s", timestampNode.Value)
+		}
+		if len(timestampNode.Children) == 0 {
+			t.Fatal("expected node to have children")
+		}
+		errNode := timestampNode.Children[0]
+		expectedErrMsg := "error: failed to parse timestamp countersignature: invalid TSTInfo: mismatched message"
+		if errNode.Value != expectedErrMsg {
+			t.Fatalf("expected error node, got %s", errNode.Value)
 		}
 	})
 }
