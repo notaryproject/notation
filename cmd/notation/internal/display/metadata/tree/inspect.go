@@ -63,8 +63,8 @@ func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(manifestDesc, blobDesc ocispec.Descriptor, envelope signature.Envelope) error {
-	return addSignature(h.notationSignaturesNode, manifestDesc.Digest.String(), blobDesc.MediaType, envelope)
+func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error {
+	return addSignature(h.notationSignaturesNode, manifestDesc.Digest.String(), envelope)
 }
 
 // Render renders the metadata information when an operation is complete.
@@ -76,7 +76,7 @@ func (h *InspectHandler) Render() error {
 	return h.rootReferenceNode.Print(h.printer)
 }
 
-func addSignature(node *tree.Node, digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error {
+func addSignature(node *tree.Node, digest string, sigEnvelope signature.Envelope) error {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return err
@@ -93,7 +93,6 @@ func addSignature(node *tree.Node, digest string, envelopeMediaType string, sigE
 	// create signature node
 	sigNode := node.Add(digest)
 	sigNode.AddPair("signature algorithm", string(signatureAlgorithm))
-	sigNode.AddPair("signature envelope type", envelopeMediaType)
 
 	addSignedAttributes(sigNode, envelopeContent)
 	addUserDefinedAttributes(sigNode, signedArtifactDesc.Annotations)

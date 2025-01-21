@@ -32,5 +32,5 @@ type InspectHandler interface {
 	OnReferenceResolved(reference, mediaType string)
 
 	// InspectSignature inspects a signature to get it ready to be rendered.
-	InspectSignature(manifestDesc, blobDesc ocispec.Descriptor, envelope signature.Envelope) error
+	InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error
 }

@@ -37,7 +37,6 @@ type inspectOutput struct {
 
 // signature is the signature envelope for printing in human readable format.
 type signature struct {
-	MediaType             string             `json:"mediaType"`
 	Digest                string             `json:"digest,omitempty"`
 	SignatureAlgorithm    string             `json:"signatureAlgorithm"`
 	SignedAttributes      map[string]any     `json:"signedAttributes"`
@@ -90,8 +89,8 @@ func (h *InspectHandler) OnReferenceResolved(_, mediaType string) {
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(manifestDesc, blobDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
-	sig, err := newSignature(manifestDesc.Digest.String(), blobDesc.MediaType, envelope)
+func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+	sig, err := newSignature(manifestDesc.Digest.String(), envelope)
 	if err != nil {
 		return err
 	}
@@ -104,7 +103,7 @@ func (h *InspectHandler) Render() error {
 }
 
 // newSignature parses the signature blob and returns a Signature object.
-func newSignature(digest string, envelopeMediaType string, sigEnvelope coresignature.Envelope) (*signature, error) {
+func newSignature(digest string, sigEnvelope coresignature.Envelope) (*signature, error) {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return nil, err
@@ -120,7 +119,6 @@ func newSignature(digest string, envelopeMediaType string, sigEnvelope coresigna
 		return nil, err
 	}
 	sig := &signature{
-		MediaType:             envelopeMediaType,
 		Digest:                digest,
 		SignatureAlgorithm:    string(signatureAlgorithm),
 		SignedAttributes:      getSignedAttributes(envelopeContent),

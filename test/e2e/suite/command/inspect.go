@@ -183,7 +183,6 @@ localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa778
 └── application/vnd.cncf.notary.signature
     └── sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa
         ├── signature algorithm: RSASSA-PSS-SHA-256
-        ├── signature envelope type: application/jose+json
         ├── signed attributes
         │   ├── signing scheme: notary.x509
         │   └── signing time: Fri Jan 17 06:36:19 2025
@@ -225,7 +224,6 @@ localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa778
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "Signatures": [
     {
-      "mediaType": "application/jose+json",
       "digest": "sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
       "signedAttributes": {
