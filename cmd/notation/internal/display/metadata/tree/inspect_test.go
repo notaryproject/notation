@@ -35,6 +35,9 @@ func TestAddSignedAttributes(t *testing.T) {
 		node := tree.New("root")
 		expiryTime := time.Now().Add(time.Hour)
 		ec := &signature.EnvelopeContent{
+			Payload: signature.Payload{
+				ContentType: "application/vnd.cncf.notary.payload.v1+json",
+			},
 			SignerInfo: signature.SignerInfo{
 				SignedAttributes: signature.SignedAttributes{
 					Expiry: expiryTime,
@@ -56,16 +59,16 @@ func TestAddSignedAttributes(t *testing.T) {
 		if signedAttrNode.Value != "signed attributes" {
 			t.Fatalf("expected name 'signed attributes', got: %v", signedAttrNode.Value)
 		}
-		if len(signedAttrNode.Children) != 4 {
-			t.Fatalf("expected 3 children, got: %v", len(signedAttrNode.Children))
+		if len(signedAttrNode.Children) != 5 {
+			t.Fatalf("expected 5 children, got: %v", len(signedAttrNode.Children))
 		}
 		// verify expiry node
-		expiryNode := signedAttrNode.Children[2]
+		expiryNode := signedAttrNode.Children[3]
 		if expiryNode.Value != fmt.Sprintf("expiry: %s", expiryTime.Format(time.ANSIC)) {
 			t.Fatalf("expected expiry node, got: %v", expiryNode.Value)
 		}
 		// verify extended attribute node
-		extendedAttrNode := signedAttrNode.Children[3]
+		extendedAttrNode := signedAttrNode.Children[4]
 		if extendedAttrNode.Value != "key: value" {
 			t.Fatalf("expected extended attribute node, got: %v", extendedAttrNode.Value)
 		}
