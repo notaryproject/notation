@@ -222,7 +222,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcaca
 			artifact := GenerateArtifact("e2e-with-timestamped-signature", "e2e-inspect-timestamped-json")
 			expectedOutput := `{
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
-  "Signatures": [
+  "signatures": [
     {
       "digest": "sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
@@ -288,7 +288,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcaca
 			artifact := GenerateArtifact("e2e", "e2e-inspect-no-signature-json")
 			expectedOutput := `{
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
-  "Signatures": []
+  "signatures": []
 }
 `
 			notation.Exec("inspect", "--output", "json", artifact.ReferenceWithDigest()).
