@@ -227,6 +227,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcaca
       "digest": "sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
       "signedAttributes": {
+        "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": "notary.x509",
         "signingTime": "2025-01-17T06:36:19Z"
       },

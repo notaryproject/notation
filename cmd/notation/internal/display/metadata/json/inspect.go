@@ -137,6 +137,7 @@ func newSignature(digest string, sigEnvelope coresignature.Envelope) (*signature
 
 func getSignedAttributes(envelopeContent *coresignature.EnvelopeContent) map[string]any {
 	signedAttributes := map[string]any{
+		"contentType":   envelopeContent.Payload.ContentType,
 		"signingScheme": string(envelopeContent.SignerInfo.SignedAttributes.SigningScheme),
 		"signingTime":   envelopeContent.SignerInfo.SignedAttributes.SigningTime,
 	}
