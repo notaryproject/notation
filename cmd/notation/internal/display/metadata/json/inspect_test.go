@@ -48,7 +48,7 @@ func TestGetUnsignedAttributes(t *testing.T) {
 	}
 	expectedErrMsg := "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
 	unsignedAttr := getUnsignedAttributes(envContent)
-	val, ok := unsignedAttr["timestampSignature"].(timestamp)
+	val, ok := unsignedAttr["timestampSignature"].(*timestamp)
 	if !ok {
 		t.Fatal("expected to have timestampSignature")
 	}
