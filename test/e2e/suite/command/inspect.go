@@ -177,9 +177,9 @@ var _ = Describe("notation inspect", func() {
 
 	It("with timestamped oci layout", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			artifact := GenerateArtifact("e2e-with-timestamped-signature", "")
+			artifact := GenerateArtifact("e2e-with-timestamped-signature", "e2e-insepct-timestamped")
 			expectedOutput := `Inspecting all signatures for signed artifact
-localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c
+localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c
 └── application/vnd.cncf.notary.signature
     └── sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa
         ├── signature algorithm: RSASSA-PSS-SHA-256
@@ -219,7 +219,7 @@ localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa778
 
 	It("with timestamped oci layout and output in JSON", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			artifact := GenerateArtifact("e2e-with-timestamped-signature", "")
+			artifact := GenerateArtifact("e2e-with-timestamped-signature", "e2e-inspect-timestamped-json")
 			expectedOutput := `{
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "Signatures": [
@@ -276,8 +276,8 @@ localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa778
 
 	It("with no signature in text format", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			artifact := GenerateArtifact("e2e", "")
-			expectedOutput := "localhost:5000/e2e@sha256:b8479de3f88fb259a0a9ea82a5b2a052a1ef3c4ebbcfc61482d5ae4c831f8af9 has no associated signature\n"
+			artifact := GenerateArtifact("e2e", "e2e-inspect-no-signature")
+			expectedOutput := "localhost:5000/e2e-inspect-no-signature@sha256:b8479de3f88fb259a0a9ea82a5b2a052a1ef3c4ebbcfc61482d5ae4c831f8af9 has no associated signature\n"
 			notation.Exec("inspect", artifact.ReferenceWithDigest()).
 				MatchContent(expectedOutput)
 		})
@@ -285,7 +285,7 @@ localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa778
 
 	It("with no signature in JSON format", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			artifact := GenerateArtifact("e2e", "")
+			artifact := GenerateArtifact("e2e", "e2e-inspect-no-signature-json")
 			expectedOutput := `{
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "Signatures": []
