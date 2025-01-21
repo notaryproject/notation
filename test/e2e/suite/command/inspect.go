@@ -179,28 +179,30 @@ var _ = Describe("notation inspect", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("e2e-with-timestamped-signature", "e2e-insepct-timestamped")
 			expectedOutput := `Inspecting all signatures for signed artifact
-localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a
+localhost:5000/e2e-insepct-timestamped@sha256:53b0191218aed9a3c1f7c661736ac40cfc8eb928642348fd843ba3f0483c0c20
 └── application/vnd.cncf.notary.signature
-    └── sha256:e3222a9ea284789503cd2087aea775b73e049cb2c51e636a3980658e55577d18
+    └── sha256:6a5cd3a886707a317935dcaf13954fc80ef9aeb665262b6ae4fe469ad7ea3aea
         ├── signature algorithm: RSASSA-PSS-SHA-256
         ├── signed attributes
+        │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.x509
-        │   └── signing time: Tue Jan 21 08:41:17 2025
+        │   ├── signing time: Tue Jan 21 09:17:46 2025
+        │   └── expiry: Tue Jan 21 12:39:46 2025
         ├── user defined attributes
         │   └── purpose: e2e
         ├── unsigned attributes
         │   ├── signing agent: notation-go/1.3.0+unreleased
         │   └── timestamp signature
-        │       ├── timestamp: [Tue Jan 21 08:41:16 2025, Tue Jan 21 08:41:17 2025]
+        │       ├── timestamp: [Tue Jan 21 09:17:46 2025, Tue Jan 21 09:17:47 2025]
         │       └── certificates
         │           ├── SHA256 fingerprint: 36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8
         │           │   ├── issued to: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
         │           │   ├── issued by: CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US
         │           │   └── expiry: Mon Nov 19 20:42:31 2035
-        │           └── SHA256 fingerprint: b804553ac8c88a3f71e32fe6b84f1ccef488cf45d2ebca41150e7e21dfd26e71
-        │               ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:BB73-96FD-77EF,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
+        │           └── SHA256 fingerprint: 59283806bbc4fec702339b6026633c2034333fd3cae5368323186209e406d522
+        │               ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:45D6-96C5-5E63,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
         │               ├── issued by: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
-        │               └── expiry: Wed Nov 19 18:48:47 2025
+        │               └── expiry: Wed Nov 19 18:48:54 2025
         ├── certificates
         │   └── SHA256 fingerprint: 1717fa9d18f7e9c0f609499474adfe2b8e44172454f1d6e2183d5d04f79af475
         │       ├── issued to: CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US
@@ -208,7 +210,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508
         │       └── expiry: Wed Jan 22 08:36:26 2025
         └── signed artifact
             ├── media type: application/vnd.oci.image.manifest.v1+json
-            ├── digest: sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a
+            ├── digest: sha256:53b0191218aed9a3c1f7c661736ac40cfc8eb928642348fd843ba3f0483c0c20
             └── size: 582
 `
 
@@ -224,12 +226,13 @@ localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "signatures": [
     {
-      "digest": "sha256:e3222a9ea284789503cd2087aea775b73e049cb2c51e636a3980658e55577d18",
+      "digest": "sha256:6a5cd3a886707a317935dcaf13954fc80ef9aeb665262b6ae4fe469ad7ea3aea",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
+        "expiry": "2025-01-21T12:39:46Z",
         "signingScheme": "notary.x509",
-        "signingTime": "2025-01-21T08:41:17Z"
+        "signingTime": "2025-01-21T09:17:46Z"
       },
       "userDefinedAttributes": {
         "purpose": "e2e"
@@ -237,7 +240,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508
       "unsignedAttributes": {
         "signingAgent": "notation-go/1.3.0+unreleased",
         "timestampSignature": {
-          "timestamp": "[2025-01-21T08:41:16.915Z, 2025-01-21T08:41:17.915Z]",
+          "timestamp": "[2025-01-21T09:17:46.141Z, 2025-01-21T09:17:47.141Z]",
           "certificates": [
             {
               "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
@@ -246,10 +249,10 @@ localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508
               "expiry": "2035-11-19T20:42:31Z"
             },
             {
-              "SHA256Fingerprint": "b804553ac8c88a3f71e32fe6b84f1ccef488cf45d2ebca41150e7e21dfd26e71",
-              "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:BB73-96FD-77EF,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
+              "SHA256Fingerprint": "59283806bbc4fec702339b6026633c2034333fd3cae5368323186209e406d522",
+              "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:45D6-96C5-5E63,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
               "issuedBy": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
-              "expiry": "2025-11-19T18:48:47Z"
+              "expiry": "2025-11-19T18:48:54Z"
             }
           ]
         }
@@ -264,7 +267,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508
       ],
       "signedArtifact": {
         "mediaType": "application/vnd.oci.image.manifest.v1+json",
-        "digest": "sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a",
+        "digest": "sha256:53b0191218aed9a3c1f7c661736ac40cfc8eb928642348fd843ba3f0483c0c20",
         "size": 582
       }
     }
@@ -308,6 +311,7 @@ localhost:5000/e2e-inspect-invalid-timstamped@sha256:f1da8cd70d6d851fa2313c8d661
     └── sha256:eee3eec7d2947f77713484753bea67879ff62c08a73a49a41151ed18c4d1c000
         ├── signature algorithm: RSASSA-PSS-SHA-256
         ├── signed attributes
+        │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.x509
         │   └── signing time: Tue Jan 21 08:41:17 2025
         ├── user defined attributes

@@ -104,6 +104,7 @@ func addSignature(node *tree.Node, digest string, sigEnvelope signature.Envelope
 
 func addSignedAttributes(node *tree.Node, envelopeContent *signature.EnvelopeContent) {
 	signedAttributesNode := node.Add("signed attributes")
+	signedAttributesNode.AddPair("content type", string(envelopeContent.Payload.ContentType))
 	signedAttributesNode.AddPair("signing scheme", string(envelopeContent.SignerInfo.SignedAttributes.SigningScheme))
 	signedAttributesNode.AddPair("signing time", formatTime(envelopeContent.SignerInfo.SignedAttributes.SigningTime))
 	if expiry := envelopeContent.SignerInfo.SignedAttributes.Expiry; !expiry.IsZero() {
