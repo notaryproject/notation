@@ -36,11 +36,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// FormatType is the type of output format.
 type FormatType string
 
 // format types
 var (
+	// FormatTypeJSON is the JSON format type.
 	FormatTypeJSON FormatType = "json"
+	// FormatTypeText is the text format type for human-readable output.
 	FormatTypeText FormatType = "text"
 )
 

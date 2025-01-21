@@ -38,8 +38,12 @@ import (
 type InspectHandler struct {
 	printer *output.Printer
 
-	root        *tree.Node
-	cncfSigNode *tree.Node
+	// rootReferenceNode is the root node with the artifact reference as the
+	// value.
+	rootReferenceNode *tree.Node
+	// notationSignaturesNode is the node for all signatures associated with the
+	// artifact.
+	notationSignaturesNode *tree.Node
 }
 
 // NewInspectHandler creates a new InspectHandler.
@@ -53,28 +57,23 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 // handler.
 //
 // mediaType is a no-op for this handler.
-func (h *InspectHandler) OnReferenceResolved(reference, mediaType string) {
-	if h.root == nil {
-		h.root = tree.New(reference)
-		h.cncfSigNode = h.root.Add(registry.ArtifactTypeNotation)
-	}
+func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
+	h.rootReferenceNode = tree.New(reference)
+	h.notationSignaturesNode = h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error {
-	if h.root == nil || h.cncfSigNode == nil {
-		return fmt.Errorf("artifact reference is not set")
-	}
-
-	return addSignature(h.cncfSigNode, digest, envelopeMediaType, sigEnvelope)
+func (h *InspectHandler) InspectSignature(manifestDesc, blobDesc ocispec.Descriptor, envelope signature.Envelope) error {
+	return addSignature(h.notationSignaturesNode, manifestDesc.Digest.String(), blobDesc.MediaType, envelope)
 }
 
 // Render renders the metadata information when an operation is complete.
 func (h *InspectHandler) Render() error {
-	if h.root == nil {
-		return fmt.Errorf("artifact reference is not set")
+	if len(h.notationSignaturesNode.Children) == 0 {
+		return h.printer.Printf("%s has no associated signature\n", h.rootReferenceNode.Value)
 	}
-	return h.root.Print(h.printer)
+	h.printer.Println("Inspecting all signatures for signed artifact")
+	return h.rootReferenceNode.Print(h.printer)
 }
 
 func addSignature(node *tree.Node, digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error {
@@ -138,7 +137,7 @@ func addUnsignedAttributes(node *tree.Node, envelopeContent *signature.EnvelopeC
 	}
 }
 
-func addSignedArtifact(node *tree.Node, signedArtifactDesc *ocispec.Descriptor) {
+func addSignedArtifact(node *tree.Node, signedArtifactDesc ocispec.Descriptor) {
 	artifactNode := node.Add("signed artifact")
 	artifactNode.AddPair("media type", signedArtifactDesc.MediaType)
 	artifactNode.AddPair("digest", signedArtifactDesc.Digest.String())

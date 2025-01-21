@@ -61,21 +61,21 @@ func ValidatePayloadContentType(payload *signature.Payload) error {
 
 // DescriptorFromPayload parses a signature payload and returns the descriptor
 // that was signed. Note: the descriptor was signed but may not be trusted
-func DescriptorFromSignaturePayload(payload *signature.Payload) (*ocispec.Descriptor, error) {
+func DescriptorFromSignaturePayload(payload *signature.Payload) (ocispec.Descriptor, error) {
 	if payload == nil {
-		return nil, errors.New("empty payload")
+		return ocispec.Descriptor{}, errors.New("empty payload")
 	}
 
 	err := ValidatePayloadContentType(payload)
 	if err != nil {
-		return nil, err
+		return ocispec.Descriptor{}, err
 	}
 
 	var parsedPayload Payload
 	err = json.Unmarshal(payload.Content, &parsedPayload)
 	if err != nil {
-		return nil, errors.New("failed to unmarshall the payload content to Payload")
+		return ocispec.Descriptor{}, errors.New("failed to unmarshall the payload content to Payload")
 	}
 
-	return &parsedPayload.TargetArtifact, nil
+	return parsedPayload.TargetArtifact, nil
 }

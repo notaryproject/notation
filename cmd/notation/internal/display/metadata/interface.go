@@ -13,7 +13,10 @@
 
 package metadata
 
-import "github.com/notaryproject/notation-core-go/signature"
+import (
+	"github.com/notaryproject/notation-core-go/signature"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
+)
 
 // Renderer renders metadata information when an operation is complete.
 type Renderer interface {
@@ -29,5 +32,5 @@ type InspectHandler interface {
 	OnReferenceResolved(reference, mediaType string)
 
 	// InspectSignature inspects a signature to get it ready to be rendered.
-	InspectSignature(digest string, envelopeMediaType string, sigEnvelope signature.Envelope) error
+	InspectSignature(manifestDesc, blobDesc ocispec.Descriptor, envelope signature.Envelope) error
 }

@@ -24,6 +24,7 @@ import (
 
 var (
 	inspectSuccessfully = []string{
+		"Inspecting all signatures for signed artifact",
 		"└── application/vnd.cncf.notary.signature",
 		"└── sha256:",
 		"├── media type:",
@@ -47,6 +48,7 @@ var (
 	}
 
 	inspectSuccessfullyWithTimestamp = []string{
+		"Inspecting all signatures for signed artifact",
 		"└── application/vnd.cncf.notary.signature",
 		"└── sha256:",
 		"├── media type:",
@@ -176,7 +178,8 @@ var _ = Describe("notation inspect", func() {
 	It("with timestamped oci layout", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("e2e-with-timestamped-signature", "e2e")
-			expectedOutput := `localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c
+			expectedOutput := `Inspecting all signatures for signed artifact
+localhost:5000/e2e@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c
 └── application/vnd.cncf.notary.signature
     └── sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa
         ├── signature algorithm: RSASSA-PSS-SHA-256
@@ -269,6 +272,28 @@ var _ = Describe("notation inspect", func() {
 `
 
 			notation.Exec("inspect", artifact.ReferenceWithDigest(), "--output", "json").
+				MatchContent(expectedOutput)
+		})
+	})
+
+	It("with no signature in text format", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e", "e2e")
+			expectedOutput := "localhost:5000/e2e@sha256:b8479de3f88fb259a0a9ea82a5b2a052a1ef3c4ebbcfc61482d5ae4c831f8af9 has no associated signature\n"
+			notation.Exec("inspect", artifact.ReferenceWithDigest()).
+				MatchContent(expectedOutput)
+		})
+	})
+
+	It("with no signature in JSON format", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e", "e2e")
+			expectedOutput := `{
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
+  "Signatures": []
+}
+`
+			notation.Exec("inspect", "--output", "json", artifact.ReferenceWithDigest()).
 				MatchContent(expectedOutput)
 		})
 	})

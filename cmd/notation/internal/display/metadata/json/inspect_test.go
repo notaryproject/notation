@@ -20,34 +20,35 @@ import (
 	"testing"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/signature"
+	coresignature "github.com/notaryproject/notation-core-go/signature"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 type errorEnvelope struct{}
 
-func (e errorEnvelope) Sign(req *signature.SignRequest) ([]byte, error) {
+func (e errorEnvelope) Sign(req *coresignature.SignRequest) ([]byte, error) {
 	return nil, errors.New("mock sign error")
 }
 
-func (e errorEnvelope) Verify() (*signature.EnvelopeContent, error) {
+func (e errorEnvelope) Verify() (*coresignature.EnvelopeContent, error) {
 	return nil, errors.New("mock verify error")
 }
 
-func (e errorEnvelope) Content() (*signature.EnvelopeContent, error) {
+func (e errorEnvelope) Content() (*coresignature.EnvelopeContent, error) {
 	return nil, errors.New("mock content error")
 }
 
 func TestGetUnsignedAttributes(t *testing.T) {
-	envContent := &signature.EnvelopeContent{
-		SignerInfo: signature.SignerInfo{
-			UnsignedAttributes: signature.UnsignedAttributes{
+	envContent := &coresignature.EnvelopeContent{
+		SignerInfo: coresignature.SignerInfo{
+			UnsignedAttributes: coresignature.UnsignedAttributes{
 				TimestampSignature: []byte("invalid"),
 			},
 		},
 	}
 	expectedErrMsg := "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
 	unsignedAttr := getUnsignedAttributes(envContent)
-	val, ok := unsignedAttr["timestampSignature"].(Timestamp)
+	val, ok := unsignedAttr["timestampSignature"].(timestamp)
 	if !ok {
 		t.Fatal("expected to have timestampSignature")
 	}
@@ -58,11 +59,11 @@ func TestGetUnsignedAttributes(t *testing.T) {
 
 func TestGetSignedAttributes(t *testing.T) {
 	expiry := time.Now()
-	envContent := &signature.EnvelopeContent{
-		SignerInfo: signature.SignerInfo{
-			SignedAttributes: signature.SignedAttributes{
+	envContent := &coresignature.EnvelopeContent{
+		SignerInfo: coresignature.SignerInfo{
+			SignedAttributes: coresignature.SignedAttributes{
 				Expiry: expiry,
-				ExtendedAttributes: []signature.Attribute{
+				ExtendedAttributes: []coresignature.Attribute{
 					{
 						Key:   "keyName",
 						Value: "value",
@@ -83,8 +84,8 @@ func TestGetSignedAttributes(t *testing.T) {
 
 func TestParseTimestamp(t *testing.T) {
 	t.Run("invalid timestamp signature", func(t *testing.T) {
-		signerInfo := signature.SignerInfo{
-			UnsignedAttributes: signature.UnsignedAttributes{
+		signerInfo := coresignature.SignerInfo{
+			UnsignedAttributes: coresignature.UnsignedAttributes{
 				TimestampSignature: []byte("invalid"),
 			},
 		}
@@ -101,8 +102,8 @@ func TestParseTimestamp(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		signerInfo := signature.SignerInfo{
-			UnsignedAttributes: signature.UnsignedAttributes{
+		signerInfo := coresignature.SignerInfo{
+			UnsignedAttributes: coresignature.UnsignedAttributes{
 				TimestampSignature: tsaToken,
 			},
 		}
@@ -119,17 +120,11 @@ func TestInspectSignature_NewSignatureError(t *testing.T) {
 	h := NewInspectHandler(nil)
 	// ...existing code to ensure h.output.MediaType is set...
 	h.OnReferenceResolved("test-ref", "test-media-type")
+	manifestDesc := ocispec.Descriptor{Digest: "fake-digest"}
+	blobDesc := ocispec.Descriptor{MediaType: "fake-media-type"}
 
-	err := h.InspectSignature("fake-digest", "fake-media-type", errorEnvelope{})
+	err := h.InspectSignature(manifestDesc, blobDesc, errorEnvelope{})
 	if err == nil || !strings.Contains(err.Error(), "mock content error") {
 		t.Fatalf("expected error 'mock content error', got %v", err)
-	}
-}
-
-func TestRenderNoMediaType(t *testing.T) {
-	h := NewInspectHandler(nil)
-	err := h.Render()
-	if err == nil || !strings.Contains(err.Error(), "media type is not set") {
-		t.Fatalf("expected error 'media type is not set', got %v", err)
 	}
 }

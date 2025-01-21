@@ -23,22 +23,6 @@ import (
 	"github.com/notaryproject/notation/internal/tree"
 )
 
-func TestInspectSignatureNoRoot(t *testing.T) {
-	h := NewInspectHandler(nil)
-	err := h.InspectSignature("test-digest", "application/notation", nil)
-	if err == nil || err.Error() != "artifact reference is not set" {
-		t.Fatalf("expected error 'artifact reference is not set', got: %v", err)
-	}
-}
-
-func TestRenderNoRoot(t *testing.T) {
-	h := NewInspectHandler(nil)
-	err := h.Render()
-	if err == nil || err.Error() != "artifact reference is not set" {
-		t.Fatalf("expected error 'artifact reference is not set', got: %v", err)
-	}
-}
-
 func TestAddSignedAttributes(t *testing.T) {
 	t.Run("empty envelopeContent", func(t *testing.T) {
 		node := tree.New("root")
