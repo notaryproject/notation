@@ -31,8 +31,8 @@ import (
 )
 
 type inspectOutput struct {
-	MediaType  string `json:"mediaType"`
-	Signatures []*signature
+	MediaType  string       `json:"mediaType"`
+	Signatures []*signature `json:"signatures"`
 }
 
 // signature is the signature envelope for printing in human readable format.
