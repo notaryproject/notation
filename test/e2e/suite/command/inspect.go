@@ -179,36 +179,36 @@ var _ = Describe("notation inspect", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("e2e-with-timestamped-signature", "e2e-insepct-timestamped")
 			expectedOutput := `Inspecting all signatures for signed artifact
-localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c
+localhost:5000/e2e-insepct-timestamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a
 └── application/vnd.cncf.notary.signature
-    └── sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa
+    └── sha256:e3222a9ea284789503cd2087aea775b73e049cb2c51e636a3980658e55577d18
         ├── signature algorithm: RSASSA-PSS-SHA-256
         ├── signed attributes
         │   ├── signing scheme: notary.x509
-        │   └── signing time: Fri Jan 17 06:36:19 2025
+        │   └── signing time: Tue Jan 21 08:41:17 2025
         ├── user defined attributes
-        │   └── (empty)
+        │   └── purpose: e2e
         ├── unsigned attributes
         │   ├── signing agent: notation-go/1.3.0+unreleased
         │   └── timestamp signature
-        │       ├── timestamp: [Fri Jan 17 06:36:19 2025, Fri Jan 17 06:36:20 2025]
+        │       ├── timestamp: [Tue Jan 21 08:41:16 2025, Tue Jan 21 08:41:17 2025]
         │       └── certificates
         │           ├── SHA256 fingerprint: 36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8
         │           │   ├── issued to: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
         │           │   ├── issued by: CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US
         │           │   └── expiry: Mon Nov 19 20:42:31 2035
-        │           └── SHA256 fingerprint: 2be4c1670d176be2b0e56081a7b6523487c528a7ea092febbb84ae9db03ceb9a
-        │               ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft Ireland Operations Limited+OU=Thales TSS ESN:F5D6-96D6-909E,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
+        │           └── SHA256 fingerprint: b804553ac8c88a3f71e32fe6b84f1ccef488cf45d2ebca41150e7e21dfd26e71
+        │               ├── issued to: CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:BB73-96FD-77EF,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US
         │               ├── issued by: CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US
-        │               └── expiry: Thu Apr 17 17:59:12 2025
+        │               └── expiry: Wed Nov 19 18:48:47 2025
         ├── certificates
-        │   └── SHA256 fingerprint: 36b3e0e0fee117d33d5664a2f56b147ddbbe8b7ca3ad2ae56498703fd782a56e
-        │       ├── issued to: CN=testcert5,O=Notary,L=Seattle,ST=WA,C=US
-        │       ├── issued by: CN=testcert5,O=Notary,L=Seattle,ST=WA,C=US
-        │       └── expiry: Sat Jan 18 06:34:29 2025
+        │   └── SHA256 fingerprint: 1717fa9d18f7e9c0f609499474adfe2b8e44172454f1d6e2183d5d04f79af475
+        │       ├── issued to: CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US
+        │       ├── issued by: CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US
+        │       └── expiry: Wed Jan 22 08:36:26 2025
         └── signed artifact
             ├── media type: application/vnd.oci.image.manifest.v1+json
-            ├── digest: sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c
+            ├── digest: sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a
             └── size: 582
 `
 
@@ -224,18 +224,20 @@ localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcaca
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "signatures": [
     {
-      "digest": "sha256:54eab65f9262feac4ea9f31d15b62c870bf359d912aba86622cfc735337ae4fa",
+      "digest": "sha256:e3222a9ea284789503cd2087aea775b73e049cb2c51e636a3980658e55577d18",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": "notary.x509",
-        "signingTime": "2025-01-17T06:36:19Z"
+        "signingTime": "2025-01-21T08:41:17Z"
       },
-      "userDefinedAttributes": null,
+      "userDefinedAttributes": {
+        "purpose": "e2e"
+      },
       "unsignedAttributes": {
         "signingAgent": "notation-go/1.3.0+unreleased",
         "timestampSignature": {
-          "timestamp": "[2025-01-17T06:36:19.734Z, 2025-01-17T06:36:20.734Z]",
+          "timestamp": "[2025-01-21T08:41:16.915Z, 2025-01-21T08:41:17.915Z]",
           "certificates": [
             {
               "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
@@ -244,25 +246,25 @@ localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcaca
               "expiry": "2035-11-19T20:42:31Z"
             },
             {
-              "SHA256Fingerprint": "2be4c1670d176be2b0e56081a7b6523487c528a7ea092febbb84ae9db03ceb9a",
-              "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft Ireland Operations Limited+OU=Thales TSS ESN:F5D6-96D6-909E,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
+              "SHA256Fingerprint": "b804553ac8c88a3f71e32fe6b84f1ccef488cf45d2ebca41150e7e21dfd26e71",
+              "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:BB73-96FD-77EF,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
               "issuedBy": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
-              "expiry": "2025-04-17T17:59:12Z"
+              "expiry": "2025-11-19T18:48:47Z"
             }
           ]
         }
       },
       "certificates": [
         {
-          "SHA256Fingerprint": "36b3e0e0fee117d33d5664a2f56b147ddbbe8b7ca3ad2ae56498703fd782a56e",
-          "issuedTo": "CN=testcert5,O=Notary,L=Seattle,ST=WA,C=US",
-          "issuedBy": "CN=testcert5,O=Notary,L=Seattle,ST=WA,C=US",
-          "expiry": "2025-01-18T06:34:29Z"
+          "SHA256Fingerprint": "1717fa9d18f7e9c0f609499474adfe2b8e44172454f1d6e2183d5d04f79af475",
+          "issuedTo": "CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US",
+          "issuedBy": "CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US",
+          "expiry": "2025-01-22T08:36:26Z"
         }
       ],
       "signedArtifact": {
         "mediaType": "application/vnd.oci.image.manifest.v1+json",
-        "digest": "sha256:99950868628ed79ebc295e01f8397dcacad35e17fb3b7a9f0fa77881ec3cef1c",
+        "digest": "sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a",
         "size": 582
       }
     }
@@ -290,6 +292,83 @@ localhost:5000/e2e-insepct-timestamped@sha256:99950868628ed79ebc295e01f8397dcaca
 			expectedOutput := `{
   "mediaType": "application/vnd.oci.image.manifest.v1+json",
   "signatures": []
+}
+`
+			notation.Exec("inspect", "--output", "json", artifact.ReferenceWithDigest()).
+				MatchContent(expectedOutput)
+		})
+	})
+
+	It("with invalid timestamp signature in text format", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e-with-invalid-timestamped-signature", "e2e-inspect-invalid-timstamped")
+			expectedOutput := `Inspecting all signatures for signed artifact
+localhost:5000/e2e-inspect-invalid-timstamped@sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a
+└── application/vnd.cncf.notary.signature
+    └── sha256:eee3eec7d2947f77713484753bea67879ff62c08a73a49a41151ed18c4d1c000
+        ├── signature algorithm: RSASSA-PSS-SHA-256
+        ├── signed attributes
+        │   ├── signing scheme: notary.x509
+        │   └── signing time: Tue Jan 21 08:41:17 2025
+        ├── user defined attributes
+        │   └── purpose: e2e
+        ├── unsigned attributes
+        │   ├── signing agent: notation-go/1.3.0+unreleased
+        │   └── timestamp signature
+        │       └── error: failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length
+        ├── certificates
+        │   └── SHA256 fingerprint: 1717fa9d18f7e9c0f609499474adfe2b8e44172454f1d6e2183d5d04f79af475
+        │       ├── issued to: CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US
+        │       ├── issued by: CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US
+        │       └── expiry: Wed Jan 22 08:36:26 2025
+        └── signed artifact
+            ├── media type: application/vnd.oci.image.manifest.v1+json
+            ├── digest: sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a
+            └── size: 582
+`
+			notation.Exec("inspect", artifact.ReferenceWithDigest()).
+				MatchContent(expectedOutput)
+		})
+	})
+
+	It("with invalid timestamp signature in json format", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e-with-invalid-timestamped-signature", "e2e-inspect-invalid-timstamped")
+			expectedOutput := `{
+  "mediaType": "application/vnd.oci.image.manifest.v1+json",
+  "signatures": [
+    {
+      "digest": "sha256:eee3eec7d2947f77713484753bea67879ff62c08a73a49a41151ed18c4d1c000",
+      "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+      "signedAttributes": {
+        "contentType": "application/vnd.cncf.notary.payload.v1+json",
+        "signingScheme": "notary.x509",
+        "signingTime": "2025-01-21T08:41:17Z"
+      },
+      "userDefinedAttributes": {
+        "purpose": "e2e"
+      },
+      "unsignedAttributes": {
+        "signingAgent": "notation-go/1.3.0+unreleased",
+        "timestampSignature": {
+          "error": "failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
+        }
+      },
+      "certificates": [
+        {
+          "SHA256Fingerprint": "1717fa9d18f7e9c0f609499474adfe2b8e44172454f1d6e2183d5d04f79af475",
+          "issuedTo": "CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US",
+          "issuedBy": "CN=testcert7,O=Notary,L=Seattle,ST=WA,C=US",
+          "expiry": "2025-01-22T08:36:26Z"
+        }
+      ],
+      "signedArtifact": {
+        "mediaType": "application/vnd.oci.image.manifest.v1+json",
+        "digest": "sha256:f1da8cd70d6d851fa2313c8d6618f79508cf1e86877edf1c0bfe49a1b0a6467a",
+        "size": 582
+      }
+    }
+  ]
 }
 `
 			notation.Exec("inspect", "--output", "json", artifact.ReferenceWithDigest()).
