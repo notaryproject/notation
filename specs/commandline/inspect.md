@@ -78,14 +78,14 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
     │   ├── user defined attributes
     │   │   └── io.wabbit-networks.buildId: 123                             //user defined metadata
     │   ├── unsigned attributes
-    │   │   ├── timestamp signature                                         //TSA response
-    |   │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
-    |   │   │   └── certificates
-    |   │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
-    |   │   │           ├── issued to: wabbit-com Software Timestamp
-    |   │   │           ├── issued by: wabbit-com Software Trusted Timestamping
-    |   │   │           └── expiry: Fri Oct 13 23:59:59 2034
-    │   │   └── io.cncf.notary.signingAgent: notation/1.0.0                 //client version
+    │   │   ├── signing agent: notation/1.0.0                               //client version
+    │   │   └── timestamp signature                                         //TSA response
+    |   │       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+    |   │       └── certificates
+    |   │           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+    |   │               ├── issued to: wabbit-com Software Timestamp
+    |   │               ├── issued by: wabbit-com Software Trusted Timestamping
+    |   │               └── expiry: Fri Oct 13 23:59:59 2034
     │   ├── certificates
     │   │   ├── SHA256 fingerprint: E8C15B4C98AD91E051EE5AF5F524A8729050B2A
     │   │   │   ├── issued to: wabbit-com Software
@@ -112,14 +112,14 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
         │   ├── expiry: Sat Jun 29 22:04:01 2024
         │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
         ├── unsigned attributes
-        │   ├── timestamp signature
-        │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
-        │   │   └── certificates
-        │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
-        │   │           ├── issued to: wabbit-com Software Timestamp
-        │   │           ├── issued by: wabbit-com Software Trusted Timestamping
-        │   │           └── expiry: Fri Oct 13 23:59:59 2034
-        │   └── io.cncf.notary.signingAgent: notation/1.0.0
+        │   ├── signing agent: notation/1.0.0                               //client version
+        │   └── timestamp signature
+        │       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+        │       └── certificates
+        │           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+        │               ├── issued to: wabbit-com Software Timestamp
+        │               ├── issued by: wabbit-com Software Trusted Timestamping
+        │               └── expiry: Fri Oct 13 23:59:59 2034
         ├── certificates
         │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
         │   │   ├── issued to: wabbit-com Software
@@ -169,14 +169,14 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
     │   ├── user defined attributes
     │   │   └── io.wabbit-networks.buildId: 123
     │   ├── unsigned attributes
-    │   │   ├── timestamp signature
-    |   │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
-    |   │   │   └── certificates
-    |   │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
-    |   │   │           ├── issued to: wabbit-com Software Timestamp
-    |   │   │           ├── issued by: wabbit-com Software Trusted Timestamping
-    |   │   │           └── expiry: Fri Oct 13 23:59:59 2034
-    │   │   └── io.cncf.notary.signingAgent: notation/1.0.0
+        │   ├── signing agent: notation/1.0.0                               //client version
+    │   │   └── timestamp signature
+    |   │       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+    |   │       └── certificates
+    |   │           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+    |   │               ├── issued to: wabbit-com Software Timestamp
+    |   │               ├── issued by: wabbit-com Software Trusted Timestamping
+    |   │               └── expiry: Fri Oct 13 23:59:59 2034
     │   ├── certificates
     │   │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
     │   │   │   ├── issued to: wabbit-com Software
@@ -203,14 +203,14 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
         │   ├── expiry: Sat Jun 29 22:04:01 2024
         │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
         ├── unsigned attributes
-        │   ├── timestamp signature
-        │   │   ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
-        │   │   └── certificates
-        │   │       └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
-        │   │           ├── issued to: wabbit-com Software Timestamp
-        │   │           ├── issued by: wabbit-com Software Trusted Timestamping
-        │   │           └── expiry: Fri Oct 13 23:59:59 2034
-        │   └── io.cncf.notary.signingAgent: notation/1.0.0
+        │   ├── signing agent: notation/1.0.0                               //client version
+        │   └── timestamp signature
+        │       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+        │       └── certificates
+        │           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+        │               ├── issued to: wabbit-com Software Timestamp
+        │               ├── issued by: wabbit-com Software Trusted Timestamping
+        │               └── expiry: Fri Oct 13 23:59:59 2034
         ├── certificates
         │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
         │   │   ├── issued to: wabbit-com Software
@@ -255,7 +255,7 @@ An example output:
       },
       "unsignedAttributes": {
          "timestampSignature": {
-            "timestamp": "[2022-02-06T20:50:37Z, 2022-02-06T20:50:37Z]",
+            "timestamp": "[2022-02-06T20:50:37.94Z, 2022-02-06T20:50:37.94Z]",
             "certificates": [
                 {
                     "SHA256Fingerprint": "d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828",
@@ -305,7 +305,7 @@ An example output:
       },
      "unsignedAttributes": {
          "timestampSignature": {
-            "timestamp": "[2022-02-06T20:50:37Z, 2022-02-06T20:50:37Z]",
+            "timestamp": "[2022-02-06T20:50:37.036Z, 2022-02-06T20:50:37.036Z]",
             "certificates": [
                 {
                     "SHA256Fingerprint": "d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828",
