@@ -27,11 +27,11 @@ import (
 
 // NewInpsectHandler creates a new InspectHandler based on the output format.
 func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
-	switch option.FormatType(format.FormatFlag) {
+	switch option.FormatType(format.CurrentFormat) {
 	case option.FormatTypeJSON:
 		return json.NewInspectHandler(printer), nil
 	case option.FormatTypeText:
 		return tree.NewInspectHandler(printer), nil
 	}
-	return nil, fmt.Errorf("unrecognized output format %s", format.FormatFlag)
+	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentFormat)
 }

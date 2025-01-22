@@ -35,7 +35,7 @@ type inspectOutput struct {
 	Signatures []*signature `json:"signatures"`
 }
 
-// signature is the signature envelope for printing in human readable format.
+// signature is the signature envelope for printing in JSON format.
 type signature struct {
 	Digest                string             `json:"digest,omitempty"`
 	SignatureAlgorithm    string             `json:"signatureAlgorithm"`
@@ -46,8 +46,7 @@ type signature struct {
 	SignedArtifact        ocispec.Descriptor `json:"signedArtifact"`
 }
 
-// certificate is the certificate information for printing in human readable
-// format.
+// certificate is the certificate information for printing in JSON format.
 type certificate struct {
 	SHA256Fingerprint string    `json:"SHA256Fingerprint"`
 	IssuedTo          string    `json:"issuedTo"`
@@ -55,7 +54,7 @@ type certificate struct {
 	Expiry            time.Time `json:"expiry"`
 }
 
-// timestamp is the timestamp information for printing in human readable.
+// timestamp is the timestamp information for printing in JSON format.
 type timestamp struct {
 	Timestamp    string         `json:"timestamp,omitempty"`
 	Certificates []*certificate `json:"certificates,omitempty"`
@@ -83,7 +82,7 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 // OnReferenceResolved sets the artifact reference and media type for the
 // handler.
 //
-// the reference is no-op for this handler.
+// The reference is no-op for this handler.
 func (h *InspectHandler) OnReferenceResolved(_, mediaType string) {
 	h.output.MediaType = mediaType
 }

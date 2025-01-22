@@ -14,7 +14,6 @@
 package ioutil
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -78,16 +77,4 @@ func PrintCertMap(w io.Writer, certPaths []string) error {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t\n", storeType, namedStore, fileName)
 	}
 	return tw.Flush()
-}
-
-// PrintObjectAsJSON takes an interface and prints it as an indented JSON string
-func PrintObjectAsJSON(i interface{}) error {
-	jsonBytes, err := json.MarshalIndent(i, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(jsonBytes))
-
-	return nil
 }

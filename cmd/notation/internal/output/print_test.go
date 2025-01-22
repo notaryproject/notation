@@ -80,8 +80,22 @@ func TestPrinter_Print(t *testing.T) {
 		if mockWriter.errorCount != 2 {
 			t.Errorf("Expected two errors actual <%d>", mockWriter.errorCount)
 		}
-		if err != nil {
-			t.Error("Expected error to be ignored")
+		if err == nil {
+			t.Error("Expected error got <nil>")
 		}
 	})
+}
+
+func Test_PrintPrettyJSON(t *testing.T) {
+	builder := &strings.Builder{}
+	given := map[string]int{"bob": 5}
+	expected := "{\n  \"bob\": 5\n}\n"
+	err := PrintPrettyJSON(builder, given)
+	if err != nil {
+		t.Error("Expected no error got <" + err.Error() + ">")
+	}
+	actual := builder.String()
+	if expected != actual {
+		t.Error("Expected <" + expected + "> not equal to actual <" + actual + ">")
+	}
 }

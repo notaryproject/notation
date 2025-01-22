@@ -29,6 +29,7 @@ limitations under the License.
 package output
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"sync"
@@ -50,6 +51,7 @@ func NewPrinter(out io.Writer, err io.Writer) *Printer {
 func (p *Printer) Write(b []byte) (int, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
 	return p.out.Write(b)
 }
 
@@ -57,6 +59,7 @@ func (p *Printer) Write(b []byte) (int, error) {
 func (p *Printer) Println(a ...any) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
 	_, err := fmt.Fprintln(p.out, a...)
 	if err != nil {
 		err = fmt.Errorf("display output error: %w", err)
@@ -70,11 +73,19 @@ func (p *Printer) Println(a ...any) error {
 func (p *Printer) Printf(format string, a ...any) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
+
 	_, err := fmt.Fprintf(p.out, format, a...)
 	if err != nil {
 		err = fmt.Errorf("display output error: %w", err)
 		_, _ = fmt.Fprint(p.err, err)
+		return err
 	}
-	// Errors are handled above, so return nil
 	return nil
+}
+
+// PrintPrettyJSON prints object to out in JSON format.
+func PrintPrettyJSON(out io.Writer, object any) error {
+	encoder := json.NewEncoder(out)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(object)
 }

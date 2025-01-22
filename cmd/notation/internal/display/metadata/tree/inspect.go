@@ -18,6 +18,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"fmt"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -121,7 +122,7 @@ func addUserDefinedAttributes(node *tree.Node, annotations map[string]string) {
 		userDefinedAttributesNode.Add("(empty)")
 		return
 	}
-	for _, k := range orderedKeys(annotations) {
+	for _, k := range slices.Sorted(maps.Keys(annotations)) {
 		v := annotations[k]
 		userDefinedAttributesNode.AddPair(k, v)
 	}
@@ -174,15 +175,6 @@ func addCertificates(node *tree.Node, certChain []*x509.Certificate) {
 		certNode.AddPair("issued by", cert.Issuer.String())
 		certNode.AddPair("expiry", formatTime(cert.NotAfter))
 	}
-}
-
-func orderedKeys(m map[string]string) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	slices.Sort(keys)
-	return keys
 }
 
 func formatTime(t time.Time) string {

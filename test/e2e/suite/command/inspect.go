@@ -375,7 +375,7 @@ localhost:5000/e2e-inspect-invalid-timstamped@sha256:f1da8cd70d6d851fa2313c8d661
   ]
 }
 `
-			notation.Exec("inspect", "--output", "json", artifact.ReferenceWithDigest()).
+			notation.Exec("inspect", "-o", "json", artifact.ReferenceWithDigest()).
 				MatchContent(expectedOutput)
 		})
 	})

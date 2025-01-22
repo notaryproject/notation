@@ -30,6 +30,7 @@ package option
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -49,13 +50,13 @@ var (
 
 // Format contains input and parsed options for formatted output flags.
 type Format struct {
-	FormatFlag   string
-	allowedTypes []FormatType
+	CurrentFormat string
+	allowedTypes  []FormatType
 }
 
 // SetTypes sets the default format type and allowed format types.
 func (f *Format) SetTypes(defaultType FormatType, otherTypes ...FormatType) {
-	f.FormatFlag = string(defaultType)
+	f.CurrentFormat = string(defaultType)
 	f.allowedTypes = append(otherTypes, defaultType)
 }
 
@@ -67,16 +68,14 @@ func (f *Format) ApplyFlags(fs *pflag.FlagSet) {
 	}
 	usage := fmt.Sprintf("output format, options: %s", strings.Join(quotedAllowedTypes, ", "))
 	// apply flags
-	fs.StringVar(&f.FormatFlag, "output", f.FormatFlag, usage)
+	fs.StringVarP(&f.CurrentFormat, "output", "o", f.CurrentFormat, usage)
 }
 
 // Parse parses the input format flag.
 func (opts *Format) Parse(_ *cobra.Command) error {
-	for _, t := range opts.allowedTypes {
-		if opts.FormatFlag == string(t) {
-			// type validation passed
-			return nil
-		}
+	if ok := slices.Contains(opts.allowedTypes, FormatType(opts.CurrentFormat)); ok {
+		// type validation passed
+		return nil
 	}
-	return fmt.Errorf("invalid format type: %q", opts.FormatFlag)
+	return fmt.Errorf("invalid format type: %q", opts.CurrentFormat)
 }
