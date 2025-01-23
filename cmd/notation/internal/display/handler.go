@@ -23,7 +23,8 @@ import (
 	"fmt"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/inspect"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/json"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/tree"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
@@ -33,9 +34,9 @@ import (
 func NewMetadataInpsectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
 	switch option.FormatType(format.CurrentFormat) {
 	case option.FormatTypeJSON:
-		return inspect.NewJSONHandler(printer), nil
+		return json.NewInspectHandler(printer), nil
 	case option.FormatTypeText:
-		return inspect.NewTreeHandler(printer), nil
+		return tree.NewInspectHandler(printer), nil
 	}
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentFormat)
 }

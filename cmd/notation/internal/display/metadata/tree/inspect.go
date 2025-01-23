@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inspect
+package tree
 
 import (
 	"crypto/sha256"
@@ -34,9 +34,9 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-// TreeHandler is a handler for inspecting metadata information and rendering
+// InspectHandler is a handler for inspecting metadata information and rendering
 // it in a tree format. It implements the metadata.InspectHandler interface.
-type TreeHandler struct {
+type InspectHandler struct {
 	printer *output.Printer
 
 	// rootReferenceNode is the root node with the artifact reference as the
@@ -47,10 +47,10 @@ type TreeHandler struct {
 	notationSignaturesNode *tree.Node
 }
 
-// NewTreeHandler creates a TreeHandler to inspect signatures and print in tree
+// NewInspectHandler creates a TreeHandler to inspect signatures and print in tree
 // format.
-func NewTreeHandler(printer *output.Printer) *TreeHandler {
-	return &TreeHandler{
+func NewInspectHandler(printer *output.Printer) *InspectHandler {
+	return &InspectHandler{
 		printer: printer,
 	}
 }
@@ -59,18 +59,18 @@ func NewTreeHandler(printer *output.Printer) *TreeHandler {
 // handler.
 //
 // mediaType is a no-op for this handler.
-func (h *TreeHandler) OnReferenceResolved(reference, _ string) {
+func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
 	h.rootReferenceNode = tree.New(reference)
 	h.notationSignaturesNode = h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *TreeHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
 	return addSignature(h.notationSignaturesNode, manifestDesc.Digest.String(), envelope)
 }
 
 // Render renders the metadata information when an operation is complete.
-func (h *TreeHandler) Render() error {
+func (h *InspectHandler) Render() error {
 	if len(h.notationSignaturesNode.Children) == 0 {
 		return h.printer.Printf("%s has no associated signature\n", h.rootReferenceNode.Value)
 	}

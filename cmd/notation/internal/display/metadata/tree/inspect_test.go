@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inspect
+package tree
 
 import (
 	"fmt"
@@ -132,7 +132,7 @@ func TestAddTimestamp(t *testing.T) {
 	})
 
 	t.Run("timestamp validation error", func(t *testing.T) {
-		tsaToken, err := os.ReadFile("./testdata/TimeStampTokenWithInvalidSignature.p7s")
+		tsaToken, err := os.ReadFile("../testdata/TimeStampTokenWithInvalidSignature.p7s")
 		if err != nil {
 			t.Fatal(err)
 		}

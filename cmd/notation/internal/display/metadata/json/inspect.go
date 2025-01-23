@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package inspect
+package json
 
 import (
 	"crypto/sha256"
@@ -61,19 +61,19 @@ type timestamp struct {
 	Error        string         `json:"error,omitempty"`
 }
 
-// JSONHandler is the handler for inspecting metadata information and
+// InspectHandler is the handler for inspecting metadata information and
 // rendering it in JSON format. It implements the metadata.InspectHandler
 // interface.
-type JSONHandler struct {
+type InspectHandler struct {
 	printer *output.Printer
 
 	output inspectOutput
 }
 
-// NewJSONHandler creates a new JsonHandler to inspect signatures and print in
+// NewInspectHandler creates a new JsonHandler to inspect signatures and print in
 // JSON format.
-func NewJSONHandler(printer *output.Printer) *JSONHandler {
-	return &JSONHandler{
+func NewInspectHandler(printer *output.Printer) *InspectHandler {
+	return &InspectHandler{
 		printer: printer,
 		output: inspectOutput{
 			Signatures: []*signature{},
@@ -85,12 +85,12 @@ func NewJSONHandler(printer *output.Printer) *JSONHandler {
 // handler.
 //
 // The reference is no-op for this handler.
-func (h *JSONHandler) OnReferenceResolved(_, mediaType string) {
+func (h *InspectHandler) OnReferenceResolved(_, mediaType string) {
 	h.output.MediaType = mediaType
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *JSONHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
 	sig, err := newSignature(manifestDesc.Digest.String(), envelope)
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func (h *JSONHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope
 	return nil
 }
 
-func (h *JSONHandler) Render() error {
+func (h *InspectHandler) Render() error {
 	return output.PrintPrettyJSON(h.printer, h.output)
 }
 
