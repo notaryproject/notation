@@ -100,7 +100,7 @@ func addSignature(node *tree.Node, digest string, sigEnvelope coresignature.Enve
 	addUserDefinedAttributes(sigNode, signedArtifactDesc.Annotations)
 	addUnsignedAttributes(sigNode, envelopeContent)
 	addCertificates(sigNode, envelopeContent.SignerInfo.CertificateChain)
-	addSignedArtifact(sigNode, *signedArtifactDesc)
+	addSignedArtifact(sigNode, signedArtifactDesc)
 	return nil
 }
 
