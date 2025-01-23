@@ -20,19 +20,18 @@ import (
 	"time"
 
 	coresignature "github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation/internal/tree"
 )
 
 func TestAddSignedAttributes(t *testing.T) {
 	t.Run("empty envelopeContent", func(t *testing.T) {
-		node := tree.New("root")
+		node := New("root")
 		ec := &coresignature.EnvelopeContent{}
 		addSignedAttributes(node, ec)
 		// No error or panic expected; minimal check or just ensure it doesn't crash.
 	})
 
 	t.Run("with expiry and extented node", func(t *testing.T) {
-		node := tree.New("root")
+		node := New("root")
 		expiryTime := time.Now().Add(time.Hour)
 		ec := &coresignature.EnvelopeContent{
 			Payload: coresignature.Payload{
@@ -77,7 +76,7 @@ func TestAddSignedAttributes(t *testing.T) {
 
 func TestAddUserDefinedAttributes(t *testing.T) {
 	t.Run("empty map", func(t *testing.T) {
-		node := tree.New("root")
+		node := New("root")
 		addUserDefinedAttributes(node, nil)
 		if len(node.Children) == 0 {
 			t.Fatal("expected node to have children")
@@ -92,7 +91,7 @@ func TestAddUserDefinedAttributes(t *testing.T) {
 	})
 
 	t.Run("non-empty map", func(t *testing.T) {
-		node := tree.New("root")
+		node := New("root")
 		annotations := map[string]string{"key1": "val1", "key2": "val2"}
 		addUserDefinedAttributes(node, annotations)
 		udaNode := node.Children[0]
@@ -107,7 +106,7 @@ func TestAddUserDefinedAttributes(t *testing.T) {
 
 func TestAddTimestamp(t *testing.T) {
 	t.Run("invalid timestamp signature", func(t *testing.T) {
-		node := tree.New("root")
+		node := New("root")
 		signerInfo := coresignature.SignerInfo{
 			UnsignedAttributes: coresignature.UnsignedAttributes{
 				TimestampSignature: []byte("invalid"),
@@ -141,7 +140,7 @@ func TestAddTimestamp(t *testing.T) {
 				TimestampSignature: tsaToken,
 			},
 		}
-		node := tree.New("root")
+		node := New("root")
 		addTimestamp(node, signerInfo)
 		if len(node.Children) == 0 {
 			t.Fatal("expected node to have children")
