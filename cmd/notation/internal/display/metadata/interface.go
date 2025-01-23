@@ -11,8 +11,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package metadata provides interfaces for handlers that render metadata
-// information for each command.
+// Package metadata defines interfaces for handlers that render metadata
+// information for each command. The metadata provides information about the
+// original data with formatted output in JSON, tree, or text.
 package metadata
 
 import (

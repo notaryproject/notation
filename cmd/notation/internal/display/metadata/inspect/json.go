@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package json
+package inspect
 
 import (
 	"crypto/sha256"
@@ -23,7 +23,7 @@ import (
 
 	coresignature "github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
-	"github.com/notaryproject/notation/cmd/notation/internal/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/tspclient-go"
 
@@ -61,17 +61,19 @@ type timestamp struct {
 	Error        string         `json:"error,omitempty"`
 }
 
-// InspectHandler is the handler for inspecting metadata information and
-// rendering it in JSON format.
-type InspectHandler struct {
+// JSONHandler is the handler for inspecting metadata information and
+// rendering it in JSON format. It implements the metadata.InspectHandler
+// interface.
+type JSONHandler struct {
 	printer *output.Printer
 
 	output inspectOutput
 }
 
-// NewInspectHandler creates a new InspectHandler.
-func NewInspectHandler(printer *output.Printer) *InspectHandler {
-	return &InspectHandler{
+// NewJSONHandler creates a new JsonHandler to inspect signatures and print in
+// JSON format.
+func NewJSONHandler(printer *output.Printer) *JSONHandler {
+	return &JSONHandler{
 		printer: printer,
 		output: inspectOutput{
 			Signatures: []*signature{},
@@ -83,12 +85,12 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 // handler.
 //
 // The reference is no-op for this handler.
-func (h *InspectHandler) OnReferenceResolved(_, mediaType string) {
+func (h *JSONHandler) OnReferenceResolved(_, mediaType string) {
 	h.output.MediaType = mediaType
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+func (h *JSONHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
 	sig, err := newSignature(manifestDesc.Digest.String(), envelope)
 	if err != nil {
 		return err
@@ -97,7 +99,7 @@ func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envel
 	return nil
 }
 
-func (h *InspectHandler) Render() error {
+func (h *JSONHandler) Render() error {
 	return output.PrintPrettyJSON(h.printer, h.output)
 }
 

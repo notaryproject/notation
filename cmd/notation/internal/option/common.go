@@ -29,7 +29,7 @@ limitations under the License.
 package option
 
 import (
-	"github.com/notaryproject/notation/cmd/notation/internal/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/spf13/cobra"
 )
 

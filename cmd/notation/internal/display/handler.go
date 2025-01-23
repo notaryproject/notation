@@ -13,25 +13,29 @@
 
 // Package display provides the display handlers to render information for
 // commands.
+//
+// - It includes the metadata, content and status packages for handling
+// different types of information.
+// - It includes the output package for writing information to the output.
 package display
 
 import (
 	"fmt"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/json"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/tree"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/inspect"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/cmd/notation/internal/output"
 )
 
-// NewInpsectHandler creates a new InspectHandler based on the output format.
-func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
+// NewMetadataInpsectHandler creates a new InspectHandler based on the output
+// format.
+func NewMetadataInpsectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
 	switch option.FormatType(format.CurrentFormat) {
 	case option.FormatTypeJSON:
-		return json.NewInspectHandler(printer), nil
+		return inspect.NewJSONHandler(printer), nil
 	case option.FormatTypeText:
-		return tree.NewInspectHandler(printer), nil
+		return inspect.NewTreeHandler(printer), nil
 	}
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentFormat)
 }

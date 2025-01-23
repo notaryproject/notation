@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tree
+package inspect
 
 import (
 	"crypto/sha256"
@@ -24,19 +24,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/signature"
+	coresignature "github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
 	"github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation/cmd/notation/internal/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/tree"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-// InspectHandler is a handler for inspecting metadata information and rendering
-// it in a tree format.
-type InspectHandler struct {
+// TreeHandler is a handler for inspecting metadata information and rendering
+// it in a tree format. It implements the metadata.InspectHandler interface.
+type TreeHandler struct {
 	printer *output.Printer
 
 	// rootReferenceNode is the root node with the artifact reference as the
@@ -47,9 +47,10 @@ type InspectHandler struct {
 	notationSignaturesNode *tree.Node
 }
 
-// NewInspectHandler creates a new InspectHandler.
-func NewInspectHandler(printer *output.Printer) *InspectHandler {
-	return &InspectHandler{
+// NewTreeHandler creates a TreeHandler to inspect signatures and print in tree
+// format.
+func NewTreeHandler(printer *output.Printer) *TreeHandler {
+	return &TreeHandler{
 		printer: printer,
 	}
 }
@@ -58,18 +59,18 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 // handler.
 //
 // mediaType is a no-op for this handler.
-func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
+func (h *TreeHandler) OnReferenceResolved(reference, _ string) {
 	h.rootReferenceNode = tree.New(reference)
 	h.notationSignaturesNode = h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error {
+func (h *TreeHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
 	return addSignature(h.notationSignaturesNode, manifestDesc.Digest.String(), envelope)
 }
 
 // Render renders the metadata information when an operation is complete.
-func (h *InspectHandler) Render() error {
+func (h *TreeHandler) Render() error {
 	if len(h.notationSignaturesNode.Children) == 0 {
 		return h.printer.Printf("%s has no associated signature\n", h.rootReferenceNode.Value)
 	}
@@ -77,7 +78,7 @@ func (h *InspectHandler) Render() error {
 	return h.rootReferenceNode.Print(h.printer)
 }
 
-func addSignature(node *tree.Node, digest string, sigEnvelope signature.Envelope) error {
+func addSignature(node *tree.Node, digest string, sigEnvelope coresignature.Envelope) error {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return err
@@ -103,7 +104,7 @@ func addSignature(node *tree.Node, digest string, sigEnvelope signature.Envelope
 	return nil
 }
 
-func addSignedAttributes(node *tree.Node, envelopeContent *signature.EnvelopeContent) {
+func addSignedAttributes(node *tree.Node, envelopeContent *coresignature.EnvelopeContent) {
 	signedAttributesNode := node.Add("signed attributes")
 	signedAttributesNode.AddPair("content type", string(envelopeContent.Payload.ContentType))
 	signedAttributesNode.AddPair("signing scheme", string(envelopeContent.SignerInfo.SignedAttributes.SigningScheme))
@@ -128,7 +129,7 @@ func addUserDefinedAttributes(node *tree.Node, annotations map[string]string) {
 	}
 }
 
-func addUnsignedAttributes(node *tree.Node, envelopeContent *signature.EnvelopeContent) {
+func addUnsignedAttributes(node *tree.Node, envelopeContent *coresignature.EnvelopeContent) {
 	unsignedAttributesNode := node.Add("unsigned attributes")
 	if signingAgent := envelopeContent.SignerInfo.UnsignedAttributes.SigningAgent; signingAgent != "" {
 		unsignedAttributesNode.AddPair("signing agent", signingAgent)
@@ -145,7 +146,7 @@ func addSignedArtifact(node *tree.Node, signedArtifactDesc ocispec.Descriptor) {
 	artifactNode.AddPair("size", strconv.FormatInt(signedArtifactDesc.Size, 10))
 }
 
-func addTimestamp(node *tree.Node, signerInfo signature.SignerInfo) {
+func addTimestamp(node *tree.Node, signerInfo coresignature.SignerInfo) {
 	timestampNode := node.Add("timestamp signature")
 	signedToken, err := tspclient.ParseSignedToken(signerInfo.UnsignedAttributes.TimestampSignature)
 	if err != nil {

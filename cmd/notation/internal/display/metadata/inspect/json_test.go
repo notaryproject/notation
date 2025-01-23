@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package json
+package inspect
 
 import (
 	"errors"
@@ -97,7 +97,7 @@ func TestParseTimestamp(t *testing.T) {
 	})
 
 	t.Run("timestamp validation error", func(t *testing.T) {
-		tsaToken, err := os.ReadFile("../testdata/TimeStampTokenWithInvalidSignature.p7s")
+		tsaToken, err := os.ReadFile("./testdata/TimeStampTokenWithInvalidSignature.p7s")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -117,7 +117,7 @@ func TestParseTimestamp(t *testing.T) {
 }
 
 func TestInspectSignature_NewSignatureError(t *testing.T) {
-	h := NewInspectHandler(nil)
+	h := NewJSONHandler(nil)
 	// ...existing code to ensure h.output.MediaType is set...
 	h.OnReferenceResolved("test-ref", "test-media-type")
 	manifestDesc := ocispec.Descriptor{Digest: "fake-digest"}

@@ -96,7 +96,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
-	displayHandler, err := display.NewInpsectHandler(opts.Printer, opts.Format)
+	displayHandler, err := display.NewMetadataInpsectHandler(opts.Printer, opts.Format)
 	if err != nil {
 		return err
 	}

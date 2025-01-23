@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package tree
+package inspect
 
 import (
 	"fmt"
@@ -19,14 +19,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/notaryproject/notation-core-go/signature"
+	coresignature "github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/internal/tree"
 )
 
 func TestAddSignedAttributes(t *testing.T) {
 	t.Run("empty envelopeContent", func(t *testing.T) {
 		node := tree.New("root")
-		ec := &signature.EnvelopeContent{}
+		ec := &coresignature.EnvelopeContent{}
 		addSignedAttributes(node, ec)
 		// No error or panic expected; minimal check or just ensure it doesn't crash.
 	})
@@ -34,14 +34,14 @@ func TestAddSignedAttributes(t *testing.T) {
 	t.Run("with expiry and extented node", func(t *testing.T) {
 		node := tree.New("root")
 		expiryTime := time.Now().Add(time.Hour)
-		ec := &signature.EnvelopeContent{
-			Payload: signature.Payload{
+		ec := &coresignature.EnvelopeContent{
+			Payload: coresignature.Payload{
 				ContentType: "application/vnd.cncf.notary.payload.v1+json",
 			},
-			SignerInfo: signature.SignerInfo{
-				SignedAttributes: signature.SignedAttributes{
+			SignerInfo: coresignature.SignerInfo{
+				SignedAttributes: coresignature.SignedAttributes{
 					Expiry: expiryTime,
-					ExtendedAttributes: []signature.Attribute{
+					ExtendedAttributes: []coresignature.Attribute{
 						{
 							Key:   "key",
 							Value: "value",
@@ -105,11 +105,11 @@ func TestAddUserDefinedAttributes(t *testing.T) {
 	})
 }
 
-func TestParseTimestamp(t *testing.T) {
+func TestAddTimestamp(t *testing.T) {
 	t.Run("invalid timestamp signature", func(t *testing.T) {
 		node := tree.New("root")
-		signerInfo := signature.SignerInfo{
-			UnsignedAttributes: signature.UnsignedAttributes{
+		signerInfo := coresignature.SignerInfo{
+			UnsignedAttributes: coresignature.UnsignedAttributes{
 				TimestampSignature: []byte("invalid"),
 			},
 		}
@@ -132,12 +132,12 @@ func TestParseTimestamp(t *testing.T) {
 	})
 
 	t.Run("timestamp validation error", func(t *testing.T) {
-		tsaToken, err := os.ReadFile("../testdata/TimeStampTokenWithInvalidSignature.p7s")
+		tsaToken, err := os.ReadFile("./testdata/TimeStampTokenWithInvalidSignature.p7s")
 		if err != nil {
 			t.Fatal(err)
 		}
-		signerInfo := signature.SignerInfo{
-			UnsignedAttributes: signature.UnsignedAttributes{
+		signerInfo := coresignature.SignerInfo{
+			UnsignedAttributes: coresignature.UnsignedAttributes{
 				TimestampSignature: tsaToken,
 			},
 		}
