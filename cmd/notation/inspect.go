@@ -68,9 +68,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			if err := opts.Format.Parse(cmd); err != nil {
 				return err
 			}
-			if err := opts.Common.Parse(cmd); err != nil {
-				return err
-			}
+			opts.Common.Parse(cmd)
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -90,8 +88,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 
 	// set output format
-	opts.SetTypes(option.FormatTypeText, option.FormatTypeJSON)
-	opts.Format.ApplyFlags(command.Flags())
+	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeText, option.FormatTypeJSON)
 	return command
 }
 

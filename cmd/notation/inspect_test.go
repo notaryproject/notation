@@ -18,15 +18,15 @@ import (
 	"testing"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"github.com/spf13/pflag"
 )
 
 func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	opts := &inspectOpts{}
 	command := inspectCommand(opts)
-	format := option.Format{
-		CurrentFormat: "text",
-	}
-	format.SetTypes(option.FormatTypeText, option.FormatTypeJSON)
+	format := option.Format{}
+	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeText, option.FormatTypeJSON)
+	format.CurrentFormat = string(option.FormatTypeText)
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
@@ -56,11 +56,10 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 	t.Setenv(defaultUsernameEnv, "user")
 	t.Setenv(defaultPasswordEnv, "password")
-	opts := &inspectOpts{}
 
 	format := option.Format{}
-	format.SetTypes(option.FormatTypeText, option.FormatTypeJSON)
-	format.CurrentFormat = "json"
+	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeText, option.FormatTypeJSON)
+	format.CurrentFormat = string(option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
@@ -70,6 +69,8 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 		Format:        format,
 		maxSignatures: 100,
 	}
+
+	opts := &inspectOpts{}
 	command := inspectCommand(opts)
 	if err := command.ParseFlags([]string{
 		expected.reference,

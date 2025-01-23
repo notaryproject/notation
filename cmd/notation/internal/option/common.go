@@ -39,7 +39,6 @@ type Common struct {
 }
 
 // Parse gets target options from user input.
-func (opts *Common) Parse(cmd *cobra.Command) error {
+func (opts *Common) Parse(cmd *cobra.Command) {
 	opts.Printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
-	return nil
 }

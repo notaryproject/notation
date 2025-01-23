@@ -54,14 +54,14 @@ type Format struct {
 	allowedTypes  []FormatType
 }
 
-// SetTypes sets the default format type and allowed format types.
-func (f *Format) SetTypes(defaultType FormatType, otherTypes ...FormatType) {
+// ApplyFlags sets up the flags for the format option.
+//
+// The defaultType is the default format type.
+// The otherTypes are additional format types that are allowed.
+func (f *Format) ApplyFlags(fs *pflag.FlagSet, defaultType FormatType, otherTypes ...FormatType) {
 	f.CurrentFormat = string(defaultType)
 	f.allowedTypes = append(otherTypes, defaultType)
-}
 
-// ApplyFlags implements FlagProvider.ApplyFlag.
-func (f *Format) ApplyFlags(fs *pflag.FlagSet) {
 	var quotedAllowedTypes []string
 	for _, t := range f.allowedTypes {
 		quotedAllowedTypes = append(quotedAllowedTypes, fmt.Sprintf("'%s'", t))

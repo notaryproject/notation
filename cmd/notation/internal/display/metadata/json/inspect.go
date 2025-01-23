@@ -124,7 +124,7 @@ func newSignature(digest string, sigEnvelope coresignature.Envelope) (*signature
 		UserDefinedAttributes: signedArtifactDesc.Annotations,
 		UnsignedAttributes:    getUnsignedAttributes(envelopeContent),
 		Certificates:          getCertificates(envelopeContent.SignerInfo.CertificateChain),
-		SignedArtifact:        signedArtifactDesc,
+		SignedArtifact:        *signedArtifactDesc,
 	}
 
 	// clearing annotations from the SignedArtifact field since they're already
