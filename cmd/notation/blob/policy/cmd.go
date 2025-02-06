@@ -11,25 +11,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package validator
+// Package policy provides the import and show commands for blob trust policy.
+package policy
 
 import (
-	"errors"
-	"io/fs"
-	"os"
-
-	. "github.com/onsi/gomega"
+	"github.com/spf13/cobra"
 )
 
-// CheckFileExist checks file exists.
-func CheckFileExist(f string) {
-	_, err := os.Stat(f)
-	Expect(err).ShouldNot(HaveOccurred())
-}
+// Cmd returns the commands for policy including import and show.
+func Cmd() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "policy [command]",
+		Short: "Manage trust policy configuration for signed blobs",
+		Long:  "Manage trust policy configuration for arbitrary blob signature verification.",
+	}
 
-// CheckFileNotExist checks file not exist.
-func CheckFileNotExist(f string) {
-	_, err := os.Stat(f)
-	Expect(err).Should(HaveOccurred())
-	Expect(errors.Is(err, fs.ErrNotExist)).To(BeTrue())
+	command.AddCommand(
+		importCmd(),
+		showCmd(),
+	)
+
+	return command
 }

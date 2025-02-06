@@ -24,8 +24,13 @@ import (
 
 const (
 	NotationDirName     = "notation"
+<<<<<<< HEAD
 	BlobTrustPolicyName = "trustpolicy.blob.json"
 	TrustPolicyName     = "trustpolicy.json"
+=======
+	TrustPolicyName     = "trustpolicy.json"
+	BlobTrustPolicyName = "trustpolicy.blob.json"
+>>>>>>> ac77b58e5bc1e63d9adc432ba714ec250f8712a1
 	TrustStoreDirName   = "truststore"
 	TrustStoreTypeCA    = "ca"
 	PluginDirName       = "plugins"

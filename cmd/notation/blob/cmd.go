@@ -14,7 +14,10 @@
 // Package blob provides the implementation of the `notation blob` command
 package blob
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/notaryproject/notation/cmd/notation/blob/policy"
+	"github.com/spf13/cobra"
+)
 
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
@@ -25,6 +28,7 @@ func Cmd() *cobra.Command {
 	command.AddCommand(
 		signCommand(nil),
 		verifyCommand(nil),
+		policy.Cmd(),
 	)
 	return command
 }
