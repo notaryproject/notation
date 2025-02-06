@@ -50,8 +50,8 @@ var (
 
 // Format contains input and parsed options for formatted output flags.
 type Format struct {
-	CurrentFormat string
-	allowedTypes  []FormatType
+	CurrentType  string
+	allowedTypes []FormatType
 }
 
 // ApplyFlags sets up the flags for the format option.
@@ -59,7 +59,7 @@ type Format struct {
 // The defaultType is the default format type.
 // The otherTypes are additional format types that are allowed.
 func (f *Format) ApplyFlags(fs *pflag.FlagSet, defaultType FormatType, otherTypes ...FormatType) {
-	f.CurrentFormat = string(defaultType)
+	f.CurrentType = string(defaultType)
 	f.allowedTypes = append(otherTypes, defaultType)
 
 	var quotedAllowedTypes []string
@@ -68,14 +68,13 @@ func (f *Format) ApplyFlags(fs *pflag.FlagSet, defaultType FormatType, otherType
 	}
 	usage := fmt.Sprintf("output format, options: %s", strings.Join(quotedAllowedTypes, ", "))
 	// apply flags
-	fs.StringVarP(&f.CurrentFormat, "output", "o", f.CurrentFormat, usage)
+	fs.StringVarP(&f.CurrentType, "output", "o", f.CurrentType, usage)
 }
 
 // Parse parses the input format flag.
 func (opts *Format) Parse(_ *cobra.Command) error {
-	if ok := slices.Contains(opts.allowedTypes, FormatType(opts.CurrentFormat)); ok {
-		// type validation passed
-		return nil
+	if ok := slices.Contains(opts.allowedTypes, FormatType(opts.CurrentType)); !ok {
+		return fmt.Errorf("invalid format type: %q", opts.CurrentType)
 	}
-	return fmt.Errorf("invalid format type: %q", opts.CurrentFormat)
+	return nil
 }

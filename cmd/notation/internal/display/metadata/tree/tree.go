@@ -25,35 +25,35 @@ const (
 	subTreePrefixLast  = "    "
 )
 
-// represents a Node in a tree
-type Node struct {
+// represents a node in a tree
+type node struct {
 	Value    string
-	Children []*Node
+	Children []*node
 }
 
-// creates a new Node with the given value
-func New(value string) *Node {
-	return &Node{Value: value}
+// creates a new node with the given value
+func new(value string) *node {
+	return &node{Value: value}
 }
 
 // adds a new child node with the given value
-func (parent *Node) Add(value string) *Node {
-	node := New(value)
+func (parent *node) Add(value string) *node {
+	node := new(value)
 	parent.Children = append(parent.Children, node)
 	return node
 }
 
 // adds a new child node with the formatted pair as the value
-func (parent *Node) AddPair(key string, value string) *Node {
+func (parent *node) AddPair(key string, value string) *node {
 	return parent.Add(key + ": " + value)
 }
 
 // prints the tree represented by the root node
-func (root *Node) Print(w io.Writer) error {
+func (root *node) Print(w io.Writer) error {
 	return print(w, "", "", "", root)
 }
 
-func print(w io.Writer, prefix string, itemMarker string, nextPrefix string, n *Node) error {
+func print(w io.Writer, prefix string, itemMarker string, nextPrefix string, n *node) error {
 	if _, err := fmt.Fprintln(w, prefix+itemMarker+n.Value); err != nil {
 		return err
 	}

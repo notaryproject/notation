@@ -26,6 +26,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package option abstracts the options and flags for commands to be used in
+// methods, such as ApplyFlags and Parse.
 package option
 
 import (

@@ -26,7 +26,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	command := inspectCommand(opts)
 	format := option.Format{}
 	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeText, option.FormatTypeJSON)
-	format.CurrentFormat = string(option.FormatTypeText)
+	format.CurrentType = string(option.FormatTypeText)
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
@@ -59,7 +59,7 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 
 	format := option.Format{}
 	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeText, option.FormatTypeJSON)
-	format.CurrentFormat = string(option.FormatTypeJSON)
+	format.CurrentType = string(option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{

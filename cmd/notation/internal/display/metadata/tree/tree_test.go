@@ -20,16 +20,16 @@ import (
 )
 
 func TestNodeCreation(t *testing.T) {
-	node := New("root")
-	expected := Node{Value: "root"}
+	treeNode := new("root")
+	expected := node{Value: "root"}
 
-	if !reflect.DeepEqual(*node, expected) {
-		t.Fatalf("expected %+v, got %+v", expected, *node)
+	if !reflect.DeepEqual(*treeNode, expected) {
+		t.Fatalf("expected %+v, got %+v", expected, *treeNode)
 	}
 }
 
 func TestNodeAdd(t *testing.T) {
-	root := New("root")
+	root := new("root")
 	root.Add("child")
 
 	if !root.ContainsChild("child") {
@@ -39,7 +39,7 @@ func TestNodeAdd(t *testing.T) {
 }
 
 func TestNodeAddPair(t *testing.T) {
-	root := New("root")
+	root := new("root")
 	root.AddPair("key", "value")
 
 	if !root.ContainsChild("key: value") {
@@ -49,7 +49,7 @@ func TestNodeAddPair(t *testing.T) {
 }
 
 func ExampleRootPrint() {
-	root := New("root")
+	root := new("root")
 	root.Print(os.Stdout)
 
 	// Output:
@@ -57,7 +57,7 @@ func ExampleRootPrint() {
 }
 
 func ExampleSingleLayerPrint() {
-	root := New("root")
+	root := new("root")
 	root.Add("child1")
 	root.Add("child2")
 	root.Print(os.Stdout)
@@ -69,7 +69,7 @@ func ExampleSingleLayerPrint() {
 }
 
 func ExampleMultiLayerPrint() {
-	root := New("root")
+	root := new("root")
 	child1 := root.Add("child1")
 	child1.AddPair("key", "value")
 	child2 := root.Add("child2")
@@ -86,7 +86,7 @@ func ExampleMultiLayerPrint() {
 	//     └── child2.2
 }
 
-func (n *Node) ContainsChild(value string) bool {
+func (n *node) ContainsChild(value string) bool {
 	for _, child := range n.Children {
 		if child.Value == value {
 			return true

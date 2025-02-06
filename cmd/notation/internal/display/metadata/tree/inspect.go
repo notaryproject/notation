@@ -40,10 +40,10 @@ type InspectHandler struct {
 
 	// rootReferenceNode is the root node with the artifact reference as the
 	// value.
-	rootReferenceNode *Node
+	rootReferenceNode *node
 	// notationSignaturesNode is the node for all signatures associated with the
 	// artifact.
-	notationSignaturesNode *Node
+	notationSignaturesNode *node
 }
 
 // NewInspectHandler creates a TreeHandler to inspect signatures and print in tree
@@ -59,7 +59,7 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 //
 // mediaType is a no-op for this handler.
 func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
-	h.rootReferenceNode = New(reference)
+	h.rootReferenceNode = new(reference)
 	h.notationSignaturesNode = h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
 }
 
@@ -77,7 +77,7 @@ func (h *InspectHandler) Render() error {
 	return h.rootReferenceNode.Print(h.printer)
 }
 
-func addSignature(node *Node, digest string, sigEnvelope coresignature.Envelope) error {
+func addSignature(node *node, digest string, sigEnvelope coresignature.Envelope) error {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func addSignature(node *Node, digest string, sigEnvelope coresignature.Envelope)
 	return nil
 }
 
-func addSignedAttributes(node *Node, envelopeContent *coresignature.EnvelopeContent) {
+func addSignedAttributes(node *node, envelopeContent *coresignature.EnvelopeContent) {
 	signedAttributesNode := node.Add("signed attributes")
 	signedAttributesNode.AddPair("content type", string(envelopeContent.Payload.ContentType))
 	signedAttributesNode.AddPair("signing scheme", string(envelopeContent.SignerInfo.SignedAttributes.SigningScheme))
@@ -116,7 +116,7 @@ func addSignedAttributes(node *Node, envelopeContent *coresignature.EnvelopeCont
 	}
 }
 
-func addUserDefinedAttributes(node *Node, annotations map[string]string) {
+func addUserDefinedAttributes(node *node, annotations map[string]string) {
 	userDefinedAttributesNode := node.Add("user defined attributes")
 	if len(annotations) == 0 {
 		userDefinedAttributesNode.Add("(empty)")
@@ -128,7 +128,7 @@ func addUserDefinedAttributes(node *Node, annotations map[string]string) {
 	}
 }
 
-func addUnsignedAttributes(node *Node, envelopeContent *coresignature.EnvelopeContent) {
+func addUnsignedAttributes(node *node, envelopeContent *coresignature.EnvelopeContent) {
 	unsignedAttributesNode := node.Add("unsigned attributes")
 	if signingAgent := envelopeContent.SignerInfo.UnsignedAttributes.SigningAgent; signingAgent != "" {
 		unsignedAttributesNode.AddPair("signing agent", signingAgent)
@@ -138,14 +138,14 @@ func addUnsignedAttributes(node *Node, envelopeContent *coresignature.EnvelopeCo
 	}
 }
 
-func addSignedArtifact(node *Node, signedArtifactDesc ocispec.Descriptor) {
+func addSignedArtifact(node *node, signedArtifactDesc ocispec.Descriptor) {
 	artifactNode := node.Add("signed artifact")
 	artifactNode.AddPair("media type", signedArtifactDesc.MediaType)
 	artifactNode.AddPair("digest", signedArtifactDesc.Digest.String())
 	artifactNode.AddPair("size", strconv.FormatInt(signedArtifactDesc.Size, 10))
 }
 
-func addTimestamp(node *Node, signerInfo coresignature.SignerInfo) {
+func addTimestamp(node *node, signerInfo coresignature.SignerInfo) {
 	timestampNode := node.Add("timestamp signature")
 	signedToken, err := tspclient.ParseSignedToken(signerInfo.UnsignedAttributes.TimestampSignature)
 	if err != nil {
@@ -166,7 +166,7 @@ func addTimestamp(node *Node, signerInfo coresignature.SignerInfo) {
 	addCertificates(timestampNode, signedToken.Certificates)
 }
 
-func addCertificates(node *Node, certChain []*x509.Certificate) {
+func addCertificates(node *node, certChain []*x509.Certificate) {
 	certListNode := node.Add("certificates")
 	for _, cert := range certChain {
 		hash := sha256.Sum256(cert.Raw)
