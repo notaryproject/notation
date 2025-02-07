@@ -59,7 +59,7 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 //
 // mediaType is a no-op for this handler.
 func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
-	h.rootReferenceNode = new(reference)
+	h.rootReferenceNode = newNode(reference)
 	h.notationSignaturesNode = h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
 }
 

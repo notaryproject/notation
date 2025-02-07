@@ -20,7 +20,7 @@ import (
 )
 
 func TestNodeCreation(t *testing.T) {
-	treeNode := new("root")
+	treeNode := newNode("root")
 	expected := node{Value: "root"}
 
 	if !reflect.DeepEqual(*treeNode, expected) {
@@ -29,7 +29,7 @@ func TestNodeCreation(t *testing.T) {
 }
 
 func TestNodeAdd(t *testing.T) {
-	root := new("root")
+	root := newNode("root")
 	root.Add("child")
 
 	if !root.ContainsChild("child") {
@@ -39,7 +39,7 @@ func TestNodeAdd(t *testing.T) {
 }
 
 func TestNodeAddPair(t *testing.T) {
-	root := new("root")
+	root := newNode("root")
 	root.AddPair("key", "value")
 
 	if !root.ContainsChild("key: value") {
@@ -49,7 +49,7 @@ func TestNodeAddPair(t *testing.T) {
 }
 
 func ExampleRootPrint() {
-	root := new("root")
+	root := newNode("root")
 	root.Print(os.Stdout)
 
 	// Output:
@@ -57,7 +57,7 @@ func ExampleRootPrint() {
 }
 
 func ExampleSingleLayerPrint() {
-	root := new("root")
+	root := newNode("root")
 	root.Add("child1")
 	root.Add("child2")
 	root.Print(os.Stdout)
@@ -69,7 +69,7 @@ func ExampleSingleLayerPrint() {
 }
 
 func ExampleMultiLayerPrint() {
-	root := new("root")
+	root := newNode("root")
 	child1 := root.Add("child1")
 	child1.AddPair("key", "value")
 	child2 := root.Add("child2")

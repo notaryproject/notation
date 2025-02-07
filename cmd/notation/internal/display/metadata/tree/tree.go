@@ -31,14 +31,14 @@ type node struct {
 	Children []*node
 }
 
-// creates a new node with the given value
-func new(value string) *node {
+// creates a newNode node with the given value
+func newNode(value string) *node {
 	return &node{Value: value}
 }
 
 // adds a new child node with the given value
 func (parent *node) Add(value string) *node {
-	node := new(value)
+	node := newNode(value)
 	parent.Children = append(parent.Children, node)
 	return node
 }
