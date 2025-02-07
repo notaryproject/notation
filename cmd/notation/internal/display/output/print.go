@@ -85,6 +85,14 @@ func (p *Printer) Printf(format string, a ...any) error {
 	return nil
 }
 
+func (p *Printer) ErrorPrintf(format string, a ...any) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	_, err := fmt.Fprintf(p.err, format, a...)
+	return err
+}
+
 // PrintPrettyJSON prints object to out in JSON format.
 func PrintPrettyJSON(out io.Writer, object any) error {
 	encoder := json.NewEncoder(out)
