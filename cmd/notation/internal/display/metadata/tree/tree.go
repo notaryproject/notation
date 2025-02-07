@@ -15,6 +15,7 @@ package tree
 
 import (
 	"fmt"
+	"io"
 )
 
 const (
@@ -24,36 +25,38 @@ const (
 	subTreePrefixLast  = "    "
 )
 
-// represents a Node in a tree
-type Node struct {
+// represents a node in a tree
+type node struct {
 	Value    string
-	Children []*Node
+	Children []*node
 }
 
-// creates a new Node with the given value
-func New(value string) *Node {
-	return &Node{Value: value}
+// creates a newNode node with the given value
+func newNode(value string) *node {
+	return &node{Value: value}
 }
 
 // adds a new child node with the given value
-func (parent *Node) Add(value string) *Node {
-	node := New(value)
+func (parent *node) Add(value string) *node {
+	node := newNode(value)
 	parent.Children = append(parent.Children, node)
 	return node
 }
 
 // adds a new child node with the formatted pair as the value
-func (parent *Node) AddPair(key string, value string) *Node {
+func (parent *node) AddPair(key string, value string) *node {
 	return parent.Add(key + ": " + value)
 }
 
 // prints the tree represented by the root node
-func (root *Node) Print() {
-	print("", "", "", root)
+func (root *node) Print(w io.Writer) error {
+	return print(w, "", "", "", root)
 }
 
-func print(prefix string, itemMarker string, nextPrefix string, n *Node) {
-	fmt.Println(prefix + itemMarker + n.Value)
+func print(w io.Writer, prefix string, itemMarker string, nextPrefix string, n *node) error {
+	if _, err := fmt.Fprintln(w, prefix+itemMarker+n.Value); err != nil {
+		return err
+	}
 
 	nextItemPrefix := treeItemPrefix
 	nextSubTreePrefix := subTreePrefix
@@ -64,7 +67,11 @@ func print(prefix string, itemMarker string, nextPrefix string, n *Node) {
 				nextItemPrefix = treeItemPrefixLast
 				nextSubTreePrefix = subTreePrefixLast
 			}
-			print(nextPrefix, nextItemPrefix, nextPrefix+nextSubTreePrefix, child)
+			if err := print(w, nextPrefix, nextItemPrefix, nextPrefix+nextSubTreePrefix, child); err != nil {
+				return err
+			}
 		}
 	}
+
+	return nil
 }
