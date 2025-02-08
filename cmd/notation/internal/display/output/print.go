@@ -85,8 +85,8 @@ func (p *Printer) Printf(format string, a ...any) error {
 	return nil
 }
 
-// ErrorPrintf prints objects to error output concurrent-safely.
-func (p *Printer) ErrorPrintf(format string, a ...any) error {
+// PrintErrorf prints objects to error output concurrent-safely.
+func (p *Printer) PrintErrorf(format string, a ...any) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 

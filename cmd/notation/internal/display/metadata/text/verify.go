@@ -42,7 +42,7 @@ func NewVerifyHandler(printer *output.Printer) *VerifyHandler {
 
 // OnResolvingTagReference outputs the tag reference warning.
 func (h *VerifyHandler) OnResolvingTagReference(reference string) {
-	h.printer.ErrorPrintf("Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
+	h.printer.PrintErrorf("Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
 }
 
 // OnVerifySucceeded sets the successful verification result for the handler.
@@ -61,7 +61,7 @@ func (h *VerifyHandler) Render() error {
 		if result.Error != nil {
 			// at this point, the verification action has to be logged and
 			// it's failed
-			h.printer.ErrorPrintf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
+			h.printer.PrintErrorf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
 		}
 	}
 	if reflect.DeepEqual(h.outcome.VerificationLevel, trustpolicy.LevelSkip) {
