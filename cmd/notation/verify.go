@@ -153,7 +153,6 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-
 	intendedRef := resolveArtifactDigestReference(resolvedRef, opts.trustPolicyScope)
 	verifyOpts := notation.VerifyOptions{
 		ArtifactReference:    intendedRef,

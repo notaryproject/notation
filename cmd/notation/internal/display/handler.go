@@ -42,6 +42,8 @@ func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
 }
 
+// NewVerifyHandler creates a new metadata VerifyHandler for printing
+// veriifcation result and warnings.
 func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 	return text.NewVerifyHandler(printer)
 }

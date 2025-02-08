@@ -71,7 +71,7 @@ func (p *Printer) Println(a ...any) error {
 	return nil
 }
 
-// Printf prints objects concurrent-safely with newline.
+// Printf prints objects concurrent-safely.
 func (p *Printer) Printf(format string, a ...any) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -85,6 +85,7 @@ func (p *Printer) Printf(format string, a ...any) error {
 	return nil
 }
 
+// ErrorPrintf prints objects to error output concurrent-safely.
 func (p *Printer) ErrorPrintf(format string, a ...any) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
