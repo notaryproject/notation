@@ -39,11 +39,14 @@ type InspectHandler interface {
 	InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error
 }
 
-// VerifyHandler is a handler for output verification results.
+// VerifyHandler is a handler for rendering metadata information of
+// verification outcome.
+//
+// It only supports text format for now.
 type VerifyHandler interface {
 	Renderer
 
-	// OnResolvingTagReference outputs the tag reference wanring.
+	// OnResolvingTagReference outputs the tag reference warning.
 	OnResolvingTagReference(reference string)
 
 	// OnVerifySucceeded sets the successful verification result for the handler.

@@ -11,6 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package text provides the text output in human-readable format for metadata
+// information.
 package text
 
 import (
