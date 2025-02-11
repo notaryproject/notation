@@ -32,6 +32,7 @@ type VerifyHandler struct {
 
 	outcome         *notation.VerificationOutcome
 	digestReference string
+	hasWarning      bool
 }
 
 // NewVerifyHandler creates a VerifyHandler to render verification results in
@@ -45,6 +46,7 @@ func NewVerifyHandler(printer *output.Printer) *VerifyHandler {
 // OnResolvingTagReference outputs the tag reference warning.
 func (h *VerifyHandler) OnResolvingTagReference(reference string) {
 	h.printer.PrintErrorf("Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
+	h.hasWarning = true
 }
 
 // OnVerifySucceeded sets the successful verification result for the handler.
@@ -64,7 +66,12 @@ func (h *VerifyHandler) Render() error {
 			// at this point, the verification action has to be logged and
 			// it's failed
 			h.printer.PrintErrorf("Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
+			h.hasWarning = true
 		}
+	}
+	if h.hasWarning {
+		// print a newline to separate the warning from the final message
+		h.printer.Println()
 	}
 	if reflect.DeepEqual(h.outcome.VerificationLevel, trustpolicy.LevelSkip) {
 		h.printer.Println("Trust policy is configured to skip signature verification for", h.digestReference)
