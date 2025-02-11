@@ -39,6 +39,15 @@ type InspectHandler interface {
 	InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error
 }
 
+// BlobInspectHandler is a handler for rendering metadata information of a blob
+// signature.
+type BlobInspectHandler interface {
+	Renderer
+
+	// OnEvelopeParsed sets the parsed envelope for the handler.
+	OnEnvelopeParsed(nodeName string, envelope signature.Envelope) error
+}
+
 // VerifyHandler is a handler for rendering metadata information of
 // verification outcome.
 //

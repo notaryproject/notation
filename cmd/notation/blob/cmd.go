@@ -29,6 +29,7 @@ func Cmd() *cobra.Command {
 	command.AddCommand(
 		signCommand(nil),
 		policy.Cmd(),
+		inspectCommand(),
 	)
 
 	return command

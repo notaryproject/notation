@@ -42,6 +42,18 @@ func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
 }
 
+// NewBlobInspectHandler creates a new metadata BlobInspectHandler based on the
+// output format.
+func NewBlobInspectHandler(printer *output.Printer, format option.Format) (metadata.BlobInspectHandler, error) {
+	switch option.FormatType(format.CurrentType) {
+	case option.FormatTypeJSON:
+		return json.NewBlobInspectHandler(printer), nil
+	case option.FormatTypeText:
+		return tree.NewBlobInspectHandler(printer), nil
+	}
+	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
+}
+
 // NewVerifyHandler creates a new metadata VerifyHandler for printing
 // veriifcation result and warnings.
 func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {

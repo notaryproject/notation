@@ -65,7 +65,12 @@ func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
 
 // InspectSignature inspects a signature to get it ready to be rendered.
 func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
-	return addSignature(h.notationSignaturesNode, manifestDesc.Digest.String(), envelope)
+	sigNode, err := newSignatureNode(manifestDesc.Digest.String(), envelope)
+	if err != nil {
+		return err
+	}
+	h.notationSignaturesNode.Children = append(h.notationSignaturesNode.Children, sigNode)
+	return nil
 }
 
 // Render renders the metadata information when an operation is complete.
@@ -77,22 +82,22 @@ func (h *InspectHandler) Render() error {
 	return h.rootReferenceNode.Print(h.printer)
 }
 
-func addSignature(node *node, digest string, sigEnvelope coresignature.Envelope) error {
+func newSignatureNode(nodeName string, sigEnvelope coresignature.Envelope) (*node, error) {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	signatureAlgorithm, err := proto.EncodeSigningAlgorithm(envelopeContent.SignerInfo.SignatureAlgorithm)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// create signature node
-	sigNode := node.Add(digest)
+	sigNode := newNode(nodeName)
 	sigNode.AddPair("signature algorithm", string(signatureAlgorithm))
 
 	addSignedAttributes(sigNode, envelopeContent)
@@ -100,7 +105,7 @@ func addSignature(node *node, digest string, sigEnvelope coresignature.Envelope)
 	addUnsignedAttributes(sigNode, envelopeContent)
 	addCertificates(sigNode, envelopeContent.SignerInfo.CertificateChain)
 	addSignedArtifact(sigNode, signedArtifactDesc)
-	return nil
+	return sigNode, nil
 }
 
 func addSignedAttributes(node *node, envelopeContent *coresignature.EnvelopeContent) {
