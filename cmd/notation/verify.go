@@ -14,23 +14,25 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 
+	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
-<<<<<<< HEAD
-=======
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
->>>>>>> 73b15517d834b04e1f61aa60f6566093bc1b58c2
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/ioutil"
+	clirev "github.com/notaryproject/notation/internal/revocation"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )

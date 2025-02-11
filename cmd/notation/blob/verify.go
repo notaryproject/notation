@@ -151,7 +151,8 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 // `application/jose+json` and `application/cose` are supported.
 func parseSignatureMediaType(signaturePath string) (string, error) {
 	signatureFileName := filepath.Base(signaturePath)
-	format := strings.Split(signatureFileName, ".")[1]
+	sigFilenameArr := strings.Split(signatureFileName, ".")
+	format := sigFilenameArr[len(sigFilenameArr)-2]
 	switch format {
 	case "cose":
 		return cose.MediaTypeEnvelope, nil
