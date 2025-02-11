@@ -14,11 +14,8 @@
 package ioutil
 
 import (
-<<<<<<< HEAD
 	"encoding/json"
 	"errors"
-=======
->>>>>>> 73b15517d834b04e1f61aa60f6566093bc1b58c2
 	"fmt"
 	"io"
 	"io/fs"
