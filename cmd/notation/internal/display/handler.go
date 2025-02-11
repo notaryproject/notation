@@ -43,7 +43,13 @@ func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.
 }
 
 // NewVerifyHandler creates a new metadata VerifyHandler for printing
-// veriifcation result and warnings.
+// verification result and warnings.
 func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 	return text.NewVerifyHandler(printer)
+}
+
+// NewBlobVerifyHandler creates a new metadata BlobVerifyHandler for printing
+// blob veriifcation result and warnings.
+func NewBlobVerifyHandler(printer *output.Printer) metadata.BlobVerifyHandler {
+	return text.NewBlobVerifyHandler(printer)
 }

@@ -23,6 +23,8 @@ import (
 	"github.com/notaryproject/notation-core-go/signature/cose"
 	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
@@ -30,6 +32,7 @@ import (
 
 type blobVerifyOpts struct {
 	cmd.LoggingFlagOpts
+	option.Common
 	blobPath            string
 	signaturePath       string
 	pluginConfig        []string
@@ -76,6 +79,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 			if cmd.Flags().Changed("media-type") && opts.blobMediaType == "" {
 				return errors.New("--media-type is set but with empty value")
 			}
+			opts.Common.Parse(cmd)
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -97,6 +101,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
+	displayHandler := display.NewBlobVerifyHandler(cmdOpts.Printer)
 	blobFile, err := os.Open(cmdOpts.blobPath)
 	if err != nil {
 		return err
@@ -143,8 +148,8 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	if err != nil {
 		return err
 	}
-	ioutil.PrintVerificationSuccess(outcomes, cmdOpts.blobPath)
-	return nil
+	displayHandler.OnVerifySucceeded(outcomes, cmdOpts.blobPath)
+	return displayHandler.Render()
 }
 
 // parseSignatureMediaType returns the media type of the signature file.

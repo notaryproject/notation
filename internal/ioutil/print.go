@@ -19,14 +19,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"os"
 	"path/filepath"
-	"reflect"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 )
 
@@ -121,49 +118,4 @@ func PrintVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
 	}
 	return nil
-}
-
-// PrintVerificationSuccess prints out messages when verification succeeds
-func PrintVerificationSuccess(outcomes []*notation.VerificationOutcome, printout string) {
-	// write out on success
-	outcome := outcomes[0]
-	// print out warning for any failed result with logged verification action
-	for _, result := range outcome.VerificationResults {
-		if result.Error != nil {
-			// at this point, the verification action has to be logged and
-			// it's failed
-			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
-		}
-	}
-	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", printout)
-	} else {
-		fmt.Println("Successfully verified signature for", printout)
-		PrintMetadataIfPresent(outcome)
-	}
-}
-
-// PrintMetadataIfPresent prints out user metadata if present
-func PrintMetadataIfPresent(outcome *notation.VerificationOutcome) {
-	// the signature envelope is parsed as part of verification.
-	// since user metadata is only printed on successful verification,
-	// this error can be ignored
-	metadata, _ := outcome.UserMetadata()
-
-	if len(metadata) > 0 {
-		fmt.Println("\nThe artifact was signed with the following user metadata.")
-		PrintMetadataMap(os.Stdout, metadata)
-	}
-}
-
-// PrintMetadataMap prints out metadata given the metatdata map
-func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
-
-	for k, v := range metadata {
-		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
-	}
-
-	return tw.Flush()
 }

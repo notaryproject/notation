@@ -18,38 +18,31 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 )
 
-// VerifyHandler is a handler for rendering output for verify command in
-// human-readable format.
-type VerifyHandler struct {
+// BlobVerifyHandler is a handler for rendering output for blob verify command
+// in human-readable format.
+type BlobVerifyHandler struct {
 	printer *output.Printer
 
-	outcome         *notation.VerificationOutcome
-	digestReference string
-	hasWarning      bool
+	outcome  *notation.VerificationOutcome
+	blobPath string
 }
 
-// NewVerifyHandler creates a new VerifyHandler.
-func NewVerifyHandler(printer *output.Printer) *VerifyHandler {
-	return &VerifyHandler{
+// NewBlobVerifyHandler creates a new BlobVerifyHandler.
+func NewBlobVerifyHandler(printer *output.Printer) *BlobVerifyHandler {
+	return &BlobVerifyHandler{
 		printer: printer,
 	}
-}
-
-// OnResolvingTagReference outputs the tag reference warning.
-func (h *VerifyHandler) OnResolvingTagReference(reference string) {
-	h.printer.PrintErrorf("Warning: Always verify the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
-	h.hasWarning = true
 }
 
 // OnVerifySucceeded sets the successful verification result for the handler.
 //
 // outcomes must not be nil or empty.
-func (h *VerifyHandler) OnVerifySucceeded(outcomes []*notation.VerificationOutcome, digestReference string) {
+func (h *BlobVerifyHandler) OnVerifySucceeded(outcomes []*notation.VerificationOutcome, blobPath string) {
 	h.outcome = outcomes[0]
-	h.digestReference = digestReference
+	h.blobPath = blobPath
 }
 
 // Render prints out the verification results in human-readable format.
-func (h *VerifyHandler) Render() error {
-	return PrintVerificationSuccess(h.printer, h.outcome, h.digestReference, h.hasWarning)
+func (h *BlobVerifyHandler) Render() error {
+	return PrintVerificationSuccess(h.printer, h.outcome, h.blobPath, false)
 }
