@@ -14,8 +14,11 @@
 package ioutil
 
 import (
+<<<<<<< HEAD
 	"encoding/json"
 	"errors"
+=======
+>>>>>>> 73b15517d834b04e1f61aa60f6566093bc1b58c2
 	"fmt"
 	"io"
 	"io/fs"
@@ -53,18 +56,6 @@ func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
 	}
-	return tw.Flush()
-}
-
-// PrintMetadataMap prints out metadata given the metatdata map
-func PrintMetadataMap(w io.Writer, metadata map[string]string) error {
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
-
-	for k, v := range metadata {
-		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
-	}
-
 	return tw.Flush()
 }
 

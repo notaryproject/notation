@@ -121,15 +121,6 @@ var (
 	SetPflagReferrersTag = func(fs *pflag.FlagSet, p *bool, usage string) {
 		fs.BoolVar(p, PflagReferrersTag.Name, true, usage)
 	}
-
-	PflagOutput = &pflag.Flag{
-		Name:      "output",
-		Shorthand: "o",
-	}
-	PflagOutputUsage = fmt.Sprintf("output format, options: '%s', '%s'", OutputJSON, OutputPlaintext)
-	SetPflagOutput   = func(fs *pflag.FlagSet, p *string, usage string) {
-		fs.StringVarP(p, PflagOutput.Name, PflagOutput.Shorthand, OutputPlaintext, usage)
-	}
 )
 
 // KeyValueSlice is a flag with type int
