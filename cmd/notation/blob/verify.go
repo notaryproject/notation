@@ -154,9 +154,15 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 
 // parseSignatureMediaType returns the media type of the signature file.
 // `application/jose+json` and `application/cose` are supported.
+//
+// A valid signature file name has at least 3 parts.
+// For example, myFile.jws.sig.
 func parseSignatureMediaType(signaturePath string) (string, error) {
 	signatureFileName := filepath.Base(signaturePath)
 	sigFilenameArr := strings.Split(signatureFileName, ".")
+	if len(sigFilenameArr) < 3 {
+		return "", fmt.Errorf("invalid signature filename %s", signatureFileName)
+	}
 	format := sigFilenameArr[len(sigFilenameArr)-2]
 	switch format {
 	case "cose":
