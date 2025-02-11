@@ -24,6 +24,7 @@ import (
 
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/json"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/text"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/tree"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
@@ -39,4 +40,10 @@ func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.
 		return tree.NewInspectHandler(printer), nil
 	}
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
+}
+
+// NewVerifyHandler creates a new metadata VerifyHandler for printing
+// veriifcation result and warnings.
+func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
+	return text.NewVerifyHandler(printer)
 }
