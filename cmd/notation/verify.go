@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"reflect"
 
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
@@ -28,9 +27,11 @@ import (
 	"github.com/notaryproject/notation-go/verifier"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 
 	clirev "github.com/notaryproject/notation/internal/revocation"
@@ -39,6 +40,7 @@ import (
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
 	SecureFlagOpts
+	option.Common
 	reference            string
 	pluginConfig         []string
 	userMetadata         []string
@@ -87,6 +89,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
+			opts.Common.Parse(cmd)
 			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -116,6 +119,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
+	displayHandler := display.NewVerifyHandler(opts.Printer)
+
 	// initialize
 	sigVerifier, err := getVerifier(ctx)
 	if err != nil {
@@ -142,8 +147,9 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-	// resolve the given reference and set the digest
-	_, resolvedRef, err := resolveReferenceWithWarning(ctx, opts.inputType, reference, sigRepo, "verify")
+	_, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+		displayHandler.OnResolvingTagReference(ref)
+	})
 	if err != nil {
 		return err
 	}
@@ -159,8 +165,8 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	if err != nil {
 		return err
 	}
-	reportVerificationSuccess(outcomes, resolvedRef)
-	return nil
+	displayHandler.OnVerifySucceeded(outcomes, resolvedRef)
+	return displayHandler.Render()
 }
 
 func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
@@ -193,37 +199,6 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
 	}
 	return nil
-}
-
-func reportVerificationSuccess(outcomes []*notation.VerificationOutcome, printout string) {
-	// write out on success
-	outcome := outcomes[0]
-	// print out warning for any failed result with logged verification action
-	for _, result := range outcome.VerificationResults {
-		if result.Error != nil {
-			// at this point, the verification action has to be logged and
-			// it's failed
-			fmt.Fprintf(os.Stderr, "Warning: %v was set to %q and failed with error: %v\n", result.Type, result.Action, result.Error)
-		}
-	}
-	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		fmt.Println("Trust policy is configured to skip signature verification for", printout)
-	} else {
-		fmt.Println("Successfully verified signature for", printout)
-		printMetadataIfPresent(outcome)
-	}
-}
-
-func printMetadataIfPresent(outcome *notation.VerificationOutcome) {
-	// the signature envelope is parsed as part of verification.
-	// since user metadata is only printed on successful verification,
-	// this error can be ignored
-	metadata, _ := outcome.UserMetadata()
-
-	if len(metadata) > 0 {
-		fmt.Println("\nThe artifact was signed with the following user metadata.")
-		ioutil.PrintMetadataMap(os.Stdout, metadata)
-	}
 }
 
 func getVerifier(ctx context.Context) (notation.Verifier, error) {

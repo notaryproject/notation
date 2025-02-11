@@ -18,6 +18,7 @@ package metadata
 
 import (
 	"github.com/notaryproject/notation-core-go/signature"
+	"github.com/notaryproject/notation-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
@@ -36,4 +37,20 @@ type InspectHandler interface {
 
 	// InspectSignature inspects a signature to get it ready to be rendered.
 	InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error
+}
+
+// VerifyHandler is a handler for rendering metadata information of
+// verification outcome.
+//
+// It only supports text format for now.
+type VerifyHandler interface {
+	Renderer
+
+	// OnResolvingTagReference outputs the tag reference warning.
+	OnResolvingTagReference(reference string)
+
+	// OnVerifySucceeded sets the successful verification result for the handler.
+	//
+	// outcomes must not be nil or empty.
+	OnVerifySucceeded(outcomes []*notation.VerificationOutcome, digestReference string)
 }

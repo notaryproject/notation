@@ -71,7 +71,7 @@ func (p *Printer) Println(a ...any) error {
 	return nil
 }
 
-// Printf prints objects concurrent-safely with newline.
+// Printf prints objects concurrent-safely.
 func (p *Printer) Printf(format string, a ...any) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -83,6 +83,15 @@ func (p *Printer) Printf(format string, a ...any) error {
 		return err
 	}
 	return nil
+}
+
+// PrintErrorf prints objects to error output concurrent-safely.
+func (p *Printer) PrintErrorf(format string, a ...any) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	_, err := fmt.Fprintf(p.err, format, a...)
+	return err
 }
 
 // PrintPrettyJSON prints object to out in JSON format.
