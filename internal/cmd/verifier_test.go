@@ -107,7 +107,7 @@ func TestGetVerifier(t *testing.T) {
 		}
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
-		expectedErrMsg := "blob trust policy has empty version, version must be specified"
+		expectedErrMsg := "blob trust policy document has empty version, version must be specified"
 		_, err := GetVerifier(context.Background(), true)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)

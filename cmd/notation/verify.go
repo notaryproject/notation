@@ -14,25 +14,18 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 
-	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/verifier"
-	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
-	clirev "github.com/notaryproject/notation/internal/revocation"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -199,28 +192,4 @@ func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut
 		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
 	}
 	return nil
-}
-
-func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	// revocation check
-	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
-	if err != nil {
-		return nil, err
-	}
-	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
-	if err != nil {
-		return nil, err
-	}
-
-	// trust policy and trust store
-	policyDocument, err := trustpolicy.LoadOCIDocument()
-	if err != nil {
-		return nil, err
-	}
-	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
-
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
-		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
-		RevocationTimestampingValidator: revocationTimestampingValidator,
-	})
 }
