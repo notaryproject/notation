@@ -232,7 +232,7 @@ var _ = Describe("notation blob verify", func() {
 				Fail(err.Error())
 			}
 			notation.ExpectFailure().Exec("blob", "verify", "--signature", invalidSignaturePath, blobPath).
-				MatchErrKeyWords(`invalid signature filename blobFile.txt. A valid signature file name must contain signature format and .sig file extension`)
+				MatchErrKeyWords(`invalid signature filename blobFile.sig. A valid signature file name must contain signature format and .sig file extension`)
 		})
 	})
 
