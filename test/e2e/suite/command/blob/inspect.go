@@ -88,6 +88,7 @@ var _ = Describe("notation blob inspect", func() {
 ├── signature algorithm: RSASSA-PSS-SHA-256
 ├── signature envelope type: application/jose+json
 ├── signed attributes
+│   ├── content type: application/vnd.cncf.notary.payload.v1+json
 │   ├── signing scheme: notary.x509
 │   └── signing time: Tue Dec 31 08:05:29 2024
 ├── user defined attributes
@@ -123,46 +124,47 @@ var _ = Describe("notation blob inspect", func() {
 	It("with timestamping and output as json", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			expectedContent := `{
-    "signatureEnvelopeType": "application/jose+json",
-    "signatureAlgorithm": "RSASSA-PSS-SHA-256",
-    "signedAttributes": {
-        "signingScheme": "notary.x509",
-        "signingTime": "2024-12-31T08:05:29Z"
-    },
-    "userDefinedAttributes": null,
-    "unsignedAttributes": {
-        "signingAgent": "notation-go/1.3.0+unreleased",
-        "timestampSignature": {
-            "timestamp": "[2024-12-31T08:05:29Z, 2024-12-31T08:05:30Z]",
-            "certificates": [
-                {
-                    "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
-                    "issuedTo": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
-                    "issuedBy": "CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US",
-                    "expiry": "2035-11-19T20:42:31Z"
-                },
-                {
-                    "SHA256Fingerprint": "93db2732c49e2624cf0a5cc03ad04acc0927fcaf5e7afdd4a3e23b6fc196aedc",
-                    "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=nShield TSS ESN:7800-05E0-D947,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
-                    "issuedBy": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
-                    "expiry": "2025-02-15T20:36:12Z"
-                }
-            ]
-        }
-    },
-    "certificates": [
+  "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+  "signatureEnvelopeType": "application/jose+json",
+  "signedAttributes": {
+    "contentType": "application/vnd.cncf.notary.payload.v1+json",
+    "signingScheme": "notary.x509",
+    "signingTime": "2024-12-31T08:05:29Z"
+  },
+  "userDefinedAttributes": null,
+  "unsignedAttributes": {
+    "signingAgent": "notation-go/1.3.0+unreleased",
+    "timestampSignature": {
+      "timestamp": "[2024-12-31T08:05:29.509Z, 2024-12-31T08:05:30.509Z]",
+      "certificates": [
         {
-            "SHA256Fingerprint": "dadee19c843e94b94daae9854d0de7ad93642b6075e2d1523b860b1770b64a03",
-            "issuedTo": "CN=testcert2,O=Notary,L=Seattle,ST=WA,C=US",
-            "issuedBy": "CN=testcert2,O=Notary,L=Seattle,ST=WA,C=US",
-            "expiry": "2025-01-01T08:04:39Z"
+          "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
+          "issuedTo": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
+          "issuedBy": "CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US",
+          "expiry": "2035-11-19T20:42:31Z"
+        },
+        {
+          "SHA256Fingerprint": "93db2732c49e2624cf0a5cc03ad04acc0927fcaf5e7afdd4a3e23b6fc196aedc",
+          "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=nShield TSS ESN:7800-05E0-D947,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
+          "issuedBy": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
+          "expiry": "2025-02-15T20:36:12Z"
         }
-    ],
-    "signedArtifact": {
-        "mediaType": "application/octet-stream",
-        "digest": "sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-        "size": 11357
+      ]
     }
+  },
+  "certificates": [
+    {
+      "SHA256Fingerprint": "dadee19c843e94b94daae9854d0de7ad93642b6075e2d1523b860b1770b64a03",
+      "issuedTo": "CN=testcert2,O=Notary,L=Seattle,ST=WA,C=US",
+      "issuedBy": "CN=testcert2,O=Notary,L=Seattle,ST=WA,C=US",
+      "expiry": "2025-01-01T08:04:39Z"
+    }
+  ],
+  "signedArtifact": {
+    "mediaType": "application/octet-stream",
+    "digest": "sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "size": 11357
+  }
 }
 `
 			notation.Exec("blob", "inspect", "--output", "json", jwsBlobSigPath).
@@ -176,12 +178,13 @@ var _ = Describe("notation blob inspect", func() {
 ├── signature algorithm: RSASSA-PSS-SHA-256
 ├── signature envelope type: application/cose
 ├── signed attributes
-│   ├── signingScheme: notary.x509
-│   └── signingTime: Tue Jan  7 08:42:43 2025
+│   ├── content type: application/vnd.cncf.notary.payload.v1+json
+│   ├── signing scheme: notary.x509
+│   └── signing time: Tue Jan  7 08:42:43 2025
 ├── user defined attributes
 │   └── (empty)
 ├── unsigned attributes
-│   ├── signingAgent: notation-go/1.3.0+unreleased
+│   ├── signing agent: notation-go/1.3.0+unreleased
 │   └── timestamp signature
 │       ├── timestamp: [Tue Jan  7 08:42:43 2025, Tue Jan  7 08:42:44 2025]
 │       └── certificates
@@ -212,46 +215,47 @@ var _ = Describe("notation blob inspect", func() {
 	It("with cose signature and output as json", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			expectedContent := `{
-    "mediaType": "application/cose",
-    "signatureAlgorithm": "RSASSA-PSS-SHA-256",
-    "signedAttributes": {
-        "signingScheme": "notary.x509",
-        "signingTime": "2025-01-07T08:42:43Z"
-    },
-    "userDefinedAttributes": null,
-    "unsignedAttributes": {
-        "signingAgent": "notation-go/1.3.0+unreleased",
-        "timestampSignature": {
-            "timestamp": "[2025-01-07T08:42:43Z, 2025-01-07T08:42:44Z]",
-            "certificates": [
-                {
-                    "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
-                    "issuedTo": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
-                    "issuedBy": "CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US",
-                    "expiry": "2035-11-19T20:42:31Z"
-                },
-                {
-                    "SHA256Fingerprint": "3403d75002d22e2b8c49a8a113957d9eb225c901b946837fd61ff3ce32c51f65",
-                    "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:45D6-96C5-5E63,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
-                    "issuedBy": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
-                    "expiry": "2025-02-15T20:35:56Z"
-                }
-            ]
-        }
-    },
-    "certificates": [
+  "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+  "signatureEnvelopeType": "application/cose",
+  "signedAttributes": {
+    "contentType": "application/vnd.cncf.notary.payload.v1+json",
+    "signingScheme": "notary.x509",
+    "signingTime": "2025-01-07T08:42:43Z"
+  },
+  "userDefinedAttributes": null,
+  "unsignedAttributes": {
+    "signingAgent": "notation-go/1.3.0+unreleased",
+    "timestampSignature": {
+      "timestamp": "[2025-01-07T08:42:43.582Z, 2025-01-07T08:42:44.582Z]",
+      "certificates": [
         {
-            "SHA256Fingerprint": "3678adce9daa3a82f4f55fd65e0c87c398b3d9bcd5338c06bbf8850df8c6641d",
-            "issuedTo": "CN=testcert3,O=Notary,L=Seattle,ST=WA,C=US",
-            "issuedBy": "CN=testcert3,O=Notary,L=Seattle,ST=WA,C=US",
-            "expiry": "2025-01-08T08:42:24Z"
+          "SHA256Fingerprint": "36e731cfa9bfd69dafb643809f6dec500902f7197daeaad86ea0159a2268a2b8",
+          "issuedTo": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
+          "issuedBy": "CN=Microsoft Identity Verification Root Certificate Authority 2020,O=Microsoft Corporation,C=US",
+          "expiry": "2035-11-19T20:42:31Z"
+        },
+        {
+          "SHA256Fingerprint": "3403d75002d22e2b8c49a8a113957d9eb225c901b946837fd61ff3ce32c51f65",
+          "issuedTo": "CN=Microsoft Public RSA Time Stamping Authority,OU=Microsoft America Operations+OU=Thales TSS ESN:45D6-96C5-5E63,O=Microsoft Corporation,L=Redmond,ST=Washington,C=US",
+          "issuedBy": "CN=Microsoft Public RSA Timestamping CA 2020,O=Microsoft Corporation,C=US",
+          "expiry": "2025-02-15T20:35:56Z"
         }
-    ],
-    "signedArtifact": {
-        "mediaType": "application/octet-stream",
-        "digest": "sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
-        "size": 11357
+      ]
     }
+  },
+  "certificates": [
+    {
+      "SHA256Fingerprint": "3678adce9daa3a82f4f55fd65e0c87c398b3d9bcd5338c06bbf8850df8c6641d",
+      "issuedTo": "CN=testcert3,O=Notary,L=Seattle,ST=WA,C=US",
+      "issuedBy": "CN=testcert3,O=Notary,L=Seattle,ST=WA,C=US",
+      "expiry": "2025-01-08T08:42:24Z"
+    }
+  ],
+  "signedArtifact": {
+    "mediaType": "application/octet-stream",
+    "digest": "sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "size": 11357
+  }
 }
 `
 			notation.Exec("blob", "inspect", "--output", "json", coseBlobSigPath).

@@ -38,8 +38,8 @@ type inspectOutput struct {
 // signature is the signature envelope for printing in JSON format.
 type signature struct {
 	Digest                string             `json:"digest,omitempty"`
-	SignatureEnvelopeType string             `json:"signatureEnvelopeType"`
 	SignatureAlgorithm    string             `json:"signatureAlgorithm"`
+	SignatureEnvelopeType string             `json:"signatureEnvelopeType"`
 	SignedAttributes      map[string]any     `json:"signedAttributes"`
 	UserDefinedAttributes map[string]string  `json:"userDefinedAttributes"`
 	UnsignedAttributes    map[string]any     `json:"unsignedAttributes"`

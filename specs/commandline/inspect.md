@@ -11,6 +11,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
 └── application/vnd.cncf.notary.signature
     ├── <digest of signature manifest>
     │   ├── <signature algorithm>
+    |   ├── <signature envelope type>
     │   ├── <signed attributes>
     │   ├── <user defined attributes>
     │   ├── <unsigned attributes>
@@ -18,6 +19,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
     │   └── <signed artifact>
     └── <digest of signature manifest>
         ├── <signature algorithm>
+        ├── <signature envelope type>
         ├── <signed attributes>
         ├── <unsigned attributes>
         ├── <certificates>
