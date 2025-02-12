@@ -49,7 +49,7 @@ func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 }
 
 // NewBlobVerifyHandler creates a new metadata BlobVerifyHandler for printing
-// blob veriifcation result and warnings.
+// blob verification result and warnings.
 func NewBlobVerifyHandler(printer *output.Printer) metadata.BlobVerifyHandler {
 	return text.NewBlobVerifyHandler(printer)
 }

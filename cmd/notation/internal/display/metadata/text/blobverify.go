@@ -44,5 +44,5 @@ func (h *BlobVerifyHandler) OnVerifySucceeded(outcomes []*notation.VerificationO
 
 // Render prints out the verification results in human-readable format.
 func (h *BlobVerifyHandler) Render() error {
-	return PrintVerificationSuccess(h.printer, h.outcome, h.blobPath, false)
+	return printVerificationSuccess(h.printer, h.outcome, h.blobPath, false)
 }

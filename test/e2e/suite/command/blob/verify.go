@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
@@ -201,6 +202,40 @@ var _ = Describe("notation blob verify", func() {
 		})
 	})
 
+	It("with invalid signature file extension", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			invalidSignaturePath := strings.TrimSuffix(signaturePath, ".sig") + "." + "invalid"
+			if err := os.Rename(signaturePath, invalidSignaturePath); err != nil {
+				Fail(err.Error())
+			}
+			notation.ExpectFailure().Exec("blob", "verify", "--signature", invalidSignaturePath, blobPath).
+				MatchErrKeyWords(`invalid signature filename blobFile.txt.jws.invalid. The file extension must be .sig`)
+		})
+	})
+
+	It("with invalid signature file name", func() {
+		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			workDir := vhost.AbsolutePath()
+			notation.WithWorkDir(workDir).Exec("blob", "sign", blobPath).
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to")
+
+			signaturePath := signatureFilepath(workDir, blobPath, "jws")
+			invalidSignaturePath := strings.TrimSuffix(signaturePath, ".jws.sig")
+			if err := os.Rename(signaturePath, invalidSignaturePath); err != nil {
+				Fail(err.Error())
+			}
+			notation.ExpectFailure().Exec("blob", "verify", "--signature", invalidSignaturePath, blobPath).
+				MatchErrKeyWords(`invalid signature filename blobFile.txt. A valid signature file name must contain signature format and .sig file extension`)
+		})
+	})
+
 	It("with invalid signature format", func() {
 		HostWithBlob(BaseBlobOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			workDir := vhost.AbsolutePath()
@@ -214,7 +249,7 @@ var _ = Describe("notation blob verify", func() {
 				Fail(err.Error())
 			}
 			notation.ExpectFailure().Exec("blob", "verify", "--signature", invalidSignaturePath, blobPath).
-				MatchErrKeyWords("unsupported signature format invalid")
+				MatchErrKeyWords(`signature format "invalid" not supported\nSupported signature envelope formats are "jws" and "cose"`)
 		})
 	})
 

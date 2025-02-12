@@ -50,5 +50,5 @@ func (h *VerifyHandler) OnVerifySucceeded(outcomes []*notation.VerificationOutco
 
 // Render prints out the verification results in human-readable format.
 func (h *VerifyHandler) Render() error {
-	return PrintVerificationSuccess(h.printer, h.outcome, h.digestReference, h.hasWarning)
+	return printVerificationSuccess(h.printer, h.outcome, h.digestReference, h.hasWarning)
 }

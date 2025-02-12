@@ -20,12 +20,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/notaryproject/notation-core-go/signature/cose"
-	"github.com/notaryproject/notation-core-go/signature/jws"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
@@ -155,19 +154,16 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 // `application/jose+json` and `application/cose` are supported.
 func parseSignatureMediaType(signaturePath string) (string, error) {
 	signatureFileName := filepath.Base(signaturePath)
+	if filepath.Ext(signatureFileName) != ".sig" {
+		return "", fmt.Errorf("invalid signature filename %s. The file extension must be .sig", signatureFileName)
+	}
 	sigFilenameArr := strings.Split(signatureFileName, ".")
 
 	// a valid signature file name has at least 3 parts.
 	// for example, `myFile.jws.sig`
 	if len(sigFilenameArr) < 3 {
-		return "", fmt.Errorf("invalid signature filename %s", signatureFileName)
+		return "", fmt.Errorf("invalid signature filename %s. A valid signature file name must contain signature format and .sig file extension", signatureFileName)
 	}
-	format := sigFilenameArr[len(sigFilenameArr)-2]
-	switch format {
-	case "cose":
-		return cose.MediaTypeEnvelope, nil
-	case "jws":
-		return jws.MediaTypeEnvelope, nil
-	}
-	return "", fmt.Errorf("unsupported signature format %s", format)
+	sigFormat := sigFilenameArr[len(sigFilenameArr)-2]
+	return envelope.GetEnvelopeMediaType(sigFormat)
 }

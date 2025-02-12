@@ -25,8 +25,8 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 )
 
-// PrintVerificationSuccess prints out messages when verification succeeds
-func PrintVerificationSuccess(printer *output.Printer, outcome *notation.VerificationOutcome, printout string, hasWarning bool) error {
+// printVerificationSuccess prints out messages when verification succeeds
+func printVerificationSuccess(printer *output.Printer, outcome *notation.VerificationOutcome, printout string, hasWarning bool) error {
 	// write out on success
 	// print out warning for any failed result with logged verification action
 	for _, result := range outcome.VerificationResults {
@@ -45,13 +45,13 @@ func PrintVerificationSuccess(printer *output.Printer, outcome *notation.Verific
 		printer.Println("Trust policy is configured to skip signature verification for", printout)
 	} else {
 		printer.Println("Successfully verified signature for", printout)
-		PrintUserMetadataIfPresent(printer, outcome)
+		printUserMetadataIfPresent(printer, outcome)
 	}
 	return nil
 }
 
-// PrintUserMetadataIfPresent prints out user metadata if present
-func PrintUserMetadataIfPresent(printer *output.Printer, outcome *notation.VerificationOutcome) {
+// printUserMetadataIfPresent prints out user metadata if present
+func printUserMetadataIfPresent(printer *output.Printer, outcome *notation.VerificationOutcome) {
 	// the signature envelope is parsed as part of verification.
 	// since user metadata is only printed on successful verification,
 	// this error can be ignored.
