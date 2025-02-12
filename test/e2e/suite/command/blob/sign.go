@@ -76,7 +76,7 @@ var _ = Describe("notation blob sign", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.Exec("blob", "sign", "--signature-directory", vhost.AbsolutePath(), blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.jws.sig")))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.txt.jws.sig")))
 		})
 	})
 
@@ -101,11 +101,11 @@ var _ = Describe("notation blob sign", func() {
 			sigDir := vhost.AbsolutePath()
 			notation.Exec("blob", "sign", "--signature-directory", sigDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.jws.sig")))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.txt.jws.sig")))
 
 			notation.Exec("blob", "sign", "--force", "--signature-directory", sigDir, blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.jws.sig")))
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", vhost.AbsolutePath("blobFile.txt.jws.sig")))
 		})
 	})
 
