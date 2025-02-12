@@ -227,7 +227,7 @@ var _ = Describe("notation blob verify", func() {
 				MatchKeyWords("Signature file written to")
 
 			signaturePath := signatureFilepath(workDir, blobPath, "jws")
-			invalidSignaturePath := strings.TrimSuffix(signaturePath, ".jws.sig")
+			invalidSignaturePath := strings.TrimSuffix(signaturePath, ".txt.jws.sig") + ".sig"
 			if err := os.Rename(signaturePath, invalidSignaturePath); err != nil {
 				Fail(err.Error())
 			}
@@ -249,7 +249,8 @@ var _ = Describe("notation blob verify", func() {
 				Fail(err.Error())
 			}
 			notation.ExpectFailure().Exec("blob", "verify", "--signature", invalidSignaturePath, blobPath).
-				MatchErrKeyWords(`signature format "invalid" not supported\nSupported signature envelope formats are "jws" and "cose"`)
+				MatchErrKeyWords(`signature format "invalid" not supported`).
+				MatchErrKeyWords(`Supported signature envelope formats are "jws" and "cose"`)
 		})
 	})
 
