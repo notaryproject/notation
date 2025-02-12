@@ -80,7 +80,7 @@ func runInspect(opts *inspectOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse signature: %w", err)
 	}
-	if err := displayHandler.OnEnvelopeParsed(opts.sigPath, sigEnvelope); err != nil {
+	if err := displayHandler.OnEnvelopeParsed(opts.sigPath, envelopeMediaType, sigEnvelope); err != nil {
 		return err
 	}
 

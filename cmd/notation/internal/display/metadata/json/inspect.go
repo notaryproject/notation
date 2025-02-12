@@ -38,6 +38,7 @@ type inspectOutput struct {
 // signature is the signature envelope for printing in JSON format.
 type signature struct {
 	Digest                string             `json:"digest,omitempty"`
+	SignatureEnvelopeType string             `json:"signatureEnvelopeType"`
 	SignatureAlgorithm    string             `json:"signatureAlgorithm"`
 	SignedAttributes      map[string]any     `json:"signedAttributes"`
 	UserDefinedAttributes map[string]string  `json:"userDefinedAttributes"`
@@ -90,8 +91,8 @@ func (h *InspectHandler) OnReferenceResolved(_, mediaType string) {
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
-	sig, err := newSignature(manifestDesc.Digest.String(), envelope)
+func (h *InspectHandler) InspectSignature(manifestDesc, signatureDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+	sig, err := newSignature(manifestDesc.Digest.String(), signatureDesc.MediaType, envelope)
 	if err != nil {
 		return err
 	}
@@ -99,12 +100,13 @@ func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envel
 	return nil
 }
 
+// Render renders signatures metadata information in JSON format.
 func (h *InspectHandler) Render() error {
 	return output.PrintPrettyJSON(h.printer, h.output)
 }
 
 // newSignature parses the signature blob and returns a Signature object.
-func newSignature(digest string, sigEnvelope coresignature.Envelope) (*signature, error) {
+func newSignature(digest, envelopeMediaType string, sigEnvelope coresignature.Envelope) (*signature, error) {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return nil, err
@@ -121,6 +123,7 @@ func newSignature(digest string, sigEnvelope coresignature.Envelope) (*signature
 	}
 	sig := &signature{
 		Digest:                digest,
+		SignatureEnvelopeType: envelopeMediaType,
 		SignatureAlgorithm:    string(signatureAlgorithm),
 		SignedAttributes:      getSignedAttributes(envelopeContent),
 		UserDefinedAttributes: signedArtifactDesc.Annotations,

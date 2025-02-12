@@ -121,8 +121,9 @@ func TestInspectSignature_NewSignatureError(t *testing.T) {
 	// ...existing code to ensure h.output.MediaType is set...
 	h.OnReferenceResolved("test-ref", "test-media-type")
 	manifestDesc := ocispec.Descriptor{Digest: "fake-digest"}
+	sigDesc := ocispec.Descriptor{MediaType: "fake-media-type"}
 
-	err := h.InspectSignature(manifestDesc, errorEnvelope{})
+	err := h.InspectSignature(manifestDesc, sigDesc, errorEnvelope{})
 	if err == nil || !strings.Contains(err.Error(), "mock content error") {
 		t.Fatalf("expected error 'mock content error', got %v", err)
 	}

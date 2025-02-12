@@ -64,8 +64,8 @@ func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
-func (h *InspectHandler) InspectSignature(manifestDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
-	sigNode, err := newSignatureNode(manifestDesc.Digest.String(), envelope)
+func (h *InspectHandler) InspectSignature(manifestDesc, signatureDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+	sigNode, err := newSignatureNode(manifestDesc.Digest.String(), signatureDesc.MediaType, envelope)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (h *InspectHandler) Render() error {
 	return h.rootReferenceNode.Print(h.printer)
 }
 
-func newSignatureNode(nodeName string, sigEnvelope coresignature.Envelope) (*node, error) {
+func newSignatureNode(nodeName, envelopeMediaType string, sigEnvelope coresignature.Envelope) (*node, error) {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return nil, err
@@ -99,6 +99,7 @@ func newSignatureNode(nodeName string, sigEnvelope coresignature.Envelope) (*nod
 	// create signature node
 	sigNode := newNode(nodeName)
 	sigNode.AddPair("signature algorithm", string(signatureAlgorithm))
+	sigNode.AddPair("signature envelope type", envelopeMediaType)
 
 	addSignedAttributes(sigNode, envelopeContent)
 	addUserDefinedAttributes(sigNode, signedArtifactDesc.Annotations)

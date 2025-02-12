@@ -294,7 +294,7 @@ An example output:
 ```shell
 /tmp/my-blob.bin.jws.sig
     ├── signature algorithm: RSASSA-PSS-SHA-256
-    ├── signature envelope type: jws
+    ├── signature envelope type: application/jose+json
     ├── signed attributes
     │   ├── content type: application/vnd.cncf.notary.payload.v1+json
     │   ├── signing scheme: notary.signingAuthority.x509

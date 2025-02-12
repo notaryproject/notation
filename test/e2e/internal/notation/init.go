@@ -44,6 +44,7 @@ const (
 	envKeyNotationPluginTarGzPath           = "NOTATION_E2E_PLUGIN_TAR_GZ_PATH"
 	envKeyNotationMaliciouPluginArchivePath = "NOTATION_E2E_MALICIOUS_PLUGIN_ARCHIVE_PATH"
 	envKeyNotationConfigPath                = "NOTATION_E2E_CONFIG_PATH"
+	envKeyNotationTestDataPath              = "NOTATION_E2E_TEST_DATA_PATH"
 	envKeyOCILayoutPath                     = "NOTATION_E2E_OCI_LAYOUT_PATH"
 	envKeyTestRepo                          = "NOTATION_E2E_TEST_REPO"
 	envKeyTestTag                           = "NOTATION_E2E_TEST_TAG"
@@ -64,6 +65,7 @@ var (
 	NotationE2ELocalKeysDir               string
 	NotationE2ETrustPolicyDir             string
 	NotationE2EConfigJsonDir              string
+	NotationE2ETestDataPath               string
 )
 
 var (
@@ -107,6 +109,7 @@ func setUpNotationValues() {
 	NotationE2ETrustPolicyDir = filepath.Join(NotationE2EConfigPath, "trustpolicies")
 	NotationE2ELocalKeysDir = filepath.Join(NotationE2EConfigPath, LocalKeysDirName)
 	NotationE2EConfigJsonDir = filepath.Join(NotationE2EConfigPath, LocalConfigJsonsDirName)
+	setPathValue(envKeyNotationTestDataPath, &NotationE2ETestDataPath)
 }
 
 func setPathValue(envKey string, value *string) {
