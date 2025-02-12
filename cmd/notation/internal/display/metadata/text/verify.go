@@ -21,8 +21,7 @@ import (
 // VerifyHandler is a handler for rendering output for verify command in
 // human-readable format.
 type VerifyHandler struct {
-	printer *output.Printer
-
+	printer         *output.Printer
 	outcome         *notation.VerificationOutcome
 	digestReference string
 	hasWarning      bool

@@ -128,7 +128,6 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	if err != nil {
 		return err
 	}
-
 	signatureMediaType, err := parseSignatureMediaType(cmdOpts.signaturePath)
 	if err != nil {
 		return err
@@ -159,7 +158,7 @@ func parseSignatureMediaType(signaturePath string) (string, error) {
 	sigFilenameArr := strings.Split(signatureFileName, ".")
 
 	// a valid signature file name has at least 3 parts.
-	// for example, myFile.jws.sig.
+	// for example, `myFile.jws.sig`
 	if len(sigFilenameArr) < 3 {
 		return "", fmt.Errorf("invalid signature filename %s", signatureFileName)
 	}

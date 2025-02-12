@@ -45,32 +45,29 @@ func PrintVerificationSuccess(printer *output.Printer, outcome *notation.Verific
 		printer.Println("Trust policy is configured to skip signature verification for", printout)
 	} else {
 		printer.Println("Successfully verified signature for", printout)
-		PrintMetadataIfPresent(printer, outcome)
+		PrintUserMetadataIfPresent(printer, outcome)
 	}
 	return nil
 }
 
-// PrintMetadataIfPresent prints out user metadata if present
-func PrintMetadataIfPresent(printer *output.Printer, outcome *notation.VerificationOutcome) {
+// PrintUserMetadataIfPresent prints out user metadata if present
+func PrintUserMetadataIfPresent(printer *output.Printer, outcome *notation.VerificationOutcome) {
 	// the signature envelope is parsed as part of verification.
 	// since user metadata is only printed on successful verification,
-	// this error can be ignored
+	// this error can be ignored.
 	metadata, _ := outcome.UserMetadata()
-
 	if len(metadata) > 0 {
 		printer.Println("\nThe artifact was signed with the following user metadata.")
-		PrintMetadataMap(printer, metadata)
+		printUserMetadataMap(printer, metadata)
 	}
 }
 
-// PrintMetadataMap prints out metadata given the metatdata map
-func PrintMetadataMap(printer *output.Printer, metadata map[string]string) error {
+// printUserMetadataMap prints out user metadata map
+func printUserMetadataMap(printer *output.Printer, metadata map[string]string) error {
 	tw := tabwriter.NewWriter(printer, 0, 0, 3, ' ', 0)
 	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
-
 	for k, v := range metadata {
 		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
 	}
-
 	return tw.Flush()
 }

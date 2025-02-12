@@ -20,9 +20,9 @@ import (
 
 // BlobVerifyHandler is a handler for rendering output for blob verify command
 // in human-readable format.
+// It implements metadata/BlobVerifyHandler.
 type BlobVerifyHandler struct {
-	printer *output.Printer
-
+	printer  *output.Printer
 	outcome  *notation.VerificationOutcome
 	blobPath string
 }
