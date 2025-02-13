@@ -27,7 +27,7 @@ type BlobInspectHandler struct {
 	signatureNode *node
 }
 
-// NewBlobInspectHandler creates a BlobInspectHandler to inspect signatures and
+// NewBlobInspectHandler creates a BlobInspectHandler to inspect signature and
 // print in tree format.
 func NewBlobInspectHandler(printer *output.Printer) *BlobInspectHandler {
 	return &BlobInspectHandler{

@@ -27,7 +27,7 @@ type BlobInspectHandler struct {
 	signature *signature
 }
 
-// NewBlobInspectHandler creates a BlobInspectHandler to inspect signatures and
+// NewBlobInspectHandler creates a BlobInspectHandler to inspect signature and
 // print in JSON format.
 func NewBlobInspectHandler(printer *output.Printer) *BlobInspectHandler {
 	return &BlobInspectHandler{
