@@ -32,7 +32,7 @@ import (
 type signature struct {
 	Digest                string             `json:"digest,omitempty"`
 	SignatureAlgorithm    string             `json:"signatureAlgorithm"`
-	SignatureMediaType    string             `json:"signatureMediaType"`
+	SignatureEnvelopeType string             `json:"signatureEnvelopeType"`
 	SignedAttributes      map[string]any     `json:"signedAttributes"`
 	UserDefinedAttributes map[string]string  `json:"userDefinedAttributes"`
 	UnsignedAttributes    map[string]any     `json:"unsignedAttributes"`
@@ -73,7 +73,7 @@ func newSignature(digest, signatureMediaType string, sigEnvelope coresignature.E
 	}
 	sig := &signature{
 		Digest:                digest,
-		SignatureMediaType:    signatureMediaType,
+		SignatureEnvelopeType: signatureMediaType,
 		SignatureAlgorithm:    string(signatureAlgorithm),
 		SignedAttributes:      getSignedAttributes(envelopeContent),
 		UserDefinedAttributes: signedArtifactDesc.Annotations,
