@@ -35,9 +35,9 @@ func NewBlobInspectHandler(printer *output.Printer) *BlobInspectHandler {
 }
 
 // OnEnvelopeParsed sets the parsed envelope for the handler.
-func (h *BlobInspectHandler) OnEnvelopeParsed(nodeName, signatureEnvelopeType string, envelope coresignature.Envelope) error {
+func (h *BlobInspectHandler) OnEnvelopeParsed(nodeName, signatureMediaType string, envelope coresignature.Envelope) error {
 	// blob signature does not have a digest
-	sig, err := newSignature("", signatureEnvelopeType, envelope)
+	sig, err := newSignature("", signatureMediaType, envelope)
 	if err != nil {
 		return err
 	}

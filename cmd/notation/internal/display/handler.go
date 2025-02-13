@@ -30,9 +30,9 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
-// NewInpsectHandler creates a new metadata InspectHandler based on the output
+// NewInspectHandler creates a new metadata InspectHandler based on the output
 // format.
-func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
+func NewInspectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
 	switch option.FormatType(format.CurrentType) {
 	case option.FormatTypeJSON:
 		return json.NewInspectHandler(printer), nil

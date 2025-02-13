@@ -45,7 +45,7 @@ type BlobInspectHandler interface {
 	Renderer
 
 	// OnEnvelopeParsed sets the parsed envelope for the handler.
-	OnEnvelopeParsed(signaturePath, signatureEnvelopeType string, envelope signature.Envelope) error
+	OnEnvelopeParsed(signaturePath, signatureMediaType string, envelope signature.Envelope) error
 }
 
 // VerifyHandler is a handler for rendering metadata information of
