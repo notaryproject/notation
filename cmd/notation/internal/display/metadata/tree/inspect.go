@@ -82,7 +82,7 @@ func (h *InspectHandler) Render() error {
 	return h.rootReferenceNode.Print(h.printer)
 }
 
-func newSignatureNode(nodeName, envelopeMediaType string, sigEnvelope coresignature.Envelope) (*node, error) {
+func newSignatureNode(nodeName, signatureEnvelopeType string, sigEnvelope coresignature.Envelope) (*node, error) {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func newSignatureNode(nodeName, envelopeMediaType string, sigEnvelope coresignat
 	// create signature node
 	sigNode := newNode(nodeName)
 	sigNode.AddPair("signature algorithm", string(signatureAlgorithm))
-	sigNode.AddPair("signature envelope type", envelopeMediaType)
+	sigNode.AddPair("signature envelope type", signatureEnvelopeType)
 
 	addSignedAttributes(sigNode, envelopeContent)
 	addUserDefinedAttributes(sigNode, signedArtifactDesc.Annotations)

@@ -63,15 +63,17 @@ Example - Inspect a signature:
 }
 
 func runInspect(opts *inspectOpts) error {
+	// initialize display handler
 	displayHandler, err := display.NewBlobInspectHandler(opts.Printer, opts.Format)
 	if err != nil {
 		return err
 	}
+
+	// parse signature file
 	envelopeMediaType, err := parseEnvelopeMediaType(filepath.Base(opts.sigPath))
 	if err != nil {
 		return err
 	}
-
 	envelopeBytes, err := os.ReadFile(opts.sigPath)
 	if err != nil {
 		return fmt.Errorf("failed to read signature file: %w", err)

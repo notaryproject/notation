@@ -106,7 +106,7 @@ func (h *InspectHandler) Render() error {
 }
 
 // newSignature parses the signature blob and returns a Signature object.
-func newSignature(digest, envelopeMediaType string, sigEnvelope coresignature.Envelope) (*signature, error) {
+func newSignature(digest, signatureEnvelopeType string, sigEnvelope coresignature.Envelope) (*signature, error) {
 	envelopeContent, err := sigEnvelope.Content()
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func newSignature(digest, envelopeMediaType string, sigEnvelope coresignature.En
 	}
 	sig := &signature{
 		Digest:                digest,
-		SignatureEnvelopeType: envelopeMediaType,
+		SignatureEnvelopeType: signatureEnvelopeType,
 		SignatureAlgorithm:    string(signatureAlgorithm),
 		SignedAttributes:      getSignedAttributes(envelopeContent),
 		UserDefinedAttributes: signedArtifactDesc.Annotations,

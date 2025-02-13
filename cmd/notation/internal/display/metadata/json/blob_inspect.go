@@ -19,11 +19,10 @@ import (
 )
 
 // BlobInspectHandler is a handler for inspecting metadata information and
-// rendering it in a JSON format. It implements the metadata.BlobInspectHandler
+// rendering it in JSON format. It implements the metadata.BlobInspectHandler
 // interface.
 type BlobInspectHandler struct {
-	printer *output.Printer
-
+	printer   *output.Printer
 	signature *signature
 }
 
@@ -36,9 +35,9 @@ func NewBlobInspectHandler(printer *output.Printer) *BlobInspectHandler {
 }
 
 // OnEnvelopeParsed sets the parsed envelope for the handler.
-func (h *BlobInspectHandler) OnEnvelopeParsed(nodeName, envelopeMediaType string, envelope coresignature.Envelope) error {
+func (h *BlobInspectHandler) OnEnvelopeParsed(nodeName, signatureEnvelopeType string, envelope coresignature.Envelope) error {
 	// blob signature does not have a digest
-	sig, err := newSignature("", envelopeMediaType, envelope)
+	sig, err := newSignature("", signatureEnvelopeType, envelope)
 	if err != nil {
 		return err
 	}
