@@ -26,7 +26,7 @@ import (
 )
 
 // printVerificationSuccess prints out messages when verification succeeds
-func printVerificationSuccess(printer *output.Printer, outcome *notation.VerificationOutcome, printout string, hasWarning bool) error {
+func printVerificationSuccess(printer *output.Printer, outcome *notation.VerificationOutcome, artifact string, hasWarning bool) error {
 	// write out on success
 	// print out warning for any failed result with logged verification action
 	for _, result := range outcome.VerificationResults {
@@ -42,9 +42,9 @@ func printVerificationSuccess(printer *output.Printer, outcome *notation.Verific
 		printer.Println()
 	}
 	if reflect.DeepEqual(outcome.VerificationLevel, trustpolicy.LevelSkip) {
-		printer.Println("Trust policy is configured to skip signature verification for", printout)
+		printer.Println("Trust policy is configured to skip signature verification for", artifact)
 	} else {
-		printer.Println("Successfully verified signature for", printout)
+		printer.Println("Successfully verified signature for", artifact)
 		printUserMetadataIfPresent(printer, outcome)
 	}
 	return nil

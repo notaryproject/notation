@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package verifier
 
 import (
 	"context"
@@ -40,23 +40,7 @@ func TestGetVerifier(t *testing.T) {
 		}
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
-		_, err := GetVerifier(context.Background(), false)
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-
-	t.Run("blob success", func(t *testing.T) {
-		tempRoot := t.TempDir()
-		dir.UserConfigDir = tempRoot
-		path := filepath.Join(tempRoot, "trustpolicy.blob.json")
-		policyJson, _ := json.Marshal(dummyBlobPolicyDocument(false))
-		if err := os.WriteFile(path, policyJson, 0600); err != nil {
-			t.Fatalf("write blob policy file failed. Error: %v", err)
-		}
-		t.Cleanup(func() { os.RemoveAll(tempRoot) })
-
-		_, err := GetVerifier(context.Background(), true)
+		_, err := GetVerifier(context.Background())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,16 +49,7 @@ func TestGetVerifier(t *testing.T) {
 	t.Run("non-existing oci trust policy", func(t *testing.T) {
 		dir.UserConfigDir = "/"
 		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
-		_, err := GetVerifier(context.Background(), false)
-		if err == nil || err.Error() != expectedErrMsg {
-			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
-		}
-	})
-
-	t.Run("non-existing blob trust policy", func(t *testing.T) {
-		dir.UserConfigDir = "/"
-		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
-		_, err := GetVerifier(context.Background(), true)
+		_, err := GetVerifier(context.Background())
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -91,7 +66,39 @@ func TestGetVerifier(t *testing.T) {
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
 		expectedErrMsg := "oci trust policy document has empty version, version must be specified"
-		_, err := GetVerifier(context.Background(), false)
+		_, err := GetVerifier(context.Background())
+		if err == nil || err.Error() != expectedErrMsg {
+			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
+		}
+	})
+}
+
+func TestGetBlobVerifier(t *testing.T) {
+	defer func(oldConfiDir, oldCacheDir string) {
+		dir.UserConfigDir = oldConfiDir
+		dir.UserCacheDir = oldCacheDir
+	}(dir.UserConfigDir, dir.UserCacheDir)
+
+	t.Run("blob success", func(t *testing.T) {
+		tempRoot := t.TempDir()
+		dir.UserConfigDir = tempRoot
+		path := filepath.Join(tempRoot, "trustpolicy.blob.json")
+		policyJson, _ := json.Marshal(dummyBlobPolicyDocument(false))
+		if err := os.WriteFile(path, policyJson, 0600); err != nil {
+			t.Fatalf("write blob policy file failed. Error: %v", err)
+		}
+		t.Cleanup(func() { os.RemoveAll(tempRoot) })
+
+		_, err := GetBlobVerifier(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	t.Run("non-existing blob trust policy", func(t *testing.T) {
+		dir.UserConfigDir = "/"
+		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
+		_, err := GetBlobVerifier(context.Background())
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -108,7 +115,7 @@ func TestGetVerifier(t *testing.T) {
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
 		expectedErrMsg := "blob trust policy document has empty version, version must be specified"
-		_, err := GetVerifier(context.Background(), true)
+		_, err := GetBlobVerifier(context.Background())
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}

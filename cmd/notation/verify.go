@@ -23,6 +23,7 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/cmd/verifier"
 	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -112,7 +113,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// initialize
 	displayHandler := display.NewVerifyHandler(opts.Printer)
-	sigVerifier, err := cmd.GetVerifier(ctx, false)
+	sigVerifier, err := verifier.GetVerifier(ctx)
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
-	err = ioutil.PrintVerificationFailure(outcomes, resolvedRef, err, false)
+	err = ioutil.ComposeVerificationFailurePrintout(outcomes, resolvedRef, err)
 	if err != nil {
 		return err
 	}

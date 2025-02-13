@@ -27,6 +27,7 @@ import (
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/cmd/signer"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -138,7 +139,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 	logger := log.GetLogger(ctx)
 
-	blobSigner, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	blobSigner, err := signer.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
 	if err != nil {
 		return err
 	}

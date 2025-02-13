@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package verifier
 
 import (
 	"context"
@@ -33,38 +33,53 @@ type Verifier interface {
 	notation.Verifier
 }
 
-// GetVerifier returns a Verifier.
-// isBlob is set to true when verifying an arbitrary blob.
-func GetVerifier(ctx context.Context, isBlob bool) (Verifier, error) {
-	// revocation check
-	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
-	if err != nil {
-		return nil, err
-	}
-	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+// GetVerifier creates a Verifier.
+func GetVerifier(ctx context.Context) (Verifier, error) {
+	verifierOptions, err := newVerifierOptions(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	// trust policy and trust store
 	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
-	if isBlob {
-		blobPolicyDocument, err := trustpolicy.LoadBlobDocument()
-		if err != nil {
-			return nil, err
-		}
-		return verifier.NewVerifierWithOptions(nil, blobPolicyDocument, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
-			RevocationCodeSigningValidator:  revocationCodeSigningValidator,
-			RevocationTimestampingValidator: revocationTimestampingValidator,
-		})
-	}
-
 	policyDocument, err := trustpolicy.LoadOCIDocument()
 	if err != nil {
 		return nil, err
 	}
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
+	verifierOptions.OCITrustPolicy = policyDocument
+	return verifier.NewVerifierWithOptions(x509TrustStore, verifierOptions)
+}
+
+// GetBlobVerifier creates a BlobVerifier.
+func GetBlobVerifier(ctx context.Context) (Verifier, error) {
+	verifierOptions, err := newVerifierOptions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// trust policy and trust store
+	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+	blobPolicyDocument, err := trustpolicy.LoadBlobDocument()
+	if err != nil {
+		return nil, err
+	}
+	verifierOptions.BlobTrustPolicy = blobPolicyDocument
+	return verifier.NewVerifierWithOptions(x509TrustStore, verifierOptions)
+}
+
+// newVerifierOptions creates a verifier.VerifierOptions.
+func newVerifierOptions(ctx context.Context) (verifier.VerifierOptions, error) {
+	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
+	if err != nil {
+		return verifier.VerifierOptions{}, err
+	}
+	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+	if err != nil {
+		return verifier.VerifierOptions{}, err
+	}
+	return verifier.VerifierOptions{
 		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
 		RevocationTimestampingValidator: revocationTimestampingValidator,
-	})
+		PluginManager:                   plugin.NewCLIManager(dir.PluginFS()),
+	}, nil
 }

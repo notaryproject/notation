@@ -14,7 +14,6 @@
 package ioutil
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -72,50 +71,54 @@ func PrintCertMap(w io.Writer, certPaths []string) error {
 	return tw.Flush()
 }
 
-// PrintObjectAsJSON takes an interface and prints it as an indented JSON string
-func PrintObjectAsJSON(i interface{}) error {
-	jsonBytes, err := json.MarshalIndent(i, "", "    ")
-	if err != nil {
-		return err
+// ComposeVerificationFailurePrintout composes verification failure print out.
+func ComposeVerificationFailurePrintout(outcomes []*notation.VerificationOutcome, reference string, err error) error {
+	if verificationErr := parseErrorOnVerificationFailure(err); verificationErr != nil {
+		return verificationErr
 	}
-
-	fmt.Println(string(jsonBytes))
-
+	if len(outcomes) == 0 {
+		return fmt.Errorf("signature verification failed for all the signatures associated with %s", reference)
+	}
 	return nil
 }
 
-// PrintVerificationFailure prints out messages when verification fails
-func PrintVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error, isBlob bool) error {
-	// write out on failure
-	if err != nil || len(outcomes) == 0 {
-		if err != nil {
-			var errTrustStore truststore.TrustStoreError
-			if errors.As(err, &errTrustStore) {
-				if errors.Is(err, fs.ErrNotExist) {
-					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
-				} else {
-					return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
-				}
-			}
+// ComposeBlobVerificationFailurePrintout composes blob verification failure
+// print out.
+func ComposeBlobVerificationFailurePrintout(outcomes []*notation.VerificationOutcome, blobPath string, err error) error {
+	if verificationErr := parseErrorOnVerificationFailure(err); verificationErr != nil {
+		return verificationErr
+	}
+	if len(outcomes) == 0 {
+		return fmt.Errorf("provided signature verification failed against blob %s", blobPath)
+	}
+	return nil
+}
 
-			var errCertificate truststore.CertificateError
-			if errors.As(err, &errCertificate) {
-				if errors.Is(err, fs.ErrNotExist) {
-					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
-				} else {
-					return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
-				}
-			}
-
-			var errorVerificationFailed notation.ErrorVerificationFailed
-			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", err)
+// parseErrorOnVerificationFailure parses error on verification failure.
+func parseErrorOnVerificationFailure(err error) error {
+	if err != nil {
+		var errTrustStore truststore.TrustStoreError
+		if errors.As(err, &errTrustStore) {
+			if errors.Is(err, fs.ErrNotExist) {
+				return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
+			} else {
+				return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
 			}
 		}
-		if isBlob {
-			return fmt.Errorf("provided signature verification failed against blob %s", printOut)
+
+		var errCertificate truststore.CertificateError
+		if errors.As(err, &errCertificate) {
+			if errors.Is(err, fs.ErrNotExist) {
+				return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
+			} else {
+				return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
+			}
 		}
-		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
+
+		var errorVerificationFailed notation.ErrorVerificationFailed
+		if !errors.As(err, &errorVerificationFailed) {
+			return fmt.Errorf("signature verification failed: %w", err)
+		}
 	}
 	return nil
 }

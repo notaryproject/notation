@@ -24,6 +24,7 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/cmd/verifier"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
@@ -111,7 +112,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	if err != nil {
 		return err
 	}
-	blobVerifier, err := cmd.GetVerifier(ctx, true)
+	blobVerifier, err := verifier.GetBlobVerifier(ctx)
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	}
 	_, outcome, err := notation.VerifyBlob(ctx, blobVerifier, blobFile, signatureBytes, verifyBlobOpts)
 	outcomes := []*notation.VerificationOutcome{outcome}
-	err = ioutil.PrintVerificationFailure(outcomes, cmdOpts.blobPath, err, true)
+	err = ioutil.ComposeBlobVerificationFailurePrintout(outcomes, cmdOpts.blobPath, err)
 	if err != nil {
 		return err
 	}
@@ -154,7 +155,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 // `application/jose+json` and `application/cose` are supported.
 func parseSignatureMediaType(signaturePath string) (string, error) {
 	signatureFileName := filepath.Base(signaturePath)
-	if filepath.Ext(signatureFileName) != ".sig" {
+	if strings.ToLower(filepath.Ext(signatureFileName)) != ".sig" {
 		return "", fmt.Errorf("invalid signature filename %s. The file extension must be .sig", signatureFileName)
 	}
 	sigFilenameArr := strings.Split(signatureFileName, ".")
@@ -165,5 +166,5 @@ func parseSignatureMediaType(signaturePath string) (string, error) {
 		return "", fmt.Errorf("invalid signature filename %s. A valid signature file name must contain signature format and .sig file extension", signatureFileName)
 	}
 	sigFormat := sigFilenameArr[len(sigFilenameArr)-2]
-	return envelope.GetEnvelopeMediaType(sigFormat)
+	return envelope.GetEnvelopeMediaType(strings.ToLower(sigFormat))
 }

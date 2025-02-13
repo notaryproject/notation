@@ -22,7 +22,7 @@ import (
 func TestBlobVerificateFailure(t *testing.T) {
 	var outcomes []*notation.VerificationOutcome
 	expectedErrMsg := "provided signature verification failed against blob myblob"
-	err := PrintVerificationFailure(outcomes, "myblob", nil, true)
+	err := ComposeBlobVerificationFailurePrintout(outcomes, "myblob", nil)
 	if err == nil || err.Error() != expectedErrMsg {
 		t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 	}
