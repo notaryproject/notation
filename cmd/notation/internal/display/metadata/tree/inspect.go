@@ -33,7 +33,7 @@ type InspectHandler struct {
 	notationSignaturesNode *node
 }
 
-// NewInspectHandler creates a InspectHandler to inspect signature and print in
+// NewInspectHandler creates an InspectHandler to inspect signature and print in
 // tree format.
 func NewInspectHandler(printer *output.Printer) *InspectHandler {
 	return &InspectHandler{

@@ -34,7 +34,7 @@ type InspectHandler struct {
 	output inspectOutput
 }
 
-// NewInspectHandler creates a Inspecthandler to inspect signatures and print in
+// NewInspectHandler creates an Inspecthandler to inspect signatures and print in
 // JSON format.
 func NewInspectHandler(printer *output.Printer) *InspectHandler {
 	return &InspectHandler{
