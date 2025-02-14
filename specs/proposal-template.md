@@ -1,6 +1,6 @@
 # Notation Enhancement Proposal Template
 
-A Notation Enhancement Proposal (NEP) is a way to propose, communicate and coordinate on new features and enhancements for the `notation` project. 
+A Notation Enhancement Proposal (NEP) is a way to propose, communicate and coordinate on new features and enhancements for the `notation` project. It aims to provide a consistent format for proposing new features and improvements, ensures contributors follow a structured approach, making it easier for maintainers to review proposals.
 
 NEPs are suggested for most non-trivial changes. Specifically:
 
