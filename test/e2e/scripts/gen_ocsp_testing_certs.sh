@@ -49,7 +49,7 @@ new_certs_dir     = demoCA/newcerts
 certificate       = root.crt
 serial            = demoCA/serial
 private_key       = root.key
-default_days      = 3650
+default_days      = 36500
 default_md        = sha256
 policy            = policy_strict
 
