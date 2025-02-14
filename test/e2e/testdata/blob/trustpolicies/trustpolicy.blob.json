@@ -1,0 +1,37 @@
+{
+    "version": "1.0",
+    "trustPolicies": [
+        {
+            "name": "test-blob-statement",
+            "signatureVerification": {
+                "level" : "strict"
+            },
+            "trustStores": [ "ca:e2e" ],
+            "trustedIdentities": [
+                "*"
+            ]
+        },
+        {
+          "name": "test-blob-global-statement",
+          "signatureVerification": {
+            "level" : "strict"
+          },
+          "trustStores": [ "ca:e2e" ],
+          "trustedIdentities": [
+            "*"
+          ],
+          "globalPolicy": true
+      },
+      {
+        "name": "test-blob-with-timestamping",
+        "signatureVerification": {
+          "level" : "strict",
+          "verifyTimestamp": "always"
+        },
+        "trustStores": [ "ca:e2e", "tsa:e2e" ],
+        "trustedIdentities": [
+          "*"
+        ]
+    }
+    ]
+}

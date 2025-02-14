@@ -4,13 +4,13 @@
 
 Use `notation blob` command to sign, verify, and inspect signatures associated with arbitrary blobs. Notation can sign and verify any arbitrary bag of bits like zip files, documents, executables, etc. When a user signs a blob, `notation` produces a detached signature, which the user can transport/distribute using any medium that the user prefers along with the original blob. On the verification side, Notation can verify the blob's signature and assert that the blob has not been tampered with during its transmission.
 
-Users can use `notation blob policy` command to manage trust policies for verifying a blob signature. The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
+The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show blob trust policy configuration, import/export a blob trust policy configuration file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
 
-The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample trust policy file, contains three different statements for different usecases:
+The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample trust policy file, contains three different statements for different use cases:
 
-- The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
-- Policy named "skip-verification-policy" is for skipping verification on blob artifacts.
-- Policy "global-verification-policy" is for auditing verification results when user does not provide `--policy-name` argument in `notation blob verify` command.
+- The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
+- The policy named "skip-verification-policy" is for skipping verification on blob artifacts.
+- The policy "global-verification-policy" is for auditing verification results when user does not set the `--policy-name` flag in `notation blob verify` command.
 
 ```jsonc
 {
@@ -160,21 +160,20 @@ Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
-      --signature string      location of the blob signature file
-      --media-type string     optional media type of the blob to verify
-      --policy-name string    optional policy name to verify against. If not provided, notation verifies against the global policy if it exists.
-  -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -d, --debug                       debug mode
+  -h, --help                        help for verify
+      --media-type string           media type of the blob to verify
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-  -o, --output string         output format, options: 'json', 'text' (default "text")
-  -d, --debug                 debug mode
-  -v, --verbose               verbose mode
-  -h, --help                  help for inspect
+      --policy-name string          policy name to verify against. If not provided, the global policy is used if exists
+      --signature string            filepath of the signature to be verified
+  -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
+  -v, --verbose                     verbose mode
 ```
 
 ## Usage
 
 ## Produce blob signatures
-The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig". For example, signature file name for "myBlob.bin" will be "myBlob.bin.jws.sig" for JWS signature format or "myBlob.bin.cose.sig" for COSE signature format.
+The signature file will be written to the currently working directory with file name `{blob file name}.{signature format}.sig`. For example, signature file name for "myBlob.bin" will be "myBlob.bin.jws.sig" for JWS signature format or "myBlob.bin.cose.sig" for COSE signature format.
 
 ### Sign a blob by adding a new key
 
@@ -379,10 +378,10 @@ The steps to update blob trust policy configuration:
    ```
 
 ## Verify blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with Policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
 
-- The Policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
-- Policy  named "global-verification-policy" is for auditing verification results when user doesn't not provide `--policy-name` argument in `notation blob verify` command.
+- The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
+- The policy named "global-verification-policy" is for auditing verification results when user does not set the `--policy-name` flag in `notation blob verify` command.
 
 ```jsonc
 {
@@ -432,7 +431,7 @@ notation blob verify --signature /tmp/my-blob.bin.jws.sig /tmp/my-blob.bin
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.jws.sig
+Successfully verified signature for /tmp/my-blob.bin
 ```
 
 ### Verify the signature with user metadata
@@ -447,7 +446,7 @@ notation blob verify --user-metadata io.wabbit-networks.buildId=123 --signature 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.jws.sig
+Successfully verified signature for /tmp/my-blob.bin
 
 The signature contains the following user metadata:
 
@@ -458,7 +457,7 @@ io.wabbit-networks.buildId  123
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed: unable to find specified metadata in the given signature
+Error: signature verification failed: unable to find specified metadata in the signature
 ```
 
 ### Verify the signature with media type
@@ -473,16 +472,13 @@ notation blob verify --media-type application/my-media-octet-stream --signature 
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature /tmp/my-blob.bin.jws.sig
-
-The blob is of media type `application/my-media-octet-stream`.
-
+Successfully verified signature for /tmp/my-blob.bin
 ```
 
-An example of output messages for an unsuccessful verification:
+An example of output messages for a failed verification:
 
 ```text
-Error: Signature verification failed due to a mismatch in the blob's media type 'application/xyz' and the expected type 'application/my-media-octet-stream'.
+Error: signature verification failed: integrity check failed. signature does not match the given blob
 ```
 
 ### Verify the signature using a policy name
@@ -496,11 +492,11 @@ notation blob verify --policy-name wabbit-networks-policy --signature ./sigs/my-
 An example of output messages for a successful verification:
 
 ```text
-Successfully verified signature ./sigs/my-blob.bin.jws.sig using policy `wabbit-networks-policy`
+Successfully verified signature for ./blobs/my-blob.bin
 
 ```
 An example of output messages for an unsuccessful verification:
 
 ```text
-Error: signature verification failed for policy `wabbit-networks-policy`
+Error: signature verification failed: no applicable blob trust policy with name "wabbit-networks-policy"
 ```

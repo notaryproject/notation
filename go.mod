@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/notaryproject/notation-core-go v1.2.0
-	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250115061529-96b71337184c
+	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250122072255-6eb53a50d69e
 	github.com/notaryproject/tspclient-go v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0

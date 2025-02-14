@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package signer
 
 import (
 	"context"
@@ -21,6 +21,7 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/signer"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
@@ -31,7 +32,7 @@ type Signer interface {
 }
 
 // GetSigner returns a Signer based on user opts.
-func GetSigner(ctx context.Context, opts *SignerFlagOpts) (Signer, error) {
+func GetSigner(ctx context.Context, opts *cmd.SignerFlagOpts) (Signer, error) {
 	// Check if using on-demand key
 	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
 		// Construct a signer from on-demand key

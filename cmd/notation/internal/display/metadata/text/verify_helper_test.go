@@ -47,7 +47,7 @@ func TestPrintMetadataIfPresent(t *testing.T) {
 		buf := bytes.Buffer{}
 		printer := output.NewPrinter(&buf, &buf)
 		h := NewVerifyHandler(printer)
-		h.printMetadataIfPresent(outcome)
+		printUserMetadataIfPresent(h.printer, outcome)
 		got := buf.String()
 		expected := "\nThe artifact was signed with the following user metadata.\n\nKEY   VALUE   \nfoo   bar     \n"
 		if got != expected {
