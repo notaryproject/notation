@@ -1,0 +1,19 @@
+[ req ]
+default_bits = 2048
+prompt = no
+distinguished_name = leaf_distinguished_name
+req_extensions = v3_req
+
+[ leaf_distinguished_name ]
+C = US
+ST = State
+L = City
+O = Organization
+OU = OrgUnit
+CN = LeafCert
+
+[ v3_req ]
+basicConstraints       = critical,CA:FALSE
+keyUsage               = critical,digitalSignature
+authorityInfoAccess    = OCSP;URI:http://localhost:10087
+subjectKeyIdentifier   = hash

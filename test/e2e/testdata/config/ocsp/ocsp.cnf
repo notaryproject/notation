@@ -1,0 +1,40 @@
+[ ca ]
+default_ca = CA_default
+
+[ CA_default ]
+dir               = demoCA
+database          = demoCA/index.txt
+new_certs_dir     = demoCA/newcerts
+certificate       = root.crt
+serial            = demoCA/serial
+private_key       = root.key
+default_days      = 3650
+default_md        = sha256
+policy            = policy_strict
+
+[ policy_strict ]
+countryName             = match
+stateOrProvinceName     = match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+default_bits       = 2048
+prompt             = no
+distinguished_name = ocsp_distinguished_name
+req_extensions     = v3_ocsp
+
+[ ocsp_distinguished_name ]
+C  = US
+ST = State
+L  = City
+O  = Organization
+OU = OrgUnit
+CN = OCSPResponder
+
+[ v3_ocsp ]
+extendedKeyUsage       = critical,OCSPSigning
+keyUsage               = critical,digitalSignature
+subjectKeyIdentifier   = hash

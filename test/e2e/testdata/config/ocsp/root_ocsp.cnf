@@ -1,0 +1,23 @@
+[ req ]
+default_bits       = 2048
+prompt             = no
+distinguished_name = root_distinguished_name
+x509_extensions    = v3_ca
+
+[ root_distinguished_name ]
+C  = US
+ST = State
+L  = City
+O  = Organization
+OU = OrgUnit
+CN = RootCA
+
+[ v3_ca ]
+basicConstraints       = critical,CA:TRUE
+keyUsage               = critical,keyCertSign,cRLSign
+subjectKeyIdentifier   = hash
+
+[ v3_ocsp ]
+extendedKeyUsage       = critical,OCSPSigning
+keyUsage               = critical,digitalSignature
+subjectKeyIdentifier   = hash

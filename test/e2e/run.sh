@@ -99,12 +99,18 @@ setup_registry
 python3 ./scripts/crl_server.py &
 CRL_SERVER_PID=$!
 
+# run the OCSP server in the background
+python3 ./scripts/ocsp_server.py --config-dir ./testdata/config/ocsp &
+OCSP_SERVER_PID=$!
+
 # defer cleanup registry
 function cleanup {
     echo "Cleaning up..."
     cleanup_registry
     echo "Stopping CRL server..."
     kill $CRL_SERVER_PID
+    echo "Stopping OCSP server..."
+    kill $OCSP_SERVER_PID
 }
 trap cleanup EXIT
 
