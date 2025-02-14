@@ -24,8 +24,8 @@ import (
 
 const (
 	NotationDirName     = "notation"
-	TrustPolicyName     = "trustpolicy.json"
 	BlobTrustPolicyName = "trustpolicy.blob.json"
+	TrustPolicyName     = "trustpolicy.json"
 	TrustStoreDirName   = "truststore"
 	TrustStoreTypeCA    = "ca"
 	PluginDirName       = "plugins"
@@ -49,6 +49,7 @@ const (
 	envKeyTestRepo                          = "NOTATION_E2E_TEST_REPO"
 	envKeyTestTag                           = "NOTATION_E2E_TEST_TAG"
 	envKeyBlobPath                          = "NOTATION_E2E_BLOB_PATH"
+	envKeyNotationE2EBlobTrustPolicyPath    = "NOTATION_E2E_BLOB_TRUST_POLICY_PATH"
 )
 
 var (
@@ -74,6 +75,7 @@ var (
 	TestTag             string
 	RegistryStoragePath string
 	BlobPath            string
+	BlobTrustPolicyPath string
 )
 
 func init() {
@@ -90,6 +92,7 @@ func setUp() {
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
 	setPathValue(envKeyBlobPath, &BlobPath)
+	setPathValue(envKeyNotationE2EBlobTrustPolicyPath, &BlobTrustPolicyPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)
 }

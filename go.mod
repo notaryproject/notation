@@ -4,14 +4,14 @@ go 1.23
 
 require (
 	github.com/notaryproject/notation-core-go v1.2.0
-	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250115061529-96b71337184c
+	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250122072255-6eb53a50d69e
 	github.com/notaryproject/tspclient-go v1.0.0
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.6
-	golang.org/x/term v0.28.0
+	golang.org/x/term v0.29.0
 	oras.land/oras-go/v2 v2.5.0
 )
 
@@ -29,5 +29,5 @@ require (
 	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 )

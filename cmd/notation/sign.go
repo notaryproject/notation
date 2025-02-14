@@ -26,6 +26,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/signer"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
@@ -162,7 +163,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	signer, err := cmd.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	signer, err := signer.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
 	if err != nil {
 		return err
 	}

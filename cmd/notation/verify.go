@@ -14,27 +14,19 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 
-	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation-go/verifier"
-	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation-go/verifier/truststore"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"github.com/notaryproject/notation/cmd/notation/internal/verifier"
 	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
-
-	clirev "github.com/notaryproject/notation/internal/revocation"
 )
 
 type verifyOpts struct {
@@ -119,15 +111,14 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
-	displayHandler := display.NewVerifyHandler(opts.Printer)
-
 	// initialize
-	sigVerifier, err := getVerifier(ctx)
+	displayHandler := display.NewVerifyHandler(opts.Printer)
+	sigVerifier, err := verifier.GetVerifier(ctx)
 	if err != nil {
 		return err
 	}
 
-	// set up verification plugin config.
+	// set up verification plugin config
 	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
 	if err != nil {
 		return err
@@ -161,66 +152,10 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
-	err = checkVerificationFailure(outcomes, resolvedRef, err)
+	err = ioutil.ComposeVerificationFailurePrintout(outcomes, resolvedRef, err)
 	if err != nil {
 		return err
 	}
 	displayHandler.OnVerifySucceeded(outcomes, resolvedRef)
 	return displayHandler.Render()
-}
-
-func checkVerificationFailure(outcomes []*notation.VerificationOutcome, printOut string, err error) error {
-	// write out on failure
-	if err != nil || len(outcomes) == 0 {
-		if err != nil {
-			var errTrustStore truststore.TrustStoreError
-			if errors.As(err, &errTrustStore) {
-				if errors.Is(err, fs.ErrNotExist) {
-					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
-				} else {
-					return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
-				}
-			}
-
-			var errCertificate truststore.CertificateError
-			if errors.As(err, &errCertificate) {
-				if errors.Is(err, fs.ErrNotExist) {
-					return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
-				} else {
-					return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
-				}
-			}
-
-			var errorVerificationFailed notation.ErrorVerificationFailed
-			if !errors.As(err, &errorVerificationFailed) {
-				return fmt.Errorf("signature verification failed: %w", err)
-			}
-		}
-		return fmt.Errorf("signature verification failed for all the signatures associated with %s", printOut)
-	}
-	return nil
-}
-
-func getVerifier(ctx context.Context) (notation.Verifier, error) {
-	// revocation check
-	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
-	if err != nil {
-		return nil, err
-	}
-	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
-	if err != nil {
-		return nil, err
-	}
-
-	// trust policy and trust store
-	policyDocument, err := trustpolicy.LoadOCIDocument()
-	if err != nil {
-		return nil, err
-	}
-	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
-
-	return verifier.NewVerifierWithOptions(policyDocument, nil, x509TrustStore, plugin.NewCLIManager(dir.PluginFS()), verifier.VerifierOptions{
-		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
-		RevocationTimestampingValidator: revocationTimestampingValidator,
-	})
 }

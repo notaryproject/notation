@@ -140,14 +140,26 @@ func Opts(options ...utils.HostOption) []utils.HostOption {
 	return options
 }
 
-// BaseOptions returns a list of base Options for a valid notation.
+// BaseOptions returns a list of base Options for a valid notation
 // testing environment.
 func BaseOptions() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
 		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
-		AddTrustPolicyOption("trustpolicy.json"),
+		AddTrustPolicyOption("trustpolicy.json", false),
+	)
+}
+
+// BaseBlobOptions returns a list of base blob options for a valid notation
+// testing environment.
+func BaseBlobOptions() []utils.HostOption {
+	return Opts(
+		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
+		AddTrustPolicyOption("trustpolicy.blob.json", true),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer")),
+		AddTimestampTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer")),
 	)
 }
 
@@ -156,9 +168,9 @@ func BaseOptions() []utils.HostOption {
 func TimestampOptions(verifyTimestamp string) []utils.HostOption {
 	var trustPolicyOption utils.HostOption
 	if verifyTimestamp == "afterCertExpiry" {
-		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy.json")
+		trustPolicyOption = AddTrustPolicyOption("timestamp_after_cert_expiry_trustpolicy.json", false)
 	} else {
-		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json")
+		trustPolicyOption = AddTrustPolicyOption("timestamp_trustpolicy.json", false)
 	}
 
 	return Opts(
@@ -176,7 +188,7 @@ func CRLOptions() []utils.HostOption {
 		AuthOption("", ""),
 		AddKeyOption(filepath.Join(NotationE2EConfigPath, "crl", "leaf.key"), filepath.Join(NotationE2EConfigPath, "crl", "certchain_with_crl.pem")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "crl", "root.crt")),
-		AddTrustPolicyOption("trustpolicy.json"),
+		AddTrustPolicyOption("trustpolicy.json", false),
 	)
 }
 
@@ -185,7 +197,7 @@ func BaseOptionsWithExperimental() []utils.HostOption {
 		AuthOption("", ""),
 		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
-		AddTrustPolicyOption("trustpolicy.json"),
+		AddTrustPolicyOption("trustpolicy.json", false),
 		EnableExperimental(),
 	)
 }
@@ -196,7 +208,7 @@ func TestLoginOptions() []utils.HostOption {
 	return Opts(
 		AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
-		AddTrustPolicyOption("trustpolicy.json"),
+		AddTrustPolicyOption("trustpolicy.json", false),
 		AddConfigJsonOption("pass_credential_helper_config.json"),
 	)
 }
@@ -251,7 +263,15 @@ func AddTimestampTrustStoreOption(namedstore string, srcCertPath string) utils.H
 }
 
 // AddTrustPolicyOption adds a valid trust policy for testing.
-func AddTrustPolicyOption(trustpolicyName string) utils.HostOption {
+func AddTrustPolicyOption(trustpolicyName string, isBlob bool) utils.HostOption {
+	if isBlob {
+		return func(vhost *utils.VirtualHost) error {
+			return copyFile(
+				filepath.Join(BlobTrustPolicyPath, trustpolicyName),
+				vhost.AbsolutePath(NotationDirName, BlobTrustPolicyName),
+			)
+		}
+	}
 	return func(vhost *utils.VirtualHost) error {
 		return copyFile(
 			filepath.Join(NotationE2ETrustPolicyDir, trustpolicyName),
