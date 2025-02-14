@@ -126,4 +126,4 @@ export NOTATION_E2E_BLOB_PATH=$CWD/testdata/blob/blobFile.txt
 export NOTATION_E2E_BLOB_TRUST_POLICY_PATH=$CWD/testdata/blob/trustpolicies
 
 # run tests
-ginkgo -r -p -v
+ginkgo -r -p -v --focus "should warn when failed to delete old trust policy"

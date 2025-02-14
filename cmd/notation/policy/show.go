@@ -65,7 +65,7 @@ func runShow(command *cobra.Command, opts showOpts) error {
 		err = doc.Validate()
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Existing OCI trust policy file is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-blobs for a blob trust policy example.\n")
+		fmt.Fprintf(os.Stderr, "Existing OCI trust policy file is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-oci-artifacts for a trust policy example.\n")
 		os.Stdout.Write(policyJSON)
 		return err
 	}

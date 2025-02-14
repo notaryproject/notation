@@ -217,5 +217,24 @@ var _ = Describe("trust policy maintainer", func() {
 				notation.Exec("policy", "show").MatchContent(string(content))
 			})
 		})
+
+		It("should warn when failed to delete old trust policy", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
+				if err := os.Chmod(trustPolicyPath, 0000); err != nil {
+					Fail("failed to change trust policy permission")
+				}
+				defer os.Chmod(trustPolicyPath, 0600)
+
+				policyFileName := "trustpolicy.json"
+				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
+					MatchKeyWords(
+						"Warning: existing OCI trust policy configuration file will be overwritten",
+						"Successfully imported OCI trust policy file.",
+					).
+					MatchErrKeyWords("Warning: failed to clean old trust policy file")
+
+			})
+		})
 	})
 })
