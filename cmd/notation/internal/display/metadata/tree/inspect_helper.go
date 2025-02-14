@@ -26,17 +26,17 @@ import (
 
 	coresignature "github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
-	"github.com/notaryproject/notation/internal/envelope"
+	envelopeutil "github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-func newSignatureNode(nodeName, signatureMediaType string, sigEnvelope coresignature.Envelope) (*node, error) {
-	envelopeContent, err := sigEnvelope.Content()
+func newSignatureNode(nodeName, signatureMediaType string, envelope coresignature.Envelope) (*node, error) {
+	envelopeContent, err := envelope.Content()
 	if err != nil {
 		return nil, err
 	}
-	signedArtifactDesc, err := envelope.DescriptorFromSignaturePayload(&envelopeContent.Payload)
+	signedArtifactDesc, err := envelopeutil.DescriptorFromSignaturePayload(&envelopeContent.Payload)
 	if err != nil {
 		return nil, err
 	}

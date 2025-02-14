@@ -124,14 +124,14 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			return nil
 		}
 
-		sigEnvelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
+		envelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
 		if err != nil {
 			logSkippedSignature(sigManifestDesc, err)
 			skippedSignatures = true
 			return nil
 		}
 
-		if err := displayHandler.InspectSignature(sigManifestDesc, sigDesc, sigEnvelope); err != nil {
+		if err := displayHandler.InspectSignature(sigManifestDesc, sigDesc, envelope); err != nil {
 			logSkippedSignature(sigManifestDesc, err)
 			skippedSignatures = true
 			return nil

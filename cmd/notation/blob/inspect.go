@@ -17,7 +17,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
@@ -40,6 +39,9 @@ func inspectCommand() *cobra.Command {
 
 Example - Inspect a signature:
   notation blob inspect blob.cose.sig
+
+Example - Inspect a signature and output as JSON:
+  notation blob inspect -o json blob.cose.sig
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
@@ -68,7 +70,7 @@ func runInspect(opts *inspectOpts) error {
 	}
 
 	// parse signature file
-	envelopeMediaType, err := parseSignatureMediaType(filepath.Base(opts.sigPath))
+	signatureMediaType, err := parseSignatureMediaType(opts.sigPath)
 	if err != nil {
 		return err
 	}
@@ -76,11 +78,11 @@ func runInspect(opts *inspectOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to read signature file: %w", err)
 	}
-	sigEnvelope, err := signature.ParseEnvelope(envelopeMediaType, envelopeBytes)
+	envelope, err := signature.ParseEnvelope(signatureMediaType, envelopeBytes)
 	if err != nil {
 		return fmt.Errorf("failed to parse signature: %w", err)
 	}
-	if err := displayHandler.OnEnvelopeParsed(opts.sigPath, envelopeMediaType, sigEnvelope); err != nil {
+	if err := displayHandler.OnEnvelopeParsed(opts.sigPath, signatureMediaType, envelope); err != nil {
 		return err
 	}
 
