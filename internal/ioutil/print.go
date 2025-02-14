@@ -96,29 +96,31 @@ func ComposeBlobVerificationFailurePrintout(outcomes []*notation.VerificationOut
 
 // parseErrorOnVerificationFailure parses error on verification failure.
 func parseErrorOnVerificationFailure(err error) error {
-	if err != nil {
-		var errTrustStore truststore.TrustStoreError
-		if errors.As(err, &errTrustStore) {
-			if errors.Is(err, fs.ErrNotExist) {
-				return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
-			} else {
-				return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
-			}
-		}
+	if err == nil {
+		return nil
+	}
 
-		var errCertificate truststore.CertificateError
-		if errors.As(err, &errCertificate) {
-			if errors.Is(err, fs.ErrNotExist) {
-				return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
-			} else {
-				return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
-			}
+	var errTrustStore truststore.TrustStoreError
+	if errors.As(err, &errTrustStore) {
+		if errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errTrustStore)
+		} else {
+			return fmt.Errorf("%w. %w", errTrustStore, errTrustStore.InnerError)
 		}
+	}
 
-		var errorVerificationFailed notation.ErrorVerificationFailed
-		if !errors.As(err, &errorVerificationFailed) {
-			return fmt.Errorf("signature verification failed: %w", err)
+	var errCertificate truststore.CertificateError
+	if errors.As(err, &errCertificate) {
+		if errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("%w. Use command 'notation cert add' to create and add trusted certificates to the trust store", errCertificate)
+		} else {
+			return fmt.Errorf("%w. %w", errCertificate, errCertificate.InnerError)
 		}
+	}
+
+	var errorVerificationFailed notation.ErrorVerificationFailed
+	if !errors.As(err, &errorVerificationFailed) {
+		return fmt.Errorf("signature verification failed: %w", err)
 	}
 	return nil
 }
