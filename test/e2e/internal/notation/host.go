@@ -192,6 +192,15 @@ func CRLOptions() []utils.HostOption {
 	)
 }
 
+func OCSPOptions() []utils.HostOption {
+	return Opts(
+		AuthOption("", ""),
+		AddKeyOption(filepath.Join(NotationE2EConfigPath, "ocsp", "leaf.key"), filepath.Join(NotationE2EConfigPath, "ocsp", "certchain_with_ocsp.pem")),
+		AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "ocsp", "root.crt")),
+		AddTrustPolicyOption("trustpolicy.json"),
+	)
+}
+
 func BaseOptionsWithExperimental() []utils.HostOption {
 	return Opts(
 		AuthOption("", ""),
