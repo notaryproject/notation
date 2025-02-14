@@ -64,7 +64,6 @@ func main() {
 		logoutCommand(nil),
 		versionCommand(),
 		inspectCommand(nil),
-		blob.Cmd(),
 	)
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

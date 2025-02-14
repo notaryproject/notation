@@ -54,3 +54,16 @@ type VerifyHandler interface {
 	// outcomes must not be nil or empty.
 	OnVerifySucceeded(outcomes []*notation.VerificationOutcome, digestReference string)
 }
+
+// BlobVerifyHandler is a handler for rendering metadata information of
+// blob verification outcome.
+//
+// It only supports text format for now.
+type BlobVerifyHandler interface {
+	Renderer
+
+	// OnVerifySucceeded sets the successful verification result for the handler.
+	//
+	// outcomes must not be nil or empty.
+	OnVerifySucceeded(outcomes []*notation.VerificationOutcome, blobPath string)
+}

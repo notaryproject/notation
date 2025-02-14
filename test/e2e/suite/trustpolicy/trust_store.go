@@ -25,7 +25,7 @@ import (
 var _ = Describe("notation trust policy trust store test", func() {
 	It("unset trust store", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("unset_trust_store_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("unset_trust_store_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
@@ -36,7 +36,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 	It("invalid trust store", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("invalid_trust_store_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("invalid_trust_store_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
@@ -47,7 +47,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 	It("malformed trust store", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("malformed_trust_store_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("malformed_trust_store_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
@@ -58,7 +58,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 	It("wildcard (malformed) trust store", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			vhost.SetOption(AddTrustPolicyOption("wildcard_trust_store_trustpolicy.json"))
+			vhost.SetOption(AddTrustPolicyOption("wildcard_trust_store_trustpolicy.json", false))
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
@@ -79,7 +79,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 			// setup multiple trust store
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("multiple_trust_store_trustpolicy.json"),
+				AddTrustPolicyOption("multiple_trust_store_trustpolicy.json", false),
 				AddTrustStoreOption("e2e-new", filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt")),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")),
 			)
@@ -103,7 +103,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 			// setup overlapped trust store
 			vhost.SetOption(AuthOption("", ""),
-				AddTrustPolicyOption("overlapped_trust_store_trustpolicy.json"),
+				AddTrustPolicyOption("overlapped_trust_store_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")))
 
 			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").

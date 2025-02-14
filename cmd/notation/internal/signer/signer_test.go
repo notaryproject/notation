@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package signer
 
 import (
 	"context"
@@ -21,6 +21,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signer"
+	"github.com/notaryproject/notation/internal/cmd"
 )
 
 func TestGenericSignerImpl(t *testing.T) {
@@ -56,7 +57,7 @@ func TestGetSignerFromOpts(t *testing.T) {
 
 	dir.UserLibexecDir = "./testdata/plugins"
 	ctx := context.Background()
-	opts := &SignerFlagOpts{
+	opts := &cmd.SignerFlagOpts{
 		KeyID:      "testKeyId",
 		PluginName: "testPlugin",
 	}
@@ -85,7 +86,7 @@ func TestGetSignerFromConfig(t *testing.T) {
 	dir.UserLibexecDir = "./testdata/plugins"
 	dir.UserConfigDir = "./testdata/valid_signingkeys"
 	ctx := context.Background()
-	opts := &SignerFlagOpts{
+	opts := &cmd.SignerFlagOpts{
 		Key: "test",
 	}
 
@@ -102,7 +103,7 @@ func TestGetSignerFromConfig(t *testing.T) {
 
 func TestGetFailed(t *testing.T) {
 	ctx := context.Background()
-	opts := &SignerFlagOpts{}
+	opts := &cmd.SignerFlagOpts{}
 
 	defer func(oldLibexeDir, oldConfigDir string) {
 		dir.UserLibexecDir = oldLibexeDir
@@ -126,7 +127,7 @@ func TestGetSignerFailed(t *testing.T) {
 	}(dir.UserLibexecDir, dir.UserConfigDir)
 
 	t.Run("get failed", func(t *testing.T) {
-		opts := &SignerFlagOpts{}
+		opts := &cmd.SignerFlagOpts{}
 		dir.UserLibexecDir = "./testdata/plugins"
 		dir.UserConfigDir = "./testdata/invalid_signingkeys"
 		_, err := GetSigner(ctx, opts)
@@ -142,7 +143,7 @@ func TestGetSignerFailed(t *testing.T) {
 
 		dir.UserLibexecDir = "./testdata/plugins"
 		dir.UserConfigDir = "./testdata/invalid_signingkeys"
-		opts := &SignerFlagOpts{
+		opts := &cmd.SignerFlagOpts{
 			KeyID:      "test",
 			PluginName: "invalid",
 		}
@@ -156,7 +157,7 @@ func TestGetSignerFailed(t *testing.T) {
 	t.Run("failed to resolve key", func(t *testing.T) {
 		dir.UserConfigDir = "./testdata/valid_signingkeys"
 		expectedErrMsg := `default signing key not set. Please set default signing key or specify a key name`
-		_, err := GetSigner(ctx, &SignerFlagOpts{})
+		_, err := GetSigner(ctx, &cmd.SignerFlagOpts{})
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -165,7 +166,7 @@ func TestGetSignerFailed(t *testing.T) {
 	t.Run("keypath not specified", func(t *testing.T) {
 		dir.UserConfigDir = "./testdata/invalid_signingkeys"
 		expectedErrMsg := `key path not specified`
-		opts := &SignerFlagOpts{
+		opts := &cmd.SignerFlagOpts{
 			Key: "invalid",
 		}
 		_, err := GetSigner(ctx, opts)
@@ -177,7 +178,7 @@ func TestGetSignerFailed(t *testing.T) {
 	t.Run("key not found", func(t *testing.T) {
 		dir.UserConfigDir = "./testdata/valid_signingkeys"
 		expectedErrMsg := `signing key not found`
-		opts := &SignerFlagOpts{
+		opts := &cmd.SignerFlagOpts{
 			Key: "test2",
 		}
 		_, err := GetSigner(ctx, opts)
@@ -194,7 +195,7 @@ func TestGetSignerFailed(t *testing.T) {
 		dir.UserLibexecDir = "./testdata/plugins"
 		dir.UserConfigDir = "./testdata/invalid_signingkeys"
 		expectedErrMsg := `plugin executable file is either not found or inaccessible: stat testdata/plugins/plugins/invalid/notation-invalid: no such file or directory`
-		opts := &SignerFlagOpts{
+		opts := &cmd.SignerFlagOpts{
 			Key: "invalidExternal",
 		}
 		_, err := GetSigner(ctx, opts)
@@ -206,7 +207,7 @@ func TestGetSignerFailed(t *testing.T) {
 	t.Run("empty key", func(t *testing.T) {
 		dir.UserConfigDir = "./testdata/invalid_signingkeys"
 		expectedErrMsg := `unsupported key, either provide a local key and certificate file paths, or a key name in config.json, check https://notaryproject.dev/docs/user-guides/how-to/notation-config-file/ for details`
-		opts := &SignerFlagOpts{
+		opts := &cmd.SignerFlagOpts{
 			Key: "empty",
 		}
 		_, err := GetSigner(ctx, opts)
