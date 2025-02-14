@@ -18,12 +18,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/spf13/cobra"
 )
 
@@ -70,7 +68,7 @@ func runInspect(opts *inspectOpts) error {
 	}
 
 	// parse signature file
-	envelopeMediaType, err := parseEnvelopeMediaType(filepath.Base(opts.sigPath))
+	envelopeMediaType, err := parseSignatureMediaType(filepath.Base(opts.sigPath))
 	if err != nil {
 		return err
 	}
@@ -87,13 +85,4 @@ func runInspect(opts *inspectOpts) error {
 	}
 
 	return displayHandler.Render()
-}
-
-// parseEnvelopeMediaType returns the envelope media type based on the filename.
-func parseEnvelopeMediaType(filename string) (string, error) {
-	parts := strings.Split(filename, ".")
-	if len(parts) < 3 || parts[len(parts)-1] != "sig" {
-		return "", fmt.Errorf("invalid signature filename: %s", filename)
-	}
-	return envelope.GetEnvelopeMediaType(strings.ToLower(parts[len(parts)-2]))
 }
