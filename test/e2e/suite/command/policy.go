@@ -30,7 +30,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to show trust policy", "notation policy import")
+					MatchErrKeyWords("failed to show OCI trust policy", "notation policy import")
 			})
 		})
 
@@ -40,7 +40,7 @@ var _ = Describe("trust policy maintainer", func() {
 				os.Chmod(trustPolicyPath, 0200)
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to show trust policy", "permission denied")
+					MatchErrKeyWords("failed to show OCI trust policy", "permission denied")
 			})
 		})
 
@@ -58,8 +58,8 @@ var _ = Describe("trust policy maintainer", func() {
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyName))
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddTrustPolicyOption(policyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				notation.Exec("policy", "show").
-					MatchErrKeyWords("existing trust policy configuration is invalid").
+				notation.ExpectFailure().Exec("policy", "show").
+					MatchErrKeyWords("Existing OCI trust policy file is invalid").
 					MatchContent(string(content))
 			})
 		})
@@ -186,7 +186,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(AddTrustPolicyOption("invalid_format_trustpolicy.json", false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).MatchKeyWords().
-					MatchKeyWords("Trust policy configuration imported successfully.")
+					MatchKeyWords("Successfully imported OCI trust policy file.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -198,7 +198,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.WithInput(strings.NewReader("Y\n")).Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).
-					MatchKeyWords("Trust policy configuration imported successfully.")
+					MatchKeyWords("Successfully imported OCI trust policy file.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -210,7 +210,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
-					MatchKeyWords("Trust policy configuration imported successfully.")
+					MatchKeyWords("Successfully imported OCI trust policy file.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
