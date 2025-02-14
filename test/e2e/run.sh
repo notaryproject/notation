@@ -125,4 +125,4 @@ export NOTATION_E2E_MALICIOUS_PLUGIN_ARCHIVE_PATH=$CWD/testdata/malicious-plugin
 export NOTATION_E2E_BLOB_PATH=$CWD/testdata/blob/blobFile
 
 # run tests
-ginkgo -r -p -v --focus "notation OCSP revocation check"
+ginkgo -r -p -v
