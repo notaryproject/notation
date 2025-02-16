@@ -96,7 +96,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
-	displayHandler, err := display.NewInpsectHandler(opts.Printer, opts.Format)
+	displayHandler, err := display.NewInspectHandler(opts.Printer, opts.Format)
 	if err != nil {
 		return err
 	}
@@ -124,14 +124,14 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 			return nil
 		}
 
-		sigEnvelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
+		envelope, err := signature.ParseEnvelope(sigDesc.MediaType, sigBlob)
 		if err != nil {
 			logSkippedSignature(sigManifestDesc, err)
 			skippedSignatures = true
 			return nil
 		}
 
-		if err := displayHandler.InspectSignature(sigManifestDesc, sigEnvelope); err != nil {
+		if err := displayHandler.InspectSignature(sigManifestDesc, sigDesc, envelope); err != nil {
 			logSkippedSignature(sigManifestDesc, err)
 			skippedSignatures = true
 			return nil

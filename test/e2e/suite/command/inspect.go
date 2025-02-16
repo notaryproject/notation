@@ -183,6 +183,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:53b0191218aed9a3c1f7c661736ac40cfc
 └── application/vnd.cncf.notary.signature
     └── sha256:6a5cd3a886707a317935dcaf13954fc80ef9aeb665262b6ae4fe469ad7ea3aea
         ├── signature algorithm: RSASSA-PSS-SHA-256
+        ├── signature envelope type: application/jose+json
         ├── signed attributes
         │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.x509
@@ -228,6 +229,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:53b0191218aed9a3c1f7c661736ac40cfc
     {
       "digest": "sha256:6a5cd3a886707a317935dcaf13954fc80ef9aeb665262b6ae4fe469ad7ea3aea",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+      "signatureEnvelopeType": "application/jose+json",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "expiry": "2025-01-21T12:39:46Z",
@@ -310,6 +312,7 @@ localhost:5000/e2e-inspect-invalid-timstamped@sha256:f1da8cd70d6d851fa2313c8d661
 └── application/vnd.cncf.notary.signature
     └── sha256:eee3eec7d2947f77713484753bea67879ff62c08a73a49a41151ed18c4d1c000
         ├── signature algorithm: RSASSA-PSS-SHA-256
+        ├── signature envelope type: application/jose+json
         ├── signed attributes
         │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.x509
@@ -344,6 +347,7 @@ localhost:5000/e2e-inspect-invalid-timstamped@sha256:f1da8cd70d6d851fa2313c8d661
     {
       "digest": "sha256:eee3eec7d2947f77713484753bea67879ff62c08a73a49a41151ed18c4d1c000",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+      "signatureEnvelopeType": "application/jose+json",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": "notary.x509",

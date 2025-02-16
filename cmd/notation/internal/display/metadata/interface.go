@@ -36,7 +36,16 @@ type InspectHandler interface {
 	OnReferenceResolved(reference, mediaType string)
 
 	// InspectSignature inspects a signature to get it ready to be rendered.
-	InspectSignature(manifestDesc ocispec.Descriptor, envelope signature.Envelope) error
+	InspectSignature(manifestDesc, signatureDesc ocispec.Descriptor, envelope signature.Envelope) error
+}
+
+// BlobInspectHandler is a handler for rendering metadata information of a blob
+// signature.
+type BlobInspectHandler interface {
+	Renderer
+
+	// OnEnvelopeParsed sets the parsed envelope for the handler.
+	OnEnvelopeParsed(signaturePath, signatureMediaType string, envelope signature.Envelope) error
 }
 
 // VerifyHandler is a handler for rendering metadata information of

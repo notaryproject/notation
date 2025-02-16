@@ -197,7 +197,7 @@ func OCSPOptions() []utils.HostOption {
 		AuthOption("", ""),
 		AddKeyOption(filepath.Join(NotationE2EConfigPath, "ocsp", "leaf.key"), filepath.Join(NotationE2EConfigPath, "ocsp", "certchain_with_ocsp.pem")),
 		AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "ocsp", "root.crt")),
-		AddTrustPolicyOption("trustpolicy.json"),
+		AddTrustPolicyOption("trustpolicy.json", false),
 	)
 }
 
