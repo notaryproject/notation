@@ -35,12 +35,12 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "Import trust policy configuration from a JSON file",
-		Long: `Import trust policy configuration from a JSON file.
+		Short: "Import trust policy file from a JSON file",
+		Long: `Import trust policy file from a JSON file.
 
 ** This command is in preview and under development. **
 
-Example - Import trust policy configuration from a file:
+Example - Import trust policy file from a file:
   notation policy import my_policy.json
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -54,7 +54,7 @@ Example - Import trust policy configuration from a file:
 			return runImport(cmd, opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy configuration, never prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy file, never prompt")
 	return command
 }
 
@@ -68,7 +68,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	// parse and validate
 	var doc trustpolicy.OCIDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
-		return fmt.Errorf("failed to parse OCI trust policy configuration: %w", err)
+		return fmt.Errorf("failed to parse OCI trust policy file: %w", err)
 	}
 	if err = doc.Validate(); err != nil {
 		return fmt.Errorf("failed to validate OCI trust policy: %w", err)
@@ -86,7 +86,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy configuration file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy file file will be overwritten")
 	}
 
 	// write

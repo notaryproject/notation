@@ -65,7 +65,7 @@ var _ = Describe("trust policy maintainer", func() {
 		})
 	})
 
-	When("importing configuration without existing trust policy configuration", func() {
+	When("importing configuration without existing trust policy file", func() {
 		opts := Opts()
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -123,9 +123,30 @@ var _ = Describe("trust policy maintainer", func() {
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force")
 			})
 		})
+
+		It("should failed if trust policy file malformed", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.ExpectFailure().
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, "invalid_format_trustpolicy.json")).
+					MatchErrKeyWords("failed to parse OCI trust policy file")
+			})
+		})
+
+		It("should failed if cannot write the policy file", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				if err := os.Chmod(vhost.AbsolutePath(NotationDirName), 0400); err != nil {
+					Fail(err.Error())
+				}
+				defer os.Chmod(vhost.AbsolutePath(NotationDirName), 0755)
+
+				notation.ExpectFailure().
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName)).
+					MatchErrKeyWords("failed to write OCI trust policy file")
+			})
+		})
 	})
 
-	When("importing configuration with existing trust policy configuration", func() {
+	When("importing configuration with existing trust policy file", func() {
 		opts := Opts(AddTrustPolicyOption(TrustPolicyName, false))
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -236,7 +257,7 @@ var _ = Describe("trust policy maintainer", func() {
 						"Successfully imported OCI trust policy file.",
 					).
 					MatchErrKeyWords(
-						"Warning: existing OCI trust policy configuration file will be overwritten",
+						"Warning: existing OCI trust policy file file will be overwritten",
 						"Warning: failed to clean old trust policy file",
 					)
 
