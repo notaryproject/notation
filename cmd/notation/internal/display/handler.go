@@ -65,3 +65,9 @@ func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 func NewBlobVerifyHandler(printer *output.Printer) metadata.BlobVerifyHandler {
 	return text.NewBlobVerifyHandler(printer)
 }
+
+// NewListHandler creates a new metadata ListHandler for rendering signature
+// metadata information in a tree format.
+func NewListHandler(printer *output.Printer) metadata.ListHandler {
+	return tree.NewListHandler(printer)
+}
