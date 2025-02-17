@@ -46,8 +46,8 @@ func (h *ListHandler) OnReferenceResolved(reference string) {
 	h.signaturesNode = h.root.Add(notationregistry.ArtifactTypeNotation)
 }
 
-// OnSignatureResolved adds the signature digest to the list.
-func (h *ListHandler) OnSignatureResolved(signatureManifest ocispec.Descriptor) {
+// ListSignature adds the signature digest to the tree.
+func (h *ListHandler) ListSignature(signatureManifest ocispec.Descriptor) {
 	h.signaturesNode.Add(signatureManifest.Digest.String())
 }
 
