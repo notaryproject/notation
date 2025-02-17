@@ -35,13 +35,14 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "Import trust policy file from a JSON file",
-		Long: `Import trust policy file from a JSON file.
+		Short: "Import OCI trust policy file from a JSON file",
+		Long: `Import OCI trust policy file from a JSON file.
 
-** This command is in preview and under development. **
-
-Example - Import trust policy file from a file:
+Example - Import OCI trust policy file from a file:
   notation policy import my_policy.json
+
+Example - Import OCI trust policy and override existing policy file without prompt:
+  notation policy import --force my_policy.json
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
@@ -54,7 +55,7 @@ Example - Import trust policy file from a file:
 			return runImport(cmd, opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing trust policy file, never prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing OCI trust policy file without prompt")
 	return command
 }
 

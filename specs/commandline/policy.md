@@ -74,14 +74,14 @@ To get started, user can refer to the following trust policy configuration sampl
 ### notation policy command
 
 ```text
-Manage trust policy configuration for OCI artifact signature verification.
+Manage OCI trust policy file for OCI artifact signature verification.
 
 Usage:
   notation policy [command]
 
 Available Commands:
-  import    import trust policy configuration from a JSON file
-  show      show trust policy configuration
+  import    import OCI trust policy file from a JSON file
+  show      show OCI trust policy file
 
 Flags:
   -h, --help   help for policy
@@ -90,20 +90,20 @@ Flags:
 ### notation policy import
 
 ```text
-Import OCI trust policy configuration from a JSON file
+Import OCI trust policy file from a JSON file.
 
 Usage:
   notation policy import [flags] <file_path>
 
 Flags:
-      --force     override the existing trust policy configuration, never prompt
+      --force     override the existing OCI trust policy file without prompt
   -h, --help      help for import
 ```
 
 ### notation policy show
 
 ```text
-Show OCI trust policy configuration
+Show OCI trust policy file
 
 Usage:
   notation policy show [flags]

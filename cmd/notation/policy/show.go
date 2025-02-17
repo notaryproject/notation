@@ -32,15 +32,13 @@ func showCmd() *cobra.Command {
 	var opts showOpts
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "Show trust policy configuration",
-		Long: `Show trust policy configuration.
+		Short: "Show OCI trust policy file",
+		Long: `Show OCI trust policy file.
 
-** This command is in preview and under development. **
-
-Example - Show current trust policy configuration:
+Example - Show current OCI trust policy file:
   notation policy show
 
-Example - Save current trust policy configuration to a file:
+Example - Save current OCI trust policy file to a file:
   notation policy show > my_policy.json
 `,
 		Args: cobra.ExactArgs(0),
