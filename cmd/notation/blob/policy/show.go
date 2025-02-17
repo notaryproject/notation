@@ -17,7 +17,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 
@@ -29,13 +28,13 @@ import (
 func showCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "Show blob trust policy configuration",
-		Long: `Show blob trust policy configuration.
+		Short: "Show blob trust policy file",
+		Long: `Show blob trust policy file.
 
-Example - Show current blob trust policy configuration:
+Example - Show current blob trust policy file:
   notation blob policy show
 
-Example - Save current blob trust policy configuration to a file:
+Example - Save current blob trust policy file to a file:
   notation blob policy show > my_policy.json
 `,
 		Args: cobra.ExactArgs(0),
@@ -47,7 +46,7 @@ Example - Save current blob trust policy configuration to a file:
 }
 
 func runShow() error {
-	policyJSON, err := loadBlobTrustPolicy()
+	policyJSON, err := fs.ReadFile(dir.ConfigFS(), dir.PathBlobTrustPolicy)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show blob trust policy as the trust policy file does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
@@ -67,15 +66,4 @@ func runShow() error {
 	// show policy content
 	_, err = os.Stdout.Write(policyJSON)
 	return err
-}
-
-// loadBlobTrustPolicy loads the blob trust policy from notation configuration
-// directory.
-func loadBlobTrustPolicy() ([]byte, error) {
-	f, err := dir.ConfigFS().Open(dir.PathBlobTrustPolicy)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return io.ReadAll(f)
 }

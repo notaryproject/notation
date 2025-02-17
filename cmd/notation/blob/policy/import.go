@@ -34,10 +34,10 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "Import blob trust policy configuration from a JSON file",
-		Long: `Import blob trust policy configuration from a JSON file.
+		Short: "Import blob trust policy file from a JSON file",
+		Long: `Import blob trust policy file from a JSON file.
 
-Example - Import blob trust policy configuration from a file:
+Example - Import blob trust policy file from a file:
   notation blob policy import my_policy.json
 
 Example - Import blob trust policy and override existing configuration without prompt:
@@ -54,7 +54,7 @@ Example - Import blob trust policy and override existing configuration without p
 			return runImport(opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration without prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy file without prompt")
 	return command
 }
 
@@ -67,7 +67,7 @@ func runImport(opts importOpts) error {
 
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
-		return fmt.Errorf("failed to parse blob trust policy configuration: %w", err)
+		return fmt.Errorf("failed to parse blob trust policy file: %w", err)
 	}
 	if err = doc.Validate(); err != nil {
 		return fmt.Errorf("failed to validate blob trust policy: %w", err)

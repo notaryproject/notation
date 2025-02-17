@@ -22,8 +22,8 @@ import (
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "policy [command]",
-		Short: "Manage trust policy configuration for signed blobs",
-		Long:  "Manage trust policy configuration for arbitrary blob signature verification.",
+		Short: "Manage blob trust policy file for arbitrary blob signature verification",
+		Long:  "Manage blob trust policy file for arbitrary blob signature verification.",
 	}
 
 	command.AddCommand(

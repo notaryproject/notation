@@ -67,7 +67,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 		})
 	})
 
-	When("importing configuration without existing trust policy configuration", func() {
+	When("importing configuration without existing trust policy file", func() {
 		opts := Opts()
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -135,7 +135,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 		})
 	})
 
-	When("importing configuration with existing trust policy configuration", func() {
+	When("importing configuration with existing trust policy file", func() {
 		opts := Opts(AddBlobTrustPolicyOption(validBlobTrustPolicyName))
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
