@@ -72,17 +72,17 @@ var _ = Describe("notation list", func() {
 			}
 
 			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
-				MatchKeyWords(
-					"└── application/vnd.cncf.notary.signature",
-					"└── sha256:90ceaff260d657d797c408ac73564a9c7bb9d86055877c2a811f0e63b8c6524f",
-				)
+				MatchContent(ociLayout.ReferenceWithDigest() + `
+└── application/vnd.cncf.notary.signature
+    └── sha256:90ceaff260d657d797c408ac73564a9c7bb9d86055877c2a811f0e63b8c6524f
+`)
 		})
 	})
 
 	It("oci-layout with no signature", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
 			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
-				MatchKeyWords("has no associated signature")
+				MatchContent(ociLayout.ReferenceWithDigest() + " has no associated signatures\n")
 		})
 	})
 
