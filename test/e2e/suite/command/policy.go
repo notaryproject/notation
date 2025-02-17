@@ -219,20 +219,26 @@ var _ = Describe("trust policy maintainer", func() {
 		})
 
 		It("should warn when failed to delete old trust policy", func() {
-			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				trustPolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
-				if err := os.Chmod(trustPolicyPath, 0000); err != nil {
-					Fail("failed to change trust policy permission")
+			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				// fake a dirctory that named as trustpolicy.json
+				fakePolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
+				if err := os.MkdirAll(fakePolicyPath, 0755); err != nil {
+					Fail(err.Error())
 				}
-				defer os.Chmod(trustPolicyPath, 0600)
+				// write a file to create non-empty directory
+				if err := os.WriteFile(filepath.Join(fakePolicyPath, "placeholder"), []byte("fake"), 0644); err != nil {
+					Fail(err.Error())
+				}
 
 				policyFileName := "trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
 					MatchKeyWords(
-						"Warning: existing OCI trust policy configuration file will be overwritten",
 						"Successfully imported OCI trust policy file.",
 					).
-					MatchErrKeyWords("Warning: failed to clean old trust policy file")
+					MatchErrKeyWords(
+						"Warning: existing OCI trust policy configuration file will be overwritten",
+						"Warning: failed to clean old trust policy file",
+					)
 
 			})
 		})

@@ -15,6 +15,7 @@ package policy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -99,7 +100,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	// user has confirmed to overwrite the existing trust policy file, clean
 	// the old trust policy file if exists
 	if err := cleanOldTrustPolicy(); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to clean old trust policy file: %s", err)
+		fmt.Fprintf(os.Stderr, "Warning: failed to clean old trust policy file: %s\n", err)
 	}
 
 	_, err = fmt.Fprintln(os.Stdout, "Successfully imported OCI trust policy file.")
@@ -112,10 +113,11 @@ func cleanOldTrustPolicy() error {
 	if err != nil {
 		return err
 	}
-	if _, err := os.Stat(oldPolicyPath); err == nil {
-		if err := os.Remove(oldPolicyPath); err != nil {
-			return err
+	if _, err := os.Stat(oldPolicyPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
 		}
+		return err
 	}
-	return nil
+	return os.Remove(oldPolicyPath)
 }
