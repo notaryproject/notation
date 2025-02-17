@@ -64,19 +64,25 @@ func runImport(opts importOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to read blob trust policy file: %w", err)
 	}
-
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
 		return fmt.Errorf("failed to parse blob trust policy configuration: %w", err)
 	}
-	if err = doc.Validate(); err != nil {
+	if err := doc.Validate(); err != nil {
 		return fmt.Errorf("failed to validate blob trust policy: %w", err)
 	}
+	if err := writeBlobTrustPolicy(policyJSON, opts.force); err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(os.Stdout, "Successfully imported blob trust policy file.")
+	return err
+}
 
+func writeBlobTrustPolicy(policyJSON []byte, force bool) error {
 	// optional confirmation
-	if !opts.force {
-		if _, err = trustpolicy.LoadBlobDocument(); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy file already exists, do you want to overwrite it?", opts.force)
+	if !force {
+		if _, err := trustpolicy.LoadBlobDocument(); err == nil {
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy file already exists, do you want to overwrite it?", force)
 			if err != nil {
 				return err
 			}
@@ -96,7 +102,5 @@ func runImport(opts importOpts) error {
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
 		return fmt.Errorf("failed to write blob trust policy file: %w", err)
 	}
-
-	_, err = fmt.Fprintln(os.Stdout, "Successfully imported blob trust policy file.")
-	return err
+	return nil
 }
