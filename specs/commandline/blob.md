@@ -6,7 +6,7 @@ Use `notation blob` command to sign, verify, and inspect signatures associated w
 
 The `notation blob policy` command provides a user-friendly way to manage trust policies for signed blobs. It allows users to show blob trust policy file, import/export a blob trust policy file file from/to a JSON file. For more details, see [blob trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#blob-trust-policy).
 
-The sample trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample trust policy file, contains three different statements for different use cases:
+The sample blob trust policy file (`trustpolicy.blob.json`) for verifying signed blobs is shown below. This sample blob trust policy file, contains three different statements for different use cases:
 
 - The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
 - The policy named "skip-verification-policy" is for skipping verification on blob artifacts.
@@ -334,7 +334,7 @@ An example output:
 notation blob inspect -o json /tmp/my-blob.bin.jws.sig
 ```
 
-## Import/Export trust policy file files
+## Import/Export blob trust policy files
 
 ### Import blob trust policy file from a JSON file
 
@@ -344,21 +344,21 @@ An example of import trust policy file from a JSON file:
 notation blob policy import ./my_policy.json
 ```
 
-The trust policy file in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if trust policy file are imported successfully. Error logs including the reason should be printed out if the importing fails.
+The blob trust policy file in the JSON file should be validated according to [blob trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if blob trust policy file are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
-If there is an existing trust policy file, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy file without prompt.
+If there is an existing blob trust policy file, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing blob trust policy file without prompt.
 
 ### Show blob trust policies
 
-Use the following command to show trust policy file:
+Use the following command to show blob trust policy file:
 
 ```shell
 notation blob policy show
 ```
 
-Upon successful execution, the trust policy file is printed out to standard output. If trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import trust policy file from a JSON file.
+Upon successful execution, the blob trust policy file is printed out to standard output. If blob trust policy is not configured or is malformed, users should receive an error message via standard error output, and a tip to import blob trust policy file from a JSON file.
 
-### Export blob trust policy file into a JSON file
+### Export blob trust policy into a JSON file
 
 Users can redirect the output of command `notation blob policy show` to a JSON file.
 
@@ -366,25 +366,25 @@ Users can redirect the output of command `notation blob policy show` to a JSON f
 notation blob policy show > ./blob_trust_policy.json
 ```
 
-### Update trust policy file
+### Update blob trust policy file
 
 The steps to update blob trust policy file:
 
-1. Export trust policy file into a JSON file.
+1. Export blob trust policy file into a JSON file.
 
    ```shell
    notation blob policy show > ./blob_trust_policy.json
    ```
 
-2. Edit the exported JSON file "blob_trust_policy.json", update trust policy file and save the file.
-3. Import trust policy file from the file.
+2. Edit the exported JSON file "blob_trust_policy.json", update blob trust policy file and save the file.
+3. Import blob trust policy file from the file.
 
    ```shell
    notation blob policy import ./blob_trust_policy.json
    ```
 
 ## Verify blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a trust policy file `trustpolicy.blob.json` with policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a blob trust policy file `trustpolicy.blob.json` with policies for blobs. Below are two examples of how a policy configuration file can be setup for verifying blob signatures.
 
 - The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
 - The policy named "global-verification-policy" is for auditing verification results when user does not set the `--policy-name` flag in `notation blob verify` command.
@@ -420,7 +420,7 @@ The `notation blob verify` command can be used to verify blob signatures. In ord
 
 ### Verify the signature of a blob
 
-Configure trust store and trust policy properly before using `notation blob verify` command.
+Configure trust store and blob trust policy properly before using `notation blob verify` command.
 
 ```shell
 
@@ -428,7 +428,7 @@ Configure trust store and trust policy properly before using `notation blob veri
 # Configure trust store by adding a certificate file into trust store named "wabbit-network" of type "ca"
 notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
-# Setup the trust policy in a JSON file named "trustpolicy.blob.json" under directory "{NOTATION_CONFIG}".
+# Setup the blob trust policy in a JSON file named "trustpolicy.blob.json" under directory "{NOTATION_CONFIG}".
 
 # Verify the blob signature
 notation blob verify --signature /tmp/my-blob.bin.jws.sig /tmp/my-blob.bin
