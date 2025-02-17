@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 
@@ -71,5 +72,10 @@ func runShow() error {
 // loadBlobTrustPolicy loads the blob trust policy from notation configuration
 // directory.
 func loadBlobTrustPolicy() ([]byte, error) {
-	return fs.ReadFile(dir.ConfigFS(), dir.PathBlobTrustPolicy)
+	f, err := dir.ConfigFS().Open(dir.PathBlobTrustPolicy)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(f)
 }
