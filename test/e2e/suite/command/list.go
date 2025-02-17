@@ -170,4 +170,17 @@ var _ = Describe("notation list", func() {
 `)
 		})
 	})
+
+	It("exceed max signatures", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e-valid-multiple-signatures", "")
+
+			notation.Exec("list", "--max-signatures", "1", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Warning: exceeded configured limit of max signatures 1 to examine").
+				MatchContent(artifact.ReferenceWithDigest() + `
+└── application/vnd.cncf.notary.signature
+    └── sha256:c3ebe4a20b6832328fc5078a7795ddc1114b896e13fca2add38109c3866b5fbf
+`)
+		})
+	})
 })
