@@ -5,9 +5,8 @@ A Notation Enhancement Proposal (NEP) is a way to propose, communicate and coord
 NEPs are suggested for most non-trivial changes. Specifically:
 
 - Anything that may be controversial
-- Most new features (except the very smallest)
-- Major changes to existing features
-- Changes that are wide ranging or impact most of the project
+- Most new features (except the small changes to existing flags or parameters)
+- Changes that are wide ranging or impact most of the project and users
 
 ## Overview 
 
@@ -35,4 +34,4 @@ NEPs are suggested for most non-trivial changes. Specifically:
 
 ## Proposal 
 
-> Proposed solution and alternative options. 
+> Proposed solution and alternative options. The desired user experience and CLI command operation can be included.
