@@ -30,7 +30,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to show trust policy", "notation policy import")
+					MatchErrKeyWords("failed to show OCI trust policy", "notation policy import")
 			})
 		})
 
@@ -40,7 +40,7 @@ var _ = Describe("trust policy maintainer", func() {
 				os.Chmod(trustPolicyPath, 0200)
 				notation.ExpectFailure().
 					Exec("policy", "show").
-					MatchErrKeyWords("failed to show trust policy", "permission denied")
+					MatchErrKeyWords("failed to show OCI trust policy", "permission denied")
 			})
 		})
 
@@ -58,14 +58,14 @@ var _ = Describe("trust policy maintainer", func() {
 			content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyName))
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddTrustPolicyOption(policyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				notation.Exec("policy", "show").
-					MatchErrKeyWords("existing trust policy configuration is invalid").
+				notation.ExpectFailure().Exec("policy", "show").
+					MatchErrKeyWords("Existing OCI trust policy file is invalid").
 					MatchContent(string(content))
 			})
 		})
 	})
 
-	When("importing configuration without existing trust policy configuration", func() {
+	When("importing configuration without existing trust policy file", func() {
 		opts := Opts()
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -123,9 +123,30 @@ var _ = Describe("trust policy maintainer", func() {
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force")
 			})
 		})
+
+		It("should failed if trust policy file malformed", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.ExpectFailure().
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, "invalid_format_trustpolicy.json")).
+					MatchErrKeyWords("failed to parse OCI trust policy file")
+			})
+		})
+
+		It("should failed if cannot write the policy file", func() {
+			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				if err := os.Chmod(vhost.AbsolutePath(NotationDirName), 0400); err != nil {
+					Fail(err.Error())
+				}
+				defer os.Chmod(vhost.AbsolutePath(NotationDirName), 0755)
+
+				notation.ExpectFailure().
+					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName)).
+					MatchErrKeyWords("failed to write OCI trust policy file")
+			})
+		})
 	})
 
-	When("importing configuration with existing trust policy configuration", func() {
+	When("importing configuration with existing trust policy file", func() {
 		opts := Opts(AddTrustPolicyOption(TrustPolicyName, false))
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -186,7 +207,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(AddTrustPolicyOption("invalid_format_trustpolicy.json", false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).MatchKeyWords().
-					MatchKeyWords("Trust policy configuration imported successfully.")
+					MatchKeyWords("Successfully imported OCI trust policy file.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -198,7 +219,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.WithInput(strings.NewReader("Y\n")).Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).
-					MatchKeyWords("Trust policy configuration imported successfully.")
+					MatchKeyWords("Successfully imported OCI trust policy file.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -210,11 +231,36 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
-					MatchKeyWords("Trust policy configuration imported successfully.")
+					MatchKeyWords("Successfully imported OCI trust policy file.")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
 				notation.Exec("policy", "show").MatchContent(string(content))
+			})
+		})
+
+		It("should warn when failed to delete old trust policy", func() {
+			Host(Opts(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				// fake a dirctory that named as trustpolicy.json
+				fakePolicyPath := vhost.AbsolutePath(NotationDirName, TrustPolicyName)
+				if err := os.MkdirAll(fakePolicyPath, 0755); err != nil {
+					Fail(err.Error())
+				}
+				// write a file to create non-empty directory
+				if err := os.WriteFile(filepath.Join(fakePolicyPath, "placeholder"), []byte("fake"), 0644); err != nil {
+					Fail(err.Error())
+				}
+
+				policyFileName := "trustpolicy.json"
+				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
+					MatchKeyWords(
+						"Successfully imported OCI trust policy file.",
+					).
+					MatchErrKeyWords(
+						"Warning: existing OCI trust policy file file will be overwritten",
+						"Warning: failed to clean old trust policy file",
+					)
+
 			})
 		})
 	})
