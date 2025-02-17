@@ -59,7 +59,7 @@ func (h *ListHandler) OnExceedMaxSignatures(err error) {
 
 // Render prints the tree format of the signature metadata information.
 func (h *ListHandler) Render() error {
-	if len(h.signaturesNode.Children) == 0 {
+	if h.root == nil || h.signaturesNode == nil || len(h.signaturesNode.Children) == 0 {
 		return h.printer.Printf("%s has no associated signatures\n", h.root.Value)
 	}
 	return h.root.Print(h.printer)
