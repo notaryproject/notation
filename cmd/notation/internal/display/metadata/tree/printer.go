@@ -24,7 +24,8 @@ type streamingPrinter struct {
 
 // newStreamingPrinter creates a new streaming printer.
 //
-// prefix is the prefix string that will be inherited by the nodes.
+// prefix is the prefix string that will be inherited by the nodes that are
+// printed.
 func newStreamingPrinter(prefix string, w io.Writer) *streamingPrinter {
 	return &streamingPrinter{
 		w:      w,
