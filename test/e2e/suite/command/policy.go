@@ -257,7 +257,7 @@ var _ = Describe("trust policy maintainer", func() {
 						"Successfully imported OCI trust policy file.",
 					).
 					MatchErrKeyWords(
-						"Warning: existing OCI trust policy file file will be overwritten",
+						"Warning: existing OCI trust policy file will be overwritten",
 						"Warning: failed to clean old trust policy file",
 					)
 
