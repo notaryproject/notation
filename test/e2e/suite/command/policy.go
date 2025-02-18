@@ -207,7 +207,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(AddTrustPolicyOption("invalid_format_trustpolicy.json", false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).MatchKeyWords().
-					MatchKeyWords("Successfully imported OCI trust policy file.")
+					MatchKeyWords("Successfully imported OCI trust policy file to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -219,7 +219,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.WithInput(strings.NewReader("Y\n")).Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).
-					MatchKeyWords("Successfully imported OCI trust policy file.")
+					MatchKeyWords("Successfully imported OCI trust policy file to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -231,7 +231,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
-					MatchKeyWords("Successfully imported OCI trust policy file.")
+					MatchKeyWords("Successfully imported OCI trust policy file to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -254,7 +254,7 @@ var _ = Describe("trust policy maintainer", func() {
 				policyFileName := "trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
 					MatchKeyWords(
-						"Successfully imported OCI trust policy file.",
+						"Successfully imported OCI trust policy file to",
 					).
 					MatchErrKeyWords(
 						"Warning: existing OCI trust policy file will be overwritten",

@@ -106,7 +106,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 		fmt.Fprintln(os.Stdout, "Cleaned old trust policy file.")
 	}
 
-	_, err = fmt.Fprintln(os.Stdout, "Successfully imported OCI trust policy file.")
+	_, err = fmt.Fprintln(os.Stdout, "Successfully imported OCI trust policy file to", policyPath)
 	return err
 }
 
