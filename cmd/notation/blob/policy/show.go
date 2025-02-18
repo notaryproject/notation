@@ -29,12 +29,12 @@ func showCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "show [flags]",
 		Short: "Show blob trust policy file",
-		Long: `Show blob trust policy file.
+		Long: `Show blob trust policy file "trustpolicy.blob.json".
 
-Example - Show current blob trust policy file:
+Example - Show current blob trust policy file "trustpolicy.blob.json":
   notation blob policy show
 
-Example - Save current blob trust policy file to a file:
+Example - Save current blob trust policy file "trustpolicy.blob.json" to a file:
   notation blob policy show > my_policy.json
 `,
 		Args: cobra.ExactArgs(0),

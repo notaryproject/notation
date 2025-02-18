@@ -142,7 +142,7 @@ Flags:
 ### notation blob policy show
 
 ```text
-Show blob trust policy file.
+Show blob trust policy file "trustpolicy.blob.json".
 
 Usage:
   notation blob policy show [flags]

@@ -37,7 +37,7 @@ func importCmd() *cobra.Command {
 		Short: "Import blob trust policy file from a JSON file",
 		Long: `Import blob trust policy file from a JSON file.
 
-Example - Import blob trust policy file from a file:
+Example - Import blob trust policy file from a JSON file and store as "trustpolicy.blob.json":
   notation blob policy import my_policy.json
 
 Example - Import blob trust policy and override existing configuration without prompt:
@@ -97,6 +97,6 @@ func runImport(opts importOpts) error {
 		return fmt.Errorf("failed to write blob trust policy file: %w", err)
 	}
 
-	_, err = fmt.Fprintln(os.Stdout, "Successfully imported blob trust policy file.")
+	_, err = fmt.Fprintf(os.Stdout, "Successfully imported blob trust policy file to %s.\n", policyPath)
 	return err
 }
