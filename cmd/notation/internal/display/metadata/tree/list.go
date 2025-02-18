@@ -19,8 +19,8 @@ import (
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-// ListHandler is a handler for rendering signature metadata information in
-// a tree format. It implements the ListHandler interface.
+// ListHandler is a handler for rendering a list of signature digests in
+// streaming fashion. It implements the metadata.ListHandler interface.
 type ListHandler struct {
 	printer *output.Printer
 
@@ -59,7 +59,7 @@ func (h *ListHandler) OnReferenceResolved(reference string) {
 	h.headerNode.Add(notationregistry.ArtifactTypeNotation)
 }
 
-// OnSignatureListed adds the signature digest to the tree.
+// OnSignatureListed adds the signature digest to be printed.
 func (h *ListHandler) OnSignatureListed(signatureManifest ocispec.Descriptor) {
 	// print the header
 	if !h.headerPrinted {
@@ -75,7 +75,7 @@ func (h *ListHandler) OnExceedMaxSignatures(err error) {
 	h.printer.PrintErrorf("Warning: %v\n", err)
 }
 
-// Render prints the tree format of the signature metadata information.
+// Render completes the rendering of the list of signature digests.
 func (h *ListHandler) Render() error {
 	if h.sprinter.prevNode == nil {
 		return h.printer.Printf("%s has no associated signatures\n", h.headerNode.Value)
