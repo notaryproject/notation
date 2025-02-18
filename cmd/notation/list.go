@@ -122,7 +122,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 
 	// list signatures
 	if err := listSignatures(ctx, sigRepo, manifestDesc, opts.maxSignatures, func(sigManifestDesc ocispec.Descriptor) error {
-		displayHandler.ListSignature(sigManifestDesc)
+		displayHandler.OnSignatureListed(sigManifestDesc)
 		return nil
 	}); err != nil {
 		var errExceedMaxSignatures cmderr.ErrorExceedMaxSignatures

@@ -25,6 +25,8 @@ import (
 type InspectHandler struct {
 	printer *output.Printer
 
+	sprinter *streamingPrinter
+
 	// rootReferenceNode is the root node with the artifact reference as the
 	// value.
 	rootReferenceNode *node
@@ -37,7 +39,8 @@ type InspectHandler struct {
 // tree format.
 func NewInspectHandler(printer *output.Printer) *InspectHandler {
 	return &InspectHandler{
-		printer: printer,
+		printer:  printer,
+		sprinter: newStreamingPrinter("    ", printer),
 	}
 }
 

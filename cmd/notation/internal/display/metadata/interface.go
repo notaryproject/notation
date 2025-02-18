@@ -89,8 +89,8 @@ type ListHandler interface {
 	// handler.
 	OnReferenceResolved(reference string)
 
-	// ListSignature adds the signature digest to the tree.
-	ListSignature(signatureManifest ocispec.Descriptor)
+	// OnSignatureListed adds the signature digest to the tree.
+	OnSignatureListed(signatureManifest ocispec.Descriptor)
 
 	// OnExceedMaxSignatures outputs the warning message when the number of
 	// signatures exceeds the maximum limit.

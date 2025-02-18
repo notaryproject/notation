@@ -22,15 +22,28 @@ import (
 // ListHandler is a handler for rendering signature metadata information in
 // a tree format. It implements the ListHandler interface.
 type ListHandler struct {
-	printer        *output.Printer
-	root           *node
-	signaturesNode *node
+	printer *output.Printer
+
+	// sprinter is a streaming printer to print the signature digest nodes in
+	// a streaming fashion
+	sprinter *streamingPrinter
+
+	// headerNode contains the headers of the output
+	//
+	// example:
+	// localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee9088f7ace2efcde9
+	// └── application/vnd.cncf.notary.signature
+	headerNode *node
+
+	// headerPrinted is a flag to indicate if the header has been printed
+	headerPrinted bool
 }
 
 // NewListHandler creates a new ListHandler.
 func NewListHandler(printer *output.Printer) *ListHandler {
 	return &ListHandler{
-		printer: printer,
+		printer:  printer,
+		sprinter: newStreamingPrinter("    ", printer),
 	}
 }
 
@@ -42,13 +55,18 @@ func (h *ListHandler) OnResolvingTagReference(reference string) {
 // OnReferenceResolved sets the artifact reference and media type for the
 // handler.
 func (h *ListHandler) OnReferenceResolved(reference string) {
-	h.root = newNode(reference)
-	h.signaturesNode = h.root.Add(notationregistry.ArtifactTypeNotation)
+	h.headerNode = newNode(reference)
+	h.headerNode.Add(notationregistry.ArtifactTypeNotation)
 }
 
-// ListSignature adds the signature digest to the tree.
-func (h *ListHandler) ListSignature(signatureManifest ocispec.Descriptor) {
-	h.signaturesNode.Add(signatureManifest.Digest.String())
+// OnSignatureListed adds the signature digest to the tree.
+func (h *ListHandler) OnSignatureListed(signatureManifest ocispec.Descriptor) {
+	// print the header
+	if !h.headerPrinted {
+		h.headerNode.Print(h.printer)
+		h.headerPrinted = true
+	}
+	h.sprinter.PrintNode(newNode(signatureManifest.Digest.String()))
 }
 
 // OnExceedMaxSignatures outputs the warning message when the number of
@@ -59,8 +77,9 @@ func (h *ListHandler) OnExceedMaxSignatures(err error) {
 
 // Render prints the tree format of the signature metadata information.
 func (h *ListHandler) Render() error {
-	if len(h.signaturesNode.Children) == 0 {
-		return h.printer.Printf("%s has no associated signatures\n", h.root.Value)
+	if h.sprinter.prevNode == nil {
+		return h.printer.Printf("%s has no associated signatures\n", h.headerNode.Value)
 	}
-	return h.root.Print(h.printer)
+	h.sprinter.Complete()
+	return nil
 }
