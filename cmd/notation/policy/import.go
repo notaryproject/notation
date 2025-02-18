@@ -87,7 +87,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy file file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy file will be overwritten")
 	}
 
 	// write
