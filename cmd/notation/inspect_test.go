@@ -42,7 +42,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 		expected.reference,
 		"-u", expected.Username,
 		"--insecure-registry",
-		"--output", "text"}); err != nil {
+		"--output", "tree"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
