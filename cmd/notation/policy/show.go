@@ -79,7 +79,7 @@ func loadOCITrustPolicy() ([]byte, error) {
 		if _, err := fs.Stat(dir.ConfigFS(), dir.PathTrustPolicy); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(os.Stderr, "Warning: old trust policy `trustpolicy.json` was be deprecated; please update the trust policy file by using `notation policy import`.\n")
+		fmt.Fprintf(os.Stderr, "Warning: old trust policy `trustpolicy.json` is deprecated; please update the trust policy configuration via `notation policy import`.\n")
 		return fs.ReadFile(dir.ConfigFS(), dir.PathTrustPolicy)
 	}
 	return data, err
