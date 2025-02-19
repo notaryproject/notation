@@ -19,6 +19,7 @@ package metadata
 import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go"
+	"github.com/notaryproject/notation-go/config"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
@@ -75,4 +76,18 @@ type BlobVerifyHandler interface {
 	//
 	// outcomes must not be nil or empty.
 	OnVerifySucceeded(outcomes []*notation.VerificationOutcome, blobPath string)
+}
+
+// KeyListHandler is a handler for rendering metadata information of
+// a list of keys.
+type KeyListHandler interface {
+	// PrintKeys prints the list of keys.
+	PrintKeys(defaultKeyName *string, keySuite []config.KeySuite) error
+}
+
+// CertListHandler is a handler for rendering metadata information of
+// a list of certificates.
+type CertificateListHandler interface {
+	// PrintCertificates prints the list of certificates.
+	PrintCertificates(certificatePaths []string) error
 }

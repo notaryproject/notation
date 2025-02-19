@@ -16,18 +16,19 @@ package cert
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	notationgoTruststore "github.com/notaryproject/notation-go/verifier/truststore"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
 type certListOpts struct {
+	option.Common
 	cmd.LoggingFlagOpts
 	storeType  string
 	namedStore string
@@ -58,6 +59,9 @@ Example - List all certificate files from trust store "wabbit-networks" of type 
 Example - List all certificate files from trust store of type "tsa"
   notation cert ls --type tsa
 `,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			opts.Common.Parse(cmd)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listCerts(cmd.Context(), opts)
 		},
@@ -73,6 +77,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
+	displayHandler := display.NewCertificateListHandler(opts.Printer)
 	namedStore := opts.namedStore
 	storeType := opts.storeType
 	configFS := dir.ConfigFS()
@@ -93,7 +98,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			}
 			certPaths = append(certPaths, certs...)
 		}
-		return ioutil.PrintCertMap(os.Stdout, certPaths)
+		return displayHandler.PrintCertificates(certPaths)
 	}
 
 	// List all certificates under truststore/x509/storeType/namedStore,
@@ -111,7 +116,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			logger.Debugln("Failed to complete list at path:", path)
 			return fmt.Errorf("failed to list all certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
-		return ioutil.PrintCertMap(os.Stdout, certPaths)
+		return displayHandler.PrintCertificates(certPaths)
 	}
 
 	// List all certificates under x509/storeType, display empty if store type
@@ -129,7 +134,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			logger.Debugln("Failed to complete list at path:", path)
 			return fmt.Errorf("failed to list all certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
-		return ioutil.PrintCertMap(os.Stdout, certPaths)
+		return displayHandler.PrintCertificates(certPaths)
 	}
 
 	// List all certificates under named store namedStore, display empty if
@@ -147,5 +152,5 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 		}
 		certPaths = append(certPaths, certs...)
 	}
-	return ioutil.PrintCertMap(os.Stdout, certPaths)
+	return displayHandler.PrintCertificates(certPaths)
 }
