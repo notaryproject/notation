@@ -51,7 +51,7 @@ func runShow() error {
 		if errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to show blob trust policy as the configuration does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
 		}
-		return fmt.Errorf("failed to show trust policy file: %w", err)
+		return fmt.Errorf("failed to show trust policy: %w", err)
 	}
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {
