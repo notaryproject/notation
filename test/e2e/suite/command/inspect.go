@@ -215,7 +215,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:53b0191218aed9a3c1f7c661736ac40cfc
             └── size: 582
 `
 
-			notation.Exec("inspect", artifact.ReferenceWithDigest()).
+			notation.Exec("inspect", "--output", "tree", artifact.ReferenceWithDigest()).
 				MatchContent(expectedOutput)
 		})
 	})
