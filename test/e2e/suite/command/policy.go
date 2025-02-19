@@ -49,7 +49,8 @@ var _ = Describe("trust policy maintainer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddTrustPolicyOption(TrustPolicyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.Exec("policy", "show").
-					MatchContent(string(content))
+					MatchContent(string(content)).
+					MatchErrKeyWords("Warning: old trust policy `trustpolicy.json` was be deprecated; please update the trust policy file by using `notation policy import`.")
 			})
 		})
 

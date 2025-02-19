@@ -74,11 +74,12 @@ func runShow(command *cobra.Command, opts showOpts) error {
 }
 
 func loadOCITrustPolicy() ([]byte, error) {
-	if _, err := fs.Stat(dir.ConfigFS(), dir.PathTrustPolicy); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: old trust policy `trustpolicy.json` was be deprecated; please update the trust policy file by using `notation policy import`.\n")
-	}
 	data, err := fs.ReadFile(dir.ConfigFS(), dir.PathOCITrustPolicy)
 	if err != nil && errors.Is(err, fs.ErrNotExist) {
+		if _, err := fs.Stat(dir.ConfigFS(), dir.PathTrustPolicy); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(os.Stderr, "Warning: old trust policy `trustpolicy.json` was be deprecated; please update the trust policy file by using `notation policy import`.\n")
 		return fs.ReadFile(dir.ConfigFS(), dir.PathTrustPolicy)
 	}
 	return data, err
