@@ -14,7 +14,7 @@ This spec contains reference information on using notation commands. Each comman
 | [login](./commandline/login.md)             | Log into OCI registries                                                |
 | [logout](./commandline/logout.md)           | Log out from the logged in OCI registries                              |
 | [plugin](./commandline/plugin.md)           | Manage plugins                                                         |
-| [policy](./commandline/policy.md)           | Manage OCI trust policy file for OCI artifact signature verification   |
+| [policy](./commandline/policy.md)           | Manage OCI trust policy configuration for OCI artifact signature verification   |
 | [sign](./commandline/sign.md)               | Sign OCI artifacts                                                     |
 | [verify](./commandline/verify.md)           | Verify OCI artifacts                                                   |
 | [version](./commandline/version.md)         | Print the version of notation CLI                                      |
