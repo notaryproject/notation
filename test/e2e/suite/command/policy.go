@@ -259,7 +259,7 @@ var _ = Describe("trust policy maintainer", func() {
 					).
 					MatchErrKeyWords(
 						"Warning: existing OCI trust policy configuration will be overwritten",
-						"Warning: failed to clean old trust policy configuration",
+						"Warning: failed to delete old trust policy configuration",
 					)
 
 			})
