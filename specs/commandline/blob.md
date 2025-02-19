@@ -142,7 +142,7 @@ Flags:
 ### notation blob policy show
 
 ```text
-Show blob trust policy configuration "trustpolicy.blob.json".
+Show blob trust policy configuration.
 
 Usage:
   notation blob policy show [flags]
@@ -384,7 +384,7 @@ The steps to update blob trust policy configuration:
    ```
 
 ## Verify blob signatures
-The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a blob trust policy configuration with policies for blobs. Below are two examples of how a policy configuration can be setup for verifying blob signatures.
+The `notation blob verify` command can be used to verify blob signatures. In order to verify signatures, user will need to setup a blob trust policy configuration `trustpolicy.blob.json` with policies for blobs. Below are two examples of how a policy configuration can be setup for verifying blob signatures.
 
 - The policy named "wabbit-networks-policy" is for verifying blob artifacts signed by Wabbit Networks.
 - The policy named "global-verification-policy" is for auditing verification results when user does not set the `--policy-name` flag in `notation blob verify` command.
