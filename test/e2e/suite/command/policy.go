@@ -120,8 +120,11 @@ var _ = Describe("trust policy maintainer", func() {
 		})
 
 		It("should import successfully by force", func() {
-			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force")
+			Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName), "--force").
+					MatchErrKeyWords("Warning: existing OCI trust policy configuration will be overwritten").
+					MatchKeyWords("Successfully imported OCI trust policy configuration to")
+
 			})
 		})
 
@@ -258,7 +261,6 @@ var _ = Describe("trust policy maintainer", func() {
 						"Successfully imported OCI trust policy configuration to",
 					).
 					MatchErrKeyWords(
-						"Warning: existing OCI trust policy configuration will be overwritten",
 						"Warning: failed to delete old trust policy configuration",
 					)
 
