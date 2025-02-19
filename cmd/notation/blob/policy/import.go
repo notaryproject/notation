@@ -34,10 +34,10 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "Import blob trust policy file from a JSON file",
-		Long: `Import blob trust policy file from a JSON file.
+		Short: "Import blob trust policy configuration from a JSON file",
+		Long: `Import blob trust policy configuration from a JSON file.
 
-Example - Import blob trust policy file from a JSON file and store as "trustpolicy.blob.json":
+Example - Import blob trust policy configuration from a JSON file and store as "trustpolicy.blob.json":
   notation blob policy import my_policy.json
 
 Example - Import blob trust policy and override existing configuration without prompt:
@@ -45,7 +45,7 @@ Example - Import blob trust policy and override existing configuration without p
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation blob policy import <path-to-policy.json>\nPlease specify a trust policy file location as the argument", len(args))
+				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation blob policy import <path-to-policy.json>\nPlease specify a trust policy configuration location as the argument", len(args))
 			}
 			return nil
 		},
@@ -54,7 +54,7 @@ Example - Import blob trust policy and override existing configuration without p
 			return runImport(opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy file without prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration without prompt")
 	return command
 }
 
@@ -62,21 +62,21 @@ func runImport(opts importOpts) error {
 	// read configuration
 	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read blob trust policy file: %w", err)
+		return fmt.Errorf("failed to read blob trust policy configuration: %w", err)
 	}
 
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
-		return fmt.Errorf("failed to parse blob trust policy file: %w", err)
+		return fmt.Errorf("failed to parse blob trust policy configuration: %w", err)
 	}
 	if err = doc.Validate(); err != nil {
-		return fmt.Errorf("failed to validate blob trust policy: %w", err)
+		return fmt.Errorf("failed to validate blob trust policy configuration: %w", err)
 	}
 
 	// optional confirmation
 	if !opts.force {
 		if _, err = trustpolicy.LoadBlobDocument(); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy file already exists, do you want to overwrite it?", opts.force)
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}
@@ -85,18 +85,18 @@ func runImport(opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration will be overwritten")
 	}
 
 	// write
 	policyPath, err := dir.ConfigFS().SysPath(dir.PathBlobTrustPolicy)
 	if err != nil {
-		return fmt.Errorf("failed to obtain path of blob trust policy file: %w", err)
+		return fmt.Errorf("failed to obtain path of blob trust policy configuration: %w", err)
 	}
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
-		return fmt.Errorf("failed to write blob trust policy file: %w", err)
+		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	_, err = fmt.Fprintf(os.Stdout, "Successfully imported blob trust policy file to %s.\n", policyPath)
+	_, err = fmt.Fprintf(os.Stdout, "Successfully imported blob trust policy configuration to %s.\n", policyPath)
 	return err
 }

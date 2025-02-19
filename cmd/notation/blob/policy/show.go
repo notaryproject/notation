@@ -28,13 +28,13 @@ import (
 func showCmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "Show blob trust policy file",
-		Long: `Show blob trust policy file "trustpolicy.blob.json".
+		Short: "Show blob trust policy configuration",
+		Long: `Show blob trust policy configuration.
 
-Example - Show current blob trust policy file "trustpolicy.blob.json":
+Example - Show current blob trust policy configuration:
   notation blob policy show
 
-Example - Save current blob trust policy file "trustpolicy.blob.json" to a file:
+Example - Save current blob trust policy configuration to a file:
   notation blob policy show > my_policy.json
 `,
 		Args: cobra.ExactArgs(0),
@@ -49,16 +49,16 @@ func runShow() error {
 	policyJSON, err := fs.ReadFile(dir.ConfigFS(), dir.PathBlobTrustPolicy)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to show blob trust policy as the trust policy file does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
+			return fmt.Errorf("failed to show blob trust policy as the configuration does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
 		}
-		return fmt.Errorf("failed to show trust policy: %w", err)
+		return fmt.Errorf("failed to show trust policy configuration: %w", err)
 	}
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {
 		err = doc.Validate()
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Existing blob trust policy file is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-blobs for a blob trust policy example.\n")
+		fmt.Fprintf(os.Stderr, "Existing blob trust policy configuration is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-blobs for a blob trust policy example.\n")
 		os.Stdout.Write(policyJSON)
 		return err
 	}

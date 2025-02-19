@@ -61,13 +61,13 @@ var _ = Describe("blob trust policy maintainer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddBlobTrustPolicyOption(policyName)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().Exec("blob", "policy", "show").
-					MatchErrKeyWords("existing blob trust policy file is invalid").
+					MatchErrKeyWords("existing blob trust policy configuration is invalid").
 					MatchContent(string(content))
 			})
 		})
 	})
 
-	When("importing configuration without existing trust policy file", func() {
+	When("importing configuration without existing trust policy configuration", func() {
 		opts := Opts()
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -123,7 +123,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 
 				notation.ExpectFailure().
 					Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, validBlobTrustPolicyName), "--force").
-					MatchErrKeyWords("failed to write blob trust policy file")
+					MatchErrKeyWords("failed to write blob trust policy configuration")
 			})
 		})
 
@@ -135,7 +135,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 		})
 	})
 
-	When("importing configuration with existing trust policy file", func() {
+	When("importing configuration with existing trust policy configuration", func() {
 		opts := Opts(AddBlobTrustPolicyOption(validBlobTrustPolicyName))
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -190,7 +190,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 			Host(Opts(AddBlobTrustPolicyOption("invalid_format_trustpolicy.json")), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).MatchKeyWords().
-					MatchKeyWords("Successfully imported blob trust policy file to")
+					MatchKeyWords("Successfully imported blob trust policy configuration to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -202,7 +202,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.WithInput(strings.NewReader("Y\n")).Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).
-					MatchKeyWords("Successfully imported blob trust policy file to")
+					MatchKeyWords("Successfully imported blob trust policy configuration to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -214,7 +214,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("blob", "policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
-					MatchKeyWords("Successfully imported blob trust policy file to")
+					MatchKeyWords("Successfully imported blob trust policy configuration to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
