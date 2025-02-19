@@ -62,7 +62,7 @@ func runImport(opts importOpts) error {
 	// read configuration
 	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read blob trust policy configuration: %w", err)
+		return fmt.Errorf("failed to read blob trust policy file: %w", err)
 	}
 
 	var doc trustpolicy.BlobDocument
