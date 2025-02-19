@@ -88,7 +88,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 
 	// set output format
-	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeText, option.FormatTypeJSON)
+	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeTree, option.FormatTypeJSON)
 	return command
 }
 
