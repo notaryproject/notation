@@ -104,7 +104,7 @@ Usage:
   notation blob inspect [flags] <signature_path>
 
 Flags:
-  -o, --output string         output format, options: 'json', 'text' (default "text")
+  -o, --output string         output format, options: 'json', 'tree' (default "tree")
   -d, --debug                 debug mode
   -v, --verbose               verbose mode
   -h, --help                  help for inspect

@@ -46,6 +46,8 @@ var (
 	FormatTypeJSON FormatType = "json"
 	// FormatTypeText is the text format type for human-readable output.
 	FormatTypeText FormatType = "text"
+	// FormatTypeTree is the tree format type for human-readable output.
+	FormatTypeTree FormatType = "tree"
 )
 
 // Format contains input and parsed options for formatted output flags.
