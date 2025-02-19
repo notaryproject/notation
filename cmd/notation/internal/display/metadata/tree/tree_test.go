@@ -48,7 +48,8 @@ func TestNodeAddPair(t *testing.T) {
 	}
 }
 
-func ExampleRootPrint() {
+// example for Print emthod of node type
+func Examplenode_Print() {
 	root := newNode("root")
 	root.Print(os.Stdout)
 
@@ -56,7 +57,7 @@ func ExampleRootPrint() {
 	// root
 }
 
-func ExampleSingleLayerPrint() {
+func Examplenode_Print_singleLayer() {
 	root := newNode("root")
 	root.Add("child1")
 	root.Add("child2")
@@ -68,7 +69,7 @@ func ExampleSingleLayerPrint() {
 	// └── child2
 }
 
-func ExampleMultiLayerPrint() {
+func Examplenode_Print_multiLayer() {
 	root := newNode("root")
 	child1 := root.Add("child1")
 	child1.AddPair("key", "value")

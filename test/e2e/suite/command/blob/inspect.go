@@ -116,7 +116,7 @@ var _ = Describe("notation blob inspect", func() {
     ├── digest: sha256:c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4
     └── size: 11357
 `
-			notation.Exec("blob", "inspect", jwsBlobSigPath).
+			notation.Exec("blob", "inspect", "--output", "tree", jwsBlobSigPath).
 				MatchContent(expectedContent)
 		})
 	})

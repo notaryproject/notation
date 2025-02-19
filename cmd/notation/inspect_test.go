@@ -25,8 +25,8 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	opts := &inspectOpts{}
 	command := inspectCommand(opts)
 	format := option.Format{}
-	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeText, option.FormatTypeJSON)
-	format.CurrentType = string(option.FormatTypeText)
+	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
+	format.CurrentType = string(option.FormatTypeTree)
 	expected := &inspectOpts{
 		reference: "ref",
 		SecureFlagOpts: SecureFlagOpts{
@@ -42,7 +42,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 		expected.reference,
 		"-u", expected.Username,
 		"--insecure-registry",
-		"--output", "text"}); err != nil {
+		"--output", "tree"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -58,7 +58,7 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 	t.Setenv(defaultPasswordEnv, "password")
 
 	format := option.Format{}
-	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeText, option.FormatTypeJSON)
+	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
 	format.CurrentType = string(option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",

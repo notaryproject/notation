@@ -24,11 +24,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const (
-	OutputPlaintext = "text"
-	OutputJSON      = "json"
-)
-
 var (
 	PflagKey = &pflag.Flag{
 		Name:      "key",
