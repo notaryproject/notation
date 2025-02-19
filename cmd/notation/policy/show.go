@@ -32,13 +32,13 @@ func showCmd() *cobra.Command {
 	var opts showOpts
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "Show OCI trust policy file",
-		Long: `Show OCI trust policy file.
+		Short: "Show OCI trust policy configuration",
+		Long: `Show OCI trust policy configuration.
 
-Example - Show current OCI trust policy file:
+Example - Show current OCI trust policy configuration:
   notation policy show
 
-Example - Save current OCI trust policy file to a file:
+Example - Save current OCI trust policy configuration to a file:
   notation policy show > my_policy.json
 `,
 		Args: cobra.ExactArgs(0),
@@ -54,7 +54,7 @@ func runShow(command *cobra.Command, opts showOpts) error {
 	policyJSON, err := loadOCITrustPolicy()
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to show OCI trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
+			return fmt.Errorf("failed to show OCI trust policy as it does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show OCI trust policy: %w", err)
 	}
@@ -63,7 +63,7 @@ func runShow(command *cobra.Command, opts showOpts) error {
 		err = doc.Validate()
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Existing OCI trust policy file is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-oci-artifacts for a trust policy example.\n")
+		fmt.Fprintf(os.Stderr, "Existing OCI trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-oci-artifacts for a trust policy example.\n")
 		os.Stdout.Write(policyJSON)
 		return err
 	}

@@ -35,13 +35,13 @@ func importCmd() *cobra.Command {
 	var opts importOpts
 	command := &cobra.Command{
 		Use:   "import [flags] <file_path>",
-		Short: "Import OCI trust policy file from a JSON file",
-		Long: `Import OCI trust policy file from a JSON file.
+		Short: "Import OCI trust policy configuration from a JSON file",
+		Long: `Import OCI trust policy configuration from a JSON file.
 
-Example - Import OCI trust policy file from a file:
+Example - Import OCI trust policy configuration from a file:
   notation policy import my_policy.json
 
-Example - Import OCI trust policy and override existing policy file without prompt:
+Example - Import OCI trust policy and override existing configuration without prompt:
   notation policy import --force my_policy.json
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -55,7 +55,7 @@ Example - Import OCI trust policy and override existing policy file without prom
 			return runImport(cmd, opts)
 		},
 	}
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing OCI trust policy file without prompt")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing OCI trust policy configuration without prompt")
 	return command
 }
 
@@ -63,22 +63,22 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	// read configuration
 	policyJSON, err := os.ReadFile(opts.filePath)
 	if err != nil {
-		return fmt.Errorf("failed to read OCI trust policy file: %w", err)
+		return fmt.Errorf("failed to read OCI trust policy configuration: %w", err)
 	}
 
 	// parse and validate
 	var doc trustpolicy.OCIDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
-		return fmt.Errorf("failed to parse OCI trust policy file: %w", err)
+		return fmt.Errorf("failed to parse OCI trust policy configuration: %w", err)
 	}
 	if err = doc.Validate(); err != nil {
-		return fmt.Errorf("failed to validate OCI trust policy: %w", err)
+		return fmt.Errorf("failed to validate OCI trust policy configuration: %w", err)
 	}
 
 	// optional confirmation
 	if !opts.force {
 		if _, err := trustpolicy.LoadOCIDocument(); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The OCI trust policy file already exists, do you want to overwrite it?", opts.force)
+			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The OCI trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}
@@ -87,30 +87,30 @@ func runImport(command *cobra.Command, opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy file will be overwritten")
+		fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy configuration will be overwritten")
 	}
 
 	// write
 	policyPath, err := dir.ConfigFS().SysPath(dir.PathOCITrustPolicy)
 	if err != nil {
-		return fmt.Errorf("failed to obtain path of OCI trust policy file: %w", err)
+		return fmt.Errorf("failed to obtain path of OCI trust policy configuration: %w", err)
 	}
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
-		return fmt.Errorf("failed to write OCI trust policy file: %w", err)
+		return fmt.Errorf("failed to write OCI trust policy configuration: %w", err)
 	}
-	// user has confirmed to overwrite the existing trust policy file, clean
-	// the old trust policy file if exists
+	// user has confirmed to overwrite the existing trust policy configuration, clean
+	// the old trust policy configuration if exists
 	if err := cleanOldTrustPolicy(); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to clean old trust policy file: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Warning: failed to clean old trust policy configuration: %s\n", err)
 	} else {
-		fmt.Fprintln(os.Stdout, "Cleaned old trust policy file.")
+		fmt.Fprintln(os.Stdout, "Cleaned old trust policy configuration.")
 	}
 
-	_, err = fmt.Fprintf(os.Stdout, "Successfully imported OCI trust policy file to %s.\n", policyPath)
+	_, err = fmt.Fprintf(os.Stdout, "Successfully imported OCI trust policy configuration to %s.\n", policyPath)
 	return err
 }
 
-// cleanOldTrustPolicy removes the old trust policy file if exists.
+// cleanOldTrustPolicy removes the old trust policy configuration if exists.
 func cleanOldTrustPolicy() error {
 	oldPolicyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
 	if err != nil {

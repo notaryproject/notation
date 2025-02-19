@@ -2,9 +2,9 @@
 
 ## Description
 
-As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration file to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [OCI trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#oci-trust-policy).
+As part of signature verification workflow of signed OCI artifacts, users need to configure trust policy configuration to specify trusted identities that signed the artifacts, the level of signature verification to use and other settings. For more details, see [OCI trust policy specification and examples](https://github.com/notaryproject/specifications/blob/main/specs/trust-store-trust-policy.md#oci-trust-policy).
 
-The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export a trust policy configuration file from/to a JSON file. Users who want to manage trust policies for signed arbitrary blobs, please refer to `notation blob policy` command.
+The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export trust policy configuration from/to a JSON file. Users who want to manage trust policies for signed arbitrary blobs, please refer to `notation blob policy` command.
 
 To get started, user can refer to the following trust policy configuration sample `trustpolicy.json` that is applicable for verifying signed OCI artifacts using `notation verify` command. In this sample, there are four policies configured for different requirements:
 
@@ -74,14 +74,14 @@ To get started, user can refer to the following trust policy configuration sampl
 ### notation policy command
 
 ```text
-Manage OCI trust policy file for OCI artifact signature verification.
+Manage OCI trust policy configuration for OCI artifact signature verification.
 
 Usage:
   notation policy [command]
 
 Available Commands:
-  import    import OCI trust policy file from a JSON file
-  show      show OCI trust policy file
+  import    import OCI trust policy configuration from a JSON file
+  show      show OCI trust policy configuration
 
 Flags:
   -h, --help   help for policy
@@ -90,20 +90,20 @@ Flags:
 ### notation policy import
 
 ```text
-Import OCI trust policy file from a JSON file.
+Import OCI trust policy configuration from a JSON file.
 
 Usage:
   notation policy import [flags] <file_path>
 
 Flags:
-      --force     override the existing OCI trust policy file without prompt
+      --force     override the existing OCI trust policy configuration without prompt
   -h, --help      help for import
 ```
 
 ### notation policy show
 
 ```text
-Show OCI trust policy file
+Show OCI trust policy configuration
 
 Usage:
   notation policy show [flags]

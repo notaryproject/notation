@@ -59,13 +59,13 @@ var _ = Describe("trust policy maintainer", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Host(Opts(AddTrustPolicyOption(policyName, false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().Exec("policy", "show").
-					MatchErrKeyWords("Existing OCI trust policy file is invalid").
+					MatchErrKeyWords("Existing OCI trust policy configuration is invalid").
 					MatchContent(string(content))
 			})
 		})
 	})
 
-	When("importing configuration without existing trust policy file", func() {
+	When("importing configuration without existing trust policy configuration", func() {
 		opts := Opts()
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -124,11 +124,11 @@ var _ = Describe("trust policy maintainer", func() {
 			})
 		})
 
-		It("should failed if trust policy file malformed", func() {
+		It("should failed if trust policy configuration malformed", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				notation.ExpectFailure().
 					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, "invalid_format_trustpolicy.json")).
-					MatchErrKeyWords("failed to parse OCI trust policy file")
+					MatchErrKeyWords("failed to parse OCI trust policy configuration")
 			})
 		})
 
@@ -141,12 +141,12 @@ var _ = Describe("trust policy maintainer", func() {
 
 				notation.ExpectFailure().
 					Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, TrustPolicyName)).
-					MatchErrKeyWords("failed to write OCI trust policy file")
+					MatchErrKeyWords("failed to write OCI trust policy configuration")
 			})
 		})
 	})
 
-	When("importing configuration with existing trust policy file", func() {
+	When("importing configuration with existing trust policy configuration", func() {
 		opts := Opts(AddTrustPolicyOption(TrustPolicyName, false))
 		It("should fail if no file path is provided", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -207,7 +207,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(Opts(AddTrustPolicyOption("invalid_format_trustpolicy.json", false)), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).MatchKeyWords().
-					MatchKeyWords("Successfully imported OCI trust policy file to")
+					MatchKeyWords("Successfully imported OCI trust policy configuration to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -219,7 +219,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.WithInput(strings.NewReader("Y\n")).Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName)).
-					MatchKeyWords("Successfully imported OCI trust policy file to")
+					MatchKeyWords("Successfully imported OCI trust policy configuration to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -231,7 +231,7 @@ var _ = Describe("trust policy maintainer", func() {
 			Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 				policyFileName := "skip_trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
-					MatchKeyWords("Successfully imported OCI trust policy file to")
+					MatchKeyWords("Successfully imported OCI trust policy configuration to")
 				// validate
 				content, err := os.ReadFile(filepath.Join(NotationE2ETrustPolicyDir, policyFileName))
 				Expect(err).NotTo(HaveOccurred())
@@ -254,11 +254,11 @@ var _ = Describe("trust policy maintainer", func() {
 				policyFileName := "trustpolicy.json"
 				notation.Exec("policy", "import", filepath.Join(NotationE2ETrustPolicyDir, policyFileName), "--force").
 					MatchKeyWords(
-						"Successfully imported OCI trust policy file to",
+						"Successfully imported OCI trust policy configuration to",
 					).
 					MatchErrKeyWords(
-						"Warning: existing OCI trust policy file will be overwritten",
-						"Warning: failed to clean old trust policy file",
+						"Warning: existing OCI trust policy configuration will be overwritten",
+						"Warning: failed to clean old trust policy configuration",
 					)
 
 			})

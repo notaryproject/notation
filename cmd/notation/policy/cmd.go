@@ -18,8 +18,8 @@ import "github.com/spf13/cobra"
 func Cmd() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "policy [command]",
-		Short: "Manage OCI trust policy file for OCI artifact signature verification",
-		Long:  "Manage OCI trust policy file for OCI artifact signature verification.",
+		Short: "Manage OCI trust policy configuration for OCI artifact signature verification",
+		Long:  "Manage OCI trust policy configuration for OCI artifact signature verification.",
 	}
 
 	command.AddCommand(
