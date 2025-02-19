@@ -85,7 +85,9 @@ func runImport(opts importOpts) error {
 			}
 		}
 	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration will be overwritten")
+		if _, err = trustpolicy.LoadBlobDocument(); err == nil {
+			fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration will be overwritten")
+		}
 	}
 
 	// write
