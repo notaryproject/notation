@@ -28,8 +28,14 @@ var _ = Describe("notation key", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			userConfigDir := vhost.AbsolutePath()
 			notation.Exec("key", "list").
+				// we can only check the key words here as the number spaces
+				// between the columns are not fixed.
 				MatchKeyWords(
-					"NAME    KEY PATH                                           CERTIFICATE PATH                                   ID   PLUGIN NAME",
+					"NAME",
+					"KEY PATH",
+					"CERTIFICATE PATH",
+					"ID",
+					"PLUGIN NAME",
 					fmt.Sprintf("* e2e   %s/notation/localkeys/e2e.key   %s/notation/localkeys/e2e.crt", userConfigDir, userConfigDir),
 				)
 		})
