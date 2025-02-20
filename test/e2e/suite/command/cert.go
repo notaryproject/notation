@@ -72,6 +72,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "list").
 				MatchKeyWords(
 					"STORE TYPE   STORE NAME   CERTIFICATE",
+					"ca           e2e          e2e.crt",
 				)
 		})
 	})
