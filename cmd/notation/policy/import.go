@@ -76,8 +76,8 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	}
 
 	// optional confirmation
-	if !opts.force {
-		if _, err := trustpolicy.LoadOCIDocument(); err == nil {
+	if _, err := trustpolicy.LoadOCIDocument(); err == nil {
+		if !opts.force {
 			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The OCI trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
@@ -85,9 +85,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 			if !confirmed {
 				return nil
 			}
-		}
-	} else {
-		if _, err := trustpolicy.LoadOCIDocument(); err == nil {
+		} else {
 			fmt.Fprintln(os.Stderr, "Warning: existing OCI trust policy configuration will be overwritten")
 		}
 	}
