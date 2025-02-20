@@ -38,7 +38,7 @@ func importCmd() *cobra.Command {
 		Short: "Import OCI trust policy configuration from a JSON file",
 		Long: `Import OCI trust policy configuration from a JSON file.
 
-Example - Import OCI trust policy configuration from a file:
+Example - Import OCI trust policy configuration from a JSON file and store as "trustpolicy.oci.json":
   notation policy import my_policy.json
 
 Example - Import OCI trust policy and override existing configuration without prompt:
