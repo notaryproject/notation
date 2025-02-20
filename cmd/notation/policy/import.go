@@ -104,8 +104,6 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	// delete the old trust policy file `trustpolicy.json` if exists
 	if err := deleteOldTrustPolicyFile(); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to delete old trust policy configuration trustpolicy.json: %s\n", err)
-	} else {
-		fmt.Fprintln(os.Stdout, "Deleted old trust policy configuration trustpolicy.json.")
 	}
 
 	_, err = fmt.Fprintf(os.Stdout, "Successfully imported OCI trust policy configuration to %s.\n", policyPath)
@@ -124,5 +122,10 @@ func deleteOldTrustPolicyFile() error {
 		}
 		return err
 	}
-	return os.Remove(oldPolicyPath)
+
+	if err := os.Remove(oldPolicyPath); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stdout, "Deleted old trust policy configuration trustpolicy.json.")
+	return nil
 }
