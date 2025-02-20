@@ -74,8 +74,8 @@ func runImport(opts importOpts) error {
 	}
 
 	// optional confirmation
-	if !opts.force {
-		if _, err = trustpolicy.LoadBlobDocument(); err == nil {
+	if _, err = trustpolicy.LoadBlobDocument(); err == nil {
+		if !opts.force {
 			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
@@ -83,9 +83,7 @@ func runImport(opts importOpts) error {
 			if !confirmed {
 				return nil
 			}
-		}
-	} else {
-		if _, err = trustpolicy.LoadBlobDocument(); err == nil {
+		} else {
 			fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration will be overwritten")
 		}
 	}
