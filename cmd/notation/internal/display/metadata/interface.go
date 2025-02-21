@@ -81,18 +81,10 @@ type BlobVerifyHandler interface {
 // signatures.
 type ListHandler interface {
 	Renderer
-
-	// OnResolvingTagReference outputs the tag reference warning.
-	OnResolvingTagReference(reference string)
-
 	// OnReferenceResolved sets the artifact reference and media type for the
 	// handler.
 	OnReferenceResolved(reference string)
 
 	// OnSignatureListed adds the signature digest to be rendered.
 	OnSignatureListed(signatureManifest ocispec.Descriptor)
-
-	// OnExceedMaxSignatures outputs the warning message when the number of
-	// signatures exceeds the maximum limit.
-	OnExceedMaxSignatures(err error)
 }

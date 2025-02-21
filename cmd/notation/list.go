@@ -113,7 +113,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 		return err
 	}
 	manifestDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
-		displayHandler.OnResolvingTagReference(ref)
+		opts.Printer.PrintErrorf("Warning: Always list the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 		if !errors.As(err, &errExceedMaxSignatures) {
 			return err
 		}
-		displayHandler.OnExceedMaxSignatures(err)
+		opts.Printer.PrintErrorf("Warning: %v\n", err)
 	}
 
 	return displayHandler.Render()

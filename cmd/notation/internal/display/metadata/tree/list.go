@@ -47,11 +47,6 @@ func NewListHandler(printer *output.Printer) *ListHandler {
 	}
 }
 
-// OnResolvingTagReference outputs the tag reference warning.
-func (h *ListHandler) OnResolvingTagReference(reference string) {
-	h.printer.PrintErrorf("Warning: Always list the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", reference)
-}
-
 // OnReferenceResolved sets the artifact reference and media type for the
 // handler.
 func (h *ListHandler) OnReferenceResolved(reference string) {
@@ -67,12 +62,6 @@ func (h *ListHandler) OnSignatureListed(signatureManifest ocispec.Descriptor) {
 		h.headerPrinted = true
 	}
 	h.sprinter.PrintNode(newNode(signatureManifest.Digest.String()))
-}
-
-// OnExceedMaxSignatures outputs the warning message when the number of
-// signatures exceeds the maximum limit.
-func (h *ListHandler) OnExceedMaxSignatures(err error) {
-	h.printer.PrintErrorf("Warning: %v\n", err)
 }
 
 // Render completes the rendering of the list of signature digests.
