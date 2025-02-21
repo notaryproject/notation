@@ -21,7 +21,7 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/signer"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/pkg/configutil"
 )
 
@@ -32,7 +32,7 @@ type Signer interface {
 }
 
 // GetSigner returns a Signer based on user opts.
-func GetSigner(ctx context.Context, opts *cmd.SignerFlagOpts) (Signer, error) {
+func GetSigner(ctx context.Context, opts *option.Signer) (Signer, error) {
 	// Check if using on-demand key
 	if opts.KeyID != "" && opts.PluginName != "" && opts.Key == "" {
 		// Construct a signer from on-demand key

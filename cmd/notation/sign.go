@@ -26,6 +26,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -44,12 +45,11 @@ const referrersTagSchemaDeleteError = "failed to delete dangling referrers index
 const timestampingTimeout = 15 * time.Second
 
 type signOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
+	option.Logging
+	option.Signer
+	option.UserMetadata
 	SecureFlagOpts
 	expiry                 time.Duration
-	pluginConfig           []string
-	userMetadata           []string
 	reference              string
 	allowReferrersAPI      bool
 	forceReferrersTag      bool
@@ -141,16 +141,16 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			return runSign(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
-	opts.SecureFlagOpts.ApplyFlags(command.Flags())
+	fs := command.Flags()
+	opts.Logging.ApplyFlags(fs)
+	opts.Signer.ApplyFlags(command)
+	opts.SecureFlagOpts.ApplyFlags(fs)
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
+	opts.UserMetadata.ApplyFlags(fs)
+	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
-	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
+	cmd.SetPflagReferrersTag(fs, &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
@@ -158,24 +158,24 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	return command
 }
 
-func runSign(command *cobra.Command, cmdOpts *signOpts) error {
+func runSign(command *cobra.Command, opts *signOpts) error {
 	// set log level
-	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 
 	// initialize
-	signer, err := signer.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	signer, err := signer.GetSigner(ctx, &opts.Signer)
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.forceReferrersTag)
+	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.SecureFlagOpts, opts.forceReferrersTag)
 	if err != nil {
 		return err
 	}
-	signOpts, err := prepareSigningOpts(ctx, cmdOpts)
+	signOpts, err := prepareSigningOpts(ctx, opts)
 	if err != nil {
 		return err
 	}
-	manifestDesc, resolvedRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	manifestDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, opts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {
@@ -202,15 +202,15 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptions, error) {
 	logger := log.GetLogger(ctx)
 
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.Signer.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := opts.Signer.PluginConfigMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := opts.UserMetadataMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}

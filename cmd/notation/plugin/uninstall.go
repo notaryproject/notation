@@ -22,12 +22,12 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/spf13/cobra"
 )
 
 type pluginUninstallOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	pluginName string
 	confirmed  bool
 }
@@ -60,14 +60,14 @@ Example - Uninstall plugin:
 		},
 	}
 
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")
 	return command
 }
 
 func uninstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	// set logger
-	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 	pluginName := opts.pluginName
 	exist, err := checkPluginExistence(ctx, pluginName)
 	if err != nil {

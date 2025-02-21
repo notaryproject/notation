@@ -30,12 +30,12 @@ import (
 )
 
 type verifyOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	SecureFlagOpts
 	option.Common
+	option.VerificationUserMetadata
+	option.VerificationPluginConfig
 	reference            string
-	pluginConfig         []string
-	userMetadata         []string
 	allowReferrersAPI    bool
 	ociLayout            bool
 	trustPolicyScope     string
@@ -94,11 +94,12 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			return runVerify(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SecureFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
+	fs := command.Flags()
+	opts.Logging.ApplyFlags(fs)
+	opts.SecureFlagOpts.ApplyFlags(fs)
+	opts.VerificationPluginConfig.ApplyFlags(fs)
+	opts.UserMetadata.ApplyFlags(fs)
+	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
@@ -109,7 +110,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 
 	// initialize
 	displayHandler := display.NewVerifyHandler(opts.Printer)
@@ -119,13 +120,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// set up verification plugin config
-	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	configs, err := opts.VerificationPluginConfig.PluginConfigMap()
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := opts.UserMetadataMap()
 	if err != nil {
 		return err
 	}

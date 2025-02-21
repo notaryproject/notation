@@ -31,8 +31,8 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,7 @@ const (
 )
 
 type pluginInstallOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	pluginSourceType notationplugin.PluginSourceType
 	pluginSource     string
 	inputChecksum    string
@@ -106,7 +106,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 			return install(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.isFile, "file", false, "install plugin from a file on file system")
 	command.Flags().BoolVar(&opts.isURL, "url", false, fmt.Sprintf("install plugin from an HTTPS URL. The plugin download timeout is %s", notationplugin.DownloadPluginFromURLTimeout))
 	command.Flags().StringVar(&opts.inputChecksum, "sha256sum", "", "must match SHA256 of the plugin source, required when \"--url\" flag is set")
@@ -118,7 +118,7 @@ Example - Install plugin from URL, SHA256 checksum is required:
 
 func install(command *cobra.Command, opts *pluginInstallOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 	// core process
 	switch opts.pluginSourceType {
 	case notationplugin.PluginSourceTypeFile:

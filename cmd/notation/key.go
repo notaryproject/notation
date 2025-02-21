@@ -22,7 +22,7 @@ import (
 	"github.com/notaryproject/notation-go/config"
 
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -39,7 +39,8 @@ var (
 )
 
 type keyAddOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
+	option.Plugin
 	name         string
 	plugin       string
 	id           string
@@ -48,13 +49,13 @@ type keyAddOpts struct {
 }
 
 type keyUpdateOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	name      string
 	isDefault bool
 }
 
 type keyDeleteOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	names []string
 }
 
@@ -100,13 +101,11 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 			return addKey(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Plugin.ApplyFlags(command)
 	command.Flags().StringVar(&opts.plugin, "plugin", "", "signing plugin name")
 	command.MarkFlagRequired("plugin")
-
 	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
-
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -132,7 +131,7 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 		},
 	}
 
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -168,16 +167,16 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 			return deleteKeys(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 
 	return command
 }
 
 func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := opts.PluginConfigMap()
 	if err != nil {
 		return err
 	}
@@ -201,7 +200,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 
 func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	if !opts.isDefault {
@@ -235,7 +234,7 @@ func listKeys() error {
 
 func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	// core process

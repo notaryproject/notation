@@ -26,6 +26,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -42,8 +43,8 @@ import (
 const timestampingTimeout = 15 * time.Second
 
 type blobSignOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
+	option.Logging
+	option.Signer
 	expiry                 time.Duration
 	pluginConfig           []string
 	userMetadata           []string
@@ -120,8 +121,8 @@ Example - Sign a blob artifact with timestamping:
 			return runBlobSign(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Signer.ApplyFlags(command)
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
@@ -136,10 +137,10 @@ Example - Sign a blob artifact with timestamping:
 
 func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	// set log level
-	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := cmdOpts.Logging.InitializeLogger(command.Context())
 	logger := log.GetLogger(ctx)
 
-	blobSigner, err := signer.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	blobSigner, err := signer.GetSigner(ctx, &cmdOpts.Signer)
 	if err != nil {
 		return err
 	}
@@ -188,7 +189,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.SignBlobOptions, error) {
 	logger := log.GetLogger(ctx)
 
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.Signer.SignatureFormat)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}

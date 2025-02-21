@@ -19,8 +19,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
@@ -29,40 +27,6 @@ var (
 		Name:      "key",
 		Shorthand: "k",
 		Usage:     "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags",
-	}
-	SetPflagKey = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
-	}
-
-	PflagSignatureFormat = &pflag.Flag{
-		Name:  "signature-format",
-		Usage: "signature envelope format, options: \"jws\", \"cose\"",
-	}
-	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		config, err := configutil.LoadConfigOnce()
-		if err != nil || config.SignatureFormat == "" {
-			fs.StringVar(p, PflagSignatureFormat.Name, envelope.JWS, PflagSignatureFormat.Usage)
-			return
-		}
-
-		// set signatureFormat from config
-		fs.StringVar(p, PflagSignatureFormat.Name, config.SignatureFormat, PflagSignatureFormat.Usage)
-	}
-
-	PflagID = &pflag.Flag{
-		Name:  "id",
-		Usage: "key id (required if --plugin is set). This is mutually exclusive with the --key flag",
-	}
-	SetPflagID = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagID.Name, "", PflagID.Usage)
-	}
-
-	PflagPlugin = &pflag.Flag{
-		Name:  "plugin",
-		Usage: "signing plugin name (required if --id is set). This is mutually exclusive with the --key flag",
-	}
-	SetPflagPlugin = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagPlugin.Name, "", PflagPlugin.Usage)
 	}
 
 	PflagExpiry = &pflag.Flag{

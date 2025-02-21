@@ -31,7 +31,7 @@ import (
 )
 
 type blobVerifyOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	option.Common
 	blobPath            string
 	signaturePath       string
@@ -86,7 +86,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 			return runVerify(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	command.Flags().StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
@@ -98,7 +98,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 
 func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	// set log level
-	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := cmdOpts.Logging.InitializeLogger(command.Context())
 
 	// initialize
 	displayHandler := display.NewBlobVerifyHandler(cmdOpts.Printer)

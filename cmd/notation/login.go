@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	"oras.land/oras-go/v2/registry/remote/credentials"
@@ -33,7 +33,7 @@ import (
 const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-authentication/"
 
 type loginOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	SecureFlagOpts
 	passwordStdin bool
 	server        string
@@ -70,7 +70,7 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 			return runLogin(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "take the password from stdin")
 	return command
@@ -78,7 +78,7 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 
 func runLogin(ctx context.Context, opts *loginOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 
 	// initialize
 	serverAddress := opts.server

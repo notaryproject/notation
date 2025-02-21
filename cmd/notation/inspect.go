@@ -29,7 +29,7 @@ import (
 )
 
 type inspectOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	SecureFlagOpts
 	option.Common
 	option.Format
@@ -82,7 +82,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 		},
 	}
 
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
@@ -94,7 +94,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 
 func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 
 	displayHandler, err := display.NewInspectHandler(opts.Printer, opts.Format)
 	if err != nil {
