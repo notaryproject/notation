@@ -72,17 +72,17 @@ var _ = Describe("notation list", func() {
 			}
 
 			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
-				MatchKeyWords(
-					"└── application/vnd.cncf.notary.signature",
-					"└── sha256:90ceaff260d657d797c408ac73564a9c7bb9d86055877c2a811f0e63b8c6524f",
-				)
+				MatchContent(ociLayout.ReferenceWithDigest() + `
+└── application/vnd.cncf.notary.signature
+    └── sha256:90ceaff260d657d797c408ac73564a9c7bb9d86055877c2a811f0e63b8c6524f
+`)
 		})
 	})
 
 	It("oci-layout with no signature", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
 			notation.Exec("list", "--oci-layout", ociLayout.ReferenceWithDigest()).
-				MatchKeyWords("has no associated signature")
+				MatchContent(ociLayout.ReferenceWithDigest() + " has no associated signatures\n")
 		})
 	})
 
@@ -155,6 +155,32 @@ var _ = Describe("notation list", func() {
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",
 				)
+		})
+	})
+
+	It("show multiple signatures", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e-valid-multiple-signatures", "")
+
+			notation.Exec("list", artifact.ReferenceWithDigest()).
+				MatchContent(artifact.ReferenceWithDigest() + `
+└── application/vnd.cncf.notary.signature
+    ├── sha256:c3ebe4a20b6832328fc5078a7795ddc1114b896e13fca2add38109c3866b5fbf
+    └── sha256:90ceaff260d657d797c408ac73564a9c7bb9d86055877c2a811f0e63b8c6524f
+`)
+		})
+	})
+
+	It("exceed max signatures", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			artifact := GenerateArtifact("e2e-valid-multiple-signatures", "")
+
+			notation.Exec("list", "--max-signatures", "1", artifact.ReferenceWithDigest()).
+				MatchErrKeyWords("Warning: exceeded configured limit of max signatures 1 to examine").
+				MatchContent(artifact.ReferenceWithDigest() + `
+└── application/vnd.cncf.notary.signature
+    └── sha256:c3ebe4a20b6832328fc5078a7795ddc1114b896e13fca2add38109c3866b5fbf
+`)
 		})
 	})
 })
