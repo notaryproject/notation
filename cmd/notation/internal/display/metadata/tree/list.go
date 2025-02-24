@@ -24,7 +24,7 @@ import (
 type ListHandler struct {
 	printer *output.Printer
 
-	// sprinter is a streaming printer to print the signature digest nodes in
+	// sprinter is a stream printer to print the signature digest nodes in
 	// a streaming fashion
 	sprinter *StreamPrinter
 
