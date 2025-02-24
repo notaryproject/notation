@@ -93,11 +93,10 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			return runVerify(cmd, opts)
 		},
 	}
-	fs := command.Flags()
-	opts.Logging.ApplyFlags(fs)
-	opts.Secure.ApplyFlags(fs)
-	opts.Verifier.ApplyFlags(fs)
-	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Secure.ApplyFlags(command.Flags())
+	opts.Verifier.ApplyFlags(command.Flags())
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")

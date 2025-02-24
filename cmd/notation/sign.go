@@ -132,12 +132,11 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			return runSign(cmd, opts)
 		},
 	}
-	fs := command.Flags()
-	opts.Logging.ApplyFlags(fs)
+	opts.Logging.ApplyFlags(command.Flags())
 	opts.Signer.ApplyFlags(command)
-	opts.Secure.ApplyFlags(fs)
-	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
-	cmd.SetPflagReferrersTag(fs, &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
+	opts.Secure.ApplyFlags(command.Flags())
+	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
+	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")

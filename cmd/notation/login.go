@@ -70,9 +70,8 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 			return runLogin(cmd.Context(), opts)
 		},
 	}
-	fs := command.Flags()
-	opts.Logging.ApplyFlags(fs)
-	opts.Secure.ApplyFlags(fs)
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Secure.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "take the password from stdin")
 	return command
 }

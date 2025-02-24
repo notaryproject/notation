@@ -84,12 +84,11 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 			return runVerify(cmd, opts)
 		},
 	}
-	fs := command.Flags()
-	opts.Logging.ApplyFlags(fs)
-	opts.Verifier.ApplyFlags(fs)
-	fs.StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
-	fs.StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
-	fs.StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Verifier.ApplyFlags(command.Flags())
+	command.Flags().StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
+	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
+	command.Flags().StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
 	command.MarkFlagRequired("signature")
 	return command
 }

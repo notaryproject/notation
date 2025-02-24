@@ -82,9 +82,8 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 		},
 	}
 
-	fs := command.Flags()
-	opts.Logging.ApplyFlags(fs)
-	opts.Secure.ApplyFlags(fs)
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Secure.ApplyFlags(command.Flags())
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 

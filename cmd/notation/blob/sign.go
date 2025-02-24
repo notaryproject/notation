@@ -110,12 +110,11 @@ Example - Sign a blob artifact with timestamping:
 			return runBlobSign(cmd, opts)
 		},
 	}
-	fs := command.Flags()
-	opts.Logging.ApplyFlags(fs)
+	opts.Logging.ApplyFlags(command.Flags())
 	opts.Signer.ApplyFlags(command)
-	fs.StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
-	fs.StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
-	fs.BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")
+	command.Flags().StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
+	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
 	return command
 }
