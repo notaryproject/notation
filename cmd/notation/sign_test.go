@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 )
 
@@ -123,7 +122,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
 	}
-	config, err := cmd.ParseFlagMap(opts.PluginConfig, cmd.PflagPluginConfig.Name)
+	config, err := opts.PluginConfigMap()
 	if err != nil {
 		t.Fatalf("Parse plugin Config flag failed: %v", err)
 	}

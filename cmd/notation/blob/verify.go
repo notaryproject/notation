@@ -24,7 +24,6 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/verifier"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
@@ -33,10 +32,10 @@ import (
 type blobVerifyOpts struct {
 	option.Logging
 	option.Common
+	option.VerificationUserMetadata
+	option.VerificationPluginConfig
 	blobPath            string
 	signaturePath       string
-	pluginConfig        []string
-	userMetadata        []string
 	policyStatementName string
 	blobMediaType       string
 }
@@ -86,12 +85,13 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 			return runVerify(cmd, opts)
 		},
 	}
-	opts.Logging.ApplyFlags(command.Flags())
-	command.Flags().StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
-	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
-	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
-	command.Flags().StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	fs := command.Flags()
+	opts.Logging.ApplyFlags(fs)
+	fs.StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
+	opts.VerificationPluginConfig.ApplyFlags(fs)
+	fs.StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
+	fs.StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
+	opts.VerificationUserMetadata.ApplyFlags(fs)
 	command.MarkFlagRequired("signature")
 	return command
 }
@@ -118,13 +118,13 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	}
 
 	// set up verification plugin config
-	pluginConfigs, err := cmd.ParseFlagMap(cmdOpts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfigs, err := cmdOpts.PluginConfigMap()
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(cmdOpts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := cmdOpts.UserMetadataMap()
 	if err != nil {
 		return err
 	}

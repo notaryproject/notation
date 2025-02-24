@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 )
 
@@ -85,9 +84,11 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Plugin: option.Plugin{
+				PluginConfig: []string{"key0=val0", "key1=val1"},
+			},
 		},
 		expiry:             365 * 24 * time.Hour,
-		pluginConfig:       []string{"key0=val0", "key1=val1"},
 		signatureDirectory: ".",
 		blobMediaType:      "application/octet-stream",
 	}
@@ -106,7 +107,7 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect sign blob opts: %v, got: %v", expected, opts)
 	}
-	config, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	config, err := opts.PluginConfigMap()
 	if err != nil {
 		t.Fatalf("Parse plugin Config flag failed: %v", err)
 	}

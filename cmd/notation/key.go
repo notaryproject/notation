@@ -41,11 +41,8 @@ var (
 type keyAddOpts struct {
 	option.Logging
 	option.Plugin
-	name         string
-	plugin       string
-	id           string
-	pluginConfig []string
-	isDefault    bool
+	name      string
+	isDefault bool
 }
 
 type keyUpdateOpts struct {
@@ -103,9 +100,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 	}
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.Plugin.ApplyFlags(command)
-	command.Flags().StringVar(&opts.plugin, "plugin", "", "signing plugin name")
 	command.MarkFlagRequired("plugin")
-	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -183,7 +178,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 
 	// core process
 	exec := func(s *config.SigningKeys) error {
-		return s.AddPlugin(ctx, opts.name, opts.id, opts.plugin, pluginConfig, opts.isDefault)
+		return s.AddPlugin(ctx, opts.name, opts.KeyID, opts.PluginName, pluginConfig, opts.isDefault)
 	}
 	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err

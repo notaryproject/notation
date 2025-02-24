@@ -47,24 +47,6 @@ var (
 		fs.StringVarP(p, PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
 	}
 
-	PflagPluginConfig = &pflag.Flag{
-		Name:  "plugin-config",
-		Usage: "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values",
-	}
-	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *[]string) {
-		fs.StringArrayVar(p, PflagPluginConfig.Name, nil, PflagPluginConfig.Usage)
-	}
-
-	PflagUserMetadata = &pflag.Flag{
-		Name:      "user-metadata",
-		Shorthand: "m",
-	}
-	PflagUserMetadataSignUsage   = "{key}={value} pairs that are added to the signature payload"
-	PflagUserMetadataVerifyUsage = "user defined {key}={value} pairs that must be present in the signature for successful verification if provided"
-	SetPflagUserMetadata         = func(fs *pflag.FlagSet, p *[]string, usage string) {
-		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
-	}
-
 	PflagReferrersAPI = &pflag.Flag{
 		Name: "allow-referrers-api",
 	}

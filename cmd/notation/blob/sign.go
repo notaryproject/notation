@@ -45,8 +45,8 @@ const timestampingTimeout = 15 * time.Second
 type blobSignOpts struct {
 	option.Logging
 	option.Signer
+	option.UserMetadata
 	expiry                 time.Duration
-	pluginConfig           []string
 	userMetadata           []string
 	blobPath               string
 	blobMediaType          string
@@ -121,16 +121,16 @@ Example - Sign a blob artifact with timestamping:
 			return runBlobSign(cmd, opts)
 		},
 	}
-	opts.Logging.ApplyFlags(command.Flags())
+	fs := command.Flags()
+	opts.Logging.ApplyFlags(fs)
 	opts.Signer.ApplyFlags(command)
-	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	command.Flags().StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
-	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
-	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
-	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")
+	cmd.SetPflagExpiry(fs, &opts.expiry)
+	opts.UserMetadata.ApplyFlags(fs)
+	fs.StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
+	fs.StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
+	fs.StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
+	fs.StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
+	fs.BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
 	return command
 }
@@ -193,11 +193,11 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := opts.PluginConfigMap()
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := opts.UserMetadataMap()
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}

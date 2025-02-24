@@ -16,6 +16,8 @@ package blob
 import (
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -44,7 +46,9 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 	expected := &blobVerifyOpts{
 		blobPath:      "blob_path",
 		signaturePath: "sig_path",
-		pluginConfig:  []string{"key1=val1", "key2=val2"},
+		VerificationPluginConfig: option.VerificationPluginConfig{
+			PluginConfig: []string{"key1=val1", "key2=val2"},
+		},
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
