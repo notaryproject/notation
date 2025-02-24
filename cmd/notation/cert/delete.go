@@ -23,7 +23,7 @@ import (
 )
 
 type certDeleteOpts struct {
-	option.Store
+	option.TrustStore
 	cert      string
 	all       bool
 	confirmed bool
@@ -67,7 +67,7 @@ Example - Delete certificate "wabbit-networks-timestamp.pem" with "tsa" type fro
 			return deleteCerts(opts)
 		},
 	}
-	opts.Store.ApplyFlags(command.Flags())
+	opts.TrustStore.ApplyFlags(command.Flags())
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "delete all certificates in the named store")
 	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")
 	command.MarkFlagRequired("type")

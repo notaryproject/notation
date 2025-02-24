@@ -29,7 +29,7 @@ import (
 
 type certListOpts struct {
 	option.Logging
-	option.Store
+	option.TrustStore
 }
 
 func certListCommand(opts *certListOpts) *cobra.Command {
@@ -62,7 +62,7 @@ Example - List all certificate files from trust store of type "tsa"
 		},
 	}
 	opts.Logging.ApplyFlags(command.Flags())
-	opts.Store.ApplyFlags(command.Flags())
+	opts.TrustStore.ApplyFlags(command.Flags())
 	return command
 }
 

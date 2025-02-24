@@ -24,7 +24,7 @@ func TestCertListCommand(t *testing.T) {
 	opts := &certListOpts{}
 	cmd := certListCommand(opts)
 	expected := &certListOpts{
-		Store: option.Store{
+		TrustStore: option.TrustStore{
 			StoreType:  "ca",
 			NamedStore: "test",
 		},

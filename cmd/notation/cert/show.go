@@ -28,9 +28,8 @@ import (
 
 type certShowOpts struct {
 	option.Logging
-	storeType  string
-	namedStore string
-	cert       string
+	option.TrustStore
+	cert string
 }
 
 func certShowCommand(opts *certShowOpts) *cobra.Command {
@@ -66,8 +65,7 @@ Example - Show details of certificate "wabbit-networks-timestamp.pem" with type 
 		},
 	}
 	opts.Logging.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	opts.TrustStore.ApplyFlags(command.Flags())
 	command.MarkFlagRequired("type")
 	command.MarkFlagRequired("store")
 	return command
@@ -78,14 +76,14 @@ func showCerts(ctx context.Context, opts *certShowOpts) error {
 	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
-	storeType := opts.storeType
+	storeType := opts.StoreType
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
 	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	namedStore := opts.namedStore
+	namedStore := opts.NamedStore
 	if !truststore.IsValidFileName(namedStore) {
 		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}

@@ -16,15 +16,19 @@ package cert
 import (
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestCertShowCommand(t *testing.T) {
 	opts := &certShowOpts{}
 	cmd := certShowCommand(opts)
 	expected := &certShowOpts{
-		storeType:  "ca",
-		namedStore: "test",
-		cert:       "test.crt",
+		TrustStore: option.TrustStore{
+			StoreType:  "ca",
+			NamedStore: "test",
+		},
+		cert: "test.crt",
 	}
 	if err := cmd.ParseFlags([]string{
 		"test.crt",

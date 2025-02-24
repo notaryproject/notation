@@ -23,7 +23,7 @@ import (
 )
 
 type certAddOpts struct {
-	option.Store
+	option.TrustStore
 	path []string
 }
 
@@ -56,7 +56,7 @@ Example - Add a certificate to the "tsa" type of a named store "timestamp":
 			return addCerts(opts)
 		},
 	}
-	opts.Store.ApplyFlags(command.Flags())
+	opts.TrustStore.ApplyFlags(command.Flags())
 	command.MarkFlagRequired("type")
 	command.MarkFlagRequired("store")
 	return command

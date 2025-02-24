@@ -24,7 +24,7 @@ func TestCertDeleteCommand(t *testing.T) {
 	opts := &certDeleteOpts{}
 	cmd := certDeleteCommand(opts)
 	expected := &certDeleteOpts{
-		Store: option.Store{
+		TrustStore: option.TrustStore{
 			StoreType:  "ca",
 			NamedStore: "test",
 		},

@@ -15,14 +15,14 @@ package option
 
 import "github.com/spf13/pflag"
 
-// Store defines a trust store option.
-type Store struct {
+// TrustStore defines a trust store option.
+type TrustStore struct {
 	StoreType  string
 	NamedStore string
 }
 
 // ApplyFlags applies store flags with default values for trust store flags.
-func (opts *Store) ApplyFlags(fs *pflag.FlagSet) {
+func (opts *TrustStore) ApplyFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&opts.StoreType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
 	fs.StringVarP(&opts.NamedStore, "store", "s", "", "specify named store")
 }
