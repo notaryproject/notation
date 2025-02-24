@@ -189,7 +189,7 @@ func runSign(command *cobra.Command, opts *signOpts) error {
 func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptions, error) {
 	logger := log.GetLogger(ctx)
 
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.Signer.SignatureFormat)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err
 	}

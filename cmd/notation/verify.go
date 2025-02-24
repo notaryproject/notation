@@ -98,7 +98,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.Logging.ApplyFlags(fs)
 	opts.Secure.ApplyFlags(fs)
 	opts.VerificationPluginConfig.ApplyFlags(fs)
-	opts.UserMetadata.ApplyFlags(fs)
+	opts.VerificationUserMetadata.ApplyFlags(fs)
 	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
@@ -120,7 +120,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// set up verification plugin config
-	configs, err := opts.VerificationPluginConfig.PluginConfigMap()
+	configs, err := opts.PluginConfigMap()
 	if err != nil {
 		return err
 	}

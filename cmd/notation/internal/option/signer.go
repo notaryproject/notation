@@ -24,12 +24,24 @@ import (
 
 // Signer contains flag options for signing.
 type Signer struct {
+	// Timestamp contains flag options for requesting timestamp
+	// countersignature.
 	Timestamp
+
+	// Plugin contains options for signing with a plugin.
 	Plugin
+
+	// UserMetadata contains options for signing with user metadata.
 	UserMetadata
-	Key             string
+
+	// Key is the name of the signing key.
+	Key string
+
+	// SignatureFormat is the signature envelope format.
 	SignatureFormat string
-	Expiry          time.Duration
+
+	// Expiry is for optional expiry for signature.
+	Expiry time.Duration
 }
 
 // ApplyFlags set flags and their default values for the FlagSet.

@@ -34,11 +34,14 @@ func (m *UserMetadata) UserMetadataMap() (map[string]string, error) {
 
 // VerificationUserMetadata contains user metadata flag values for
 // verification.
-type VerificationUserMetadata struct {
-	UserMetadata
-}
+type VerificationUserMetadata []string
 
 // ApplyFlags set flags and their default values for the FlagSet.
 func (m *VerificationUserMetadata) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringArrayVarP((*[]string)(&m.UserMetadata), userMetadataFlag, "m", nil, "user defined {key}={value} pairs that must be present in the signature for successful verification if provided")
+	fs.StringArrayVarP((*[]string)(m), userMetadataFlag, "m", nil, "user defined {key}={value} pairs that must be present in the signature for successful verification if provided")
+}
+
+// UserMetadataMap parses user-metadata flag into a map.
+func (m *VerificationUserMetadata) UserMetadataMap() (map[string]string, error) {
+	return parseFlagMap(*m, userMetadataFlag)
 }

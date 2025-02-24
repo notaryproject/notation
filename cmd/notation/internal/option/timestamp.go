@@ -22,7 +22,10 @@ import (
 
 // Timestamp contains timestamp-related flag values
 type Timestamp struct {
-	ServerURL           string
+	// ServerURL is the URL of the Timestamping Authority (TSA) server.
+	ServerURL string
+
+	// RootCertificatePath is the file path of the TSA root certificate.
 	RootCertificatePath string
 }
 

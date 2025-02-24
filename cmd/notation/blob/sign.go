@@ -44,7 +44,6 @@ const timestampingTimeout = 15 * time.Second
 type blobSignOpts struct {
 	option.Logging
 	option.Signer
-	option.UserMetadata
 	blobPath           string
 	blobMediaType      string
 	signatureDirectory string
@@ -175,7 +174,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.SignBlobOptions, error) {
 	logger := log.GetLogger(ctx)
 
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.Signer.SignatureFormat)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignatureFormat)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}

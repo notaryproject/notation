@@ -29,10 +29,8 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 			Username: "user",
 			Password: "password",
 		},
-		VerificationPluginConfig: option.VerificationPluginConfig{
-			PluginConfig: []string{"key1=val1"},
-		},
-		maxSignatureAttempts: 100,
+		VerificationPluginConfig: []string{"key1=val1"},
+		maxSignatureAttempts:     100,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -57,10 +55,8 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 		Secure: option.Secure{
 			InsecureRegistry: true,
 		},
-		VerificationPluginConfig: option.VerificationPluginConfig{
-			PluginConfig: []string{"key1=val1", "key2=val2"},
-		},
-		maxSignatureAttempts: 100,
+		VerificationPluginConfig: []string{"key1=val1", "key2=val2"},
+		maxSignatureAttempts:     100,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,

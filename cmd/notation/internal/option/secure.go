@@ -26,9 +26,15 @@ const (
 	defaultMediaType   = "application/vnd.docker.distribution.manifest.v2+json"
 )
 
+// Secure contains flag options for registry authentication.
 type Secure struct {
-	Username         string
-	Password         string
+	// Username for registry authentication.
+	Username string
+
+	// Password for registry authentication.
+	Password string
+
+	// InsecureRegistry indicates whether to skip TLS verification.
 	InsecureRegistry bool
 }
 
