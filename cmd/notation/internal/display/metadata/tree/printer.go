@@ -15,39 +15,42 @@ package tree
 
 import "io"
 
-// streamingPrinter prints the tree nodes in a streaming fashion.
-type streamingPrinter struct {
+// StreamPrinter prints the tree nodes in a streaming fashion.
+type StreamPrinter struct {
 	w        io.Writer
 	prefix   string
 	prevNode *node
 }
 
-// newStreamingPrinter creates a new streaming printer.
+// newStreamPrinter creates a new stream printer.
 //
 // prefix is the prefix string that will be inherited by the nodes that are
 // printed.
-func newStreamingPrinter(prefix string, w io.Writer) *streamingPrinter {
-	return &streamingPrinter{
+func newStreamPrinter(prefix string, w io.Writer) *StreamPrinter {
+	return &StreamPrinter{
 		w:      w,
 		prefix: prefix,
 	}
 }
 
 // PrintNode adds a new node to be ready to print.
-func (p *streamingPrinter) PrintNode(node *node) {
+func (p *StreamPrinter) PrintNode(node *node) error {
 	if p.prevNode == nil {
 		p.prevNode = node
-		return
+		return nil
 	}
-	print(p.w, p.prefix, treeItemPrefix, p.prefix+subTreePrefix, p.prevNode)
+	if err := print(p.w, p.prefix, treeItemPrefix, p.prefix+subTreePrefix, p.prevNode); err != nil {
+		return err
+	}
 	p.prevNode = node
+	return nil
 }
 
-// Complete prints the last node and completes the printing.
-func (p *streamingPrinter) Complete() {
+// Flush prints the last node and completes the printing.
+func (p *StreamPrinter) Flush() error {
 	if p.prevNode != nil {
 		// print the last node
-		print(p.w, p.prefix, treeItemPrefixLast, p.prefix+subTreePrefixLast, p.prevNode)
-		p.prevNode = nil
+		return print(p.w, p.prefix, treeItemPrefixLast, p.prefix+subTreePrefixLast, p.prevNode)
 	}
+	return nil
 }

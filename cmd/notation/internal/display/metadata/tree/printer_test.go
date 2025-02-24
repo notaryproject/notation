@@ -22,8 +22,8 @@ func TestStreamingPrinter(t *testing.T) {
 	t.Run("empty output", func(t *testing.T) {
 		expected := ""
 		buff := &bytes.Buffer{}
-		p := newStreamingPrinter("", buff)
-		p.Complete()
+		p := newStreamPrinter("", buff)
+		p.Flush()
 
 		if buff.String() != expected {
 			t.Fatalf("expected %s, got %s", expected, buff.String())
@@ -33,9 +33,9 @@ func TestStreamingPrinter(t *testing.T) {
 	t.Run("one node", func(t *testing.T) {
 		expected := "└── a\n"
 		buff := &bytes.Buffer{}
-		p := newStreamingPrinter("", buff)
+		p := newStreamPrinter("", buff)
 		p.PrintNode(newNode("a"))
-		p.Complete()
+		p.Flush()
 
 		if buff.String() != expected {
 			t.Fatalf("expected %s, got %s", expected, buff.String())
@@ -47,10 +47,10 @@ func TestStreamingPrinter(t *testing.T) {
 └── b
 `
 		buff := &bytes.Buffer{}
-		p := newStreamingPrinter("", buff)
+		p := newStreamPrinter("", buff)
 		p.PrintNode(newNode("a"))
 		p.PrintNode(newNode("b"))
-		p.Complete()
+		p.Flush()
 
 		if buff.String() != expected {
 			t.Fatalf("expected %s, got %s", expected, buff.String())
@@ -68,7 +68,7 @@ func TestStreamingPrinter(t *testing.T) {
     └── h
 `
 		buff := &bytes.Buffer{}
-		p := newStreamingPrinter("", buff)
+		p := newStreamPrinter("", buff)
 		// create the tree
 		a := newNode("a")
 		b := a.Add("b")
@@ -82,7 +82,7 @@ func TestStreamingPrinter(t *testing.T) {
 		e.Add("h")
 		p.PrintNode(e)
 
-		p.Complete()
+		p.Flush()
 
 		if buff.String() != expected {
 			t.Fatalf("expected %s, got %s", expected, buff.String())
@@ -100,7 +100,7 @@ func TestStreamingPrinter(t *testing.T) {
     │       └── h
 `
 		buff := &bytes.Buffer{}
-		p := newStreamingPrinter("    │   ", buff)
+		p := newStreamPrinter("    │   ", buff)
 		// create the tree
 		a := newNode("a")
 		b := a.Add("b")
@@ -114,7 +114,7 @@ func TestStreamingPrinter(t *testing.T) {
 		e.Add("h")
 		p.PrintNode(e)
 
-		p.Complete()
+		p.Flush()
 
 		if buff.String() != expected {
 			t.Fatalf("expected %s, got %s", expected, buff.String())

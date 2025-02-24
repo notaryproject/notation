@@ -81,10 +81,11 @@ type BlobVerifyHandler interface {
 // signatures.
 type ListHandler interface {
 	Renderer
+
 	// OnReferenceResolved sets the artifact reference and media type for the
 	// handler.
 	OnReferenceResolved(reference string)
 
 	// OnSignatureListed adds the signature digest to be rendered.
-	OnSignatureListed(signatureManifest ocispec.Descriptor)
+	OnSignatureListed(signatureManifest ocispec.Descriptor) error
 }

@@ -26,7 +26,7 @@ type ListHandler struct {
 
 	// sprinter is a streaming printer to print the signature digest nodes in
 	// a streaming fashion
-	sprinter *streamingPrinter
+	sprinter *StreamPrinter
 
 	// headerNode contains the headers of the output
 	//
@@ -43,7 +43,7 @@ type ListHandler struct {
 func NewListHandler(printer *output.Printer) *ListHandler {
 	return &ListHandler{
 		printer:  printer,
-		sprinter: newStreamingPrinter("    ", printer),
+		sprinter: newStreamPrinter("    ", printer),
 	}
 }
 
@@ -55,20 +55,24 @@ func (h *ListHandler) OnReferenceResolved(reference string) {
 }
 
 // OnSignatureListed adds the signature digest to be printed.
-func (h *ListHandler) OnSignatureListed(signatureManifest ocispec.Descriptor) {
+func (h *ListHandler) OnSignatureListed(signatureManifest ocispec.Descriptor) error {
 	// print the header
 	if !h.headerPrinted {
-		h.headerNode.Print(h.printer)
+		if err := h.headerNode.Print(h.printer); err != nil {
+			return err
+		}
 		h.headerPrinted = true
 	}
-	h.sprinter.PrintNode(newNode(signatureManifest.Digest.String()))
+	return h.sprinter.PrintNode(newNode(signatureManifest.Digest.String()))
 }
 
 // Render completes the rendering of the list of signature digests.
 func (h *ListHandler) Render() error {
-	if h.sprinter.prevNode == nil {
+	if err := h.sprinter.Flush(); err != nil {
+		return err
+	}
+	if !h.headerPrinted {
 		return h.printer.Printf("%s has no associated signatures\n", h.headerNode.Value)
 	}
-	h.sprinter.Complete()
 	return nil
 }
