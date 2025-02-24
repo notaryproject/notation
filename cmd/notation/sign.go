@@ -48,7 +48,7 @@ type signOpts struct {
 	option.Logging
 	option.Signer
 	option.UserMetadata
-	SecureFlagOpts
+	option.Secure
 	expiry                 time.Duration
 	reference              string
 	allowReferrersAPI      bool
@@ -144,7 +144,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	fs := command.Flags()
 	opts.Logging.ApplyFlags(fs)
 	opts.Signer.ApplyFlags(command)
-	opts.SecureFlagOpts.ApplyFlags(fs)
+	opts.Secure.ApplyFlags(fs)
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	opts.UserMetadata.ApplyFlags(fs)
 	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
@@ -167,7 +167,7 @@ func runSign(command *cobra.Command, opts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.SecureFlagOpts, opts.forceReferrersTag)
+	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.Secure, opts.forceReferrersTag)
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	pluginConfig, err := opts.Signer.PluginConfigMap()
+	pluginConfig, err := opts.PluginConfigMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}

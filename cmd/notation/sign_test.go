@@ -28,7 +28,7 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username: "user",
 			Password: "password",
 		},
@@ -58,7 +58,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username:         "user",
 			Password:         "password",
 			InsecureRegistry: true,
@@ -146,7 +146,7 @@ func TestSignCommmand_OnDemandKeyOptions(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username: "user",
 			Password: "password",
 		},
@@ -182,7 +182,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
@@ -222,7 +222,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
@@ -260,7 +260,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
@@ -298,7 +298,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
@@ -334,7 +334,7 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},

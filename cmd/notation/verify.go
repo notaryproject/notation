@@ -31,7 +31,7 @@ import (
 
 type verifyOpts struct {
 	option.Logging
-	SecureFlagOpts
+	option.Secure
 	option.Common
 	option.VerificationUserMetadata
 	option.VerificationPluginConfig
@@ -96,7 +96,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	}
 	fs := command.Flags()
 	opts.Logging.ApplyFlags(fs)
-	opts.SecureFlagOpts.ApplyFlags(fs)
+	opts.Secure.ApplyFlags(fs)
 	opts.VerificationPluginConfig.ApplyFlags(fs)
 	opts.UserMetadata.ApplyFlags(fs)
 	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
@@ -135,7 +135,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, false)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.Secure, false)
 	if err != nil {
 		return err
 	}
