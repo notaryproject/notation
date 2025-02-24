@@ -46,16 +46,13 @@ const timestampingTimeout = 15 * time.Second
 
 type signOpts struct {
 	option.Logging
-	option.Signer
-	option.UserMetadata
 	option.Secure
-	reference              string
-	allowReferrersAPI      bool
-	forceReferrersTag      bool
-	ociLayout              bool
-	inputType              inputType
-	tsaServerURL           string
-	tsaRootCertificatePath string
+	option.Signer
+	reference         string
+	allowReferrersAPI bool
+	forceReferrersTag bool
+	ociLayout         bool
+	inputType         inputType
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -119,13 +116,8 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// timestamping
-			if cmd.Flags().Changed("timestamp-url") {
-				if opts.tsaServerURL == "" {
-					return errors.New("timestamping: tsa url cannot be empty")
-				}
-				if opts.tsaRootCertificatePath == "" {
-					return errors.New("timestamping: tsa root certificate path cannot be empty")
-				}
+			if err := opts.Timestamp.Validate(cmd); err != nil {
+				return err
 			}
 
 			// allow-referrers-api flag is set
@@ -144,10 +136,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	opts.Logging.ApplyFlags(fs)
 	opts.Signer.ApplyFlags(command)
 	opts.Secure.ApplyFlags(fs)
-	opts.UserMetadata.ApplyFlags(fs)
 	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
-	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
-	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 	cmd.SetPflagReferrersTag(fs, &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
@@ -220,14 +209,14 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 		},
 		UserMetadata: userMetadata,
 	}
-	if opts.tsaServerURL != "" {
+	if opts.Timestamp.ServerURL != "" {
 		// timestamping
-		logger.Infof("Configured to timestamp with TSA %q", opts.tsaServerURL)
-		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.tsaServerURL)
+		logger.Infof("Configured to timestamp with TSA %q", opts.Timestamp.ServerURL)
+		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.Timestamp.ServerURL)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}
-		signOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.tsaRootCertificatePath)
+		signOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.Timestamp.RootCertificatePath)
 		if err != nil {
 			return notation.SignOptions{}, err
 		}

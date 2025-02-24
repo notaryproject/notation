@@ -45,12 +45,10 @@ type blobSignOpts struct {
 	option.Logging
 	option.Signer
 	option.UserMetadata
-	blobPath               string
-	blobMediaType          string
-	signatureDirectory     string
-	tsaServerURL           string
-	tsaRootCertificatePath string
-	force                  bool
+	blobPath           string
+	blobMediaType      string
+	signatureDirectory string
+	force              bool
 }
 
 func signCommand(opts *blobSignOpts) *cobra.Command {
@@ -107,13 +105,8 @@ Example - Sign a blob artifact with timestamping:
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// timestamping
-			if cmd.Flags().Changed("timestamp-url") {
-				if opts.tsaServerURL == "" {
-					return errors.New("timestamping: tsa url cannot be empty")
-				}
-				if opts.tsaRootCertificatePath == "" {
-					return errors.New("timestamping: tsa root certificate path cannot be empty")
-				}
+			if err := opts.Timestamp.Validate(cmd); err != nil {
+				return err
 			}
 			return runBlobSign(cmd, opts)
 		},
@@ -121,11 +114,8 @@ Example - Sign a blob artifact with timestamping:
 	fs := command.Flags()
 	opts.Logging.ApplyFlags(fs)
 	opts.Signer.ApplyFlags(command)
-	opts.UserMetadata.ApplyFlags(fs)
 	fs.StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
 	fs.StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
-	fs.StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
-	fs.StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 	fs.BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
 	return command
@@ -206,14 +196,14 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 		ContentMediaType: opts.blobMediaType,
 		UserMetadata:     userMetadata,
 	}
-	if opts.tsaServerURL != "" {
+	if opts.Timestamp.ServerURL != "" {
 		// timestamping
-		logger.Infof("Configured to timestamp with TSA %q", opts.tsaServerURL)
-		signBlobOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.tsaServerURL)
+		logger.Infof("Configured to timestamp with TSA %q", opts.Timestamp.ServerURL)
+		signBlobOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.Timestamp.ServerURL)
 		if err != nil {
 			return notation.SignBlobOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}
-		signBlobOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.tsaRootCertificatePath)
+		signBlobOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.Timestamp.RootCertificatePath)
 		if err != nil {
 			return notation.SignBlobOptions{}, err
 		}

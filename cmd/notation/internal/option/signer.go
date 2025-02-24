@@ -24,7 +24,9 @@ import (
 
 // Signer contains flag options for signing.
 type Signer struct {
+	Timestamp
 	Plugin
+	UserMetadata
 	Key             string
 	SignatureFormat string
 	Expiry          time.Duration
@@ -32,9 +34,11 @@ type Signer struct {
 
 // ApplyFlags set flags and their default values for the FlagSet.
 func (opts *Signer) ApplyFlags(cmd *cobra.Command) {
-	opts.Plugin.ApplyFlags(cmd)
-
 	fs := cmd.Flags()
+	opts.Plugin.ApplyFlags(cmd)
+	opts.Timestamp.ApplyFlags(fs)
+	opts.UserMetadata.ApplyFlags(fs)
+
 	fs.StringVarP(&opts.Key, "key", "k", "", "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags")
 	fs.DurationVarP(&opts.Expiry, "expiry", "e", time.Duration(0), "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m")
 	cmd.MarkFlagsMutuallyExclusive("key", "id")
