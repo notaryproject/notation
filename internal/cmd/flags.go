@@ -15,92 +15,10 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
-	"time"
-
-	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
 var (
-	PflagKey = &pflag.Flag{
-		Name:      "key",
-		Shorthand: "k",
-		Usage:     "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags",
-	}
-	SetPflagKey = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, PflagKey.Name, PflagKey.Shorthand, "", PflagKey.Usage)
-	}
-
-	PflagSignatureFormat = &pflag.Flag{
-		Name:  "signature-format",
-		Usage: "signature envelope format, options: \"jws\", \"cose\"",
-	}
-	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		config, err := configutil.LoadConfigOnce()
-		if err != nil || config.SignatureFormat == "" {
-			fs.StringVar(p, PflagSignatureFormat.Name, envelope.JWS, PflagSignatureFormat.Usage)
-			return
-		}
-
-		// set signatureFormat from config
-		fs.StringVar(p, PflagSignatureFormat.Name, config.SignatureFormat, PflagSignatureFormat.Usage)
-	}
-
-	PflagID = &pflag.Flag{
-		Name:  "id",
-		Usage: "key id (required if --plugin is set). This is mutually exclusive with the --key flag",
-	}
-	SetPflagID = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagID.Name, "", PflagID.Usage)
-	}
-
-	PflagPlugin = &pflag.Flag{
-		Name:  "plugin",
-		Usage: "signing plugin name (required if --id is set). This is mutually exclusive with the --key flag",
-	}
-	SetPflagPlugin = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVar(p, PflagPlugin.Name, "", PflagPlugin.Usage)
-	}
-
-	PflagExpiry = &pflag.Flag{
-		Name:      "expiry",
-		Shorthand: "e",
-		Usage:     "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m",
-	}
-	SetPflagExpiry = func(fs *pflag.FlagSet, p *time.Duration) {
-		fs.DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
-	}
-
-	PflagReference = &pflag.Flag{
-		Name:      "reference",
-		Shorthand: "r",
-		Usage:     "original reference",
-	}
-	SetPflagReference = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
-	}
-
-	PflagPluginConfig = &pflag.Flag{
-		Name:  "plugin-config",
-		Usage: "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values",
-	}
-	SetPflagPluginConfig = func(fs *pflag.FlagSet, p *[]string) {
-		fs.StringArrayVar(p, PflagPluginConfig.Name, nil, PflagPluginConfig.Usage)
-	}
-
-	PflagUserMetadata = &pflag.Flag{
-		Name:      "user-metadata",
-		Shorthand: "m",
-	}
-	PflagUserMetadataSignUsage   = "{key}={value} pairs that are added to the signature payload"
-	PflagUserMetadataVerifyUsage = "user defined {key}={value} pairs that must be present in the signature for successful verification if provided"
-	SetPflagUserMetadata         = func(fs *pflag.FlagSet, p *[]string, usage string) {
-		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
-	}
-
 	PflagReferrersAPI = &pflag.Flag{
 		Name: "allow-referrers-api",
 	}
@@ -117,21 +35,3 @@ var (
 		fs.BoolVar(p, PflagReferrersTag.Name, true, usage)
 	}
 )
-
-// KeyValueSlice is a flag with type int
-type KeyValueSlice interface {
-	Set(value string) error
-	String() string
-}
-
-func ParseFlagMap(c []string, flagName string) (map[string]string, error) {
-	m := make(map[string]string, len(c))
-	for _, pair := range c {
-		key, val, found := strings.Cut(pair, "=")
-		if !found || key == "" || val == "" {
-			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", flagName)
-		}
-		m[key] = val
-	}
-	return m, nil
-}

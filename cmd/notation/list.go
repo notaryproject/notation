@@ -22,6 +22,7 @@ import (
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -29,8 +30,8 @@ import (
 )
 
 type listOpts struct {
-	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	option.Logging
+	option.Secure
 	reference         string
 	allowReferrersAPI bool
 	ociLayout         bool
@@ -87,8 +88,8 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 			return runList(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SecureFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Secure.ApplyFlags(command.Flags())
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
@@ -98,13 +99,13 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 
 func runList(ctx context.Context, opts *listOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 
 	// initialize
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, false)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.Secure, false)
 	if err != nil {
 		return err
 	}

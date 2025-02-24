@@ -16,20 +16,24 @@ package main
 import (
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestKeyAddCommand_BasicArgs(t *testing.T) {
 	opts := &keyAddOpts{}
 	cmd := keyAddCommand(opts)
 	expected := &keyAddOpts{
-		name:         "name",
-		plugin:       "pluginname",
-		id:           "pluginid",
-		pluginConfig: []string{"pluginconfig"},
+		name: "name",
+		Plugin: option.Plugin{
+			PluginName:   "pluginname",
+			KeyID:        "pluginid",
+			PluginConfig: []string{"pluginconfig"},
+		},
 	}
 	if err := cmd.ParseFlags([]string{
-		"--plugin", expected.plugin,
-		"--id", expected.id,
+		"--plugin", expected.PluginName,
+		"--id", expected.KeyID,
 		"--plugin-config", "pluginconfig",
 		expected.name}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -46,8 +50,10 @@ func TestKeyUpdateCommand_BasicArgs(t *testing.T) {
 	opts := &keyUpdateOpts{}
 	cmd := keyUpdateCommand(opts)
 	expected := &keyUpdateOpts{
-		name:      "name",
-		isDefault: true,
+		name: "name",
+		IsDefaultKey: option.IsDefaultKey{
+			IsDefault: true,
+		},
 	}
 	if err := cmd.ParseFlags([]string{
 		expected.name,

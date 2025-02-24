@@ -26,6 +26,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
 	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
@@ -44,19 +45,14 @@ const referrersTagSchemaDeleteError = "failed to delete dangling referrers index
 const timestampingTimeout = 15 * time.Second
 
 type signOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
-	SecureFlagOpts
-	expiry                 time.Duration
-	pluginConfig           []string
-	userMetadata           []string
-	reference              string
-	allowReferrersAPI      bool
-	forceReferrersTag      bool
-	ociLayout              bool
-	inputType              inputType
-	tsaServerURL           string
-	tsaRootCertificatePath string
+	option.Logging
+	option.Secure
+	option.Signer
+	reference         string
+	allowReferrersAPI bool
+	forceReferrersTag bool
+	ociLayout         bool
+	inputType         inputType
 }
 
 func signCommand(opts *signOpts) *cobra.Command {
@@ -120,13 +116,8 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// timestamping
-			if cmd.Flags().Changed("timestamp-url") {
-				if opts.tsaServerURL == "" {
-					return errors.New("timestamping: tsa url cannot be empty")
-				}
-				if opts.tsaRootCertificatePath == "" {
-					return errors.New("timestamping: tsa root certificate path cannot be empty")
-				}
+			if err := opts.Timestamp.Validate(cmd); err != nil {
+				return err
 			}
 
 			// allow-referrers-api flag is set
@@ -141,15 +132,10 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			return runSign(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
-	opts.SecureFlagOpts.ApplyFlags(command.Flags())
-	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Signer.ApplyFlags(command)
+	opts.Secure.ApplyFlags(command.Flags())
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
-	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
-	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
@@ -158,24 +144,24 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	return command
 }
 
-func runSign(command *cobra.Command, cmdOpts *signOpts) error {
+func runSign(command *cobra.Command, opts *signOpts) error {
 	// set log level
-	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 
 	// initialize
-	signer, err := signer.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	signer, err := signer.GetSigner(ctx, &opts.Signer)
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureFlagOpts, cmdOpts.forceReferrersTag)
+	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.Secure, opts.forceReferrersTag)
 	if err != nil {
 		return err
 	}
-	signOpts, err := prepareSigningOpts(ctx, cmdOpts)
+	signOpts, err := prepareSigningOpts(ctx, opts)
 	if err != nil {
 		return err
 	}
-	manifestDesc, resolvedRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	manifestDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, opts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {
@@ -202,34 +188,34 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptions, error) {
 	logger := log.GetLogger(ctx)
 
-	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignerFlagOpts.SignatureFormat)
+	mediaType, err := envelope.GetEnvelopeMediaType(opts.SignatureFormat)
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := opts.UserMetadata.ToMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
 	signOpts := notation.SignOptions{
 		SignerSignOptions: notation.SignerSignOptions{
 			SignatureMediaType: mediaType,
-			ExpiryDuration:     opts.expiry,
+			ExpiryDuration:     opts.Expiry,
 			PluginConfig:       pluginConfig,
 		},
 		UserMetadata: userMetadata,
 	}
-	if opts.tsaServerURL != "" {
+	if opts.Timestamp.ServerURL != "" {
 		// timestamping
-		logger.Infof("Configured to timestamp with TSA %q", opts.tsaServerURL)
-		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.tsaServerURL)
+		logger.Infof("Configured to timestamp with TSA %q", opts.Timestamp.ServerURL)
+		signOpts.Timestamper, err = tspclient.NewHTTPTimestamper(httputil.NewClient(ctx, &http.Client{Timeout: timestampingTimeout}), opts.Timestamp.ServerURL)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("cannot get http timestamper for timestamping: %w", err)
 		}
-		signOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.tsaRootCertificatePath)
+		signOpts.TSARootCAs, err = nx509.NewRootCertPool(opts.Timestamp.RootCertificatePath)
 		if err != nil {
 			return notation.SignOptions{}, err
 		}

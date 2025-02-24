@@ -17,15 +17,19 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestCertGenerateCommand(t *testing.T) {
 	opts := &certGenerateTestOpts{}
 	cmd := certGenerateTestCommand(opts)
 	expected := &certGenerateTestOpts{
-		name:      "name",
-		bits:      2048,
-		isDefault: true,
+		name: "name",
+		bits: 2048,
+		IsDefaultKey: option.IsDefaultKey{
+			IsDefault: true,
+		},
 	}
 	if err := cmd.ParseFlags([]string{
 		"name",

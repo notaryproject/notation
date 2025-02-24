@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	"oras.land/oras-go/v2/registry/remote/credentials"
@@ -33,8 +33,8 @@ import (
 const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-authentication/"
 
 type loginOpts struct {
-	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	option.Logging
+	option.Secure
 	passwordStdin bool
 	server        string
 }
@@ -70,15 +70,15 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 			return runLogin(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SecureFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Secure.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "take the password from stdin")
 	return command
 }
 
 func runLogin(ctx context.Context, opts *loginOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 
 	// initialize
 	serverAddress := opts.server
@@ -115,7 +115,7 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to get credentials store: %v", err)
 	}
-	registry, err := getRegistryLoginClient(ctx, &opts.SecureFlagOpts, serverAddress)
+	registry, err := getRegistryLoginClient(ctx, &opts.Secure, serverAddress)
 	if err != nil {
 		return fmt.Errorf("failed to get registry client: %v", err)
 	}

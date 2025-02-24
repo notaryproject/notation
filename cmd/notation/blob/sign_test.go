@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/envelope"
 )
 
@@ -28,7 +28,7 @@ func TestBlobSignCommand_BasicArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &blobSignOpts{
 		blobPath: "path",
-		SignerFlagOpts: cmd.SignerFlagOpts{
+		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
@@ -53,19 +53,19 @@ func TestBlobSignCommand_MoreArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &blobSignOpts{
 		blobPath: "path",
-		SignerFlagOpts: cmd.SignerFlagOpts{
+		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Expiry:          24 * time.Hour,
 		},
-		expiry:             24 * time.Hour,
 		signatureDirectory: ".",
 		blobMediaType:      "application/octet-stream",
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
 		"--key", expected.Key,
-		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
-		"--expiry", expected.expiry.String()}); err != nil {
+		"--signature-format", expected.Signer.SignatureFormat,
+		"--expiry", expected.Expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -81,20 +81,22 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 	command := signCommand(opts)
 	expected := &blobSignOpts{
 		blobPath: "path",
-		SignerFlagOpts: cmd.SignerFlagOpts{
+		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Plugin: option.Plugin{
+				PluginConfig: []string{"key0=val0", "key1=val1"},
+			},
+			Expiry: 365 * 24 * time.Hour,
 		},
-		expiry:             365 * 24 * time.Hour,
-		pluginConfig:       []string{"key0=val0", "key1=val1"},
 		signatureDirectory: ".",
 		blobMediaType:      "application/octet-stream",
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
 		"--key", expected.Key,
-		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
-		"--expiry", expected.expiry.String(),
+		"--signature-format", expected.Signer.SignatureFormat,
+		"--expiry", expected.Expiry.String(),
 		"--plugin-config", "key0=val0",
 		"--plugin-config", "key1=val1"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -105,7 +107,7 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect sign blob opts: %v, got: %v", expected, opts)
 	}
-	config, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	config, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		t.Fatalf("Parse plugin Config flag failed: %v", err)
 	}
@@ -129,9 +131,11 @@ func TestBlobSignCommand_OnDemandKeyOptions(t *testing.T) {
 	command := signCommand(opts)
 	expected := &blobSignOpts{
 		blobPath: "path",
-		SignerFlagOpts: cmd.SignerFlagOpts{
-			KeyID:           "keyID",
-			PluginName:      "pluginName",
+		Signer: option.Signer{
+			Plugin: option.Plugin{
+				KeyID:      "keyID",
+				PluginName: "pluginName",
+			},
 			SignatureFormat: envelope.JWS,
 		},
 		signatureDirectory: ".",
@@ -157,9 +161,11 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &blobSignOpts{
 			blobPath: "path",
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				KeyID:           "keyID",
-				PluginName:      "pluginName",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					KeyID:      "keyID",
+					PluginName: "pluginName",
+				},
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
@@ -189,8 +195,10 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &blobSignOpts{
 			blobPath: "path",
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				KeyID:           "keyID",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					KeyID: "keyID",
+				},
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
@@ -219,8 +227,10 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &blobSignOpts{
 			blobPath: "path",
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				PluginName:      "pluginName",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					PluginName: "pluginName",
+				},
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
@@ -249,8 +259,10 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &blobSignOpts{
 			blobPath: "path",
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				KeyID:           "keyID",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					KeyID: "keyID",
+				},
 				SignatureFormat: envelope.JWS,
 			},
 			signatureDirectory: ".",
@@ -277,8 +289,10 @@ func TestBlobSignCommand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &blobSignOpts{
 			blobPath: "path",
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				PluginName:      "pluginName",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					PluginName: "pluginName",
+				},
 				SignatureFormat: envelope.JWS,
 			},
 			signatureDirectory: ".",

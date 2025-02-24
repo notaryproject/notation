@@ -21,6 +21,7 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	notationauth "github.com/notaryproject/notation/internal/auth"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/pkg/configutil"
@@ -40,7 +41,7 @@ const (
 
 // getRepository returns a notationregistry.Repository given user input
 // type and user input reference
-func getRepository(ctx context.Context, inputType inputType, reference string, opts *SecureFlagOpts, forceReferrersTag bool) (notationregistry.Repository, error) {
+func getRepository(ctx context.Context, inputType inputType, reference string, opts *option.Secure, forceReferrersTag bool) (notationregistry.Repository, error) {
 	switch inputType {
 	case inputTypeRegistry:
 		return getRemoteRepository(ctx, opts, reference, forceReferrersTag)
@@ -67,7 +68,7 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 // References:
 // https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#listing-referrers
 // https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#referrers-tag-schema
-func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference string, forceReferrersTag bool) (notationregistry.Repository, error) {
+func getRemoteRepository(ctx context.Context, opts *option.Secure, reference string, forceReferrersTag bool) (notationregistry.Repository, error) {
 	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
@@ -93,7 +94,7 @@ func getRemoteRepository(ctx context.Context, opts *SecureFlagOpts, reference st
 	return notationregistry.NewRepository(remoteRepo), nil
 }
 
-func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
+func getRepositoryClient(ctx context.Context, opts *option.Secure, ref registry.Reference) (*remote.Repository, error) {
 	authClient, insecureRegistry, err := getAuthClient(ctx, opts, ref, true)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func getRepositoryClient(ctx context.Context, opts *SecureFlagOpts, ref registry
 	}, nil
 }
 
-func getRegistryLoginClient(ctx context.Context, opts *SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
+func getRegistryLoginClient(ctx context.Context, opts *option.Secure, serverAddress string) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err
@@ -127,7 +128,7 @@ func getRegistryLoginClient(ctx context.Context, opts *SecureFlagOpts, serverAdd
 //
 // If withCredential is false, the returned *auth.Client will have a nil
 // Credential function.
-func getAuthClient(ctx context.Context, opts *SecureFlagOpts, ref registry.Reference, withCredential bool) (*auth.Client, bool, error) {
+func getAuthClient(ctx context.Context, opts *option.Secure, ref registry.Reference, withCredential bool) (*auth.Client, bool, error) {
 	var insecureRegistry bool
 	if opts.InsecureRegistry {
 		insecureRegistry = opts.InsecureRegistry

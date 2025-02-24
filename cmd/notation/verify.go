@@ -30,12 +30,11 @@ import (
 )
 
 type verifyOpts struct {
-	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	option.Logging
+	option.Secure
 	option.Common
+	option.Verifier
 	reference            string
-	pluginConfig         []string
-	userMetadata         []string
 	allowReferrersAPI    bool
 	ociLayout            bool
 	trustPolicyScope     string
@@ -94,10 +93,9 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			return runVerify(cmd, opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	opts.SecureFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Secure.ApplyFlags(command.Flags())
+	opts.Verifier.ApplyFlags(command.Flags())
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
@@ -109,7 +107,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 
 func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	// set log level
-	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
+	ctx := opts.Logging.InitializeLogger(command.Context())
 
 	// initialize
 	displayHandler := display.NewVerifyHandler(opts.Printer)
@@ -119,13 +117,13 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	}
 
 	// set up verification plugin config
-	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	configs, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := opts.UserMetadata.ToMap()
 	if err != nil {
 		return err
 	}
@@ -134,7 +132,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureFlagOpts, false)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.Secure, false)
 	if err != nil {
 		return err
 	}

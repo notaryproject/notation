@@ -11,30 +11,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cert
+package option
 
-import (
-	"reflect"
-	"testing"
+const pluginConfigFlag = "plugin-config"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-)
+// pluginConfig is a plugin config option.
+type pluginConfig []string
 
-func TestCertListCommand(t *testing.T) {
-	opts := &certListOpts{}
-	cmd := certListCommand(opts)
-	expected := &certListOpts{
-		TrustStore: option.TrustStore{
-			StoreType:  "ca",
-			NamedStore: "test",
-		},
-	}
-	if err := cmd.ParseFlags([]string{
-		"-t", "ca",
-		"-s", "test"}); err != nil {
-		t.Fatalf("Parse Flag failed: %v", err)
-	}
-	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect cert list opts: %v, got: %v", expected, opts)
-	}
+// ToMap parses plugin-config flag value into a map.
+func (c *pluginConfig) ToMap() (map[string]string, error) {
+	return parseFlagMap(*c, pluginConfigFlag)
 }

@@ -18,14 +18,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 type logoutOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	server string
 }
 
@@ -47,13 +47,13 @@ func logoutCommand(opts *logoutOpts) *cobra.Command {
 			return runLogout(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 	return command
 }
 
 func runLogout(ctx context.Context, opts *logoutOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	credsStore, err := auth.NewCredentialsStore()
 	if err != nil {
 		return fmt.Errorf("failed to get credentials store: %v", err)

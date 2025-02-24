@@ -21,16 +21,15 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 )
 
 type certShowOpts struct {
-	cmd.LoggingFlagOpts
-	storeType  string
-	namedStore string
-	cert       string
+	option.Logging
+	option.TrustStore
+	cert string
 }
 
 func certShowCommand(opts *certShowOpts) *cobra.Command {
@@ -65,9 +64,8 @@ Example - Show details of certificate "wabbit-networks-timestamp.pem" with type 
 			return showCerts(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.TrustStore.ApplyFlags(command.Flags())
 	command.MarkFlagRequired("type")
 	command.MarkFlagRequired("store")
 	return command
@@ -75,17 +73,17 @@ Example - Show details of certificate "wabbit-networks-timestamp.pem" with type 
 
 func showCerts(ctx context.Context, opts *certShowOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
-	storeType := opts.storeType
+	storeType := opts.StoreType
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
 	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	namedStore := opts.namedStore
+	namedStore := opts.NamedStore
 	if !truststore.IsValidFileName(namedStore) {
 		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}

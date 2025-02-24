@@ -16,14 +16,16 @@ package main
 import (
 	"os"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestLoginCommand_PasswordFromArgs(t *testing.T) {
-	t.Setenv(defaultUsernameEnv, "user")
+	t.Setenv(option.DefaultUsernameEnv, "user")
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username: "user",
 			Password: "password",
 		},
@@ -48,12 +50,12 @@ func TestLoginCommand_PasswordFromArgs(t *testing.T) {
 }
 
 func TestLogin_PasswordFromStdin(t *testing.T) {
-	t.Setenv(defaultUsernameEnv, "user")
+	t.Setenv(option.DefaultUsernameEnv, "user")
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
 		passwordStdin: true,
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username: "user",
 			Password: "password",
 		},

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package option
 
 import (
 	"reflect"
@@ -23,12 +23,12 @@ import (
 func TestSecureFlagOpts_Credential(t *testing.T) {
 	tests := []struct {
 		name string
-		opts *SecureFlagOpts
+		opts *Secure
 		want auth.Credential
 	}{
 		{
 			name: "Username and password",
-			opts: &SecureFlagOpts{
+			opts: &Secure{
 				Username: "username",
 				Password: "password",
 			},
@@ -39,7 +39,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 		},
 		{
 			name: "Username only",
-			opts: &SecureFlagOpts{
+			opts: &Secure{
 				Username: "username",
 			},
 			want: auth.Credential{
@@ -48,7 +48,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 		},
 		{
 			name: "Password only",
-			opts: &SecureFlagOpts{
+			opts: &Secure{
 				Password: "token",
 			},
 			want: auth.Credential{
@@ -57,7 +57,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 		},
 		{
 			name: "Empty username and password",
-			opts: &SecureFlagOpts{
+			opts: &Secure{
 				Username: "",
 				Password: "",
 			},

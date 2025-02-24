@@ -34,7 +34,7 @@ Usage:
 
 Flags:
   -d, --debug                       debug mode
-      --default                     mark as default
+      --default                     mark as default signing key
   -h, --help                        help for add
       --id string                   key id (required if --plugin is set)
       --plugin string               signing plugin name
@@ -84,7 +84,7 @@ Aliases:
 
 Flags:
   -d, --debug     debug mode
-      --default   mark as default
+      --default   mark as default signing key
   -h, --help      help for update
   -v, --verbose   verbose mode
 ```

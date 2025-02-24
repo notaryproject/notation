@@ -22,39 +22,26 @@ import (
 	"github.com/notaryproject/notation-go/config"
 
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-)
-
-var (
-	keyDefaultFlag = &pflag.Flag{
-		Name:  "default",
-		Usage: "mark as default",
-	}
-	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
-		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
-	}
 )
 
 type keyAddOpts struct {
-	cmd.LoggingFlagOpts
-	name         string
-	plugin       string
-	id           string
-	pluginConfig []string
-	isDefault    bool
+	option.Logging
+	option.Plugin
+	option.IsDefaultKey
+	name string
 }
 
 type keyUpdateOpts struct {
-	cmd.LoggingFlagOpts
-	name      string
-	isDefault bool
+	option.Logging
+	option.IsDefaultKey
+	name string
 }
 
 type keyDeleteOpts struct {
-	cmd.LoggingFlagOpts
+	option.Logging
 	names []string
 }
 
@@ -100,14 +87,10 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 			return addKey(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVar(&opts.plugin, "plugin", "", "signing plugin name")
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.Plugin.ApplyFlags(command)
+	opts.IsDefaultKey.ApplyFlags(command.Flags())
 	command.MarkFlagRequired("plugin")
-
-	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
-
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
 }
@@ -132,8 +115,8 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 		},
 	}
 
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.IsDefaultKey.ApplyFlags(command.Flags())
 
 	return command
 }
@@ -168,29 +151,29 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 			return deleteKeys(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
+	opts.Logging.ApplyFlags(command.Flags())
 
 	return command
 }
 
 func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		return err
 	}
 
 	// core process
 	exec := func(s *config.SigningKeys) error {
-		return s.AddPlugin(ctx, opts.name, opts.id, opts.plugin, pluginConfig, opts.isDefault)
+		return s.AddPlugin(ctx, opts.name, opts.KeyID, opts.PluginName, pluginConfig, opts.IsDefault)
 	}
 	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err
 	}
 
-	if opts.isDefault {
+	if opts.IsDefault {
 		fmt.Printf("%s: marked as default\n", opts.name)
 	} else {
 		fmt.Println(opts.name)
@@ -201,10 +184,10 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 
 func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
-	if !opts.isDefault {
+	if !opts.IsDefault {
 		logger.Warn("--default flag is not set, command did not take effect")
 		return nil
 	}
@@ -235,7 +218,7 @@ func listKeys() error {
 
 func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
 	// core process

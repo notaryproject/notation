@@ -11,30 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cert
+package option
 
-import (
-	"reflect"
-	"testing"
+import "github.com/spf13/pflag"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-)
+// IsDefaultKey defines a default option to mark a key as default.
+type IsDefaultKey struct {
+	IsDefault bool
+}
 
-func TestCertListCommand(t *testing.T) {
-	opts := &certListOpts{}
-	cmd := certListCommand(opts)
-	expected := &certListOpts{
-		TrustStore: option.TrustStore{
-			StoreType:  "ca",
-			NamedStore: "test",
-		},
-	}
-	if err := cmd.ParseFlags([]string{
-		"-t", "ca",
-		"-s", "test"}); err != nil {
-		t.Fatalf("Parse Flag failed: %v", err)
-	}
-	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect cert list opts: %v, got: %v", expected, opts)
-	}
+// ApplyFlags applies default flags with default values.
+func (opts *IsDefaultKey) ApplyFlags(fs *pflag.FlagSet) {
+	fs.BoolVar(&opts.IsDefault, "default", false, "mark as default signing key")
 }

@@ -11,30 +11,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cert
+package option
 
 import (
-	"reflect"
-	"testing"
-
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"fmt"
+	"strings"
 )
 
-func TestCertListCommand(t *testing.T) {
-	opts := &certListOpts{}
-	cmd := certListCommand(opts)
-	expected := &certListOpts{
-		TrustStore: option.TrustStore{
-			StoreType:  "ca",
-			NamedStore: "test",
-		},
+// parseFlagMap parses a flag with key=value slices into a map.
+func parseFlagMap(c []string, flagName string) (map[string]string, error) {
+	m := make(map[string]string, len(c))
+	for _, pair := range c {
+		key, val, found := strings.Cut(pair, "=")
+		if !found || key == "" || val == "" {
+			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", flagName)
+		}
+		m[key] = val
 	}
-	if err := cmd.ParseFlags([]string{
-		"-t", "ca",
-		"-s", "test"}); err != nil {
-		t.Fatalf("Parse Flag failed: %v", err)
-	}
-	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect cert list opts: %v, got: %v", expected, opts)
-	}
+	return m, nil
 }

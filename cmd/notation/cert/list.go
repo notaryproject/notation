@@ -21,16 +21,15 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	notationgoTruststore "github.com/notaryproject/notation-go/verifier/truststore"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
 type certListOpts struct {
-	cmd.LoggingFlagOpts
-	storeType  string
-	namedStore string
+	option.Logging
+	option.TrustStore
 }
 
 func certListCommand(opts *certListOpts) *cobra.Command {
@@ -62,19 +61,18 @@ Example - List all certificate files from trust store of type "tsa"
 			return listCerts(cmd.Context(), opts)
 		},
 	}
-	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	opts.Logging.ApplyFlags(command.Flags())
+	opts.TrustStore.ApplyFlags(command.Flags())
 	return command
 }
 
 func listCerts(ctx context.Context, opts *certListOpts) error {
 	// set log level
-	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
+	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
-	namedStore := opts.namedStore
-	storeType := opts.storeType
+	namedStore := opts.NamedStore
+	storeType := opts.StoreType
 	configFS := dir.ConfigFS()
 
 	// List all certificates under truststore/x509, display empty if there's

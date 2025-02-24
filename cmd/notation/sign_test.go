@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/envelope"
 )
 
@@ -28,11 +28,11 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username: "user",
 			Password: "password",
 		},
-		SignerFlagOpts: cmd.SignerFlagOpts{
+		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
@@ -58,16 +58,16 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username:         "user",
 			Password:         "password",
 			InsecureRegistry: true,
 		},
-		SignerFlagOpts: cmd.SignerFlagOpts{
+		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Expiry:          24 * time.Hour,
 		},
-		expiry:            24 * time.Hour,
 		forceReferrersTag: true,
 	}
 	if err := command.ParseFlags([]string{
@@ -76,8 +76,8 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"-p", expected.Password,
 		"--key", expected.Key,
 		"--insecure-registry",
-		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
-		"--expiry", expected.expiry.String(),
+		"--signature-format", expected.Signer.SignatureFormat,
+		"--expiry", expected.Expiry.String(),
 		"--force-referrers-tag",
 	}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -95,19 +95,21 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SignerFlagOpts: cmd.SignerFlagOpts{
+		Signer: option.Signer{
+			Plugin: option.Plugin{
+				PluginConfig: []string{"key0=val0", "key1=val1"},
+			},
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Expiry:          365 * 24 * time.Hour,
 		},
-		expiry:            365 * 24 * time.Hour,
-		pluginConfig:      []string{"key0=val0", "key1=val1"},
 		forceReferrersTag: false,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
-		"--signature-format", expected.SignerFlagOpts.SignatureFormat,
-		"--expiry", expected.expiry.String(),
+		"--signature-format", expected.Signer.SignatureFormat,
+		"--expiry", expected.Expiry.String(),
 		"--plugin-config", "key0=val0",
 		"--plugin-config", "key1=val1",
 		"--force-referrers-tag=false",
@@ -120,7 +122,7 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect sign opts: %v, got: %v", expected, opts)
 	}
-	config, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	config, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		t.Fatalf("Parse plugin Config flag failed: %v", err)
 	}
@@ -144,13 +146,15 @@ func TestSignCommmand_OnDemandKeyOptions(t *testing.T) {
 	command := signCommand(opts)
 	expected := &signOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Username: "user",
 			Password: "password",
 		},
-		SignerFlagOpts: cmd.SignerFlagOpts{
-			KeyID:           "keyID",
-			PluginName:      "pluginName",
+		Signer: option.Signer{
+			Plugin: option.Plugin{
+				KeyID:      "keyID",
+				PluginName: "pluginName",
+			},
 			SignatureFormat: envelope.JWS,
 		},
 	}
@@ -178,13 +182,15 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				KeyID:           "keyID",
-				PluginName:      "pluginName",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					KeyID:      "keyID",
+					PluginName: "pluginName",
+				},
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
@@ -216,12 +222,14 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				KeyID:           "keyID",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					KeyID: "keyID",
+				},
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
@@ -252,12 +260,14 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				PluginName:      "pluginName",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					PluginName: "pluginName",
+				},
 				Key:             "keyName",
 				SignatureFormat: envelope.JWS,
 			},
@@ -288,12 +298,14 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				KeyID:           "keyID",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					KeyID: "keyID",
+				},
 				SignatureFormat: envelope.JWS,
 			},
 		}
@@ -322,12 +334,14 @@ func TestSignCommmand_OnDemandKeyBadOptions(t *testing.T) {
 		command := signCommand(opts)
 		expected := &signOpts{
 			reference: "ref",
-			SecureFlagOpts: SecureFlagOpts{
+			Secure: option.Secure{
 				Username: "user",
 				Password: "password",
 			},
-			SignerFlagOpts: cmd.SignerFlagOpts{
-				PluginName:      "pluginName",
+			Signer: option.Signer{
+				Plugin: option.Plugin{
+					PluginName: "pluginName",
+				},
 				SignatureFormat: envelope.JWS,
 			},
 		}

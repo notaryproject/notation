@@ -29,7 +29,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	format.CurrentType = string(option.FormatTypeTree)
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
@@ -54,15 +54,15 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestInspectCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(defaultUsernameEnv, "user")
-	t.Setenv(defaultPasswordEnv, "password")
+	t.Setenv(option.DefaultUsernameEnv, "user")
+	t.Setenv(option.DefaultPasswordEnv, "password")
 
 	format := option.Format{}
 	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
 	format.CurrentType = string(option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		Secure: option.Secure{
 			Password: "password",
 			Username: "user",
 		},
