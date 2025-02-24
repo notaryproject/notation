@@ -24,6 +24,7 @@ import (
 
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/json"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/table"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/text"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/tree"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
@@ -64,4 +65,16 @@ func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 // blob verification result and warnings.
 func NewBlobVerifyHandler(printer *output.Printer) metadata.BlobVerifyHandler {
 	return text.NewBlobVerifyHandler(printer)
+}
+
+// NewKeyListHandler creates a new metadata KeyListHandler for printing metadata
+// of keys.
+func NewKeyListHandler(printer *output.Printer) metadata.KeyListHandler {
+	return table.NewKeyListHandler(printer)
+}
+
+// NewCertificateListHandler creates a new metadata CertificateListHandler for printing
+// metadata of certificates.
+func NewCertificateListHandler(printer *output.Printer) metadata.CertificateListHandler {
+	return table.NewCertificateListHandler(printer)
 }

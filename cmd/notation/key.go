@@ -17,13 +17,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/notaryproject/notation-go/config"
-
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -51,6 +50,10 @@ type keyUpdateOpts struct {
 	cmd.LoggingFlagOpts
 	name      string
 	isDefault bool
+}
+
+type keyListOpts struct {
+	option.Common
 }
 
 type keyDeleteOpts struct {
@@ -139,12 +142,16 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 }
 
 func keyListCommand() *cobra.Command {
+	var opts keyListOpts
 	return &cobra.Command{
 		Use:     "list [flags]",
 		Aliases: []string{"ls"},
 		Short:   "List keys used for signing",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			opts.Common.Parse(cmd)
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return listKeys()
+			return listKeys(&opts)
 		},
 	}
 }
@@ -222,15 +229,15 @@ func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	return nil
 }
 
-func listKeys() error {
+func listKeys(opts *keyListOpts) error {
+	displayHandler := display.NewKeyListHandler(opts.Printer)
 	// core process
 	signingKeys, err := config.LoadSigningKeys()
 	if err != nil {
 		return err
 	}
 
-	// write out
-	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
+	return displayHandler.PrintKeys(signingKeys.Default, signingKeys.Keys)
 }
 
 func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
