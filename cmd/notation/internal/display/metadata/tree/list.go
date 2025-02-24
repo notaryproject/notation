@@ -26,7 +26,7 @@ type ListHandler struct {
 
 	// sprinter is a stream printer to print the signature digest nodes in
 	// a streaming fashion
-	sprinter *StreamPrinter
+	sprinter *streamPrinter
 
 	// headerNode contains the headers of the output
 	//
