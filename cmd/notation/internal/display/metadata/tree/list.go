@@ -43,7 +43,7 @@ type ListHandler struct {
 func NewListHandler(printer *output.Printer) *ListHandler {
 	return &ListHandler{
 		printer:  printer,
-		sprinter: newStreamPrinter("    ", printer),
+		sprinter: newStreamPrinter(subTreePrefixLast, printer),
 	}
 }
 
