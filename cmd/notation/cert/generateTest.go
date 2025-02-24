@@ -25,26 +25,16 @@ import (
 	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-)
-
-var (
-	keyDefaultFlag = &pflag.Flag{
-		Name:  "default",
-		Usage: "mark as default signing key",
-	}
-	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
-		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
-	}
 )
 
 type certGenerateTestOpts struct {
-	name      string
-	bits      int
-	isDefault bool
+	option.IsDefaultKey
+	name string
+	bits int
 }
 
 func certGenerateTestCommand(opts *certGenerateTestOpts) *cobra.Command {
@@ -74,8 +64,8 @@ Example - Generate a test RSA key and a corresponding self-signed certificate, s
 		},
 	}
 
+	opts.IsDefaultKey.ApplyFlags(command.Flags())
 	command.Flags().IntVarP(&opts.bits, "bits", "b", 2048, "RSA key bits")
-	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 	return command
 }
 
@@ -124,7 +114,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 
 	// update signingkeys.json config
 	exec := func(s *config.SigningKeys) error {
-		return s.Add(opts.name, keyPath, certPath, opts.isDefault)
+		return s.Add(opts.name, keyPath, certPath, opts.IsDefault)
 	}
 	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err
@@ -137,7 +127,7 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 
 	// write out
 	fmt.Printf("%s: added to the key list\n", name)
-	if opts.isDefault {
+	if opts.IsDefault {
 		fmt.Printf("%s: mark as default signing key\n", name)
 	}
 	return nil

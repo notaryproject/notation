@@ -50,8 +50,10 @@ func TestKeyUpdateCommand_BasicArgs(t *testing.T) {
 	opts := &keyUpdateOpts{}
 	cmd := keyUpdateCommand(opts)
 	expected := &keyUpdateOpts{
-		name:      "name",
-		isDefault: true,
+		name: "name",
+		IsDefaultKey: option.IsDefaultKey{
+			IsDefault: true,
+		},
 	}
 	if err := cmd.ParseFlags([]string{
 		expected.name,

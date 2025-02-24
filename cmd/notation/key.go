@@ -25,30 +25,19 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
-)
-
-var (
-	keyDefaultFlag = &pflag.Flag{
-		Name:  "default",
-		Usage: "mark as default",
-	}
-	setKeyDefaultFlag = func(fs *pflag.FlagSet, p *bool) {
-		fs.BoolVarP(p, keyDefaultFlag.Name, keyDefaultFlag.Shorthand, false, keyDefaultFlag.Usage)
-	}
 )
 
 type keyAddOpts struct {
 	option.Logging
 	option.Plugin
-	name      string
-	isDefault bool
+	option.IsDefaultKey
+	name string
 }
 
 type keyUpdateOpts struct {
 	option.Logging
-	name      string
-	isDefault bool
+	option.IsDefaultKey
+	name string
 }
 
 type keyDeleteOpts struct {
@@ -100,8 +89,8 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 	}
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.Plugin.ApplyFlags(command)
+	opts.IsDefaultKey.ApplyFlags(command.Flags())
 	command.MarkFlagRequired("plugin")
-	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
 }
@@ -127,7 +116,7 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 	}
 
 	opts.Logging.ApplyFlags(command.Flags())
-	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
+	opts.IsDefaultKey.ApplyFlags(command.Flags())
 
 	return command
 }
@@ -178,13 +167,13 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 
 	// core process
 	exec := func(s *config.SigningKeys) error {
-		return s.AddPlugin(ctx, opts.name, opts.KeyID, opts.PluginName, pluginConfig, opts.isDefault)
+		return s.AddPlugin(ctx, opts.name, opts.KeyID, opts.PluginName, pluginConfig, opts.IsDefault)
 	}
 	if err := config.LoadExecSaveSigningKeys(exec); err != nil {
 		return err
 	}
 
-	if opts.isDefault {
+	if opts.IsDefault {
 		fmt.Printf("%s: marked as default\n", opts.name)
 	} else {
 		fmt.Println(opts.name)
@@ -198,7 +187,7 @@ func updateKey(ctx context.Context, opts *keyUpdateOpts) error {
 	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
-	if !opts.isDefault {
+	if !opts.IsDefault {
 		logger.Warn("--default flag is not set, command did not take effect")
 		return nil
 	}

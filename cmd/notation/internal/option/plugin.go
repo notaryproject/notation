@@ -17,14 +17,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Plugin contains key-related flag values
+// Plugin contains plugin related options.
 type Plugin struct {
 	PluginConfig pluginConfig
 	PluginName   string
 	KeyID        string
 }
 
-// ApplyFlags set flags and their default values for the FlagSet.
+// ApplyFlags set flags and their default values for plugin options.
 func (opts *Plugin) ApplyFlags(cmd *cobra.Command) {
 	fs := cmd.Flags()
 	fs.StringArrayVar((*[]string)(&opts.PluginConfig), pluginConfigFlag, nil, "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values")
