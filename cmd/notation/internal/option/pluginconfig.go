@@ -14,7 +14,6 @@
 package option
 
 import (
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/pflag"
 )
 
@@ -25,22 +24,20 @@ type PluginConfig []string
 
 // ApplyFlags sets up the flags for the plugin config option.
 func (pc *PluginConfig) ApplyFlags(fs *pflag.FlagSet) {
-	usage := "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values"
-	fs.StringArrayVar((*[]string)(pc), pluginConfigFlag, nil, usage)
+	fs.StringArrayVar((*[]string)(pc), pluginConfigFlag, nil, "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values")
 }
 
 // ParseFlagMap parses plugin-config flag into a map.
 func (pc *PluginConfig) PluginConfigMap() (map[string]string, error) {
-	return cmd.ParseFlagMap(*pc, pluginConfigFlag)
+	return parseFlagMap(*pc, pluginConfigFlag)
 }
 
-// VerificationPluginConfig is a plugin config for verification.
+// VerificationPluginConfig contains a plugin config for verification.
 type VerificationPluginConfig struct {
 	PluginConfig
 }
 
 // ApplyFlags sets up the flags for the verification plugin config option.
 func (vpc *VerificationPluginConfig) ApplyFlags(fs *pflag.FlagSet) {
-	usage := "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values"
-	fs.StringArrayVar((*[]string)(&vpc.PluginConfig), pluginConfigFlag, nil, usage)
+	fs.StringArrayVar((*[]string)(&vpc.PluginConfig), pluginConfigFlag, nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 }

@@ -49,7 +49,6 @@ type signOpts struct {
 	option.Signer
 	option.UserMetadata
 	option.Secure
-	expiry                 time.Duration
 	reference              string
 	allowReferrersAPI      bool
 	forceReferrersTag      bool
@@ -145,7 +144,6 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	opts.Logging.ApplyFlags(fs)
 	opts.Signer.ApplyFlags(command)
 	opts.Secure.ApplyFlags(fs)
-	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	opts.UserMetadata.ApplyFlags(fs)
 	cmd.SetPflagReferrersAPI(fs, &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
@@ -217,7 +215,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 	signOpts := notation.SignOptions{
 		SignerSignOptions: notation.SignerSignOptions{
 			SignatureMediaType: mediaType,
-			ExpiryDuration:     opts.expiry,
+			ExpiryDuration:     opts.Expiry,
 			PluginConfig:       pluginConfig,
 		},
 		UserMetadata: userMetadata,

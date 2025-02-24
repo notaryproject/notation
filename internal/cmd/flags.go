@@ -15,38 +15,10 @@
 package cmd
 
 import (
-	"fmt"
-	"strings"
-	"time"
-
 	"github.com/spf13/pflag"
 )
 
 var (
-	PflagKey = &pflag.Flag{
-		Name:      "key",
-		Shorthand: "k",
-		Usage:     "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags",
-	}
-
-	PflagExpiry = &pflag.Flag{
-		Name:      "expiry",
-		Shorthand: "e",
-		Usage:     "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m",
-	}
-	SetPflagExpiry = func(fs *pflag.FlagSet, p *time.Duration) {
-		fs.DurationVarP(p, PflagExpiry.Name, PflagExpiry.Shorthand, time.Duration(0), PflagExpiry.Usage)
-	}
-
-	PflagReference = &pflag.Flag{
-		Name:      "reference",
-		Shorthand: "r",
-		Usage:     "original reference",
-	}
-	SetPflagReference = func(fs *pflag.FlagSet, p *string) {
-		fs.StringVarP(p, PflagReference.Name, PflagReference.Shorthand, "", PflagReference.Usage)
-	}
-
 	PflagReferrersAPI = &pflag.Flag{
 		Name: "allow-referrers-api",
 	}
@@ -63,21 +35,3 @@ var (
 		fs.BoolVar(p, PflagReferrersTag.Name, true, usage)
 	}
 )
-
-// KeyValueSlice is a flag with type int
-type KeyValueSlice interface {
-	Set(value string) error
-	String() string
-}
-
-func ParseFlagMap(c []string, flagName string) (map[string]string, error) {
-	m := make(map[string]string, len(c))
-	for _, pair := range c {
-		key, val, found := strings.Cut(pair, "=")
-		if !found || key == "" || val == "" {
-			return nil, fmt.Errorf("could not parse flag %s: key-value pair requires \"=\" as separator", flagName)
-		}
-		m[key] = val
-	}
-	return m, nil
-}

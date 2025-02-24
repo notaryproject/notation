@@ -14,6 +14,8 @@
 package option
 
 import (
+	"time"
+
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/cobra"
@@ -25,6 +27,7 @@ type Signer struct {
 	Plugin
 	Key             string
 	SignatureFormat string
+	Expiry          time.Duration
 }
 
 // ApplyFlags set flags and their default values for the FlagSet.
@@ -33,6 +36,7 @@ func (opts *Signer) ApplyFlags(cmd *cobra.Command) {
 
 	fs := cmd.Flags()
 	fs.StringVarP(&opts.Key, "key", "k", "", "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags")
+	fs.DurationVarP(&opts.Expiry, "expiry", "e", time.Duration(0), "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m")
 	cmd.MarkFlagsMutuallyExclusive("key", "id")
 	cmd.MarkFlagsMutuallyExclusive("key", "plugin")
 	opts.setSignatureFormat(fs)

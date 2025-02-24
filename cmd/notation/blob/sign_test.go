@@ -56,8 +56,8 @@ func TestBlobSignCommand_MoreArgs(t *testing.T) {
 		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Expiry:          24 * time.Hour,
 		},
-		expiry:             24 * time.Hour,
 		signatureDirectory: ".",
 		blobMediaType:      "application/octet-stream",
 	}
@@ -65,7 +65,7 @@ func TestBlobSignCommand_MoreArgs(t *testing.T) {
 		expected.blobPath,
 		"--key", expected.Key,
 		"--signature-format", expected.Signer.SignatureFormat,
-		"--expiry", expected.expiry.String()}); err != nil {
+		"--expiry", expected.Expiry.String()}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
 	}
 	if err := command.Args(command, command.Flags().Args()); err != nil {
@@ -87,8 +87,8 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 			Plugin: option.Plugin{
 				PluginConfig: []string{"key0=val0", "key1=val1"},
 			},
+			Expiry: 365 * 24 * time.Hour,
 		},
-		expiry:             365 * 24 * time.Hour,
 		signatureDirectory: ".",
 		blobMediaType:      "application/octet-stream",
 	}
@@ -96,7 +96,7 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 		expected.blobPath,
 		"--key", expected.Key,
 		"--signature-format", expected.Signer.SignatureFormat,
-		"--expiry", expected.expiry.String(),
+		"--expiry", expected.Expiry.String(),
 		"--plugin-config", "key0=val0",
 		"--plugin-config", "key1=val1"}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)

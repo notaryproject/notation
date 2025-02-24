@@ -28,7 +28,6 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -46,8 +45,6 @@ type blobSignOpts struct {
 	option.Logging
 	option.Signer
 	option.UserMetadata
-	expiry                 time.Duration
-	userMetadata           []string
 	blobPath               string
 	blobMediaType          string
 	signatureDirectory     string
@@ -124,7 +121,6 @@ Example - Sign a blob artifact with timestamping:
 	fs := command.Flags()
 	opts.Logging.ApplyFlags(fs)
 	opts.Signer.ApplyFlags(command)
-	cmd.SetPflagExpiry(fs, &opts.expiry)
 	opts.UserMetadata.ApplyFlags(fs)
 	fs.StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
 	fs.StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
@@ -204,7 +200,7 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 	signBlobOpts := notation.SignBlobOptions{
 		SignerSignOptions: notation.SignerSignOptions{
 			SignatureMediaType: mediaType,
-			ExpiryDuration:     opts.expiry,
+			ExpiryDuration:     opts.Expiry,
 			PluginConfig:       pluginConfig,
 		},
 		ContentMediaType: opts.blobMediaType,

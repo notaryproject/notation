@@ -66,8 +66,8 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		Signer: option.Signer{
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Expiry:          24 * time.Hour,
 		},
-		expiry:            24 * time.Hour,
 		forceReferrersTag: true,
 	}
 	if err := command.ParseFlags([]string{
@@ -77,7 +77,7 @@ func TestSignCommand_MoreArgs(t *testing.T) {
 		"--key", expected.Key,
 		"--insecure-registry",
 		"--signature-format", expected.Signer.SignatureFormat,
-		"--expiry", expected.expiry.String(),
+		"--expiry", expected.Expiry.String(),
 		"--force-referrers-tag",
 	}); err != nil {
 		t.Fatalf("Parse Flag failed: %v", err)
@@ -101,15 +101,15 @@ func TestSignCommand_CorrectConfig(t *testing.T) {
 			},
 			Key:             "key",
 			SignatureFormat: envelope.COSE,
+			Expiry:          365 * 24 * time.Hour,
 		},
-		expiry:            365 * 24 * time.Hour,
 		forceReferrersTag: false,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
 		"--key", expected.Key,
 		"--signature-format", expected.Signer.SignatureFormat,
-		"--expiry", expected.expiry.String(),
+		"--expiry", expected.Expiry.String(),
 		"--plugin-config", "key0=val0",
 		"--plugin-config", "key1=val1",
 		"--force-referrers-tag=false",
