@@ -16,16 +16,20 @@ package cert
 import (
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestCertDeleteCommand(t *testing.T) {
 	opts := &certDeleteOpts{}
 	cmd := certDeleteCommand(opts)
 	expected := &certDeleteOpts{
-		storeType:  "ca",
-		namedStore: "test",
-		cert:       "test.crt",
-		confirmed:  true,
+		Store: option.Store{
+			StoreType:  "ca",
+			NamedStore: "test",
+		},
+		cert:      "test.crt",
+		confirmed: true,
 	}
 	if err := cmd.ParseFlags([]string{
 		"test.crt",

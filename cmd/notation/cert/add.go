@@ -17,14 +17,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
 
 type certAddOpts struct {
-	storeType  string
-	namedStore string
-	path       []string
+	option.Store
+	path []string
 }
 
 func certAddCommand(opts *certAddOpts) *cobra.Command {
@@ -56,22 +56,21 @@ Example - Add a certificate to the "tsa" type of a named store "timestamp":
 			return addCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	opts.Store.ApplyFlags(command.Flags())
 	command.MarkFlagRequired("type")
 	command.MarkFlagRequired("store")
 	return command
 }
 
 func addCerts(opts *certAddOpts) error {
-	storeType := opts.storeType
+	storeType := opts.StoreType
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}
 	if !truststore.IsValidStoreType(storeType) {
 		return fmt.Errorf("unsupported store type: %s", storeType)
 	}
-	namedStore := opts.namedStore
+	namedStore := opts.NamedStore
 	if !truststore.IsValidFileName(namedStore) {
 		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}

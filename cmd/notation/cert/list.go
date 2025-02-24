@@ -29,8 +29,7 @@ import (
 
 type certListOpts struct {
 	option.Logging
-	storeType  string
-	namedStore string
+	option.Store
 }
 
 func certListCommand(opts *certListOpts) *cobra.Command {
@@ -63,8 +62,7 @@ Example - List all certificate files from trust store of type "tsa"
 		},
 	}
 	opts.Logging.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	opts.Store.ApplyFlags(command.Flags())
 	return command
 }
 
@@ -73,8 +71,8 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 	ctx = opts.Logging.InitializeLogger(ctx)
 	logger := log.GetLogger(ctx)
 
-	namedStore := opts.namedStore
-	storeType := opts.storeType
+	namedStore := opts.NamedStore
+	storeType := opts.StoreType
 	configFS := dir.ConfigFS()
 
 	// List all certificates under truststore/x509, display empty if there's

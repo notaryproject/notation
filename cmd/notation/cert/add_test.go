@@ -16,15 +16,19 @@ package cert
 import (
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestCertAddCommand(t *testing.T) {
 	opts := &certAddOpts{}
 	cmd := certAddCommand(opts)
 	expected := &certAddOpts{
-		storeType:  "ca",
-		namedStore: "test",
-		path:       []string{"path"},
+		Store: option.Store{
+			StoreType:  "ca",
+			NamedStore: "test",
+		},
+		path: []string{"path"},
 	}
 	if err := cmd.ParseFlags([]string{
 		"path",

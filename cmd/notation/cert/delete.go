@@ -17,16 +17,16 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
 
 type certDeleteOpts struct {
-	storeType  string
-	namedStore string
-	cert       string
-	all        bool
-	confirmed  bool
+	option.Store
+	cert      string
+	all       bool
+	confirmed bool
 }
 
 func certDeleteCommand(opts *certDeleteOpts) *cobra.Command {
@@ -67,8 +67,7 @@ Example - Delete certificate "wabbit-networks-timestamp.pem" with "tsa" type fro
 			return deleteCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
-	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
+	opts.Store.ApplyFlags(command.Flags())
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "delete all certificates in the named store")
 	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")
 	command.MarkFlagRequired("type")
@@ -77,11 +76,11 @@ Example - Delete certificate "wabbit-networks-timestamp.pem" with "tsa" type fro
 }
 
 func deleteCerts(opts *certDeleteOpts) error {
-	namedStore := opts.namedStore
+	namedStore := opts.NamedStore
 	if !truststore.IsValidFileName(namedStore) {
 		return errors.New("named store name needs to follow [a-zA-Z0-9_.-]+ format")
 	}
-	storeType := opts.storeType
+	storeType := opts.StoreType
 	if storeType == "" {
 		return errors.New("store type cannot be empty")
 	}

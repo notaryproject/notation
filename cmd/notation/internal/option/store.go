@@ -11,30 +11,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cert
+package option
 
-import (
-	"reflect"
-	"testing"
+import "github.com/spf13/pflag"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-)
+// Store defines a trust store option.
+type Store struct {
+	StoreType  string
+	NamedStore string
+}
 
-func TestCertListCommand(t *testing.T) {
-	opts := &certListOpts{}
-	cmd := certListCommand(opts)
-	expected := &certListOpts{
-		Store: option.Store{
-			StoreType:  "ca",
-			NamedStore: "test",
-		},
-	}
-	if err := cmd.ParseFlags([]string{
-		"-t", "ca",
-		"-s", "test"}); err != nil {
-		t.Fatalf("Parse Flag failed: %v", err)
-	}
-	if !reflect.DeepEqual(*expected, *opts) {
-		t.Fatalf("Expect cert list opts: %v, got: %v", expected, opts)
-	}
+// ApplyFlags applies store flags with default values for trust store flags.
+func (opts *Store) ApplyFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&opts.StoreType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	fs.StringVarP(&opts.NamedStore, "store", "s", "", "specify named store")
 }
