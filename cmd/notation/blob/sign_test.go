@@ -107,7 +107,7 @@ func TestBlobSignCommand_CorrectConfig(t *testing.T) {
 	if !reflect.DeepEqual(*expected, *opts) {
 		t.Fatalf("Expect sign blob opts: %v, got: %v", expected, opts)
 	}
-	config, err := opts.PluginConfigMap()
+	config, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		t.Fatalf("Parse plugin Config flag failed: %v", err)
 	}

@@ -19,15 +19,15 @@ import (
 
 // Plugin contains key-related flag values
 type Plugin struct {
-	PluginConfig
-	PluginName string
-	KeyID      string
+	PluginConfig pluginConfig
+	PluginName   string
+	KeyID        string
 }
 
 // ApplyFlags set flags and their default values for the FlagSet.
 func (opts *Plugin) ApplyFlags(cmd *cobra.Command) {
 	fs := cmd.Flags()
-	opts.PluginConfig.ApplyFlags(fs)
+	fs.StringArrayVar((*[]string)(&opts.PluginConfig), pluginConfigFlag, nil, "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values")
 	fs.StringVar(&opts.KeyID, "id", "", "key id (required if --plugin is set). This is mutually exclusive with the --key flag")
 	fs.StringVar(&opts.PluginName, "plugin", "", "signing plugin name (required if --id is set). This is mutually exclusive with the --key flag")
 	cmd.MarkFlagsRequiredTogether("id", "plugin")

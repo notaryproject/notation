@@ -193,11 +193,11 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	pluginConfig, err := opts.PluginConfigMap()
+	pluginConfig, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	userMetadata, err := opts.UserMetadataMap()
+	userMetadata, err := opts.UserMetadata.ToMap()
 	if err != nil {
 		return notation.SignOptions{}, err
 	}

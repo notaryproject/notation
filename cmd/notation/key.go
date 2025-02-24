@@ -171,7 +171,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
 	ctx = opts.Logging.InitializeLogger(ctx)
 
-	pluginConfig, err := opts.PluginConfigMap()
+	pluginConfig, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		return err
 	}

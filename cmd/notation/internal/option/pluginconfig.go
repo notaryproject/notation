@@ -13,34 +13,12 @@
 
 package option
 
-import (
-	"github.com/spf13/pflag"
-)
-
 const pluginConfigFlag = "plugin-config"
 
-// PluginConfig is a plugin config option.
-type PluginConfig []string
+// pluginConfig is a plugin config option.
+type pluginConfig []string
 
-// ApplyFlags sets up the flags for the plugin config option.
-func (c *PluginConfig) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringArrayVar((*[]string)(c), pluginConfigFlag, nil, "{key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values")
-}
-
-// ParseFlagMap parses plugin-config flag into a map.
-func (c *PluginConfig) PluginConfigMap() (map[string]string, error) {
-	return parseFlagMap(*c, pluginConfigFlag)
-}
-
-// VerificationPluginConfig contains a plugin config for verification.
-type VerificationPluginConfig []string
-
-// ApplyFlags sets up the flags for the verification plugin config option.
-func (c *VerificationPluginConfig) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringArrayVar((*[]string)(c), pluginConfigFlag, nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
-}
-
-// ParseFlagMap parses plugin-config flag into a map.
-func (c *VerificationPluginConfig) PluginConfigMap() (map[string]string, error) {
+// ToMap parses plugin-config flag value into a map.
+func (c *pluginConfig) ToMap() (map[string]string, error) {
 	return parseFlagMap(*c, pluginConfigFlag)
 }

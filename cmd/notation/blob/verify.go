@@ -32,8 +32,7 @@ import (
 type blobVerifyOpts struct {
 	option.Logging
 	option.Common
-	option.VerificationUserMetadata
-	option.VerificationPluginConfig
+	option.Verifier
 	blobPath            string
 	signaturePath       string
 	policyStatementName string
@@ -87,11 +86,10 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 	}
 	fs := command.Flags()
 	opts.Logging.ApplyFlags(fs)
+	opts.Verifier.ApplyFlags(fs)
 	fs.StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
-	opts.VerificationPluginConfig.ApplyFlags(fs)
 	fs.StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
 	fs.StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
-	opts.VerificationUserMetadata.ApplyFlags(fs)
 	command.MarkFlagRequired("signature")
 	return command
 }
@@ -118,13 +116,13 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	}
 
 	// set up verification plugin config
-	pluginConfigs, err := cmdOpts.PluginConfigMap()
+	pluginConfigs, err := cmdOpts.PluginConfig.ToMap()
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmdOpts.UserMetadataMap()
+	userMetadata, err := cmdOpts.UserMetadata.ToMap()
 	if err != nil {
 		return err
 	}

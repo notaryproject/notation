@@ -32,7 +32,7 @@ type Signer struct {
 	Plugin
 
 	// UserMetadata contains options for signing with user metadata.
-	UserMetadata
+	UserMetadata userMetadata
 
 	// Key is the name of the signing key.
 	Key string
@@ -49,13 +49,13 @@ func (opts *Signer) ApplyFlags(cmd *cobra.Command) {
 	fs := cmd.Flags()
 	opts.Plugin.ApplyFlags(cmd)
 	opts.Timestamp.ApplyFlags(fs)
-	opts.UserMetadata.ApplyFlags(fs)
+	opts.setSignatureFormat(fs)
 
+	fs.StringArrayVarP((*[]string)(&opts.UserMetadata), userMetadataFlag, "m", nil, "{key}={value} pairs that are added to the signature payload")
 	fs.StringVarP(&opts.Key, "key", "k", "", "signing key name, for a key previously added to notation's key list. This is mutually exclusive with the --id and --plugin flags")
 	fs.DurationVarP(&opts.Expiry, "expiry", "e", time.Duration(0), "optional expiry that provides a \"best by use\" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m")
 	cmd.MarkFlagsMutuallyExclusive("key", "id")
 	cmd.MarkFlagsMutuallyExclusive("key", "plugin")
-	opts.setSignatureFormat(fs)
 }
 
 func (opts *Signer) setSignatureFormat(fs *pflag.FlagSet) {

@@ -13,35 +13,12 @@
 
 package option
 
-import (
-	"github.com/spf13/pflag"
-)
-
 const userMetadataFlag = "user-metadata"
 
-// UserMetadata is user metadata flag values
-type UserMetadata []string
-
-// ApplyFlags set flags and their default values for the FlagSet.
-func (m *UserMetadata) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringArrayVarP((*[]string)(m), userMetadataFlag, "m", nil, "{key}={value} pairs that are added to the signature payload")
-}
+// userMetadata is user metadata flag values
+type userMetadata []string
 
 // UserMetadataMap parses user-metadata flag into a map.
-func (m *UserMetadata) UserMetadataMap() (map[string]string, error) {
-	return parseFlagMap(*m, userMetadataFlag)
-}
-
-// VerificationUserMetadata contains user metadata flag values for
-// verification.
-type VerificationUserMetadata []string
-
-// ApplyFlags set flags and their default values for the FlagSet.
-func (m *VerificationUserMetadata) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringArrayVarP((*[]string)(m), userMetadataFlag, "m", nil, "user defined {key}={value} pairs that must be present in the signature for successful verification if provided")
-}
-
-// UserMetadataMap parses user-metadata flag into a map.
-func (m *VerificationUserMetadata) UserMetadataMap() (map[string]string, error) {
+func (m *userMetadata) ToMap() (map[string]string, error) {
 	return parseFlagMap(*m, userMetadataFlag)
 }

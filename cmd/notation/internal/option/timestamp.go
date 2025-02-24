@@ -30,18 +30,18 @@ type Timestamp struct {
 }
 
 // ApplyFlags apply flags and their default values for Timestamp flags.
-func (t *Timestamp) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&t.ServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
-	fs.StringVar(&t.RootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
+func (opts *Timestamp) ApplyFlags(fs *pflag.FlagSet) {
+	fs.StringVar(&opts.ServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
+	fs.StringVar(&opts.RootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 }
 
 // Validate validates Timestamp flags.
-func (t *Timestamp) Validate(cmd *cobra.Command) error {
+func (opts *Timestamp) Validate(cmd *cobra.Command) error {
 	if cmd.Flags().Changed("timestamp-url") {
-		if t.ServerURL == "" {
+		if opts.ServerURL == "" {
 			return errors.New("timestamping: tsa url cannot be empty")
 		}
-		if t.RootCertificatePath == "" {
+		if opts.RootCertificatePath == "" {
 			return errors.New("timestamping: tsa root certificate path cannot be empty")
 		}
 	}

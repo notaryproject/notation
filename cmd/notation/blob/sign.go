@@ -178,11 +178,11 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	pluginConfig, err := opts.PluginConfigMap()
+	pluginConfig, err := opts.PluginConfig.ToMap()
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	userMetadata, err := opts.UserMetadataMap()
+	userMetadata, err := opts.UserMetadata.ToMap()
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}

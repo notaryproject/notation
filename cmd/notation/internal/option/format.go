@@ -60,17 +60,17 @@ type Format struct {
 //
 // The defaultType is the default format type.
 // The otherTypes are additional format types that are allowed.
-func (f *Format) ApplyFlags(fs *pflag.FlagSet, defaultType FormatType, otherTypes ...FormatType) {
-	f.CurrentType = string(defaultType)
-	f.allowedTypes = append(otherTypes, defaultType)
+func (opts *Format) ApplyFlags(fs *pflag.FlagSet, defaultType FormatType, otherTypes ...FormatType) {
+	opts.CurrentType = string(defaultType)
+	opts.allowedTypes = append(otherTypes, defaultType)
 
 	var quotedAllowedTypes []string
-	for _, t := range f.allowedTypes {
+	for _, t := range opts.allowedTypes {
 		quotedAllowedTypes = append(quotedAllowedTypes, fmt.Sprintf("'%s'", t))
 	}
 	usage := fmt.Sprintf("output format, options: %s", strings.Join(quotedAllowedTypes, ", "))
 	// apply flags
-	fs.StringVarP(&f.CurrentType, "output", "o", f.CurrentType, usage)
+	fs.StringVarP(&opts.CurrentType, "output", "o", opts.CurrentType, usage)
 }
 
 // Parse parses the input format flag.
