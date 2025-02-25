@@ -51,7 +51,6 @@ type signOpts struct {
 	pluginConfig           []string
 	userMetadata           []string
 	reference              string
-	allowReferrersAPI      bool
 	forceReferrersTag      bool
 	ociLayout              bool
 	inputType              inputType
@@ -116,7 +115,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// timestamping
@@ -129,15 +128,6 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 				}
 			}
 
-			// allow-referrers-api flag is set
-			if cmd.Flags().Changed("allow-referrers-api") {
-				if opts.allowReferrersAPI {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions, use '--force-referrers-tag=false' instead.")
-					opts.forceReferrersTag = false
-				} else {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
-				}
-			}
 			return runSign(cmd, opts)
 		},
 	}
@@ -147,12 +137,11 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
 	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
+	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
 	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command

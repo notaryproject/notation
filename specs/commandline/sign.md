@@ -30,7 +30,7 @@ Usage:
   notation sign [flags] <reference>
 
 Flags:
-       --force-referrers-tag         force to store signatures using the referrers tag schema (default true)
+       --force-referrers-tag         force to store signatures using the referrers tag schema (default false)
   -d,  --debug                       debug mode
   -e,  --expiry duration             optional expiry that provides a "best by use" time for the artifact. The duration is specified in minutes(m) and/or hours(h). For example: 12h, 30m, 3h20m
   -h,  --help                        help for sign
@@ -205,7 +205,6 @@ export NOTATION_EXPERIMENTAL=1
 notation list --oci-layout hello-world@sha256:xxx
 ```
 
-[oci-artifact-manifest]: https://github.com/opencontainers/image-spec/blob/v1.1.0-rc2/artifact.md
 [oci-image-spec]: https://github.com/opencontainers/image-spec/blob/v1.1.0/spec.md
 [oci-referers-api]: https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#listing-referrers
 [oci-image-layout]: https://github.com/opencontainers/image-spec/blob/v1.1.0/image-layout.md

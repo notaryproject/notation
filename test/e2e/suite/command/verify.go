@@ -84,40 +84,6 @@ var _ = Describe("notation verify", func() {
 		})
 	})
 
-	It("sign with --allow-referrers-api set", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
-
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords(VerifySuccessfully)
-
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
-				).
-				MatchKeyWords(VerifySuccessfully)
-		})
-	})
-
-	It("sign with --allow-referrers-api set to false", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api=false", artifact.ReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
-
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords(VerifySuccessfully)
-
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
-				).
-				MatchKeyWords(VerifySuccessfully)
-		})
-	})
-
 	It("by digest with oci layout", func() {
 		HostWithOCILayout(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, ociLayout *OCILayout, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--oci-layout", ociLayout.ReferenceWithDigest()).
