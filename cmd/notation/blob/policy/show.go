@@ -17,7 +17,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 
@@ -47,10 +46,10 @@ Example - Save current blob trust policy configuration to a file:
 }
 
 func runShow() error {
-	policyJSON, err := loadBlobTrustPolicy()
+	policyJSON, err := fs.ReadFile(dir.ConfigFS(), dir.PathBlobTrustPolicy)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to show blob trust policy as the trust policy file does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
+			return fmt.Errorf("failed to show blob trust policy as the configuration does not exist.\nYou can import one using `notation blob policy import <path-to-policy.json>`")
 		}
 		return fmt.Errorf("failed to show trust policy: %w", err)
 	}
@@ -59,7 +58,7 @@ func runShow() error {
 		err = doc.Validate()
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Existing blob trust policy file is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-blobs for a blob trust policy example.\n")
+		fmt.Fprintf(os.Stderr, "Existing blob trust policy configuration is invalid, you may update or create a new one via `notation blob policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-blobs for a blob trust policy example.\n")
 		os.Stdout.Write(policyJSON)
 		return err
 	}
@@ -67,15 +66,4 @@ func runShow() error {
 	// show policy content
 	_, err = os.Stdout.Write(policyJSON)
 	return err
-}
-
-// loadBlobTrustPolicy loads the blob trust policy from notation configuration
-// directory.
-func loadBlobTrustPolicy() ([]byte, error) {
-	f, err := dir.ConfigFS().Open(dir.PathBlobTrustPolicy)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return io.ReadAll(f)
 }

@@ -32,15 +32,13 @@ func showCmd() *cobra.Command {
 	var opts showOpts
 	command := &cobra.Command{
 		Use:   "show [flags]",
-		Short: "Show trust policy configuration",
-		Long: `Show trust policy configuration.
+		Short: "Show OCI trust policy configuration",
+		Long: `Show OCI trust policy configuration.
 
-** This command is in preview and under development. **
-
-Example - Show current trust policy configuration:
+Example - Show current OCI trust policy configuration:
   notation policy show
 
-Example - Save current trust policy configuration to a file:
+Example - Save current OCI trust policy configuration to a file:
   notation policy show > my_policy.json
 `,
 		Args: cobra.ExactArgs(0),
@@ -52,31 +50,37 @@ Example - Save current trust policy configuration to a file:
 }
 
 func runShow(command *cobra.Command, opts showOpts) error {
-	// get policy file path
-	policyPath, err := dir.ConfigFS().SysPath(dir.PathTrustPolicy)
-	if err != nil {
-		return fmt.Errorf("failed to obtain path of trust policy file: %w", err)
-	}
-
 	// core process
-	policyJSON, err := os.ReadFile(policyPath)
+	policyJSON, err := loadOCITrustPolicy()
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
-			return fmt.Errorf("failed to show trust policy as the trust policy file does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
+			return fmt.Errorf("failed to show OCI trust policy as it does not exist.\nYou can import one using `notation policy import <path-to-policy.json>`")
 		}
-		return fmt.Errorf("failed to show trust policy: %w", err)
+		return fmt.Errorf("failed to show OCI trust policy: %w", err)
 	}
-	var doc trustpolicy.Document
+	var doc trustpolicy.OCIDocument
 	if err = json.Unmarshal(policyJSON, &doc); err == nil {
 		err = doc.Validate()
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
-		fmt.Fprintf(os.Stderr, "Existing trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`\n")
-		// not returning to show the invalid policy configuration
+		fmt.Fprintf(os.Stderr, "Existing OCI trust policy configuration is invalid, you may update or create a new one via `notation policy import <path-to-policy.json>`. See https://github.com/notaryproject/specifications/blob/8cf800c60b7315a43f0adbcae463d848a353b412/specs/trust-store-trust-policy.md#trust-policy-for-oci-artifacts for a trust policy example.\n")
+		os.Stdout.Write(policyJSON)
+		return err
 	}
 
 	// show policy content
 	_, err = os.Stdout.Write(policyJSON)
 	return err
+}
+
+func loadOCITrustPolicy() ([]byte, error) {
+	data, err := fs.ReadFile(dir.ConfigFS(), dir.PathOCITrustPolicy)
+	if err != nil && errors.Is(err, fs.ErrNotExist) {
+		if _, err := fs.Stat(dir.ConfigFS(), dir.PathTrustPolicy); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(os.Stderr, "Warning: old trust policy `trustpolicy.json` is deprecated; please update the trust policy configuration via `notation policy import`.\n")
+		return fs.ReadFile(dir.ConfigFS(), dir.PathTrustPolicy)
+	}
+	return data, err
 }
