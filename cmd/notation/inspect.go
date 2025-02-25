@@ -21,9 +21,7 @@ import (
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
-	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -33,9 +31,8 @@ type inspectOpts struct {
 	option.SecureRegistry
 	option.Common
 	option.Format
-	reference         string
-	allowReferrersAPI bool
-	maxSignatures     int
+	reference     string
+	maxSignatures int
 }
 
 func inspectCommand(opts *inspectOpts) *cobra.Command {
@@ -69,14 +66,11 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 				return err
 			}
 			opts.Common.Parse(cmd)
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api")
+			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.maxSignatures <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatures)
-			}
-			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
 			}
 			return runInspect(cmd, opts)
 		},
@@ -85,7 +79,6 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.SecureRegistry.ApplyFlags(command.Flags())
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 
 	// set output format
 	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeTree, option.FormatTypeJSON)

@@ -49,7 +49,6 @@ type signOpts struct {
 	option.SecureRegistry
 	option.Signer
 	reference         string
-	allowReferrersAPI bool
 	forceReferrersTag bool
 	ociLayout         bool
 	inputType         inputType
@@ -112,7 +111,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout")
+			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// timestamping
@@ -120,25 +119,15 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 				return err
 			}
 
-			// allow-referrers-api flag is set
-			if cmd.Flags().Changed("allow-referrers-api") {
-				if opts.allowReferrersAPI {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions, use '--force-referrers-tag=false' instead.")
-					opts.forceReferrersTag = false
-				} else {
-					fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
-				}
-			}
 			return runSign(cmd, opts)
 		},
 	}
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.Signer.ApplyFlags(command)
 	opts.SecureRegistry.ApplyFlags(command.Flags())
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
-	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag", "allow-referrers-api")
+	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
 	experimental.HideFlags(command, experimentalExamples, []string{"oci-layout"})
 	return command

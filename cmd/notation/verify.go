@@ -16,14 +16,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/verifier"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
@@ -35,7 +33,6 @@ type verifyOpts struct {
 	option.Common
 	option.Verifier
 	reference            string
-	allowReferrersAPI    bool
 	ociLayout            bool
 	trustPolicyScope     string
 	inputType            inputType
@@ -81,14 +78,11 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 				opts.inputType = inputTypeOCILayout
 			}
 			opts.Common.Parse(cmd)
-			return experimental.CheckFlagsAndWarn(cmd, "allow-referrers-api", "oci-layout", "scope")
+			return experimental.CheckFlagsAndWarn(cmd, "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.maxSignatureAttempts <= 0 {
 				return fmt.Errorf("max-signatures value %d must be a positive number", opts.maxSignatureAttempts)
-			}
-			if cmd.Flags().Changed("allow-referrers-api") {
-				fmt.Fprintln(os.Stderr, "Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.")
 			}
 			return runVerify(cmd, opts)
 		},
@@ -96,7 +90,6 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.SecureRegistry.ApplyFlags(command.Flags())
 	opts.Verifier.ApplyFlags(command.Flags())
-	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "verify"))
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")

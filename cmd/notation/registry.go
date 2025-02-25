@@ -84,12 +84,10 @@ func getRemoteRepository(ctx context.Context, opts *option.SecureRegistry, refer
 	}
 
 	if forceReferrersTag {
-		logger.Info("The referrers tag schema is always attempted")
+		logger.Info("Force to store signatures using the referrers tag schema")
 		if err := remoteRepo.SetReferrersCapability(false); err != nil {
 			return nil, err
 		}
-	} else {
-		logger.Info("Allowed to access the referrers API, fallback if not supported")
 	}
 	return notationregistry.NewRepository(remoteRepo), nil
 }
