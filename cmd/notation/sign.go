@@ -28,7 +28,6 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
 	clirev "github.com/notaryproject/notation/internal/revocation"
@@ -125,7 +124,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.Signer.ApplyFlags(command)
 	opts.SecureRegistry.ApplyFlags(command.Flags())
-	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
+	command.Flags().BoolVar(&opts.forceReferrersTag, "force-referrers-tag", false, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
