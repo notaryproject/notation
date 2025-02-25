@@ -101,20 +101,11 @@ var (
 		fs.StringArrayVarP(p, PflagUserMetadata.Name, PflagUserMetadata.Shorthand, nil, usage)
 	}
 
-	PflagReferrersAPI = &pflag.Flag{
-		Name: "allow-referrers-api",
-	}
-	PflagReferrersUsageFormat = "[Experimental] use the Referrers API to %s signatures, if not supported (returns 404), fallback to the Referrers tag schema"
-	SetPflagReferrersAPI      = func(fs *pflag.FlagSet, p *bool, usage string) {
-		fs.BoolVar(p, PflagReferrersAPI.Name, false, usage)
-		fs.MarkHidden(PflagReferrersAPI.Name)
-	}
-
 	PflagReferrersTag = &pflag.Flag{
 		Name: "force-referrers-tag",
 	}
 	SetPflagReferrersTag = func(fs *pflag.FlagSet, p *bool, usage string) {
-		fs.BoolVar(p, PflagReferrersTag.Name, true, usage)
+		fs.BoolVar(p, PflagReferrersTag.Name, false, usage)
 	}
 )
 

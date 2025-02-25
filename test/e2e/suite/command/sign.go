@@ -30,11 +30,11 @@ var _ = Describe("notation sign", func() {
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify by digest").
+			notation.WithDescription("verify by digest").
 				Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 
-			OldNotation().WithDescription("verify by tag").
+			notation.WithDescription("verify by tag").
 				Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -45,11 +45,11 @@ var _ = Describe("notation sign", func() {
 			notation.Exec("sign", "--signature-format", "cose", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify by digest").
+			notation.WithDescription("verify by digest").
 				Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 
-			OldNotation().WithDescription("verify by tag").
+			notation.WithDescription("verify by tag").
 				Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -61,7 +61,7 @@ var _ = Describe("notation sign", func() {
 				Exec("sign", artifact.ReferenceWithTag(), "--signature-format", "jws").
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify JWS signature").
+			notation.WithDescription("verify JWS signature").
 				Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -73,19 +73,19 @@ var _ = Describe("notation sign", func() {
 				Exec("sign", artifact.ReferenceWithTag(), "--signature-format", "cose").
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify COSE signature").
+			notation.WithDescription("verify COSE signature").
 				Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
-	It("with force-referrers-tag set", func() {
+	It("with force-referrers-tag set to true", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.WithDescription("store signature with referrers tag schema").
-				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag").
+				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag=true").
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().WithDescription("verify by tag schema").
+			notation.WithDescription("verify by tag schema").
 				Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -97,63 +97,9 @@ var _ = Describe("notation sign", func() {
 				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag=false").
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation(BaseOptionsWithExperimental()...).WithDescription("verify by referrers api").
-				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
-				MatchKeyWords(VerifySuccessfully)
-		})
-	})
-
-	It("with allow-referrers-api set", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.WithDescription("store signature with Referrers API").
-				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions, use '--force-referrers-tag=false' instead.",
-				).
-				MatchKeyWords(SignSuccessfully)
-
-			OldNotation(BaseOptionsWithExperimental()...).WithDescription("verify by referrers api").
-				Exec("verify", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
-				MatchKeyWords(VerifySuccessfully)
-		})
-	})
-
-	It("with allow-referrers-api set to false", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.WithDescription("store signature with referrers tag schema").
-				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api=false").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
-				).
-				MatchKeyWords(SignSuccessfully)
-
-			OldNotation().WithDescription("verify by tag schema").
+			notation.WithDescription("verify by referrers api").
 				Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchKeyWords(VerifySuccessfully)
-		})
-	})
-
-	It("with both force-referrers-tag and allow-referrers-api set", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.WithDescription("store signature with Referrers API").
-				ExpectFailure().
-				Exec("sign", artifact.ReferenceWithDigest(), "--force-referrers-tag", "--allow-referrers-api").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"[allow-referrers-api force-referrers-tag] were all set",
-				)
-		})
-	})
-
-	It("with allow-referrers-api set and experimental off", func() {
-		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.WithDescription("store signature with Referrers API").
-				ExpectFailure().
-				Exec("sign", artifact.ReferenceWithDigest(), "--allow-referrers-api").
-				MatchErrKeyWords(
-					"Error: flag(s) --allow-referrers-api in \"notation sign\" is experimental and not enabled by default.")
 		})
 	})
 
@@ -165,13 +111,6 @@ var _ = Describe("notation sign", func() {
 
 			notation.Exec("sign", "--key", keyName, artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
-
-			// copy the generated cert file and create the new trust policy for verify signature with generated new key.
-			OldNotation(AuthOption("", ""),
-				AddTrustStoreOption(keyName, vhost.AbsolutePath(NotationDirName, LocalKeysDirName, keyName+".crt")),
-				AddTrustPolicyOption("generate_test_trustpolicy.json", false),
-			).Exec("verify", artifact.ReferenceWithTag()).
-				MatchKeyWords(VerifySuccessfully)
 		})
 	})
 
@@ -180,7 +119,7 @@ var _ = Describe("notation sign", func() {
 			notation.Exec("sign", "--expiry", "24h", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().Exec("verify", artifact.ReferenceWithTag()).
+			notation.Exec("verify", artifact.ReferenceWithTag()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -193,7 +132,7 @@ var _ = Describe("notation sign", func() {
 			// sleep to wait for expiry
 			time.Sleep(2100 * time.Millisecond)
 
-			OldNotation().ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("expiry validation failed.").
 				MatchErrKeyWords("signature verification failed for all the signatures")
 		})
@@ -242,7 +181,7 @@ var _ = Describe("notation sign", func() {
 				MatchErrKeyWords(HTTPSRequest).
 				NoMatchErrKeyWords(HTTPRequest)
 
-			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+			notation.Exec("verify", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -254,7 +193,7 @@ var _ = Describe("notation sign", func() {
 				MatchErrKeyWords(HTTPRequest).
 				NoMatchErrKeyWords(HTTPSRequest)
 
-			OldNotation().Exec("verify", artifact.DomainReferenceWithDigest()).
+			notation.Exec("verify", artifact.DomainReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
