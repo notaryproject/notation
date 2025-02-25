@@ -20,6 +20,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
+const timestampURLFlag = "timestamp-url"
+
 // Timestamp contains timestamp-related flag values
 type Timestamp struct {
 	// ServerURL is the URL of the Timestamping Authority (TSA) server.
@@ -31,13 +33,13 @@ type Timestamp struct {
 
 // ApplyFlags apply flags and their default values for Timestamp flags.
 func (opts *Timestamp) ApplyFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&opts.ServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
+	fs.StringVar(&opts.ServerURL, timestampURLFlag, "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	fs.StringVar(&opts.RootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 }
 
 // Validate validates Timestamp flags.
 func (opts *Timestamp) Validate(cmd *cobra.Command) error {
-	if cmd.Flags().Changed("timestamp-url") {
+	if cmd.Flags().Changed(timestampURLFlag) {
 		if opts.ServerURL == "" {
 			return errors.New("timestamping: tsa url cannot be empty")
 		}

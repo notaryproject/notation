@@ -15,10 +15,13 @@ package option
 
 const userMetadataFlag = "user-metadata"
 
-// userMetadata is user metadata flag values
+// userMetadata defines a type for user-metadata flag.
+//
+// the userMetadata was used in both option.Signer and option.Verifier with
+// different flag messages.
 type userMetadata []string
 
-// UserMetadataMap parses user-metadata flag into a map.
+// UserMetadataMap parses user-metadata value into a map.
 func (m *userMetadata) ToMap() (map[string]string, error) {
 	return parseFlagMap(*m, userMetadataFlag)
 }

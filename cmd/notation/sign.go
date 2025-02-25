@@ -144,24 +144,24 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	return command
 }
 
-func runSign(command *cobra.Command, opts *signOpts) error {
+func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	// set log level
-	ctx := opts.Logging.InitializeLogger(command.Context())
+	ctx := cmdOpts.Logging.InitializeLogger(command.Context())
 
 	// initialize
-	signer, err := signer.GetSigner(ctx, &opts.Signer)
+	signer, err := signer.GetSigner(ctx, &cmdOpts.Signer)
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.SecureRegistry, opts.forceReferrersTag)
+	sigRepo, err := getRepository(ctx, cmdOpts.inputType, cmdOpts.reference, &cmdOpts.SecureRegistry, cmdOpts.forceReferrersTag)
 	if err != nil {
 		return err
 	}
-	signOpts, err := prepareSigningOpts(ctx, opts)
+	signOpts, err := prepareSigningOpts(ctx, cmdOpts)
 	if err != nil {
 		return err
 	}
-	manifestDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, opts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	manifestDesc, resolvedRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {

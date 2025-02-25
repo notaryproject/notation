@@ -35,10 +35,13 @@ func (opts *Plugin) ApplyFlags(cmd *cobra.Command) {
 	cmd.MarkFlagsRequiredTogether("id", "plugin")
 }
 
-// pluginConfig is a plugin config option.
+// pluginConfig defines a type for plugin-config flag.
+//
+// the pluginConfig was used in both option.Plugin and option.Verifier with
+// different flag messages.
 type pluginConfig []string
 
-// ToMap parses plugin-config flag value into a map.
+// ToMap parses plugin-config value into a map.
 func (c *pluginConfig) ToMap() (map[string]string, error) {
 	return parseFlagMap(*c, pluginConfigFlag)
 }
