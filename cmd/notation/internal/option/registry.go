@@ -26,8 +26,8 @@ const (
 	defaultMediaType   = "application/vnd.docker.distribution.manifest.v2+json"
 )
 
-// Secure contains flag options for registry authentication.
-type Secure struct {
+// SecureRegistry contains flag options for registry security.
+type SecureRegistry struct {
 	// Username for registry authentication.
 	Username string
 
@@ -39,7 +39,7 @@ type Secure struct {
 }
 
 // ApplyFlags set flags and their default values for the FlagSet
-func (opts *Secure) ApplyFlags(fs *pflag.FlagSet) {
+func (opts *SecureRegistry) ApplyFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&opts.Username, "username", "u", "", "username for registry operations (default to $NOTATION_USERNAME if not specified)")
 	fs.StringVarP(&opts.Password, "password", "p", "", "password for registry operations (default to $NOTATION_PASSWORD if not specified)")
 	fs.BoolVar(&opts.InsecureRegistry, "insecure-registry", false, "use HTTP protocol while connecting to registries. Should be used only for testing")
@@ -48,7 +48,7 @@ func (opts *Secure) ApplyFlags(fs *pflag.FlagSet) {
 }
 
 // Credential returns an auth.Credential from opts.Username and opts.Password.
-func (opts *Secure) Credential() auth.Credential {
+func (opts *SecureRegistry) Credential() auth.Credential {
 	if opts.Username == "" {
 		return auth.Credential{
 			RefreshToken: opts.Password,

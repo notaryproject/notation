@@ -24,7 +24,7 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 	cmd := listCommand(opts)
 	expected := &listOpts{
 		reference: "ref",
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
@@ -52,7 +52,7 @@ func TestListCommand_SecretsFromEnv(t *testing.T) {
 	opts := &listOpts{}
 	expected := &listOpts{
 		reference: "ref",
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Password: "password",
 			Username: "user",
 		},

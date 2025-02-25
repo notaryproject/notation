@@ -31,7 +31,7 @@ import (
 
 type listOpts struct {
 	option.Logging
-	option.Secure
+	option.SecureRegistry
 	reference         string
 	allowReferrersAPI bool
 	ociLayout         bool
@@ -89,7 +89,7 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 		},
 	}
 	opts.Logging.ApplyFlags(command.Flags())
-	opts.Secure.ApplyFlags(command.Flags())
+	opts.SecureRegistry.ApplyFlags(command.Flags())
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "list"))
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] list signatures stored in OCI image layout")
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
@@ -105,7 +105,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.Secure, false)
+	sigRepo, err := getRepository(ctx, opts.inputType, reference, &opts.SecureRegistry, false)
 	if err != nil {
 		return err
 	}

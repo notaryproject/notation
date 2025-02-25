@@ -46,7 +46,7 @@ const timestampingTimeout = 15 * time.Second
 
 type signOpts struct {
 	option.Logging
-	option.Secure
+	option.SecureRegistry
 	option.Signer
 	reference         string
 	allowReferrersAPI bool
@@ -134,7 +134,7 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	}
 	opts.Logging.ApplyFlags(command.Flags())
 	opts.Signer.ApplyFlags(command)
-	opts.Secure.ApplyFlags(command.Flags())
+	opts.SecureRegistry.ApplyFlags(command.Flags())
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "sign"))
 	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
@@ -153,7 +153,7 @@ func runSign(command *cobra.Command, opts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.Secure, opts.forceReferrersTag)
+	sigRepo, err := getRepository(ctx, opts.inputType, opts.reference, &opts.SecureRegistry, opts.forceReferrersTag)
 	if err != nil {
 		return err
 	}

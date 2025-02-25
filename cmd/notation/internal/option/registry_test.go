@@ -23,12 +23,12 @@ import (
 func TestSecureFlagOpts_Credential(t *testing.T) {
 	tests := []struct {
 		name string
-		opts *Secure
+		opts *SecureRegistry
 		want auth.Credential
 	}{
 		{
 			name: "Username and password",
-			opts: &Secure{
+			opts: &SecureRegistry{
 				Username: "username",
 				Password: "password",
 			},
@@ -39,7 +39,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 		},
 		{
 			name: "Username only",
-			opts: &Secure{
+			opts: &SecureRegistry{
 				Username: "username",
 			},
 			want: auth.Credential{
@@ -48,7 +48,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 		},
 		{
 			name: "Password only",
-			opts: &Secure{
+			opts: &SecureRegistry{
 				Password: "token",
 			},
 			want: auth.Credential{
@@ -57,7 +57,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 		},
 		{
 			name: "Empty username and password",
-			opts: &Secure{
+			opts: &SecureRegistry{
 				Username: "",
 				Password: "",
 			},

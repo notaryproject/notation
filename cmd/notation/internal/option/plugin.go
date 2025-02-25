@@ -17,6 +17,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const pluginConfigFlag = "plugin-config"
+
 // Plugin contains plugin related options.
 type Plugin struct {
 	PluginConfig pluginConfig
@@ -31,4 +33,12 @@ func (opts *Plugin) ApplyFlags(cmd *cobra.Command) {
 	fs.StringVar(&opts.KeyID, "id", "", "key id (required if --plugin is set). This is mutually exclusive with the --key flag")
 	fs.StringVar(&opts.PluginName, "plugin", "", "signing plugin name (required if --id is set). This is mutually exclusive with the --key flag")
 	cmd.MarkFlagsRequiredTogether("id", "plugin")
+}
+
+// pluginConfig is a plugin config option.
+type pluginConfig []string
+
+// ToMap parses plugin-config flag value into a map.
+func (c *pluginConfig) ToMap() (map[string]string, error) {
+	return parseFlagMap(*c, pluginConfigFlag)
 }

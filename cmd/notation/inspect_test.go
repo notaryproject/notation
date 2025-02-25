@@ -29,7 +29,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	format.CurrentType = string(option.FormatTypeTree)
 	expected := &inspectOpts{
 		reference: "ref",
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
@@ -62,7 +62,7 @@ func TestInspectCommand_SecretsFromEnv(t *testing.T) {
 	format.CurrentType = string(option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Password: "password",
 			Username: "user",
 		},

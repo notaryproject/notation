@@ -25,7 +25,7 @@ func TestLoginCommand_PasswordFromArgs(t *testing.T) {
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Username: "user",
 			Password: "password",
 		},
@@ -55,7 +55,7 @@ func TestLogin_PasswordFromStdin(t *testing.T) {
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
 		passwordStdin: true,
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Username: "user",
 			Password: "password",
 		},

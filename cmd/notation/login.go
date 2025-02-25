@@ -34,7 +34,7 @@ const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-
 
 type loginOpts struct {
 	option.Logging
-	option.Secure
+	option.SecureRegistry
 	passwordStdin bool
 	server        string
 }
@@ -71,7 +71,7 @@ Example - Login using $NOTATION_USERNAME $NOTATION_PASSWORD variables:
 		},
 	}
 	opts.Logging.ApplyFlags(command.Flags())
-	opts.Secure.ApplyFlags(command.Flags())
+	opts.SecureRegistry.ApplyFlags(command.Flags())
 	command.Flags().BoolVar(&opts.passwordStdin, "password-stdin", false, "take the password from stdin")
 	return command
 }
@@ -115,7 +115,7 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to get credentials store: %v", err)
 	}
-	registry, err := getRegistryLoginClient(ctx, &opts.Secure, serverAddress)
+	registry, err := getRegistryLoginClient(ctx, &opts.SecureRegistry, serverAddress)
 	if err != nil {
 		return fmt.Errorf("failed to get registry client: %v", err)
 	}

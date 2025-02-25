@@ -42,7 +42,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := option.Secure{
+	secureOpts := option.SecureRegistry{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
@@ -65,7 +65,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) 
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := option.Secure{
+	secureOpts := option.SecureRegistry{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
@@ -89,7 +89,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersTagSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := option.Secure{
+	secureOpts := option.SecureRegistry{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", false)

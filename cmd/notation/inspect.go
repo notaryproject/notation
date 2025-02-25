@@ -30,7 +30,7 @@ import (
 
 type inspectOpts struct {
 	option.Logging
-	option.Secure
+	option.SecureRegistry
 	option.Common
 	option.Format
 	reference         string
@@ -83,7 +83,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	}
 
 	opts.Logging.ApplyFlags(command.Flags())
-	opts.Secure.ApplyFlags(command.Flags())
+	opts.SecureRegistry.ApplyFlags(command.Flags())
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	cmd.SetPflagReferrersAPI(command.Flags(), &opts.allowReferrersAPI, fmt.Sprintf(cmd.PflagReferrersUsageFormat, "inspect"))
 
@@ -105,7 +105,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
-	sigRepo, err := getRemoteRepository(ctx, &opts.Secure, reference, false)
+	sigRepo, err := getRemoteRepository(ctx, &opts.SecureRegistry, reference, false)
 	if err != nil {
 		return err
 	}

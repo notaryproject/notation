@@ -25,7 +25,7 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 	command := verifyCommand(opts)
 	expected := &verifyOpts{
 		reference: "ref",
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			Username: "user",
 			Password: "password",
 		},
@@ -54,7 +54,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 	command := verifyCommand(opts)
 	expected := &verifyOpts{
 		reference: "ref",
-		Secure: option.Secure{
+		SecureRegistry: option.SecureRegistry{
 			InsecureRegistry: true,
 		},
 		Verifier: option.Verifier{
