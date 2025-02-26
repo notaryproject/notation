@@ -76,3 +76,16 @@ type BlobVerifyHandler interface {
 	// outcomes must not be nil or empty.
 	OnVerifySucceeded(outcomes []*notation.VerificationOutcome, blobPath string)
 }
+
+// ListHandler is a handler for rendering metadata information of a list of
+// signatures.
+type ListHandler interface {
+	Renderer
+
+	// OnReferenceResolved sets the artifact reference and media type for the
+	// handler.
+	OnReferenceResolved(reference string)
+
+	// OnSignatureListed adds the signature digest to be rendered.
+	OnSignatureListed(signatureManifest ocispec.Descriptor) error
+}
