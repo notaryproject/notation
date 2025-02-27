@@ -16,6 +16,8 @@ package main
 import (
 	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -23,7 +25,7 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 	command := verifyCommand(opts)
 	expected := &verifyOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: option.SecureFlagOpts{
 			Username: "user",
 			Password: "password",
 		},
@@ -50,7 +52,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 	command := verifyCommand(opts)
 	expected := &verifyOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: option.SecureFlagOpts{
 			InsecureRegistry: true,
 		},
 		pluginConfig:         []string{"key1=val1", "key2=val2"},

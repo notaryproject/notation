@@ -18,14 +18,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"oras.land/oras-go/v2/registry/remote/credentials"
 )
 
 type logoutOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	server string
 }
 

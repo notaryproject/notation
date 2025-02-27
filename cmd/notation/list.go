@@ -23,14 +23,13 @@ import (
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
 type listOpts struct {
-	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	option.LoggingFlagOpts
+	option.SecureFlagOpts
 	option.Common
 	reference     string
 	ociLayout     bool

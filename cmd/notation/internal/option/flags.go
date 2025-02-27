@@ -12,7 +12,7 @@
 // limitations under the License.
 
 // Package cmd contains common flags and routines for all CLIs.
-package cmd
+package option
 
 import (
 	"fmt"
@@ -106,6 +106,33 @@ var (
 	}
 	SetPflagReferrersTag = func(fs *pflag.FlagSet, p *bool, usage string) {
 		fs.BoolVar(p, PflagReferrersTag.Name, false, usage)
+	}
+
+	flagUsername = &pflag.Flag{
+		Name:      "username",
+		Shorthand: "u",
+		Usage:     "username for registry operations (default to $NOTATION_USERNAME if not specified)",
+	}
+	setflagUsername = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, flagUsername.Name, flagUsername.Shorthand, "", flagUsername.Usage)
+	}
+
+	flagPassword = &pflag.Flag{
+		Name:      "password",
+		Shorthand: "p",
+		Usage:     "password for registry operations (default to $NOTATION_PASSWORD if not specified)",
+	}
+	setFlagPassword = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, flagPassword.Name, flagPassword.Shorthand, "", flagPassword.Usage)
+	}
+
+	flagInsecureRegistry = &pflag.Flag{
+		Name:     "insecure-registry",
+		Usage:    "use HTTP protocol while connecting to registries. Should be used only for testing",
+		DefValue: "false",
+	}
+	setFlagInsecureRegistry = func(fs *pflag.FlagSet, p *bool) {
+		fs.BoolVar(p, flagInsecureRegistry.Name, false, flagInsecureRegistry.Usage)
 	}
 )
 

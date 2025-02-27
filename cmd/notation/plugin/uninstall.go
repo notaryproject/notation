@@ -22,12 +22,12 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/spf13/cobra"
 )
 
 type pluginUninstallOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	pluginName string
 	confirmed  bool
 }

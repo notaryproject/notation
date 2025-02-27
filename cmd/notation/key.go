@@ -22,7 +22,7 @@ import (
 	"github.com/notaryproject/notation-go/config"
 
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -39,7 +39,7 @@ var (
 )
 
 type keyAddOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	name         string
 	plugin       string
 	id           string
@@ -48,13 +48,13 @@ type keyAddOpts struct {
 }
 
 type keyUpdateOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	name      string
 	isDefault bool
 }
 
 type keyDeleteOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	names []string
 }
 
@@ -106,7 +106,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 
 	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
 
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	option.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -177,7 +177,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := option.ParseFlagMap(opts.pluginConfig, option.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
