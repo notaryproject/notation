@@ -26,56 +26,65 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type importOpts struct {
+type initOpts struct {
 	option.Common
-	filePath string
-	force    bool
+	name            string
+	trustStore      string
+	trustedIdentity string
+	force           bool
 }
 
-func importCmd() *cobra.Command {
-	var opts importOpts
+func initCmd() *cobra.Command {
+	opts := initOpts{}
 	command := &cobra.Command{
-		Use:   "import [flags] <file_path>",
-		Short: "Import blob trust policy configuration from a JSON file",
-		Long: `Import blob trust policy configuration from a JSON file.
+		Use:   "init [flags]",
+		Short: "Init blob trust policy file",
+		Long: `Init blob trust policy file.
 
-Example - Import blob trust policy configuration from a JSON file and store as "trustpolicy.blob.json":
-  notation blob policy import my_policy.json
-
-Example - Import blob trust policy and override existing configuration without prompt:
-  notation blob policy import --force my_policy.json
+Example - init a blob trust file with trust store and trust policy:
+  notation blob policy init --trust-store <store-type>:<store-name> --trusted-policy file "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
 `,
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation blob policy import <path-to-policy.json>\nPlease specify a trust policy configuration location as the argument", len(args))
-			}
-			return nil
-		},
+		Args: cobra.ExactArgs(0),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			opts.Common.Parse(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts.filePath = args[0]
-			return runImport(opts)
+			return runInit(&opts)
 		},
 	}
+
+	command.Flags().StringVarP(&opts.name, "name", "n", "", "name of the blob trust policy")
+	command.Flags().StringVarP(&opts.trustStore, "trust-store", "s", "", "trust store in format <store-type>:<store-name>")
+	command.Flags().StringVarP(&opts.trustedIdentity, "trusted-identity", "i", "", "trusted identity (e.g. \"x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io\")")
 	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration without prompt")
+	command.MarkFlagRequired("name")
+	command.MarkFlagRequired("trust-store")
+	command.MarkFlagRequired("trusted-identity")
 	return command
 }
 
-func runImport(opts importOpts) error {
-	// read configuration
-	policyJSON, err := os.ReadFile(opts.filePath)
-	if err != nil {
-		return fmt.Errorf("failed to read blob trust policy file: %w", err)
+func runInit(opts *initOpts) error {
+	blobPolicy := trustpolicy.BlobDocument{
+		Version: "1.0",
+		TrustPolicies: []trustpolicy.BlobTrustPolicy{
+			{
+				Name: opts.name,
+				SignatureVerification: trustpolicy.SignatureVerification{
+					VerificationLevel: "strict",
+				},
+				TrustStores:       []string{opts.trustStore},
+				TrustedIdentities: []string{opts.trustedIdentity},
+				GlobalPolicy:      true,
+			},
+		},
 	}
 
-	var doc trustpolicy.BlobDocument
-	if err = json.Unmarshal(policyJSON, &doc); err != nil {
-		return fmt.Errorf("failed to parse blob trust policy configuration: %w", err)
+	if err := blobPolicy.Validate(); err != nil {
+		return fmt.Errorf("invalid blob policy: %w", err)
 	}
-	if err = doc.Validate(); err != nil {
-		return fmt.Errorf("failed to validate blob trust policy configuration: %w", err)
+	policyJSON, err := json.MarshalIndent(blobPolicy, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal blob trust policy: %w", err)
 	}
 
 	// optional confirmation
@@ -101,5 +110,5 @@ func runImport(opts importOpts) error {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	return opts.Printer.Printf("Successfully imported blob trust policy configuration to %s.\n", policyPath)
+	return opts.Printer.Printf("Successfully initialized blob trust policy file to %s.\n", policyPath)
 }

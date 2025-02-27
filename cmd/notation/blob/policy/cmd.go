@@ -29,6 +29,7 @@ func Cmd() *cobra.Command {
 	command.AddCommand(
 		importCmd(),
 		showCmd(),
+		initCmd(),
 	)
 
 	return command
