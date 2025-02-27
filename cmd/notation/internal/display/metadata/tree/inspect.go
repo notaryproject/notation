@@ -76,9 +76,11 @@ func (h *InspectHandler) InspectSignature(manifestDesc, signatureDesc ocispec.De
 
 // Render renders the metadata information when an operation is complete.
 func (h *InspectHandler) Render() error {
+	if err := h.sprinter.Flush(); err != nil {
+		return err
+	}
 	if !h.headerPrinted {
 		return h.printer.Printf("%s has no associated signature\n", h.rootReferenceNode.Value)
 	}
-
-	return h.sprinter.Flush()
+	return nil
 }
