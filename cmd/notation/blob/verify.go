@@ -24,14 +24,13 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/verifier"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
 type blobVerifyOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	option.Common
 	blobPath            string
 	signaturePath       string
@@ -91,7 +90,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
 	command.Flags().StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	option.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, option.PflagUserMetadataVerifyUsage)
 	command.MarkFlagRequired("signature")
 	return command
 }
@@ -118,13 +117,13 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	}
 
 	// set up verification plugin config
-	pluginConfigs, err := cmd.ParseFlagMap(cmdOpts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfigs, err := option.ParseFlagMap(cmdOpts.pluginConfig, option.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(cmdOpts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := option.ParseFlagMap(cmdOpts.userMetadata, option.PflagUserMetadata.Name)
 	if err != nil {
 		return err
 	}

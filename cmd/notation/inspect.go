@@ -22,13 +22,12 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
 type inspectOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	SecureFlagOpts
 	option.Common
 	option.Format

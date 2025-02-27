@@ -12,7 +12,7 @@
 // limitations under the License.
 
 // Package cmd contains common flags and routines for all CLIs.
-package cmd
+package option
 
 import (
 	"fmt"

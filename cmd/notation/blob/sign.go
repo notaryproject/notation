@@ -26,8 +26,8 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -42,8 +42,8 @@ import (
 const timestampingTimeout = 15 * time.Second
 
 type blobSignOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
+	option.LoggingFlagOpts
+	option.SignerFlagOpts
 	expiry                 time.Duration
 	pluginConfig           []string
 	userMetadata           []string
@@ -122,9 +122,9 @@ Example - Sign a blob artifact with timestamping:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
-	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	option.SetPflagExpiry(command.Flags(), &opts.expiry)
+	option.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	option.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, option.PflagUserMetadataSignUsage)
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
 	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
@@ -192,11 +192,11 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := option.ParseFlagMap(opts.pluginConfig, option.PflagPluginConfig.Name)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := option.ParseFlagMap(opts.userMetadata, option.PflagUserMetadata.Name)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}

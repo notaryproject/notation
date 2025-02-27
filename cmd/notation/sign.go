@@ -26,8 +26,8 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/signer"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
 	clirev "github.com/notaryproject/notation/internal/revocation"
@@ -44,8 +44,8 @@ const referrersTagSchemaDeleteError = "failed to delete dangling referrers index
 const timestampingTimeout = 15 * time.Second
 
 type signOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
+	option.LoggingFlagOpts
+	option.SignerFlagOpts
 	SecureFlagOpts
 	expiry                 time.Duration
 	pluginConfig           []string
@@ -134,12 +134,12 @@ Example - [Experimental] Sign an OCI artifact identified by a tag and referenced
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
-	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	option.SetPflagExpiry(command.Flags(), &opts.expiry)
+	option.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	option.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, option.PflagUserMetadataSignUsage)
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
-	cmd.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
+	option.SetPflagReferrersTag(command.Flags(), &opts.forceReferrersTag, "force to store signatures using the referrers tag schema")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] sign the artifact stored as OCI image layout")
 	command.MarkFlagsMutuallyExclusive("oci-layout", "force-referrers-tag")
 	command.MarkFlagsRequiredTogether("timestamp-url", "timestamp-root-cert")
@@ -195,11 +195,11 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := option.ParseFlagMap(opts.pluginConfig, option.PflagPluginConfig.Name)
 	if err != nil {
 		return notation.SignOptions{}, err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := option.ParseFlagMap(opts.userMetadata, option.PflagUserMetadata.Name)
 	if err != nil {
 		return notation.SignOptions{}, err
 	}

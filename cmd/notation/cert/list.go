@@ -21,14 +21,14 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	notationgoTruststore "github.com/notaryproject/notation-go/verifier/truststore"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
 type certListOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	storeType  string
 	namedStore string
 }

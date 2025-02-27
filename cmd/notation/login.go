@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	"oras.land/oras-go/v2/registry/remote/credentials"
@@ -33,7 +33,7 @@ import (
 const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-authentication/"
 
 type loginOpts struct {
-	cmd.LoggingFlagOpts
+	option.LoggingFlagOpts
 	SecureFlagOpts
 	passwordStdin bool
 	server        string
