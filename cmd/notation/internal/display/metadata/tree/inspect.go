@@ -25,19 +25,24 @@ import (
 type InspectHandler struct {
 	printer *output.Printer
 
+	// sprinter is a stream printer to print the signature nodes in
+	// a streaming fashion
+	sprinter *streamPrinter
+
 	// rootReferenceNode is the root node with the artifact reference as the
 	// value.
 	rootReferenceNode *node
-	// notationSignaturesNode is the node for all signatures associated with the
-	// artifact.
-	notationSignaturesNode *node
+
+	// headerPrinted is a flag to indicate if the header has been printed
+	headerPrinted bool
 }
 
 // NewInspectHandler creates an InspectHandler to inspect signature and print in
 // tree format.
 func NewInspectHandler(printer *output.Printer) *InspectHandler {
 	return &InspectHandler{
-		printer: printer,
+		printer:  printer,
+		sprinter: newStreamPrinter(subTreePrefixLast, printer),
 	}
 }
 
@@ -47,24 +52,35 @@ func NewInspectHandler(printer *output.Printer) *InspectHandler {
 // mediaType is a no-op for this handler.
 func (h *InspectHandler) OnReferenceResolved(reference, _ string) {
 	h.rootReferenceNode = newNode(reference)
-	h.notationSignaturesNode = h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
+	h.rootReferenceNode.Add(registry.ArtifactTypeNotation)
 }
 
 // InspectSignature inspects a signature to get it ready to be rendered.
 func (h *InspectHandler) InspectSignature(manifestDesc, signatureDesc ocispec.Descriptor, envelope coresignature.Envelope) error {
+	// print the header if it hasn't been printed yet
+	if !h.headerPrinted {
+		h.printer.Println("Inspecting all signatures for signed artifact")
+		if err := h.rootReferenceNode.Print(h.printer); err != nil {
+			return err
+		}
+		h.headerPrinted = true
+	}
+
 	sigNode, err := newSignatureNode(manifestDesc.Digest.String(), signatureDesc.MediaType, envelope)
 	if err != nil {
 		return err
 	}
-	h.notationSignaturesNode.Children = append(h.notationSignaturesNode.Children, sigNode)
-	return nil
+
+	return h.sprinter.PrintNode(sigNode)
 }
 
 // Render renders the metadata information when an operation is complete.
 func (h *InspectHandler) Render() error {
-	if len(h.notationSignaturesNode.Children) == 0 {
+	if err := h.sprinter.Flush(); err != nil {
+		return err
+	}
+	if !h.headerPrinted {
 		return h.printer.Printf("%s has no associated signature\n", h.rootReferenceNode.Value)
 	}
-	h.printer.Println("Inspecting all signatures for signed artifact")
-	return h.rootReferenceNode.Print(h.printer)
+	return nil
 }
