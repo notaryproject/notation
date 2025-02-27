@@ -222,4 +222,81 @@ var _ = Describe("blob trust policy maintainer", func() {
 			})
 		})
 	})
+
+	When("initializing trust policy", func() {
+		Context("without existing policy", func() {
+			opts := Opts()
+
+			It("should fail when no name flag is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init", "--trust-store", "ca:example-store", "--trusted-identity", "x509.subject: CN=example").
+						MatchErrKeyWords("required flag(s)", "name", "not set")
+				})
+			})
+
+			It("should fail when no trust-store flag is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init", "--name", "example-policy", "--trusted-identity", "x509.subject: CN=example").
+						MatchErrKeyWords("required flag(s)", "trust-store", "not set")
+				})
+			})
+
+			It("should fail when no trusted-identity flag is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init", "--name", "example-policy", "--trust-store", "ca:example-store").
+						MatchErrKeyWords("required flag(s)", "trusted-identity", "not set")
+				})
+			})
+
+			It("should successfully initialize policy when all required flags are provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.Exec("blob", "policy", "init",
+						"--name", "example-policy",
+						"--trust-store", "ca:example-store",
+						"--trusted-identity", "x509.subject: C=example,ST=example,O=example").
+						MatchKeyWords("Successfully initialized blob trust policy file")
+
+					// Verify the policy was created
+					notation.Exec("blob", "policy", "show").
+						MatchKeyWords("example-policy").
+						MatchKeyWords("ca:example-store").
+						MatchKeyWords("x509.subject: C=example,ST=example,O=example")
+				})
+			})
+		})
+
+		Context("with existing policy", func() {
+			opts := Opts(AddBlobTrustPolicyOption(validBlobTrustPolicyName))
+
+			It("should canceled when trying to initialize with existing policy", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.Exec("blob", "policy", "init",
+						"--name", "new-policy",
+						"--trust-store", "ca:new-store",
+						"--trusted-identity", "x509.subject: C=example,ST=example,O=example").
+						MatchKeyWords("The blob trust policy configuration already exists")
+				})
+			})
+
+			It("should successfully initialize policy with force flag when policy exists", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.Exec("blob", "policy", "init",
+						"--name", "new-policy",
+						"--trust-store", "ca:new-store",
+						"--trusted-identity", "x509.subject: C=example,ST=example,O=example",
+						"--force").
+						MatchKeyWords("Successfully initialized blob trust policy file")
+
+					// Verify the new policy was created and replaced the old one
+					notation.Exec("blob", "policy", "show").
+						MatchKeyWords("new-policy").
+						MatchKeyWords("ca:new-store").
+						MatchKeyWords("x509.subject: C=example,ST=example,O=example")
+				})
+			})
+		})
+	})
 })
