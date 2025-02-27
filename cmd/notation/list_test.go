@@ -16,7 +16,6 @@ package main
 import (
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/constant"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
@@ -48,8 +47,8 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestListCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(constant.UsernameEnv, "user")
-	t.Setenv(constant.PasswordEnv, "password")
+	t.Setenv(option.EnvironmentUsername, "user")
+	t.Setenv(option.EnvironmentPassword, "password")
 	opts := &listOpts{}
 	expected := &listOpts{
 		reference: "ref",

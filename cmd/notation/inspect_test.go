@@ -17,7 +17,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/constant"
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/spf13/pflag"
 )
@@ -55,8 +54,8 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestInspectCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(constant.UsernameEnv, "user")
-	t.Setenv(constant.PasswordEnv, "password")
+	t.Setenv(option.EnvironmentUsername, "user")
+	t.Setenv(option.EnvironmentPassword, "password")
 
 	format := option.Format{}
 	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
