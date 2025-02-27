@@ -36,7 +36,7 @@ func NewInspectHandler(printer *output.Printer, format option.Format) (metadata.
 	switch option.FormatType(format.CurrentType) {
 	case option.FormatTypeJSON:
 		return json.NewInspectHandler(printer), nil
-	case option.FormatTypeText:
+	case option.FormatTypeTree:
 		return tree.NewInspectHandler(printer), nil
 	}
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
@@ -48,7 +48,7 @@ func NewBlobInspectHandler(printer *output.Printer, format option.Format) (metad
 	switch option.FormatType(format.CurrentType) {
 	case option.FormatTypeJSON:
 		return json.NewBlobInspectHandler(printer), nil
-	case option.FormatTypeText:
+	case option.FormatTypeTree:
 		return tree.NewBlobInspectHandler(printer), nil
 	}
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
@@ -64,4 +64,10 @@ func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 // blob verification result and warnings.
 func NewBlobVerifyHandler(printer *output.Printer) metadata.BlobVerifyHandler {
 	return text.NewBlobVerifyHandler(printer)
+}
+
+// NewListHandler creates a new metadata ListHandler for rendering signature
+// metadata information in a tree format.
+func NewListHandler(printer *output.Printer) metadata.ListHandler {
+	return tree.NewListHandler(printer)
 }

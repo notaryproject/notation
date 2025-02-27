@@ -58,7 +58,7 @@ Example - Inspect a signature and output as JSON:
 		},
 	}
 
-	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeText, option.FormatTypeJSON)
+	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeTree, option.FormatTypeJSON)
 	return command
 }
 

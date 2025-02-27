@@ -36,7 +36,7 @@ func TestSignCommand_BasicArgs(t *testing.T) {
 			Key:             "key",
 			SignatureFormat: envelope.JWS,
 		},
-		forceReferrersTag: true,
+		forceReferrersTag: false,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,

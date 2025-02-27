@@ -131,40 +131,6 @@ var _ = Describe("notation inspect", func() {
 		})
 	})
 
-	It("sign with --allow-referrers-api set", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api", artifact.ReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
-
-			notation.Exec("inspect", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords(inspectSuccessfully...)
-
-			notation.Exec("inspect", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
-				).
-				MatchKeyWords(inspectSuccessfully...)
-		})
-	})
-
-	It("sign with --allow-referrers-api set to false", func() {
-		Host(BaseOptionsWithExperimental(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("sign", "--allow-referrers-api=false", artifact.ReferenceWithDigest()).
-				MatchKeyWords(SignSuccessfully)
-
-			notation.Exec("inspect", artifact.ReferenceWithDigest(), "-v").
-				MatchKeyWords(inspectSuccessfully...)
-
-			notation.Exec("inspect", artifact.ReferenceWithDigest(), "--allow-referrers-api", "-v").
-				MatchErrKeyWords(
-					"Warning: This feature is experimental and may not be fully tested or completed and may be deprecated.",
-					"Warning: flag '--allow-referrers-api' is deprecated and will be removed in future versions.",
-				).
-				MatchKeyWords(inspectSuccessfully...)
-		})
-	})
-
 	It("with timestamping", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("sign", "--timestamp-url", "http://rfc3161timestamp.globalsign.com/advanced", "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "globalsignTSARoot.cer"), artifact.ReferenceWithDigest()).
@@ -215,7 +181,7 @@ localhost:5000/e2e-insepct-timestamped@sha256:53b0191218aed9a3c1f7c661736ac40cfc
             └── size: 582
 `
 
-			notation.Exec("inspect", artifact.ReferenceWithDigest()).
+			notation.Exec("inspect", "--output", "tree", artifact.ReferenceWithDigest()).
 				MatchContent(expectedOutput)
 		})
 	})
