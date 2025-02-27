@@ -64,6 +64,7 @@ func runImport(opts importOpts) error {
 	if err != nil {
 		return fmt.Errorf("failed to read blob trust policy file: %w", err)
 	}
+
 	var doc trustpolicy.BlobDocument
 	if err = json.Unmarshal(policyJSON, &doc); err != nil {
 		return fmt.Errorf("failed to parse blob trust policy configuration: %w", err)
@@ -71,14 +72,7 @@ func runImport(opts importOpts) error {
 	if err = doc.Validate(); err != nil {
 		return fmt.Errorf("failed to validate blob trust policy configuration: %w", err)
 	}
-	if err := writeBlobTrustPolicy(policyJSON, opts.force); err != nil {
-		return err
-	}
-	_, err = fmt.Fprintln(os.Stdout, "Successfully imported blob trust policy file.")
-	return err
-}
 
-func writeBlobTrustPolicy(policyJSON []byte, force bool) error {
 	// optional confirmation
 	if _, err = trustpolicy.LoadBlobDocument(); err == nil {
 		if !opts.force {
