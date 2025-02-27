@@ -34,7 +34,7 @@ const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-
 
 type loginOpts struct {
 	option.LoggingFlagOpts
-	SecureFlagOpts
+	option.SecureFlagOpts
 	passwordStdin bool
 	server        string
 }

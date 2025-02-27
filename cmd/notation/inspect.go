@@ -28,7 +28,7 @@ import (
 
 type inspectOpts struct {
 	option.LoggingFlagOpts
-	SecureFlagOpts
+	option.SecureFlagOpts
 	option.Common
 	option.Format
 	reference     string

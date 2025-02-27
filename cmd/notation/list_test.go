@@ -14,15 +14,46 @@
 package main
 
 import (
+	"reflect"
 	"testing"
+
+	"github.com/notaryproject/notation/cmd/notation/internal/constant"
+	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
+
+func TestListCommand_ParseFlag(t *testing.T) {
+	opts := &listOpts{}
+	command := listCommand(opts)
+	expected := &listOpts{
+		reference: "reg/repo:tag",
+		SecureFlagOpts: option.SecureFlagOpts{
+			Password:         "password",
+			InsecureRegistry: true,
+			Username:         "user",
+		},
+		maxSignatures: 100,
+	}
+	if err := command.ParseFlags([]string{
+		"--password", expected.Password,
+		expected.reference,
+		"-u", expected.Username,
+		"--insecure-registry"}); err != nil {
+		t.Fatalf("Parse Flag failed: %v", err)
+	}
+	if err := command.Args(command, command.Flags().Args()); err != nil {
+		t.Fatalf("Parse Args failed: %v", err)
+	}
+	if !reflect.DeepEqual(opts, expected) {
+		t.Fatalf("Expect opts: %v, got: %v", expected, opts)
+	}
+}
 
 func TestListCommand_SecretsFromArgs(t *testing.T) {
 	opts := &listOpts{}
 	cmd := listCommand(opts)
 	expected := &listOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: option.SecureFlagOpts{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
@@ -45,12 +76,12 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestListCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(defaultUsernameEnv, "user")
-	t.Setenv(defaultPasswordEnv, "password")
+	t.Setenv(constant.UsernameEnv, "user")
+	t.Setenv(constant.PasswordEnv, "password")
 	opts := &listOpts{}
 	expected := &listOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: option.SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},

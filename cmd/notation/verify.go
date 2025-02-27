@@ -29,7 +29,7 @@ import (
 
 type verifyOpts struct {
 	option.LoggingFlagOpts
-	SecureFlagOpts
+	option.SecureFlagOpts
 	option.Common
 	reference            string
 	pluginConfig         []string

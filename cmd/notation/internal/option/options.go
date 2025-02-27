@@ -15,12 +15,15 @@ package option
 
 import (
 	"context"
+	"os"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/constant"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"oras.land/oras-go/v2/registry/remote/auth"
 	credentialstrace "oras.land/oras-go/v2/registry/remote/credentials/trace"
 )
 
@@ -84,4 +87,33 @@ func withExecutableTrace(ctx context.Context) context.Context {
 		},
 	})
 	return ctx
+}
+
+// SecureFlagOpts defines flags for registry credentials and security
+type SecureFlagOpts struct {
+	Username         string
+	Password         string
+	InsecureRegistry bool
+}
+
+// ApplyFlags set flags and their default values for the FlagSet
+func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
+	setflagUsername(fs, &opts.Username)
+	setFlagPassword(fs, &opts.Password)
+	setFlagInsecureRegistry(fs, &opts.InsecureRegistry)
+	opts.Username = os.Getenv(constant.UsernameEnv)
+	opts.Password = os.Getenv(constant.PasswordEnv)
+}
+
+// Credential returns an auth.Credential from opts.Username and opts.Password.
+func (opts *SecureFlagOpts) Credential() auth.Credential {
+	if opts.Username == "" {
+		return auth.Credential{
+			RefreshToken: opts.Password,
+		}
+	}
+	return auth.Credential{
+		Username: opts.Username,
+		Password: opts.Password,
+	}
 }
