@@ -2,7 +2,7 @@
 
 ## Overview 
 
-A **blob**, short for [Binary Large Object](https://wikipedia.org/wiki/Binary_large_object) is a collection of binary data stored as a single entity. In this proposal, a blob refers to any binary data or file, including SBOM (Software Bill of Materials) files, release assets, AI model files, WebAssembly files or other forms of unstructured data. While Notation currently supports signing and verifying OCI (Open Container Initiative) artifacts such as container images, this document outlines a proposal to extend the Notation tool's capabilities to include blob signing and verification.
+A **blob**, short for [Binary Large Object](https://wikipedia.org/wiki/Binary_large_object) is a collection of binary data stored as a single entity. In this proposal, a blob refers to any binary data or file, including SBOM (Software Bill of Materials) files, release assets, AI model files (such as model files on [Hugging Face](https://huggingface.co/)), WebAssembly files or other forms of unstructured data. While Notation currently supports signing and verifying OCI (Open Container Initiative) artifacts such as container images, this document outlines a proposal to extend the Notation tool's capabilities to include blob signing and verification.
 
 ## Problem Statement & Motivation 
 
@@ -16,21 +16,22 @@ The following describes how blob signing and verification can be used for variou
 
 Sarah, a software engineer, creates binaries for applications that are distributed via her company's website. In CI/CD pipelines, she creates tasks that generates an SBOM for each binary and signs the SBOM to ensure the authenticity and integrity of the SBOM. The pipeline automatically generates a digital signature for each SBOM, which is stored alongside the SBOM on the filesystem. With SBOM and signatures created, the pipeline tasks automatically upload the binaries, SBOMs, and SBOM signatures to the company website as separate downloadable artifacts. The compliance team downloads the SBOM and signature to check whether the corresponding binary is compliant with both company and governance rules. Before analyzing the SBOM, they verify its integrity against the corresponding signature, ensuring the SBOM hasn't been tampered with since being signed in the pipeline and that it originates from the Sarah's company.
 
-David, a release manager, has set up signing task in CI/CD pipelines to sign release artifacts, such as binaries, deployment scripts, and configuration files before they are publicly distributed to ensure that they haven't been tampered with during distribution. After the artifacts pass verification, they are signed and published on the release website. Users download the release artifacts and verify the signatures to ensure that the artifacts are untampered and trustworthy before using them.
+David, a release manager, has set up signing task in CI/CD pipelines to sign release artifacts, such as binaries, deployment scripts, and configuration files before they are publicly distributed to ensure that they haven't been tampered with during distribution. After the artifacts pass verification, they are signed and published on the release website. Users download both release artifacts and corresponding signatures, and verify the signatures to ensure that the artifacts are untampered and trustworthy before using them.
 
 ### Scenario 2: Blob signing and verification with registry-based distribution
 
-The platform team at Sarah’s company uses their existing OCI-compliant container registry for distributing SBOMs while maintaining the current generation process. The CI/CD pipeline continues to build binaries, generate SBOMs, and sign them as before. However, instead of uploading these artifacts to the company website, the pipeline now packages the SBOM and its signature as OCI artifacts and publishes them to the container registry. This ensures SBOMs and signatures are distributed in accordance with OCI standards across a multi-cloud environment. Additionally, the compliance team can verify the SBOMs directly from the registry, eliminating the need to download them to the filesystem. This streamlines the verification process and reduces the cost of downloading large SBOMs.
+The platform team at Sarah’s company leverages their existing OCI-compliant registry to distribute SBOMs while preserving the current generation process. The CI/CD pipeline continues to build binaries, generate SBOMs, and sign them as usual. However, instead of uploading these artifacts to the company website, the pipeline pushes the SBOM and its signature as separate OCI artifacts. To facilitate easy discovery, each signature references its corresponding SBOM in the registry. The compliance team then downloads both SBOMs and their associated signatures to the filesystem, verifies the signatures, and proceeds with SBOM analysis.
 
 ## Proposal 
 
-This section outlines the proposed solution for using Notation CLI commands to sign and verify blobs. The following points are not covered in this document:
-- Detailed command usage, which will be covered in the individual command specifications at [Notation CLI Docs](https://github.com/notaryproject/notation/tree/v1.3.0/specs/commandline).
-- Distribution of certificates for verification across different scenarios.
-- Compatibility of the payload format. While some users are utilizing Notary Project-compliant signature envelopes, the payload format for blobs differs from the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-payload). 
-- CI/CD experience. This document specifically focuses on using Notation CLI commands.
+This section outlines the proposed solution for signing and verifying blobs using Notation CLI commands. The following topics are outside the scope of this document:  
 
-In general, all blob-related commands are grouped under the `notation blob` command for easy discovery and to avoid mixing them with OCI-based artifact commands.
+- **Detailed command usage**, which is covered in the individual command specifications at [Notation CLI specs](https://github.com/notaryproject/notation/tree/main/specs/commandline).  
+- **Distribution of certificates** for verification in different scenarios.  
+- **Blob signature definitions**, as outlined in the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-payload).  
+- **CI/CD integration**, as this document specifically focuses on using Notation CLI commands.  
+
+In general, all blob-related commands are grouped under the `notation blob` command per the [blob command spec](https://github.com/notaryproject/notation/blob/main/specs/commandline/blob.md).
 
 ### Blob Sign and verify with file-based distribution
 
@@ -44,14 +45,13 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
 1. Sign a file on filesystem with a specified signature envelope:
 
     ```shell
-    notation blob sign --signature-format cose sbom.json
+    notation blob sign --id myKeyId --signature-format "cose" --media-type "application/spdx+json" sbom.json
     ```
+    This command generates a signature file named `sbom.json.cose.sig` in the current working directory. The file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures). The signature format is **COSE**, as specified by the `--signature-format` flag. The default format is **JWS**. The `--media-type` flag specifies the **media type** of the blob. In this example, the content of `sbom.json` is in the format `application/spdx+json`. This flag is **optional**. If omitted, the default media type **`application/octet-stream`** is used.  
 
-    This generates a signature named `sbom.json.cose.sig` in the same directory as `sbom.json`. The signature file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures).
+2. Publish both the file and corresponding signature using any file transfering mechanism. Both the file and its signature can be packaged into one file (e.g., a tarball) for transferring.
 
-2. Publish the file and corresponding signature using any file transfering mechanism. Both the file and its signature can be packaged into one file (e.g., a tarball) for transferring.
-
-3. Download or fetch both the file and signature.
+3. Download or fetch both the file and signature. If they are packaged into one file, for example, a tarball, unpackage the file to get separate file and signature.
 
 4. Verify the file against the signature:
 
@@ -67,20 +67,24 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
         notation cert ls
         ```
 
-        > NOTE
-        >
+        > [!NOTE]
         > Learn more options using `notation cert ls --help`.
+
     - Set up trust policy for blobs by adding a new command `notation blob policy init`. This command streamlines the process, eliminating the need for users to consult documentation for the correct trust policy format and preventing the accidental use of policies intended for other verification purposes.
 
         ```shell
         notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
         ```
 
-        > NOTE
-        >
+        Show the policies configured for verifying blobs:
+
+        ```shell
+        notation blob policy show
+        ```
+
+        > [!NOTE]
         > See the [section](#manage-blob-policies) for more commands for `notation blob policy`.
-        >
-        > This `init` command can be extended to policy commands for OCI artifacts.
+
     - Verify the signature:
 
         ```shell
@@ -91,7 +95,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
 
 ### Blob Sign and verify with registry-based distribution
 
-For registry-based distribution, such as using an OCI-compliant container registry, the process is similar but includes additional steps for pushing and verifying blobs in the registry.
+For registry-based distribution, such as using an OCI-compliant container registry, the process is similar but includes additional steps for pushing blobs and sigantures to the registry.
 
 **Prerequisites:**
 - SBOMs, release artifacts or other files are created and ready for publishing.
