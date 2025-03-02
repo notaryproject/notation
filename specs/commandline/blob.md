@@ -365,10 +365,9 @@ The following command initializes a blob trust policy configuration:
 notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
 ```
 
-Sample output:
+Sample output for a successful initialization:
 
-```text
-The blob trust policy configuration has been initiliazed successfully.
+```json
 {
   "version": "1.0",
   "trustPolicies": [
@@ -384,6 +383,12 @@ The blob trust policy configuration has been initiliazed successfully.
     }
   ]
 }
+```
+
+Sample output for a failed initialization:
+
+```text
+Failed to initialize the blob trust policy configuration: <Reason>. <Recommendation>
 ```
 
 For a `ca` type of trust store, the `--trust-store` value follows the format `ca:<store_name>`, while the `--trust-identity` value follows the format `x509.subject:<signing_cert_subject>`.
