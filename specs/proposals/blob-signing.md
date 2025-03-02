@@ -276,12 +276,18 @@ For registry-based distribution, such as using an OCI-compliant container regist
 
 ### Manage blob policies
 
-The following commands are available for managing blob policies:
+The following commands are available for managing blob trust poliies:
 
-- Initialize blob policies:
+- Initialize blob trust policy configuration:
 
     ```shell
     notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+    ```
+
+- Initialize the blob trust policy configuration and set the policy specified by the `--name` flag as the global policy.
+
+    ```shell
+    notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
     ```
 
 - Overwrite an existing policy with a prompt:
@@ -319,12 +325,6 @@ The following commands are available for managing blob policies:
         ```shell
         notation blob policy import myBlobPolicy.json
         ```
-
-- Set the global policy
-
-    ```shell
-    notation blob policy update --name myBlobPolicy --global
-    ```
 
 ### Inspect blob signatures
 
