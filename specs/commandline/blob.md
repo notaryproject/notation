@@ -400,7 +400,7 @@ To overwrite the existing blob trust policy configuration without a prompt, use 
 notation blob policy init --force --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
 ```
 
-To set the policy as the global policy, use the `--global` flag:
+To set the policy specified by the `--name` flag as the global policy, use the `--global` flag:
 
 ```shell
 notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
