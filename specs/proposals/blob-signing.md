@@ -70,7 +70,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
         > [!NOTE]
         > Learn more options using `notation cert ls --help`.
 
-    - Set up trust policy for blobs by adding a new command `notation blob policy init`. This command streamlines the process, eliminating the need for users to consult documentation for the correct trust policy format and preventing the accidental use of policies intended for other verification purposes.
+    - Set up trust policy for blobs with a new command `notation blob policy init`. This command streamlines the process, eliminating the need for users to consult documentation for the correct trust policy format and preventing the accidental use of policies intended for OCI artifact verification.
 
         ```shell
         notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
@@ -112,10 +112,10 @@ For registry-based distribution, such as using an OCI-compliant container regist
 
 2. Publish the file and signature to the OCI-compliant registry:
 
-    Use ORAS tool to push the blob file:
+    Use [ORAS tool](https://oras.land/) to push the blob file:
 
     ```shell
-    oras push myregistry/myapp/sbom:v1 --artifact-type "application/spdx+json" sbom.json:application/json
+    oras push --artifact-type "application/spdx+json" sbom.json:application/json myregistry/myapp/sbom:v1
     ```
     
     This command stores `sbom.json` as an OCI artifact referenced by `myregistry/mypath/mysboms:v1` in the registry, which has the artifact type `application/spdx+json` and `sbom.json` data stored as a layer with the media type `application/json`. Below is an example of the manifest for the reference `myregistry/mypath/mysboms:v1`:
@@ -153,12 +153,12 @@ For registry-based distribution, such as using an OCI-compliant container regist
     oras attach myregistry/myapp/sbom:v1 --artifact-type 'application/vnd.cncf.notary.signature' sbom.json.cose.sig:application/cose -a "io.cncf.notary.blob.signature=true"
     ```
      
-    This command stores the signature file `sbom.json.cose.sig` as another OCI artifact with the artifact type `application/vnd.cncf.notary.signature` as is Notary Project signature, and the signature data as a layer with media type `application/cose` to show it is a COSE signature. The layer media type can be detected according to the file name, which is either `application/cose` or `application/jws`. The signature manifest's `subject` property refers to the `myregistry/mypath/mysboms:v1`. 
+    This command stores the signature file `sbom.json.cose.sig` as another OCI artifact with the artifact type `application/vnd.cncf.notary.signature` as Notary Project signature, and the signature data as a layer with media type `application/cose` as a COSE signature. The layer media type can be detected according to the file name, which is either `application/cose` or `application/jws`. The signature manifest's `subject` property is set to `myregistry/myapp/sbom:v1` to refer to the blob in the registry.
     
-    To distinguish these signatures from those generated during signing an artifact in the OCI registry, the specific annotation `io.cncf.notary.blob.signature=true` is added for the signature manifest. For example, users can push the SBOM file to the OCI registry first and then use `notation sign myregistry/myapp/sbom:v1`, which generates a signature attached to the SBOM in the registry, but this signature is not in the same format as the blob signature.
+    To distinguish these signatures from those generated during signing an existing artifact in the OCI registry, the specific annotation `io.cncf.notary.blob.signature=true` is added for the blob signature manifest. For example, users can push the SBOM file to the OCI registry first and then use `notation sign myregistry/myapp/sbom:v1`, which generates a signature attached to the SBOM in the registry, but this signature is for OCI artifact, which is not in the same format as the blob signature.
     
     > [!NOTE]
-    > While users can push both the blob and the signature file as a single OCI artifact, this is not recommended. Since there may already be existing blobs stored in the registry, you only need to attach the signature to the SBOM. Additionally, this approach is not practical if you need to sign the SBOM with multiple signatures using different keys at a later stage.
+    > While users can push both the blob and the signature file as a single OCI artifact, this is not recommended. Since there may already be existing blob stored in the registry, you only need to attach the signature to it . Additionally, this approach is not practical if you need to sign the blob with multiple signatures, for example, using different keys at a later stage.
 
     Below is an example of the manifest for the blob signature in the registry:
 
@@ -212,7 +212,7 @@ For registry-based distribution, such as using an OCI-compliant container regist
            └── io.cncf.notary.blob.signature: "true"      
    ```
 
-   Similarly, users can use the ORAS tool to discover signatures. However, the additional `-v` flag should be used to list annotations. Unlike notation ls, the ORAS tool lists all annotations present in the manifest. For example,
+   Similarly, users can use the `oras discover` with additional `-v` flag to show annotations. Unlike `notation ls`, the `oras discover -v` command lists all annotations present in the manifest. For example,
 
    ```shell
    oras discover myregistry/myapp/sbom:v1
@@ -264,14 +264,14 @@ For registry-based distribution, such as using an OCI-compliant container regist
         notation blob verify --policy-name myBlobPolicy --signature sbom.json.cose.sig sbom.json
         ```
         
-        If users run the `notation verify` command to verify blob signatures, the verification will fail. However, the output should inform users to download the blob and its signatures and use the `notation blob verify` command instead.
+        If users run the `notation verify` command to verify blob signatures, the verification will fail. However, the output should inform users to download the blob and its signature and use the `notation blob verify` command instead.
 
         Sample output:
 
         ```text
-        Error: Signature verification failed: unsupported signature format for OCI artifacts. 
+        Error: Signature verification failed: unsupported signature format for the OCI artifact myregistry/myapp/sbom@sha256:e8c3567e1f679dfd372ab97635329e404c5182864e29abd96acf852b1ac1ef6b. 
         
-        If you are verifying a blob signature, try downloading the blob and its signatures, then use `notation blob verify` instead.
+        If you are verifying a blob signature, try downloading the blob and its signature, then use `notation blob verify` instead.
         ```
 
 ### Manage blob policies
@@ -290,6 +290,8 @@ The following commands are available for managing blob policies:
     notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
     ```
 
+    If the blob policy named `myBlobPolicy` has already been initialized before, running this command will prompt the user to confirm whether they want to overwrite the existing blob policy.
+
 - Overwrite an existing policy with a prompt using the flag `--force`:
 
     ```shell
@@ -302,9 +304,9 @@ The following commands are available for managing blob policies:
     notation blob policy show
     ```
 
-- Modify the blob policy from a JSON file:
+- Modify the blob policy:
 
-    - Export the existing blob policy to a JSON file:
+    - Export the existing blob policy configuration to a JSON file:
 
         ```shell
         notation blob policy show > myBlobPolicy.json
