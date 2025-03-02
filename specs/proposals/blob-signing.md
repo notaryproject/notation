@@ -263,9 +263,16 @@ For registry-based distribution, such as using an OCI-compliant container regist
         ```shell
         notation blob verify --policy-name myBlobPolicy --signature sbom.json.cose.sig sbom.json
         ```
+        
+        If users run the `notation verify` command to verify blob signatures, the verification will fail. However, the output should inform users to download the blob and its signatures and use the `notation blob verify` command instead.
 
-    > [!NOITE]
-    > In case users use `notation verify` command to verify blob sigantures, the verification should fail, but should indicate to users that they should try download the blob and signatures and using `notation blob verify` command.
+        Sample output:
+
+        ```text
+        Error: Signature verification failed: unsupported signature format for OCI artifacts. 
+        
+        If you are verifying a blob signature, try downloading the blob and its signatures, then use `notation blob verify` instead.
+        ```
 
 ### Manage blob policies
 
