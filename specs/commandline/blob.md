@@ -113,15 +113,15 @@ Flags:
 ### notation blob policy
 
 ```text
-Manage trust policy configuration for arbitrary blob signature verification.
+Manage blob trust policy configuration for arbitrary blob signature verification.
 
 Usage:
   notation blob policy [command]
 
 Available Commands:
-  import    import trust policy configuration from a JSON file
-  init      initialize a blob policy
-  show      show trust policy configuration
+  import    import blob trust policy configuration from a JSON file
+  init      initialize blob trust policy configuration
+  show      show blob trust policy configuration
 
 Flags:
   -h, --help   help for policy
@@ -146,7 +146,7 @@ Flags:
 Initialize blob trust policy configuration
 
 Usage:
-  notation blob policy init --policy-name <policy_name> --trust-store "<store_type>:<store_name>" --trust-identity "<trust_identity>"
+  notation blob policy init --name <policy_name> --trust-store "<store_type>:<store_name>" --trust-identity "<trust_identity>"
 
 Flags:
       --force     override the existing blob trust policy configuration, never prompt
