@@ -120,6 +120,7 @@ Usage:
 
 Available Commands:
   import    import trust policy configuration from a JSON file
+  init      initialize a blob policy
   show      show trust policy configuration
 
 Flags:
@@ -136,6 +137,20 @@ Usage:
 
 Flags:
       --force     override the existing trust policy configuration, never prompt
+  -h, --help      help for import
+```
+
+### notation blob policy init
+
+```text
+Initialize blob trust policy configuration
+
+Usage:
+  notation blob policy init --policy-name <policy_name> --trust-store "<store_type>:<store_name>" --trust-identity "<trust_identity>"
+
+Flags:
+      --force     override the existing blob trust policy configuration, never prompt
+      --global    set the policy as the global policy 
   -h, --help      help for import
 ```
 
@@ -341,6 +356,55 @@ notation blob policy import ./my_policy.json
 The trust policy configuration in the JSON file should be validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if trust policy configuration are imported successfully. Error logs including the reason should be printed out if the importing fails.
 
 If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
+
+### Initialize blob trust policy configuration
+
+The following command initializes a blob trust policy configuration:
+
+```shell
+notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+```
+
+Sample output:
+
+```text
+The blob trust policy configuration has been initiliazed successfully.
+{
+  "version": "1.0",
+  "trustPolicies": [
+    {
+        "name": "myBlobPolicy",
+        "signatureVerification": {
+          "level" : "strict"
+        },
+        "trustStores": ["ca:myCACerts"],
+        "trustedIdentities": [
+          "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+        ]
+    }
+  ]
+}
+```
+
+For a `ca` type of trust store, the `--trust-store` value follows the format `ca:<store_name>`, while the `--trust-identity` value follows the format `x509.subject:<signing_cert_subject>`.
+
+The `--trust-store` and `--trust-identity` flags can be specified multiple times if multiple trust stores or trust identities need to be configured.
+
+To trust any identities, set the flag `--trust-identity` to `"*"`. However, this is not recommended for production environments. Additionally, the flag cannot be set to multiple values.
+
+If a blob trust policy has already been initialized, regardless of whether the policy name is the same, running this command will prompt the user to confirm whether they want to overwrite the existing blob policy.
+
+To overwrite the existing blob trust policy configuration without a prompt, use the `--force` flag:
+
+```shell
+notation blob policy init --force --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+```
+
+To set the policy as the global policy, use the `--global` flag:
+
+```shell
+notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+```
 
 ### Show blob trust policies
 
