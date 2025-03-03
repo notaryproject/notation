@@ -364,7 +364,7 @@ notation blob policy import ./my_policy.json
 
 The blob trust policy configuration in the JSON file should be validated according to [blob trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if blob trust policy configuration is imported successfully. Error logs including the reason should be printed out if the importing fails.
 
-If there is an existing trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing trust policy configuration without prompt.
+If there is an existing blob trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing blob trust policy configuration without prompt.
 
 ### Initialize blob trust policy configuration
 
