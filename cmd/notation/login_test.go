@@ -17,7 +17,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/notaryproject/notation/internal/cmd"
 	cmdopts "github.com/notaryproject/notation/internal/cmd"
 )
 
@@ -51,7 +50,7 @@ func TestLoginCommand_PasswordFromArgs(t *testing.T) {
 }
 
 func TestLogin_PasswordFromStdin(t *testing.T) {
-	t.Setenv(cmd.EnvironmentUsername, "user")
+	t.Setenv(cmdopts.EnvironmentUsername, "user")
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
