@@ -1,0 +1,13 @@
+test: E2E
+
+Signed-off-by: Junjie Gao <junjiegao@microsoft.com>
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch feat/blob_policy_init
+# Your branch is up to date with 'origin/feat/blob_policy_init'.
+#
+# Changes to be committed:
+#	modified:   test/e2e/suite/command/blob/policy.go
+#

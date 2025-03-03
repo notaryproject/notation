@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package cmd
 
 import (
 	"reflect"
@@ -61,7 +61,7 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 				Username: "",
 				Password: "",
 			},
-			want: auth.EmptyCredential,
+			want: auth.Credential{},
 		},
 	}
 	for _, tt := range tests {
