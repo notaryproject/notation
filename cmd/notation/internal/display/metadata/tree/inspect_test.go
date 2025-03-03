@@ -14,148 +14,59 @@
 package tree
 
 import (
-	"fmt"
-	"os"
+	"errors"
 	"testing"
-	"time"
 
 	coresignature "github.com/notaryproject/notation-core-go/signature"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
-func TestAddSignedAttributes(t *testing.T) {
-	t.Run("empty envelopeContent", func(t *testing.T) {
-		node := newNode("root")
-		ec := &coresignature.EnvelopeContent{}
-		addSignedAttributes(node, ec)
-		// No error or panic expected; minimal check or just ensure it doesn't crash.
-	})
+// errorWriter is a mock io.Writer that always returns an error
+type errorWriter struct{}
 
-	t.Run("with expiry and extented node", func(t *testing.T) {
-		node := newNode("root")
-		expiryTime := time.Now().Add(time.Hour)
-		ec := &coresignature.EnvelopeContent{
-			Payload: coresignature.Payload{
-				ContentType: "application/vnd.cncf.notary.payload.v1+json",
-			},
-			SignerInfo: coresignature.SignerInfo{
-				SignedAttributes: coresignature.SignedAttributes{
-					Expiry: expiryTime,
-					ExtendedAttributes: []coresignature.Attribute{
-						{
-							Key:   "key",
-							Value: "value",
-						},
-					},
-				},
-			},
-		}
-		addSignedAttributes(node, ec)
-		// Verify node was added; for brevity, just check no panic
-		if len(node.Children) == 0 {
-			t.Fatal("expected children to be added")
-		}
-		signedAttrNode := node.Children[0]
-		if signedAttrNode.Value != "signed attributes" {
-			t.Fatalf("expected name 'signed attributes', got: %v", signedAttrNode.Value)
-		}
-		if len(signedAttrNode.Children) != 5 {
-			t.Fatalf("expected 5 children, got: %v", len(signedAttrNode.Children))
-		}
-		// verify expiry node
-		expiryNode := signedAttrNode.Children[3]
-		if expiryNode.Value != fmt.Sprintf("expiry: %s", expiryTime.Format(time.ANSIC)) {
-			t.Fatalf("expected expiry node, got: %v", expiryNode.Value)
-		}
-		// verify extended attribute node
-		extendedAttrNode := signedAttrNode.Children[4]
-		if extendedAttrNode.Value != "key: value" {
-			t.Fatalf("expected extended attribute node, got: %v", extendedAttrNode.Value)
-		}
-	})
+func (w *errorWriter) Write(p []byte) (n int, err error) {
+	return 0, errors.New("mocked write error")
 }
 
-func TestAddUserDefinedAttributes(t *testing.T) {
-	t.Run("empty map", func(t *testing.T) {
-		node := newNode("root")
-		addUserDefinedAttributes(node, nil)
-		if len(node.Children) == 0 {
-			t.Fatal("expected node to have children")
-		}
-		udaNode := node.Children[0]
-		if udaNode.Value != "user defined attributes" {
-			t.Fatalf("expected 'user defined attributes' node, got %s", udaNode.Value)
-		}
-		if len(udaNode.Children) == 0 || udaNode.Children[0].Value != "(empty)" {
-			t.Fatalf("expected '(empty)' node, got %v", udaNode.Children)
-		}
-	})
+func TestInspectHandler_InspectSignature_Print_Error(t *testing.T) {
+	// Create a printer with an error writer
+	errorPrinter := output.NewPrinter(&errorWriter{}, &errorWriter{})
+	handler := NewInspectHandler(errorPrinter)
 
-	t.Run("non-empty map", func(t *testing.T) {
-		node := newNode("root")
-		annotations := map[string]string{"key1": "val1", "key2": "val2"}
-		addUserDefinedAttributes(node, annotations)
-		udaNode := node.Children[0]
-		if udaNode.Value != "user defined attributes" {
-			t.Fatalf("expected 'user defined attributes' node, got %s", udaNode.Value)
-		}
-		if len(udaNode.Children) != len(annotations) {
-			t.Fatalf("expected %d children, got %d", len(annotations), len(udaNode.Children))
-		}
-	})
+	// Set reference to initialize rootReferenceNode
+	handler.OnReferenceResolved("test-reference", "")
+
+	// Mock descriptor and envelope
+	manifestDesc := ocispec.Descriptor{
+		Digest: "sha256:test",
+	}
+	signatureDesc := ocispec.Descriptor{
+		MediaType: "test-media-type",
+	}
+	var envelope coresignature.Envelope
+
+	// Test InspectSignature - should fail at printing header
+	err := handler.InspectSignature(manifestDesc, signatureDesc, envelope)
+	if err == nil {
+		t.Fatal("Expected error when printing header, but got nil")
+	}
 }
 
-func TestAddTimestamp(t *testing.T) {
-	t.Run("invalid timestamp signature", func(t *testing.T) {
-		node := newNode("root")
-		signerInfo := coresignature.SignerInfo{
-			UnsignedAttributes: coresignature.UnsignedAttributes{
-				TimestampSignature: []byte("invalid"),
-			},
-		}
-		addTimestamp(node, signerInfo)
-		if len(node.Children) == 0 {
-			t.Fatal("expected node to have children")
-		}
-		timestampNode := node.Children[0]
-		if timestampNode.Value != "timestamp signature" {
-			t.Fatalf("expected 'timestamp signature' node, got %s", timestampNode.Value)
-		}
-		if len(timestampNode.Children) == 0 {
-			t.Fatal("expected node to have children")
-		}
-		errNode := timestampNode.Children[0]
-		expectedErrMsg := "error: failed to parse timestamp countersignature: cms: syntax error: invalid signed data: failed to convert from BER to DER: asn1: syntax error: decoding BER length octets: short form length octets value should be less or equal to the subsequent octets length"
-		if errNode.Value != expectedErrMsg {
-			t.Fatalf("expected error node, got %s", errNode.Value)
-		}
-	})
+func TestInspectHandler_Render_Flush_Error(t *testing.T) {
+	// Create a printer with an error writer
+	errorPrinter := output.NewPrinter(&errorWriter{}, &errorWriter{})
+	handler := NewInspectHandler(errorPrinter)
 
-	t.Run("timestamp validation error", func(t *testing.T) {
-		tsaToken, err := os.ReadFile("../testdata/TimeStampTokenWithInvalidSignature.p7s")
-		if err != nil {
-			t.Fatal(err)
-		}
-		signerInfo := coresignature.SignerInfo{
-			UnsignedAttributes: coresignature.UnsignedAttributes{
-				TimestampSignature: tsaToken,
-			},
-		}
-		node := newNode("root")
-		addTimestamp(node, signerInfo)
-		if len(node.Children) == 0 {
-			t.Fatal("expected node to have children")
-		}
-		timestampNode := node.Children[0]
-		if timestampNode.Value != "timestamp signature" {
-			t.Fatalf("expected 'timestamp signature' node, got %s", timestampNode.Value)
-		}
-		if len(timestampNode.Children) == 0 {
-			t.Fatal("expected node to have children")
-		}
-		errNode := timestampNode.Children[0]
-		expectedErrMsg := "error: failed to parse timestamp countersignature: invalid TSTInfo: mismatched message"
-		if errNode.Value != expectedErrMsg {
-			t.Fatalf("expected error node, got %s", errNode.Value)
-		}
-	})
+	// Add a signature to ensure sprinter has something to flush
+	handler.OnReferenceResolved("test-reference", "")
+	handler.headerPrinted = true // Simulate header already printed
+
+	handler.sprinter.prevNode = &node{} // Simulate a node to flush
+
+	// Test Render - should fail at flushing
+	err := handler.Render()
+	if err == nil {
+		t.Fatal("Expected error when flushing, but got nil")
+	}
 }

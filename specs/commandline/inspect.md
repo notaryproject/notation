@@ -11,6 +11,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
 └── application/vnd.cncf.notary.signature
     ├── <digest of signature manifest>
     │   ├── <signature algorithm>
+    |   ├── <signature envelope type>
     │   ├── <signed attributes>
     │   ├── <user defined attributes>
     │   ├── <unsigned attributes>
@@ -18,6 +19,7 @@ Upon successful execution, both the digest of the signed artifact and the digest
     │   └── <signed artifact>
     └── <digest of signature manifest>
         ├── <signature algorithm>
+        ├── <signature envelope type>
         ├── <signed attributes>
         ├── <unsigned attributes>
         ├── <certificates>
@@ -40,7 +42,7 @@ Flags:
   -h, --help                  help for inspect
       --insecure-registry     use HTTP protocol while connecting to registries. Should be used only for testing
       --max-signatures int    maximum number of signatures to evaluate or examine (default 100)
-  -o, --output string         output format, options: 'json', 'text' (default "text")
+  -o, --output string         output format, options: 'json', 'tree' (default "tree")
   -p, --password string       password for registry operations (default to $NOTATION_PASSWORD if not specified)
   -u, --username string       username for registry operations (default to $NOTATION_USERNAME if not specified)
   -v, --verbose               verbose mode
@@ -69,6 +71,7 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
 └── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     │   ├── signature algorithm: RSASSA-PSS-SHA-256
+    │   ├── signature envelope type: application/cose
     │   ├── signed attributes
     │   │   ├── content type: application/vnd.cncf.notary.payload.v1+json
     │   │   ├── signing scheme: notary.default.x509
@@ -105,6 +108,7 @@ localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac4efe37a5380ee
     │       └── size: 16724
     └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
         ├── signature algorithm: RSASSA-PSS-SHA-256
+        ├── signature envelope type: application/jose+json
         ├── signed attributes
         │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.signingAuthority.x509
@@ -160,6 +164,7 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
 └── application/vnd.cncf.notary.signature
     ├── sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     │   ├── signature algorithm: RSASSA-PSS-SHA-256
+    │   ├── signature envelope type: application/jose+json
     │   ├── signed attributes
     │   │   ├── content type: application/vnd.cncf.notary.payload.v1+json
     │   │   ├── signing scheme: notary.default.x509
@@ -196,6 +201,7 @@ localhost:5000/net-monitor@sha256:ca5427b5567d3e06a72e52d7da7dabfac484efe37a5380
     │       └── size: 16724
     └── sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
         ├── signature algorithm: RSASSA-PSS-SHA-256
+        ├── signature envelope type: application/cose
         ├── signed attributes
         │   ├── content type: application/vnd.cncf.notary.payload.v1+json
         │   ├── signing scheme: notary.signingAuthority.x509
@@ -243,6 +249,7 @@ An example output:
     {
       "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a33",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+      "signatureEnvelopeType": "application/jose+json",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": "notary.default.x509",
@@ -296,6 +303,7 @@ An example output:
     {
       "digest": "sha256:73c803930ea3ba1e54bc25c2bdc53edd0284c62ed651fe7b00369da519a3c333",
       "signatureAlgorithm": "RSASSA-PSS-SHA-256",
+      "signatureEnvelopeType": "application/cose",
       "signedAttributes": {
         "contentType": "application/vnd.cncf.notary.payload.v1+json",
         "signingScheme": "notary.signingAuthority.x509",

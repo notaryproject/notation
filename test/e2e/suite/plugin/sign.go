@@ -50,7 +50,7 @@ var _ = Describe("notation plugin sign", func() {
 				).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().Exec("verify", artifact.ReferenceWithDigest()).
+			notation.Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -72,7 +72,7 @@ var _ = Describe("notation plugin sign", func() {
 				).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().Exec("verify", artifact.ReferenceWithDigest()).
+			notation.Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -93,7 +93,7 @@ var _ = Describe("notation plugin sign", func() {
 				).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().Exec("verify", artifact.ReferenceWithDigest()).
+			notation.Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -114,7 +114,7 @@ var _ = Describe("notation plugin sign", func() {
 				).
 				MatchKeyWords(SignSuccessfully)
 
-			OldNotation().Exec("verify", artifact.ReferenceWithDigest()).
+			notation.Exec("verify", artifact.ReferenceWithDigest()).
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

@@ -30,14 +30,26 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
-// NewInpsectHandler creates a new metadata InspectHandler based on the output
+// NewInspectHandler creates a new metadata InspectHandler based on the output
 // format.
-func NewInpsectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
+func NewInspectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
 	switch option.FormatType(format.CurrentType) {
 	case option.FormatTypeJSON:
 		return json.NewInspectHandler(printer), nil
-	case option.FormatTypeText:
+	case option.FormatTypeTree:
 		return tree.NewInspectHandler(printer), nil
+	}
+	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
+}
+
+// NewBlobInspectHandler creates a new metadata BlobInspectHandler based on the
+// output format.
+func NewBlobInspectHandler(printer *output.Printer, format option.Format) (metadata.BlobInspectHandler, error) {
+	switch option.FormatType(format.CurrentType) {
+	case option.FormatTypeJSON:
+		return json.NewBlobInspectHandler(printer), nil
+	case option.FormatTypeTree:
+		return tree.NewBlobInspectHandler(printer), nil
 	}
 	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
 }
@@ -52,4 +64,10 @@ func NewVerifyHandler(printer *output.Printer) metadata.VerifyHandler {
 // blob verification result and warnings.
 func NewBlobVerifyHandler(printer *output.Printer) metadata.BlobVerifyHandler {
 	return text.NewBlobVerifyHandler(printer)
+}
+
+// NewListHandler creates a new metadata ListHandler for rendering signature
+// metadata information in a tree format.
+func NewListHandler(printer *output.Printer) metadata.ListHandler {
+	return tree.NewListHandler(printer)
 }
