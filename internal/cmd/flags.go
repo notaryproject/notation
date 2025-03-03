@@ -107,6 +107,33 @@ var (
 	SetPflagReferrersTag = func(fs *pflag.FlagSet, p *bool, usage string) {
 		fs.BoolVar(p, PflagReferrersTag.Name, false, usage)
 	}
+
+	PflagUsername = &pflag.Flag{
+		Name:      "username",
+		Shorthand: "u",
+		Usage:     "username for registry operations (default to $NOTATION_USERNAME if not specified)",
+	}
+	SetFlagUsername = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagUsername.Name, PflagUsername.Shorthand, "", PflagUsername.Usage)
+	}
+
+	PflagPassword = &pflag.Flag{
+		Name:      "password",
+		Shorthand: "p",
+		Usage:     "password for registry operations (default to $NOTATION_PASSWORD if not specified)",
+	}
+	SetFlagPassword = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagPassword.Name, PflagPassword.Shorthand, "", PflagPassword.Usage)
+	}
+
+	PflagInsecureRegistry = &pflag.Flag{
+		Name:     "insecure-registry",
+		Usage:    "use HTTP protocol while connecting to registries. Should be used only for testing",
+		DefValue: "false",
+	}
+	SetFlagInsecureRegistry = func(fs *pflag.FlagSet, p *bool) {
+		fs.BoolVar(p, PflagInsecureRegistry.Name, false, PflagInsecureRegistry.Usage)
+	}
 )
 
 // KeyValueSlice is a flag with type int

@@ -29,7 +29,7 @@ import (
 
 type inspectOpts struct {
 	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	cmd.SecureFlagOpts
 	option.Common
 	option.Format
 	reference     string

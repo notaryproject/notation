@@ -30,7 +30,7 @@ import (
 
 type listOpts struct {
 	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	cmd.SecureFlagOpts
 	option.Common
 	reference     string
 	ociLayout     bool

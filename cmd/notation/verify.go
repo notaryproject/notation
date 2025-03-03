@@ -30,7 +30,7 @@ import (
 
 type verifyOpts struct {
 	cmd.LoggingFlagOpts
-	SecureFlagOpts
+	cmd.SecureFlagOpts
 	option.Common
 	reference            string
 	pluginConfig         []string

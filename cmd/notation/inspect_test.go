@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/pflag"
 )
 
@@ -29,7 +30,7 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	format.CurrentType = string(option.FormatTypeTree)
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: cmd.SecureFlagOpts{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
@@ -54,15 +55,15 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestInspectCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(defaultUsernameEnv, "user")
-	t.Setenv(defaultPasswordEnv, "password")
+	t.Setenv(cmd.EnvironmentUsername, "user")
+	t.Setenv(cmd.EnvironmentPassword, "password")
 
 	format := option.Format{}
 	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
 	format.CurrentType = string(option.FormatTypeJSON)
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: cmd.SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},

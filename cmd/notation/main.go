@@ -21,6 +21,7 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/cert"
 	"github.com/notaryproject/notation/cmd/notation/plugin"
 	"github.com/notaryproject/notation/cmd/notation/policy"
+	cmdopts "github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +33,8 @@ func main() {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// unset registry credentials after read the value from environment
 			// to avoid leaking credentials
-			os.Unsetenv(defaultUsernameEnv)
-			os.Unsetenv(defaultPasswordEnv)
+			os.Unsetenv(cmdopts.EnvironmentUsername)
+			os.Unsetenv(cmdopts.EnvironmentPassword)
 
 			// update Notation config directory
 			if notationConfig := os.Getenv("NOTATION_CONFIG"); notationConfig != "" {
