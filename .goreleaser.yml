@@ -48,6 +48,7 @@ release:
   prerelease: auto
 signs:
   - cmd: cosign
+    stdin: "{{ .Env.COSIGN_PWD }}"
     args:
       - "sign-blob"
       - "--key=cosign.key"
