@@ -80,17 +80,12 @@ func runInit(opts *initOpts) error {
 			},
 		},
 	}
-
 	if err := blobPolicy.Validate(); err != nil {
 		return fmt.Errorf("invalid blob policy: %w", err)
 	}
-	policyJSON, err := json.MarshalIndent(blobPolicy, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal blob trust policy: %w", err)
-	}
 
 	// optional confirmation
-	if _, err = trustpolicy.LoadBlobDocument(); err == nil {
+	if _, err := trustpolicy.LoadBlobDocument(); err == nil {
 		if !opts.force {
 			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
@@ -107,6 +102,10 @@ func runInit(opts *initOpts) error {
 	policyPath, err := dir.ConfigFS().SysPath(dir.PathBlobTrustPolicy)
 	if err != nil {
 		return fmt.Errorf("failed to obtain path of blob trust policy configuration: %w", err)
+	}
+	policyJSON, err := json.MarshalIndent(blobPolicy, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal blob trust policy: %w", err)
 	}
 	if err = osutil.WriteFile(policyPath, policyJSON); err != nil {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
