@@ -287,15 +287,23 @@ var _ = Describe("blob trust policy maintainer", func() {
 				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 					notation.Exec("blob", "policy", "init",
 						"--name", "example-policy",
+						"--global",
 						"--trust-store", "ca:example-store",
-						"--trusted-identity", "x509.subject: C=example,ST=example,O=example").
+						"--trust-store", "ca:example-store2",
+						"--trusted-identity", "x509.subject: C=example,ST=example,O=example",
+						"--trusted-identity", "x509.subject: C=example2,ST=example,O=example").
 						MatchKeyWords("Successfully initialized blob trust policy file")
 
 					// Verify the policy was created
 					notation.Exec("blob", "policy", "show").
-						MatchKeyWords("example-policy").
-						MatchKeyWords("ca:example-store").
-						MatchKeyWords("x509.subject: C=example,ST=example,O=example")
+						MatchKeyWords(
+							"example-policy",
+							"ca:example-store",
+							"ca:example-store2",
+							"x509.subject: C=example,ST=example,O=example",
+							"x509.subject: C=example2,ST=example,O=example",
+							`"globalPolicy": true`,
+						)
 				})
 			})
 		})
@@ -318,7 +326,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 					notation.Exec("blob", "policy", "init",
 						"--name", "new-policy",
 						"--trust-store", "ca:new-store",
-						"--trusted-identity", "x509.subject: C=example,ST=example,O=example",
+						"--trusted-identity", "x509.subject: C=example, ST=example, O=example",
 						"--force").
 						MatchKeyWords("Successfully initialized blob trust policy file")
 
@@ -326,7 +334,7 @@ var _ = Describe("blob trust policy maintainer", func() {
 					notation.Exec("blob", "policy", "show").
 						MatchKeyWords("new-policy").
 						MatchKeyWords("ca:new-store").
-						MatchKeyWords("x509.subject: C=example,ST=example,O=example")
+						MatchKeyWords("x509.subject: C=example, ST=example, O=example")
 				})
 			})
 		})

@@ -28,21 +28,22 @@ import (
 
 type initOpts struct {
 	option.Common
-	name            string
-	trustStore      string
-	trustedIdentity string
-	force           bool
+	name              string
+	trustStores       []string
+	trustedIdentities []string
+	force             bool
+	global            bool
 }
 
 func initCmd() *cobra.Command {
 	opts := initOpts{}
 	command := &cobra.Command{
 		Use:   "init [flags]",
-		Short: "Init blob trust policy file",
-		Long: `Init blob trust policy file.
+		Short: "Initialize blob trust policy configuration",
+		Long: `Initialize blob trust policy configuration.
 
-Example - init a blob trust file with trust store and trust policy:
-  notation blob policy init --trust-store <store-type>:<store-name> --trusted-policy file "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, OU=Finance, CN=SecureBuilder"
+Example - init a blob trust policy configuration with a trust store and a trusted identity:
+  notation blob policy init --name examplePolicy --trust-store <store-type>:<store-name> --trusted-policy file "x509.subject: C=US, ST=WA, O=acme-rockets.io"
 `,
 		Args: cobra.ExactArgs(0),
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -54,9 +55,10 @@ Example - init a blob trust file with trust store and trust policy:
 	}
 
 	command.Flags().StringVarP(&opts.name, "name", "n", "", "name of the blob trust policy")
-	command.Flags().StringVarP(&opts.trustStore, "trust-store", "s", "", "trust store in format <store-type>:<store-name>")
-	command.Flags().StringVarP(&opts.trustedIdentity, "trusted-identity", "i", "", "trusted identity (e.g. \"x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io\")")
-	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration without prompt")
+	command.Flags().StringArrayVar(&opts.trustStores, "trust-store", nil, "trust store in the format \"<store_type>:<store_name>\"")
+	command.Flags().StringArrayVar(&opts.trustedIdentities, "trusted-identity", nil, "trusted identity, use the format \"x509.subject:<subject_of_signing_certificate>\" for x509 CA scheme and \"<signing_authority_identity>\" for x509 signingAuthority scheme")
+	command.Flags().BoolVar(&opts.force, "force", false, "override the existing blob trust policy configuration, never prompt (default --force=false)")
+	command.Flags().BoolVar(&opts.global, "global", false, "set the policy as the global policy (default --global=false)")
 	command.MarkFlagRequired("name")
 	command.MarkFlagRequired("trust-store")
 	command.MarkFlagRequired("trusted-identity")
@@ -72,9 +74,9 @@ func runInit(opts *initOpts) error {
 				SignatureVerification: trustpolicy.SignatureVerification{
 					VerificationLevel: "strict",
 				},
-				TrustStores:       []string{opts.trustStore},
-				TrustedIdentities: []string{opts.trustedIdentity},
-				GlobalPolicy:      true,
+				TrustStores:       opts.trustStores,
+				TrustedIdentities: opts.trustedIdentities,
+				GlobalPolicy:      opts.global,
 			},
 		},
 	}
