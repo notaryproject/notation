@@ -296,14 +296,26 @@ var _ = Describe("blob trust policy maintainer", func() {
 
 					// Verify the policy was created
 					notation.Exec("blob", "policy", "show").
-						MatchKeyWords(
-							"example-policy",
-							"ca:example-store",
-							"ca:example-store2",
-							"x509.subject: C=example,ST=example,O=example",
-							"x509.subject: C=example2,ST=example,O=example",
-							`"globalPolicy": true`,
-						)
+						MatchContent(`{
+  "version": "1.0",
+  "trustPolicies": [
+    {
+      "name": "example-policy",
+      "signatureVerification": {
+        "level": "strict"
+      },
+      "trustStores": [
+        "ca:example-store",
+        "ca:example-store2"
+      ],
+      "trustedIdentities": [
+        "x509.subject: C=example,ST=example,O=example",
+        "x509.subject: C=example2,ST=example,O=example"
+      ],
+      "globalPolicy": true
+    }
+  ]
+}`)
 				})
 			})
 		})

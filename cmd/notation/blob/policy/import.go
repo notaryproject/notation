@@ -89,7 +89,7 @@ func runImport(opts importOpts) error {
 				return nil
 			}
 		} else {
-			opts.Printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten")
+			opts.Printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten\n")
 		}
 	}
 
@@ -101,5 +101,5 @@ func runImport(opts importOpts) error {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	return opts.Printer.Printf("Successfully imported blob trust policy configuration to %s.\n", policyPath)
+	return opts.Printer.Printf("Successfully imported blob trust policy configuration to %s\n", policyPath)
 }

@@ -38,12 +38,12 @@ type initOpts struct {
 func initCmd() *cobra.Command {
 	opts := initOpts{}
 	command := &cobra.Command{
-		Use:   "init [flags]",
+		Use:   `init [flags] --name <policy_name> --trust-store "<store_type>:<store_name>" --trusted-identity "<trusted_identity>"`,
 		Short: "Initialize blob trust policy configuration",
 		Long: `Initialize blob trust policy configuration.
 
 Example - init a blob trust policy configuration with a trust store and a trusted identity:
-  notation blob policy init --name examplePolicy --trust-store <store-type>:<store-name> --trusted-policy file "x509.subject: C=US, ST=WA, O=acme-rockets.io"
+  notation blob policy init --name examplePolicy --trust-store ca:exampleStore --trusted-identity "x509.subject: C=US, ST=WA, O=acme-rockets.io"
 `,
 		Args: cobra.ExactArgs(0),
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -72,7 +72,7 @@ func runInit(opts *initOpts) error {
 			{
 				Name: opts.name,
 				SignatureVerification: trustpolicy.SignatureVerification{
-					VerificationLevel: "strict",
+					VerificationLevel: trustpolicy.LevelStrict.Name,
 				},
 				TrustStores:       opts.trustStores,
 				TrustedIdentities: opts.trustedIdentities,
@@ -100,7 +100,7 @@ func runInit(opts *initOpts) error {
 				return nil
 			}
 		} else {
-			opts.Printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten")
+			opts.Printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten\n")
 		}
 	}
 
@@ -112,5 +112,5 @@ func runInit(opts *initOpts) error {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	return opts.Printer.Printf("Successfully initialized blob trust policy file to %s.\n", policyPath)
+	return opts.Printer.Printf("Successfully initialized blob trust policy file to %s\n", policyPath)
 }
