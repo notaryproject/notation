@@ -21,13 +21,11 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
 
 type importOpts struct {
-	option.Common
 	filePath string
 	force    bool
 }
@@ -50,9 +48,6 @@ Example - Import blob trust policy and override existing configuration without p
 				return fmt.Errorf("requires 1 argument but received %d.\nUsage: notation blob policy import <path-to-policy.json>\nPlease specify a trust policy configuration location as the argument", len(args))
 			}
 			return nil
-		},
-		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.Common.Parse(cmd)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.filePath = args[0]
@@ -89,10 +84,11 @@ func runImport(opts importOpts) error {
 				return nil
 			}
 		} else {
-			opts.Printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten\n")
+			fmt.Fprintln(os.Stderr, "Warning: existing blob trust policy configuration will be overwritten")
 		}
 	}
 
+	// write
 	policyPath, err := dir.ConfigFS().SysPath(dir.PathBlobTrustPolicy)
 	if err != nil {
 		return fmt.Errorf("failed to obtain path of blob trust policy configuration: %w", err)
@@ -101,5 +97,6 @@ func runImport(opts importOpts) error {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	return opts.Printer.Printf("Successfully imported blob trust policy configuration to %s\n", policyPath)
+	_, err = fmt.Fprintf(os.Stdout, "Successfully imported blob trust policy configuration to %s.\n", policyPath)
+	return err
 }
