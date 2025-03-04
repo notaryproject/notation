@@ -381,14 +381,14 @@ Sample output for a successful initialization:
   "version": "1.0",
   "trustPolicies": [
     {
-        "name": "myBlobPolicy",
-        "signatureVerification": {
-          "level" : "strict"
-        },
-        "trustStores": ["ca:myCACerts"],
-        "trustedIdentities": [
-          "x509.subject:C=US,ST=WA,O=wabbit-network.io"
-        ]
+      "name": "myBlobPolicy",
+      "signatureVerification": {
+        "level" : "strict"
+      },
+      "trustStores": ["ca:myCACerts"],
+      "trustedIdentities": [
+        "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+      ]
     }
   ]
 }
