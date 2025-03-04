@@ -344,9 +344,11 @@ var _ = Describe("blob trust policy maintainer", func() {
 
 					// Verify the new policy was created and replaced the old one
 					notation.Exec("blob", "policy", "show").
-						MatchKeyWords("new-policy").
-						MatchKeyWords("ca:new-store").
-						MatchKeyWords("x509.subject: C=example, ST=example, O=example")
+						MatchKeyWords(
+							"new-policy",
+							"ca:new-store",
+							"x509.subject: C=example, ST=example, O=example",
+						)
 				})
 			})
 		})
