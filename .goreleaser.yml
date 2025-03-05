@@ -55,7 +55,6 @@ signs:
       - "--signature-format=cose"
       - "--plugin=azure-kv"
       - "--id=https://notationakvtest.vault.azure.net/keys/releasesigning/4e303b0603b340189dd8ef4b3f37db69"
-      - "--key=cosign.key"
       - "--plugin-config=self_signed=true"
       - "${artifact}"
     artifacts: all
