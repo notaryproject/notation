@@ -52,10 +52,10 @@ signs:
     args:
       - "blob"
       - "sign"
-      - "--signature-format=cose"
       - "--plugin=azure-kv"
       - "--id=https://notationakvtest.vault.azure.net/keys/releasesigning/4e303b0603b340189dd8ef4b3f37db69"
       - "--plugin-config=self_signed=true"
+      - "--signature-format=cose"
       - "--signature-directory=./dist"
       - "${artifact}"
     artifacts: all
