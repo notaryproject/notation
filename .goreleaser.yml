@@ -47,7 +47,7 @@ release:
   draft: true
   prerelease: auto
 signs:
-  - cmd: cosign
+  - cmd: notation
     stdin: "{{ .Env.COSIGN_PWD }}"
     args:
       - "sign-blob"
