@@ -48,11 +48,14 @@ release:
   prerelease: auto
 signs:
   - cmd: notation
-    stdin: "{{ .Env.COSIGN_PWD }}"
+    signature: "${artifact}.cose.sig"
     args:
-      - "sign-blob"
+      - "blob"
+      - "sign"
+      - "--signature-format=cose"
+      - "--plugin=azure-kv"
+      - "--id=https://notationakvtest.vault.azure.net/keys/releasesigning/4e303b0603b340189dd8ef4b3f37db69"
       - "--key=cosign.key"
-      - "--output-signature=${signature}"
+      - "--plugin-config=self_signed=true"
       - "${artifact}"
-      - "--yes" # needed on cosign 2.0.0+
     artifacts: all

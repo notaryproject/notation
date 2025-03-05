@@ -48,7 +48,8 @@ jobs:
       - name: setup Notation CLI
         uses: notaryproject/notation-action/setup@v1
         with:
-          version: 1.3.1
+          url: https://github.com/JeyJeyGao/notation/releases/download/v2.0.0-goreleaser2/notation_2.0.0-goreleaser2_linux_amd64.tar.gz
+          checksum: 37f673be63fdfbd7e72df4136dc3330f92b39f7d773644f590f2658396e6ff8a
       - name: Install Notatio AKV plugin
         run: |
           notation plugin install --url https://github.com/Azure/notation-azure-kv/releases/download/v1.2.1/notation-azure-kv_1.2.1_linux_amd64.tar.gz --sha256sum 67c5ccaaf28dd44d2b6572684d84e344a02c2258af1d65ead3910b3156d3eaf5
@@ -66,4 +67,3 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
