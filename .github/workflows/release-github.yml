@@ -20,11 +20,11 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   build:
     permissions:
+      id-token: write
       contents: write  # for goreleaser/goreleaser-action to create a GitHub release
     name: Release Notation Binaries
     runs-on: ubuntu-24.04
