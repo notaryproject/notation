@@ -15,13 +15,22 @@ package cmd
 
 import (
 	"context"
+	"os"
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"oras.land/oras-go/v2/registry/remote/auth"
 	credentialstrace "oras.land/oras-go/v2/registry/remote/credentials/trace"
+)
+
+const (
+	// EnvironmentUsername is the environment variable for default username
+	EnvironmentUsername = "NOTATION_USERNAME"
+	// EnvironmentPassword is the environment variable for default password
+	EnvironmentPassword = "NOTATION_PASSWORD"
 )
 
 // SignerFlagOpts cmd opts for using cmd.GetSigner
@@ -84,4 +93,33 @@ func withExecutableTrace(ctx context.Context) context.Context {
 		},
 	})
 	return ctx
+}
+
+// SecureFlagOpts holds security-related flag options
+type SecureFlagOpts struct {
+	Username         string
+	Password         string
+	InsecureRegistry bool
+}
+
+// ApplyFlags set flags and their default values for the FlagSet
+func (opts *SecureFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
+	SetFlagUsername(fs, &opts.Username)
+	SetFlagPassword(fs, &opts.Password)
+	SetFlagInsecureRegistry(fs, &opts.InsecureRegistry)
+	opts.Username = os.Getenv(EnvironmentUsername)
+	opts.Password = os.Getenv(EnvironmentPassword)
+}
+
+// Credential returns an auth.Credential from opts.Username and opts.Password.
+func (opts *SecureFlagOpts) Credential() auth.Credential {
+	if opts.Username == "" {
+		return auth.Credential{
+			RefreshToken: opts.Password,
+		}
+	}
+	return auth.Credential{
+		Username: opts.Username,
+		Password: opts.Password,
+	}
 }
