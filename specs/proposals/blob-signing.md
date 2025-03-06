@@ -2,7 +2,7 @@
 
 ## Overview 
 
-A **blob**, short for [Binary Large Object](https://wikipedia.org/wiki/Binary_large_object) is a collection of binary data stored as a single entity. In this proposal, a blob refers to any binary data or file, including SBOM (Software Bill of Materials) files, release assets, AI model files (such as model files on [Hugging Face](https://huggingface.co/)), WebAssembly files or other forms of unstructured data. While Notation currently supports signing and verifying OCI (Open Container Initiative) artifacts such as container images, this document outlines a proposal to extend the Notation tool's capabilities to include blob signing and verification.
+A **blob**, short for [Binary Large Object](https://wikipedia.org/wiki/Binary_large_object) is a collection of binary data stored as a single entity. In this proposal, a blob refers to any binary data or file content, including SBOM (Software Bill of Materials) files, release assets, AI model files (such as model files on [Hugging Face](https://huggingface.co/)), WebAssembly files or other forms of unstructured data. While Notation currently supports signing and verifying OCI (Open Container Initiative) artifacts such as container images, this document outlines a proposal to extend the Notation tool's capabilities to include blob signing and verification.
 
 ## Problem Statement & Motivation 
 
@@ -33,7 +33,7 @@ This section outlines the proposed solution for signing and verifying blobs usin
 
 In general, all blob-related commands are grouped under the `notation blob` command per the [blob command spec](https://github.com/notaryproject/notation/blob/main/specs/commandline/blob.md).
 
-### Blob Sign and verify with file-based distribution
+### Blob sign and verify with file-based distribution
 
 For file-based distribution, such as SBOMs or release artifacts shared via a website or file transfer system, the process of signing and verifying blobs follows a similar flow. The steps below outline the user experience for signing and verifying a file, using an SBOM file named `sbom.json` as an example.
 
@@ -47,7 +47,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
     ```shell
     notation blob sign --id myKeyId --signature-format "cose" --media-type "application/spdx+json" sbom.json
     ```
-    This command generates a signature file named `sbom.json.cose.sig` in the current working directory. The file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures). The signature format is **COSE**, as specified by the `--signature-format` flag. The default format is **JWS**. The `--media-type` flag specifies the **media type** of the blob. In this example, the content of `sbom.json` is in the format `application/spdx+json`. This flag is **optional**. If omitted, the default media type **`application/octet-stream`** is used.  
+    This command generates a signature file named `sbom.json.cose.sig` in the same directory as `sbom.json`. The file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures). The signature format is **COSE**, as specified by the `--signature-format` flag. The default format is **JWS**. The `--media-type` flag specifies the **media type** of the blob. In this example, the content of `sbom.json` is in the format `application/spdx+json`. This flag is **optional**. If omitted, the default media type **`application/octet-stream`** is used.  
 
 2. Publish both the file and corresponding signature using any file transfering mechanism. Both the file and its signature can be packaged into one file (e.g., a tarball) for transferring.
 
@@ -108,7 +108,7 @@ For registry-based distribution, such as using an OCI-compliant container regist
     notation blob sign --id myKeyId --signature-format "cose" --media-type "application/spdx+json" sbom.json
     ```
 
-    This generates a signature named `sbom.json.cose.sig` in the current working directory.
+    This generates a signature named `sbom.json.cose.sig` in the same directory as `sbom.json`.
 
 2. Publish the file and signature to the OCI-compliant registry:
 
