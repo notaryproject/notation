@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+version: 2
 builds:
   - main: ./cmd/notation
     id: notation
@@ -37,10 +38,10 @@ builds:
     ldflags:
       - -s -w -X {{.ModulePath}}/internal/version.Version={{.Version}} -X {{.ModulePath}}/internal/version.GitCommit={{.FullCommit}} -X {{.ModulePath}}/internal/version.BuildMetadata=
 archives:
-  - format: tar.gz
+  - formats: [ 'tar.gz' ]
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [ 'zip' ]
     files:
       - LICENSE
 release:
