@@ -46,7 +46,7 @@ const timestampingTimeout = 15 * time.Second
 type signOpts struct {
 	cmd.LoggingFlagOpts
 	cmd.SignerFlagOpts
-	SecureFlagOpts
+	cmd.SecureFlagOpts
 	expiry                 time.Duration
 	pluginConfig           []string
 	userMetadata           []string
