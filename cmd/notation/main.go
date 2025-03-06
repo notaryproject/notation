@@ -14,7 +14,9 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/cmd/notation/blob"
@@ -66,7 +68,10 @@ func main() {
 		versionCommand(),
 		inspectCommand(nil),
 	)
-	if err := cmd.Execute(); err != nil {
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+	if err := cmd.ExecuteContext(ctx); err != nil {
 		os.Exit(1)
 	}
 }
