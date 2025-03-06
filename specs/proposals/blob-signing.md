@@ -47,7 +47,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
     ```shell
     notation blob sign --id myKeyId --signature-format "cose" --media-type "application/spdx+json" sbom.json
     ```
-    This command generates a signature file named `sbom.json.cose.sig` in the same directory as `sbom.json`. The file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures). The signature format is **COSE**, as specified by the `--signature-format` flag. The default format is **JWS**. The `--media-type` flag specifies the **media type** of the blob. In this example, the content of `sbom.json` is in the format `application/spdx+json`. This flag is **optional**. If omitted, the default media type **`application/octet-stream`** is used.  
+    This command generates a signature file named `sbom.json.cose.sig` in the same directory as `sbom.json` by default. The file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures). The signature format is **COSE**, as specified by the `--signature-format` flag. The default format is **JWS**. The `--media-type` flag specifies the **media type** of the blob. In this example, the content of `sbom.json` is in the format `application/spdx+json`. This flag is **optional**. If omitted, the default media type **`application/octet-stream`** is used.  
 
 2. Publish both the file and corresponding signature using any file transfering mechanism. Both the file and its signature can be packaged into one file (e.g., a tarball) for transferring.
 
@@ -67,8 +67,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
         notation cert ls
         ```
 
-        > [!NOTE]
-        > Learn more options using `notation cert ls --help`.
+        > **Note:** Learn more options using `notation cert ls --help`.
 
     - Set up trust policy for blobs with a new command `notation blob policy init`. This command streamlines the process, eliminating the need for users to consult documentation for the correct trust policy format and preventing the accidental use of policies intended for OCI artifact verification.
 
@@ -108,7 +107,7 @@ For registry-based distribution, such as using an OCI-compliant container regist
     notation blob sign --id myKeyId --signature-format "cose" --media-type "application/spdx+json" sbom.json
     ```
 
-    This generates a signature named `sbom.json.cose.sig` in the same directory as `sbom.json`.
+    This generates a signature named `sbom.json.cose.sig` in the same directory as `sbom.json` by default.
 
 2. Publish the file and signature to the OCI-compliant registry:
 
@@ -157,8 +156,7 @@ For registry-based distribution, such as using an OCI-compliant container regist
     
     To distinguish these signatures from those generated during signing an existing artifact in the OCI registry, the specific annotation `io.cncf.notary.blob.signature=true` is added for the blob signature manifest. For example, users can push the SBOM file to the OCI registry first and then use `notation sign myregistry/myapp/sbom:v1`, which generates a signature attached to the SBOM in the registry, but this signature is for OCI artifact, which is not in the same format as the blob signature.
     
-    > [!NOTE]
-    > While users can push both the blob and the signature file as a single OCI artifact, this is not recommended. Since there may already be existing blob stored in the registry, you only need to attach the signature to it . Additionally, this approach is not practical if you need to sign the blob with multiple signatures, for example, using different keys at a later stage.
+    > **Note:** While users can push both the blob and the signature file as a single OCI artifact, this is not recommended. Since there may already be existing blob stored in the registry, you only need to attach the signature to it . Additionally, this approach is not practical if you need to sign the blob with multiple signatures, for example, using different keys at a later stage.
 
     Below is an example of the manifest for the blob signature in the registry:
 
