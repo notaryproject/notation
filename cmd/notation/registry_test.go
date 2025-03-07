@@ -18,9 +18,15 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sync"
 	"testing"
 
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/internal/config"
 )
 
 const (
@@ -42,7 +48,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := cmd.SecureFlagOpts{
+	secureOpts := flag.SecureFlagOpts{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
@@ -65,7 +71,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) 
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := cmd.SecureFlagOpts{
+	secureOpts := flag.SecureFlagOpts{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
@@ -89,11 +95,94 @@ func TestRegistry_getRemoteRepositoryWithReferrersTagSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := cmd.SecureFlagOpts{
+	secureOpts := flag.SecureFlagOpts{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", false)
 	if err != nil {
 		t.Errorf("getRemoteRepository() expected nil error, but got error: %v", err)
+	}
+}
+
+func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on Windows")
+	}
+	configDir := "./internal/testdata"
+	// for restore dir
+	defer func(oldDir string) error {
+		// restore permission
+		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
+		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
+	}(dir.UserConfigDir)
+
+	// update config dir
+	dir.UserConfigDir = configDir
+
+	// forbid reading the file
+	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
+		t.Error(err)
+	}
+
+	if isRegistryInsecure("reg1.io") {
+		t.Error("should false because of missing config.json read permission.")
+	}
+}
+
+func TestIsRegistryInsecure(t *testing.T) {
+	// for restore dir
+	defer func(oldDir string) {
+		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
+	}(dir.UserConfigDir)
+	// update config dir
+	dir.UserConfigDir = "./internal/testdata"
+
+	type args struct {
+		target string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{name: "hit registry", args: args{target: "reg1.io"}, want: true},
+		{name: "miss registry", args: args{target: "reg2.io"}, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isRegistryInsecure(tt.args.target); got != tt.want {
+				t.Errorf("IsRegistryInsecure() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsRegistryInsecureMissingConfig(t *testing.T) {
+	// for restore dir
+	defer func(oldDir string) {
+		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
+	}(dir.UserConfigDir)
+	// update config dir
+	dir.UserConfigDir = "./internal/testdata2"
+
+	type args struct {
+		target string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{name: "missing config", args: args{target: "reg1.io"}, want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isRegistryInsecure(tt.args.target); got != tt.want {
+				t.Errorf("IsRegistryInsecure() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

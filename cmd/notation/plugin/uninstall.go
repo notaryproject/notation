@@ -21,13 +21,13 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/spf13/cobra"
 )
 
 type pluginUninstallOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	pluginName string
 	confirmed  bool
 }
@@ -78,7 +78,7 @@ func uninstallPlugin(command *cobra.Command, opts *pluginUninstallOpts) error {
 	}
 	// core process
 	prompt := fmt.Sprintf("Are you sure you want to uninstall plugin %q?", pluginName)
-	confirmed, err := cmdutil.AskForConfirmation(os.Stdin, prompt, opts.confirmed)
+	confirmed, err := display.AskForConfirmation(os.Stdin, prompt, opts.confirmed)
 	if err != nil {
 		return fmt.Errorf("failed when asking for confirmation: %w", err)
 	}

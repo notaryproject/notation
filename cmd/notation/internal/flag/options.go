@@ -11,13 +11,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+// copied and adopted from https://github.com/oras-project/oras with
+// modification
+/*
+Copyright The ORAS Authors.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package flag
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -53,7 +72,7 @@ func (opts *SignerFlagOpts) ApplyFlagsToCommand(command *cobra.Command) {
 	command.MarkFlagsMutuallyExclusive("key", "plugin")
 }
 
-// LoggingFlagOpts option struct.
+// LoggingFlagOpts cmd opts for logging.
 type LoggingFlagOpts struct {
 	Debug   bool
 	Verbose bool
@@ -122,4 +141,39 @@ func (opts *SecureFlagOpts) Credential() auth.Credential {
 		Username: opts.Username,
 		Password: opts.Password,
 	}
+}
+
+// OutputFormatFlagOpts cmd opts for output format.
+type OutputFormatFlagOpts struct {
+	// CurrentFormat is the current output format in type of string.
+	// Its default value is set by ApplyFlags.
+	CurrentFormat string
+
+	// allowedFormats is the allowed output formats set by ApplyFlags.
+	allowedFormats []output.Format
+}
+
+// ApplyFlags sets up the options for the output format flag.
+//
+// The defaultType is the default format type.
+// The otherTypes are additional format types that are allowed.
+func (opts *OutputFormatFlagOpts) ApplyFlags(fs *pflag.FlagSet, defaultType output.Format, otherTypes ...output.Format) {
+	opts.CurrentFormat = string(defaultType)
+	opts.allowedFormats = append(otherTypes, defaultType)
+
+	var quotedAllowedTypes []string
+	for _, t := range opts.allowedFormats {
+		quotedAllowedTypes = append(quotedAllowedTypes, fmt.Sprintf("'%s'", t))
+	}
+	usage := fmt.Sprintf("output format, options: %s", strings.Join(quotedAllowedTypes, ", "))
+	// apply flags
+	fs.StringVarP(&opts.CurrentFormat, "output", "o", opts.CurrentFormat, usage)
+}
+
+// Parse parses the output format flag based on user input.
+func (opts *OutputFormatFlagOpts) Parse(_ *cobra.Command) error {
+	if ok := slices.Contains(opts.allowedFormats, output.Format(opts.CurrentFormat)); !ok {
+		return fmt.Errorf("invalid format type: %q", opts.CurrentFormat)
+	}
+	return nil
 }

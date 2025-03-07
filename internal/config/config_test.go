@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configutil
+package config
 
 import (
 	"os"
@@ -25,7 +25,7 @@ import (
 
 func TestLoadConfigOnce(t *testing.T) {
 	defer func() {
-		loadConfigOnce = sync.OnceValues(loadConfig)
+		LoadConfigOnce = sync.OnceValues(LoadConfig)
 	}()
 	config1, err := LoadConfigOnce()
 	if err != nil {
@@ -44,7 +44,7 @@ func TestLoadConfigOnceError(t *testing.T) {
 	dir.UserConfigDir = t.TempDir()
 	defer func() {
 		dir.UserConfigDir = ""
-		loadConfigOnce = sync.OnceValues(loadConfig)
+		LoadConfigOnce = sync.OnceValues(LoadConfig)
 	}()
 	if err := os.WriteFile(filepath.Join(dir.UserConfigDir, dir.PathConfigFile), []byte("invalid json"), 0600); err != nil {
 		t.Fatal("Failed to create file.")

@@ -17,25 +17,25 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/spf13/pflag"
 )
 
 func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	opts := &inspectOpts{}
 	command := inspectCommand(opts)
-	format := option.Format{}
-	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
-	format.CurrentType = string(option.FormatTypeTree)
+	format := flag.OutputFormatFlagOpts{}
+	format.ApplyFlags(&pflag.FlagSet{}, output.FormatTree, output.FormatJSON)
+	format.CurrentFormat = string(output.FormatTree)
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: cmd.SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
 		},
-		Format:        format,
+		outputFormat:  format,
 		maxSignatures: 100,
 	}
 	if err := command.ParseFlags([]string{
@@ -55,19 +55,18 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestInspectCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(cmd.EnvironmentUsername, "user")
-	t.Setenv(cmd.EnvironmentPassword, "password")
-
-	format := option.Format{}
-	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
-	format.CurrentType = string(option.FormatTypeJSON)
+	t.Setenv(flag.EnvironmentUsername, "user")
+	t.Setenv(flag.EnvironmentPassword, "password")
+	format := flag.OutputFormatFlagOpts{}
+	format.ApplyFlags(&pflag.FlagSet{}, output.FormatTree, output.FormatJSON)
+	format.CurrentFormat = string(output.FormatJSON)
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: cmd.SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},
-		Format:        format,
+		outputFormat:  format,
 		maxSignatures: 100,
 	}
 

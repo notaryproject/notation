@@ -1,4 +1,5 @@
 {
+    "default": "test",
     "keys": [
         {
             "name": "test",

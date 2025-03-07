@@ -11,7 +11,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmdutil
+// Package display provides functionalities for command printouts.
+//
+// - It includes the metadata, content and status packages for displaying
+// different types of information.
+// - It includes the output package for displaying command outputs.
+// - It displays the ask for comfirmation prompt when necessary.
+package display
 
 import (
 	"bufio"
@@ -26,15 +32,12 @@ func AskForConfirmation(r io.Reader, prompt string, confirmed bool) (bool, error
 	if confirmed {
 		return true, nil
 	}
-
 	fmt.Print(prompt, " [y/N] ")
-
 	scanner := bufio.NewScanner(r)
 	if ok := scanner.Scan(); !ok {
 		return false, scanner.Err()
 	}
 	response := scanner.Text()
-
 	switch strings.ToLower(response) {
 	case "y", "yes":
 		return true, nil

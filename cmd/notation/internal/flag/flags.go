@@ -11,16 +11,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd contains common flags and routines for all CLIs.
-package cmd
+// copied and adopted from https://github.com/oras-project/oras with
+// modification
+/*
+Copyright The ORAS Authors.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package flag contains common flags for all commands.
+package flag
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/notaryproject/notation/internal/config"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
@@ -39,7 +54,7 @@ var (
 		Usage: "signature envelope format, options: \"jws\", \"cose\"",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		config, err := configutil.LoadConfigOnce()
+		config, err := config.LoadConfigOnce()
 		if err != nil || config.SignatureFormat == "" {
 			fs.StringVar(p, PflagSignatureFormat.Name, envelope.JWS, PflagSignatureFormat.Usage)
 			return

@@ -26,8 +26,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package output provides the output tools for writing information to the
-// output.
 package output
 
 import (
@@ -37,7 +35,7 @@ import (
 	"sync"
 )
 
-// Printer prints for status handlers.
+// Printer prints the output.
 type Printer struct {
 	out  io.Writer
 	err  io.Writer

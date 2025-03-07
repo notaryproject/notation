@@ -20,18 +20,18 @@ import (
 
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
 type inspectOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SecureFlagOpts
-	option.Common
-	option.Format
+	flag.LoggingFlagOpts
+	flag.SecureFlagOpts
+	outputFormat  flag.OutputFormatFlagOpts
+	outputPrinter *output.Printer
 	reference     string
 	maxSignatures int
 }
@@ -63,10 +63,10 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := opts.Format.Parse(cmd); err != nil {
+			if err := opts.outputFormat.Parse(cmd); err != nil {
 				return err
 			}
-			opts.Common.Parse(cmd)
+			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -81,7 +81,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 	command.Flags().IntVar(&opts.maxSignatures, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 
 	// set output format
-	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeTree, option.FormatTypeJSON)
+	opts.outputFormat.ApplyFlags(command.Flags(), output.FormatTree, output.FormatJSON)
 	return command
 }
 
@@ -89,7 +89,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
-	displayHandler, err := display.NewInspectHandler(opts.Printer, opts.Format)
+	displayHandler, err := display.NewInspectHandler(opts.outputPrinter, output.Format(opts.outputFormat.CurrentFormat))
 	if err != nil {
 		return err
 	}
