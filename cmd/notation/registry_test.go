@@ -104,32 +104,6 @@ func TestRegistry_getRemoteRepositoryWithReferrersTagSchema(t *testing.T) {
 	}
 }
 
-func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on Windows")
-	}
-	configDir := "./internal/testdata"
-	// for restore dir
-	defer func(oldDir string) error {
-		// restore permission
-		dir.UserConfigDir = oldDir
-		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
-		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
-	}(dir.UserConfigDir)
-
-	// update config dir
-	dir.UserConfigDir = configDir
-
-	// forbid reading the file
-	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
-		t.Error(err)
-	}
-
-	if isRegistryInsecure("reg1.io") {
-		t.Error("should false because of missing config.json read permission.")
-	}
-}
-
 func TestIsRegistryInsecure(t *testing.T) {
 	// for restore dir
 	defer func(oldDir string) {
@@ -184,5 +158,31 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 				t.Errorf("IsRegistryInsecure() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on Windows")
+	}
+	configDir := "./internal/testdata"
+	// for restore dir
+	defer func(oldDir string) error {
+		// restore permission
+		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
+		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
+	}(dir.UserConfigDir)
+
+	// update config dir
+	dir.UserConfigDir = configDir
+
+	// forbid reading the file
+	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
+		t.Error(err)
+	}
+
+	if isRegistryInsecure("reg1.io") {
+		t.Error("should false because of missing config.json read permission.")
 	}
 }
