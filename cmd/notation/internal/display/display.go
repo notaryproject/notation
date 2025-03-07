@@ -16,7 +16,7 @@
 // - It includes the metadata, content and status packages for displaying
 // different types of information.
 // - It includes the output package for displaying command outputs.
-// - It displays the ask for comfirmation prompt when necessary.
+// - It displays the ask for confirmation prompt when necessary.
 package display
 
 import (
