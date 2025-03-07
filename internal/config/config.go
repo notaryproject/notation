@@ -11,7 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configutil
+// Package config provides utility methods related to Notation config.json.
+package config
 
 import (
 	"strings"
@@ -22,7 +23,7 @@ import (
 )
 
 // loadConfigOnce is a function that invokes loadConfig only once.
-var loadConfigOnce = sync.OnceValues(loadConfig)
+var loadConfigOnce = sync.OnceValues(LoadConfig)
 
 // LoadConfigOnce returns the previously read config file.
 // If previous config file does not exist, it reads the config from file
@@ -32,9 +33,9 @@ func LoadConfigOnce() (*config.Config, error) {
 	return loadConfigOnce()
 }
 
-// loadConfig reads the config from file or return a default config if not
+// LoadConfig reads the config from file or return a default config if not
 // found.
-func loadConfig() (*config.Config, error) {
+func LoadConfig() (*config.Config, error) {
 	configInfo, err := config.LoadConfig()
 	if err != nil {
 		return nil, err

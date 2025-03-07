@@ -22,17 +22,16 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/cmd/notation/internal/verifier"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/cmd/notation/internal/verify"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
 type blobVerifyOpts struct {
-	cmd.LoggingFlagOpts
-	option.Common
+	flag.LoggingFlagOpts
+	printer             *output.Printer
 	blobPath            string
 	signaturePath       string
 	pluginConfig        []string
@@ -79,7 +78,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 			if cmd.Flags().Changed("media-type") && opts.blobMediaType == "" {
 				return errors.New("--media-type is set but with empty value")
 			}
-			opts.Common.Parse(cmd)
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -91,7 +90,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
 	command.Flags().StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	flag.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, flag.PflagUserMetadataVerifyUsage)
 	command.MarkFlagRequired("signature")
 	return command
 }
@@ -101,7 +100,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	displayHandler := display.NewBlobVerifyHandler(cmdOpts.Printer)
+	displayHandler := display.NewBlobVerifyHandler(cmdOpts.printer)
 	blobFile, err := os.Open(cmdOpts.blobPath)
 	if err != nil {
 		return err
@@ -112,19 +111,19 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	if err != nil {
 		return err
 	}
-	blobVerifier, err := verifier.GetBlobVerifier(ctx)
+	blobVerifier, err := verify.GetBlobVerifier(ctx)
 	if err != nil {
 		return err
 	}
 
 	// set up verification plugin config
-	pluginConfigs, err := cmd.ParseFlagMap(cmdOpts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfigs, err := flag.ParseFlagMap(cmdOpts.pluginConfig, flag.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(cmdOpts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := flag.ParseFlagMap(cmdOpts.userMetadata, flag.PflagUserMetadata.Name)
 	if err != nil {
 		return err
 	}
@@ -143,7 +142,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	}
 	_, outcome, err := notation.VerifyBlob(ctx, blobVerifier, blobFile, signatureBytes, verifyBlobOpts)
 	outcomes := []*notation.VerificationOutcome{outcome}
-	err = ioutil.ComposeBlobVerificationFailurePrintout(outcomes, cmdOpts.blobPath, err)
+	err = verify.ComposeBlobVerificationFailurePrintout(outcomes, cmdOpts.blobPath, err)
 	if err != nil {
 		return err
 	}

@@ -11,16 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd contains common flags and routines for all CLIs.
-package cmd
+// Package flag contains common flags for all commands.
+package flag
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/notaryproject/notation/internal/config"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
@@ -39,7 +39,7 @@ var (
 		Usage: "signature envelope format, options: \"jws\", \"cose\"",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		config, err := configutil.LoadConfigOnce()
+		config, err := config.LoadConfigOnce()
 		if err != nil || config.SignatureFormat == "" {
 			fs.StringVar(p, PflagSignatureFormat.Name, envelope.JWS, PflagSignatureFormat.Usage)
 			return

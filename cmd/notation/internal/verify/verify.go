@@ -11,64 +11,81 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ioutil
+// Package verify provides utility methods related to verification commands.
+package verify
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
-	"path/filepath"
-	"text/tabwriter"
 
+	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation-go/config"
+	"github.com/notaryproject/notation-go/dir"
+	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation-go/verifier"
+	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
+
+	clirev "github.com/notaryproject/notation/internal/revocation"
 )
 
-func newTabWriter(w io.Writer) *tabwriter.Writer {
-	return tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
+// Verifier is embedded with notation.BlobVerifier and notation.Verifier.
+type Verifier interface {
+	notation.BlobVerifier
+	notation.Verifier
 }
 
-// PrintKeyMap prints out key information given array of KeySuite
-func PrintKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "NAME\tKEY PATH\tCERTIFICATE PATH\tID\tPLUGIN NAME\t")
-	for _, key := range v {
-		name := key.Name
-		if target != nil && key.Name == *target {
-			name = "* " + name
-		}
-		kp := key.X509KeyPair
-		if kp == nil {
-			kp = &config.X509KeyPair{}
-		}
-		ext := key.ExternalKey
-		if ext == nil {
-			ext = &config.ExternalKey{}
-		}
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
+// GetVerifier creates a Verifier.
+func GetVerifier(ctx context.Context) (Verifier, error) {
+	verifierOptions, err := newVerifierOptions(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return tw.Flush()
+
+	// trust policy and trust store
+	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+	policyDocument, err := trustpolicy.LoadOCIDocument()
+	if err != nil {
+		return nil, err
+	}
+	verifierOptions.OCITrustPolicy = policyDocument
+	return verifier.NewVerifierWithOptions(x509TrustStore, verifierOptions)
 }
 
-// PrintCertMap lists certificate files in the trust store given array of cert
-// paths
-func PrintCertMap(w io.Writer, certPaths []string) error {
-	if len(certPaths) == 0 {
-		return nil
+// GetBlobVerifier creates a BlobVerifier.
+func GetBlobVerifier(ctx context.Context) (Verifier, error) {
+	verifierOptions, err := newVerifierOptions(ctx)
+	if err != nil {
+		return nil, err
 	}
-	tw := newTabWriter(w)
-	fmt.Fprintln(tw, "STORE TYPE\tSTORE NAME\tCERTIFICATE\t")
-	for _, cert := range certPaths {
-		fileName := filepath.Base(cert)
-		dir := filepath.Dir(cert)
-		namedStore := filepath.Base(dir)
-		dir = filepath.Dir(dir)
-		storeType := filepath.Base(dir)
-		fmt.Fprintf(tw, "%s\t%s\t%s\t\n", storeType, namedStore, fileName)
+
+	// trust policy and trust store
+	x509TrustStore := truststore.NewX509TrustStore(dir.ConfigFS())
+	blobPolicyDocument, err := trustpolicy.LoadBlobDocument()
+	if err != nil {
+		return nil, err
 	}
-	return tw.Flush()
+	verifierOptions.BlobTrustPolicy = blobPolicyDocument
+	return verifier.NewVerifierWithOptions(x509TrustStore, verifierOptions)
+}
+
+// newVerifierOptions creates a verifier.VerifierOptions.
+func newVerifierOptions(ctx context.Context) (verifier.VerifierOptions, error) {
+	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
+	if err != nil {
+		return verifier.VerifierOptions{}, err
+	}
+	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+	if err != nil {
+		return verifier.VerifierOptions{}, err
+	}
+	return verifier.VerifierOptions{
+		RevocationCodeSigningValidator:  revocationCodeSigningValidator,
+		RevocationTimestampingValidator: revocationTimestampingValidator,
+		PluginManager:                   plugin.NewCLIManager(dir.PluginFS()),
+	}, nil
 }
 
 // ComposeVerificationFailurePrintout composes verification failure print out.

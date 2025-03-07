@@ -31,8 +31,8 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,7 @@ const (
 )
 
 type pluginInstallOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	pluginSourceType notationplugin.PluginSourceType
 	pluginSource     string
 	inputChecksum    string

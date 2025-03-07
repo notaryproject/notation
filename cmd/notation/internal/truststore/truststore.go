@@ -28,7 +28,7 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/truststore"
-	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/internal/osutil"
 )
 
@@ -150,7 +150,7 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool) error {
 		return err
 	}
 	prompt := fmt.Sprintf("Are you sure you want to delete all certificates in %q of type %q?", namedStore, storeType)
-	confirmed, err = cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+	confirmed, err = display.AskForConfirmation(os.Stdin, prompt, confirmed)
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 		return err
 	}
 	prompt := fmt.Sprintf("Are you sure you want to delete %q in %q of type %q?", cert, namedStore, storeType)
-	confirmed, err = cmdutil.AskForConfirmation(os.Stdin, prompt, confirmed)
+	confirmed, err = display.AskForConfirmation(os.Stdin, prompt, confirmed)
 	if err != nil {
 		return err
 	}

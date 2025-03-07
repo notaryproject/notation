@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	"oras.land/oras-go/v2/registry/remote/credentials"
@@ -33,8 +33,8 @@ import (
 const urlDocHowToAuthenticate = "https://notaryproject.dev/docs/how-to/registry-authentication/"
 
 type loginOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SecureFlagOpts
+	flag.LoggingFlagOpts
+	flag.SecureFlagOpts
 	passwordStdin bool
 	server        string
 }
@@ -110,7 +110,6 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 		}
 	}
 	cred := opts.Credential()
-
 	credsStore, err := auth.NewCredentialsStore()
 	if err != nil {
 		return fmt.Errorf("failed to get credentials store: %v", err)
@@ -145,7 +144,6 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 		fmt.Fprintf(os.Stderr, "Warning: The credentials store is not set up. It is recommended to configure the credentials store to securely store your credentials. See %s.\n", urlDocHowToAuthenticate)
 		fmt.Println("Authenticated with existing credentials")
 	}
-
 	fmt.Println("Login Succeeded")
 	return nil
 }
@@ -190,7 +188,6 @@ func readPasswordFromPrompt(reader *bufio.Reader, isToken bool) (string, error) 
 		passwordType = "password"
 		fmt.Print("Password: ")
 	}
-
 	if term.IsTerminal(int(os.Stdin.Fd())) {
 		bytePassword, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {

@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package verifier
+package verify
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 )
@@ -165,5 +166,14 @@ func dummyBlobPolicyDocument(invalid bool) trustpolicy.BlobDocument {
 				GlobalPolicy:          true,
 			},
 		},
+	}
+}
+
+func TestBlobVerificateFailure(t *testing.T) {
+	var outcomes []*notation.VerificationOutcome
+	expectedErrMsg := "provided signature verification failed against blob myblob"
+	err := ComposeBlobVerificationFailurePrintout(outcomes, "myblob", nil)
+	if err == nil || err.Error() != expectedErrMsg {
+		t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 	}
 }

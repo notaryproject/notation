@@ -11,12 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package display provides the display handlers to render information for
-// commands.
-//
-// - It includes the metadata, content and status packages for handling
-// different types of information.
-// - It includes the output package for writing information to the output.
 package display
 
 import (
@@ -27,31 +21,30 @@ import (
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/text"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/tree"
 	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
 )
 
 // NewInspectHandler creates a new metadata InspectHandler based on the output
 // format.
-func NewInspectHandler(printer *output.Printer, format option.Format) (metadata.InspectHandler, error) {
-	switch option.FormatType(format.CurrentType) {
-	case option.FormatTypeJSON:
+func NewInspectHandler(printer *output.Printer, format output.Format) (metadata.InspectHandler, error) {
+	switch format {
+	case output.FormatJSON:
 		return json.NewInspectHandler(printer), nil
-	case option.FormatTypeTree:
+	case output.FormatTree:
 		return tree.NewInspectHandler(printer), nil
 	}
-	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
+	return nil, fmt.Errorf("unrecognized output format %s", format)
 }
 
 // NewBlobInspectHandler creates a new metadata BlobInspectHandler based on the
 // output format.
-func NewBlobInspectHandler(printer *output.Printer, format option.Format) (metadata.BlobInspectHandler, error) {
-	switch option.FormatType(format.CurrentType) {
-	case option.FormatTypeJSON:
+func NewBlobInspectHandler(printer *output.Printer, format output.Format) (metadata.BlobInspectHandler, error) {
+	switch format {
+	case output.FormatJSON:
 		return json.NewBlobInspectHandler(printer), nil
-	case option.FormatTypeTree:
+	case output.FormatTree:
 		return tree.NewBlobInspectHandler(printer), nil
 	}
-	return nil, fmt.Errorf("unrecognized output format %s", format.CurrentType)
+	return nil, fmt.Errorf("unrecognized output format %s", format)
 }
 
 // NewVerifyHandler creates a new metadata VerifyHandler for printing
