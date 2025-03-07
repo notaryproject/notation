@@ -112,6 +112,7 @@ func TestIsRegistryInsecure(t *testing.T) {
 	}(dir.UserConfigDir)
 	// update config dir
 	dir.UserConfigDir = "./internal/testdata"
+	config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 
 	type args struct {
 		target string
@@ -176,6 +177,7 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 
 	// update config dir
 	dir.UserConfigDir = configDir
+	config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 
 	// forbid reading the file
 	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
