@@ -106,8 +106,8 @@ func TestInspectCommand_Invalid_Output(t *testing.T) {
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if err := command.PreRunE(command, command.Flags().Args()); err == nil || err.Error() != "invalid format type: \"invalidFormat\"" {
-		t.Fatalf("PreRunE expected error 'invalid format type: \"invalidFormat\"', got: %v", err)
+	if err := command.PreRunE(command, command.Flags().Args()); err == nil || err.Error() != "invalid format: \"invalidFormat\"" {
+		t.Fatalf("PreRunE expected error 'invalid format: \"invalidFormat\"', got: %v", err)
 	}
 	if err := command.RunE(command, command.Flags().Args()); err == nil || err.Error() != "unrecognized output format invalidFormat" {
 		t.Fatalf("RunE expected error 'unrecognized output format invalidFormat', got: %v", err)

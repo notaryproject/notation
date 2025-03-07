@@ -63,7 +63,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			if err := opts.outputFormat.Parse(cmd); err != nil {
+			if err := opts.outputFormat.Validate(cmd); err != nil {
 				return err
 			}
 			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())

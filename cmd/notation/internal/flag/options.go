@@ -170,10 +170,10 @@ func (opts *OutputFormatFlagOpts) ApplyFlags(fs *pflag.FlagSet, defaultType outp
 	fs.StringVarP(&opts.CurrentFormat, "output", "o", opts.CurrentFormat, usage)
 }
 
-// Parse parses the output format flag based on user input.
-func (opts *OutputFormatFlagOpts) Parse(_ *cobra.Command) error {
+// Validate validates if the current output format is allowed.
+func (opts *OutputFormatFlagOpts) Validate(_ *cobra.Command) error {
 	if ok := slices.Contains(opts.allowedFormats, output.Format(opts.CurrentFormat)); !ok {
-		return fmt.Errorf("invalid format type: %q", opts.CurrentFormat)
+		return fmt.Errorf("invalid format: %q", opts.CurrentFormat)
 	}
 	return nil
 }
