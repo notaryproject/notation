@@ -31,7 +31,7 @@ type inspectOpts struct {
 	flag.LoggingFlagOpts
 	flag.SecureFlagOpts
 	outputFormat  flag.OutputFormatFlagOpts
-	outputPrinter *output.Printer
+	printer       *output.Printer
 	reference     string
 	maxSignatures int
 }
@@ -66,7 +66,7 @@ Example - Inspect signatures on an OCI artifact identified by a digest and outpu
 			if err := opts.outputFormat.Validate(cmd); err != nil {
 				return err
 			}
-			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -89,7 +89,7 @@ func runInspect(command *cobra.Command, opts *inspectOpts) error {
 	// set log level
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
-	displayHandler, err := display.NewInspectHandler(opts.outputPrinter, output.Format(opts.outputFormat.CurrentFormat))
+	displayHandler, err := display.NewInspectHandler(opts.printer, opts.outputFormat.CurrentFormat)
 	if err != nil {
 		return err
 	}

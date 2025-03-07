@@ -26,9 +26,9 @@ import (
 )
 
 type inspectOpts struct {
-	outputFormat  flag.OutputFormatFlagOpts
-	outputPrinter *output.Printer
-	sigPath       string
+	outputFormat flag.OutputFormatFlagOpts
+	printer      *output.Printer
+	sigPath      string
 }
 
 func inspectCommand() *cobra.Command {
@@ -52,7 +52,7 @@ Example - Inspect a signature and output as JSON:
 			return nil
 		},
 		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInspect(opts)
@@ -65,7 +65,7 @@ Example - Inspect a signature and output as JSON:
 
 func runInspect(opts *inspectOpts) error {
 	// initialize display handler
-	displayHandler, err := display.NewBlobInspectHandler(opts.outputPrinter, output.Format(opts.outputFormat.CurrentFormat))
+	displayHandler, err := display.NewBlobInspectHandler(opts.printer, opts.outputFormat.CurrentFormat)
 	if err != nil {
 		return err
 	}

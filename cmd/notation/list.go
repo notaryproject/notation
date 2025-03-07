@@ -31,7 +31,7 @@ import (
 type listOpts struct {
 	flag.LoggingFlagOpts
 	flag.SecureFlagOpts
-	outputPrinter *output.Printer
+	printer       *output.Printer
 	reference     string
 	ociLayout     bool
 	inputType     inputType
@@ -75,7 +75,7 @@ Example - [Experimental] List signatures of an OCI artifact identified by a tag 
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return experimental.CheckFlagsAndWarn(cmd, "oci-layout")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -98,7 +98,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 
 	// initialize
-	displayHandler := display.NewListHandler(opts.outputPrinter)
+	displayHandler := display.NewListHandler(opts.printer)
 	reference := opts.reference
 	// always use the Referrers API, if not supported, automatically fallback to
 	// the referrers tag schema
@@ -107,7 +107,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 		return err
 	}
 	manifestDesc, resolvedRef, err := resolveReference(ctx, opts.inputType, reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
-		opts.outputPrinter.PrintErrorf("Warning: Always list the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
+		opts.printer.PrintErrorf("Warning: Always list the artifact using digest(@sha256:...) rather than a tag(:%s) because resolved digest may not point to the same signed artifact, as tags are mutable.\n", ref)
 	})
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func runList(ctx context.Context, opts *listOpts) error {
 		if !errors.As(err, &errExceedMaxSignatures) {
 			return err
 		}
-		opts.outputPrinter.PrintErrorf("Warning: %v\n", err)
+		opts.printer.PrintErrorf("Warning: %v\n", err)
 	}
 
 	return displayHandler.Render()

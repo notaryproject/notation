@@ -18,13 +18,15 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"slices"
 	"strings"
 
+	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
 	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	notationauth "github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/config"
+	nconfig "github.com/notaryproject/notation/internal/config"
 	"github.com/notaryproject/notation/internal/httputil"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
@@ -130,7 +132,7 @@ func getAuthClient(ctx context.Context, opts *flag.SecureFlagOpts, ref registry.
 	if opts.InsecureRegistry {
 		insecureRegistry = opts.InsecureRegistry
 	} else {
-		insecureRegistry = isRegistryInsecure(ref.Registry)
+		insecureRegistry = isRegistryInsecure(ref.Registry, nconfig.LoadConfigOnce)
 		if !insecureRegistry {
 			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
 				insecureRegistry = true
@@ -160,15 +162,12 @@ func getAuthClient(ctx context.Context, opts *flag.SecureFlagOpts, ref registry.
 
 // isRegistryInsecure checks whether the registry is in the list of insecure
 // registries.
-func isRegistryInsecure(target string) bool {
-	config, err := config.LoadConfigOnce()
+func isRegistryInsecure(target string, loadConfig func() (*config.Config, error)) bool {
+	config, err := loadConfig()
 	if err != nil {
 		return false
 	}
-	for _, registry := range config.InsecureRegistries {
-		if strings.EqualFold(registry, target) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(config.InsecureRegistries, func(registry string) bool {
+		return strings.EqualFold(registry, target)
+	})
 }

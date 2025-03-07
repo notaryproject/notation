@@ -22,13 +22,16 @@ import (
 	"github.com/notaryproject/notation/internal/envelope"
 )
 
-// LoadConfigOnce is a function that invokes LoadConfig only once.
+// loadConfigOnce is a function that invokes loadConfig only once.
+var loadConfigOnce = sync.OnceValues(LoadConfig)
+
 // LoadConfigOnce returns the previously read config file.
 // If previous config file does not exist, it reads the config from file
 // or return a default config if not found.
-// The returned config is only suitable for read only scenarios for short-lived
-// processes.
-var LoadConfigOnce = sync.OnceValues(LoadConfig)
+// The returned config is only suitable for read only scenarios for short-lived processes.
+func LoadConfigOnce() (*config.Config, error) {
+	return loadConfigOnce()
+}
 
 // LoadConfig reads the config from file or return a default config if not
 // found.

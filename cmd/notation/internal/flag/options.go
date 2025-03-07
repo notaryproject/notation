@@ -147,7 +147,7 @@ func (opts *SecureFlagOpts) Credential() auth.Credential {
 type OutputFormatFlagOpts struct {
 	// CurrentFormat is the current output format in type of string.
 	// Its default value is set by ApplyFlags.
-	CurrentFormat string
+	CurrentFormat output.Format
 
 	// allowedFormats is the allowed output formats set by ApplyFlags.
 	allowedFormats []output.Format
@@ -158,7 +158,7 @@ type OutputFormatFlagOpts struct {
 // The defaultType is the default format type.
 // The otherTypes are additional format types that are allowed.
 func (opts *OutputFormatFlagOpts) ApplyFlags(fs *pflag.FlagSet, defaultType output.Format, otherTypes ...output.Format) {
-	opts.CurrentFormat = string(defaultType)
+	opts.CurrentFormat = defaultType
 	opts.allowedFormats = append(otherTypes, defaultType)
 
 	var quotedAllowedTypes []string
@@ -167,12 +167,12 @@ func (opts *OutputFormatFlagOpts) ApplyFlags(fs *pflag.FlagSet, defaultType outp
 	}
 	usage := fmt.Sprintf("output format, options: %s", strings.Join(quotedAllowedTypes, ", "))
 	// apply flags
-	fs.StringVarP(&opts.CurrentFormat, "output", "o", opts.CurrentFormat, usage)
+	fs.StringVarP((*string)(&opts.CurrentFormat), "output", "o", string(opts.CurrentFormat), usage)
 }
 
 // Validate validates if the current output format is allowed.
 func (opts *OutputFormatFlagOpts) Validate(_ *cobra.Command) error {
-	if ok := slices.Contains(opts.allowedFormats, output.Format(opts.CurrentFormat)); !ok {
+	if ok := slices.Contains(opts.allowedFormats, opts.CurrentFormat); !ok {
 		return fmt.Errorf("invalid format: %q", opts.CurrentFormat)
 	}
 	return nil

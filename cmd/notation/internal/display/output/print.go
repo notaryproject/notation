@@ -35,7 +35,7 @@ import (
 	"sync"
 )
 
-// Printer prints the output.
+// Printer prints information of commands.
 type Printer struct {
 	out  io.Writer
 	err  io.Writer

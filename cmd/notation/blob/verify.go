@@ -31,7 +31,7 @@ import (
 
 type blobVerifyOpts struct {
 	flag.LoggingFlagOpts
-	outputPrinter       *output.Printer
+	printer             *output.Printer
 	blobPath            string
 	signaturePath       string
 	pluginConfig        []string
@@ -78,7 +78,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 			if cmd.Flags().Changed("media-type") && opts.blobMediaType == "" {
 				return errors.New("--media-type is set but with empty value")
 			}
-			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -100,7 +100,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	displayHandler := display.NewBlobVerifyHandler(cmdOpts.outputPrinter)
+	displayHandler := display.NewBlobVerifyHandler(cmdOpts.printer)
 	blobFile, err := os.Open(cmdOpts.blobPath)
 	if err != nil {
 		return err

@@ -30,7 +30,7 @@ import (
 type verifyOpts struct {
 	flag.LoggingFlagOpts
 	flag.SecureFlagOpts
-	outputPrinter        *output.Printer
+	printer              *output.Printer
 	reference            string
 	pluginConfig         []string
 	userMetadata         []string
@@ -78,7 +78,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			opts.outputPrinter = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return experimental.CheckFlagsAndWarn(cmd, "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -105,7 +105,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	displayHandler := display.NewVerifyHandler(opts.outputPrinter)
+	displayHandler := display.NewVerifyHandler(opts.printer)
 	sigVerifier, err := verify.GetVerifier(ctx)
 	if err != nil {
 		return err

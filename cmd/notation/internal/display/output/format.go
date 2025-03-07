@@ -26,7 +26,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package output provides functionalities of displaying command outputs.
+// Package output provides functionalities of displaying command printouts.
 package output
 
 // Format is the type of output format.

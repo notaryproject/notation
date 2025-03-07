@@ -16,14 +16,12 @@ package sign
 import (
 	"context"
 	"runtime"
-	"sync"
 	"testing"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signer"
 	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/internal/config"
 )
 
 func TestGenericSignerImpl(t *testing.T) {
@@ -222,7 +220,6 @@ func TestGetSignerFailed(t *testing.T) {
 func TestResolveKey(t *testing.T) {
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
-		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 	}(dir.UserConfigDir)
 
 	t.Run("valid test key", func(t *testing.T) {
