@@ -38,59 +38,66 @@ func resolveReferenceWithWarning(ctx context.Context, inputType inputType, refer
 // resolveReference resolves user input reference based on user input type.
 // Returns the resolved manifest descriptor and resolvedRef in digest
 func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
-	// sanity check
-	if reference == "" {
-		return ocispec.Descriptor{}, "", errors.New("missing user input reference")
+	repositoryRef, tagOrDigestRef, err := parseReference(reference, inputType)
+	if err != nil {
+		return ocispec.Descriptor{}, "", err
 	}
-	var tagOrDigestRef string
-	var resolvedRef string
-	switch inputType {
-	case inputTypeRegistry:
-		ref, err := registry.ParseReference(reference)
-		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("%q: %w. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference, err)
-		}
-		if ref.Reference == "" {
-			return ocispec.Descriptor{}, "", fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repo>:<tag> or <registry>/<repo>@<digest>", reference)
-		}
-		tagOrDigestRef = ref.Reference
-		resolvedRef = ref.Registry + "/" + ref.Repository
-	case inputTypeOCILayout:
-		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
-		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
-		}
-		layoutPathInfo, err := os.Stat(layoutPath)
-		if err != nil {
-			return ocispec.Descriptor{}, "", fmt.Errorf("failed to resolve user input reference: %w", err)
-		}
-		if !layoutPathInfo.IsDir() {
-			return ocispec.Descriptor{}, "", errors.New("failed to resolve user input reference: input path is not a dir")
-		}
-		tagOrDigestRef = layoutReference
-		resolvedRef = layoutPath
-	default:
-		return ocispec.Descriptor{}, "", fmt.Errorf("unsupported user inputType: %d", inputType)
-	}
-
 	manifestDesc, err := getManifestDescriptor(ctx, tagOrDigestRef, sigRepo)
 	if err != nil {
 		return ocispec.Descriptor{}, "", fmt.Errorf("failed to get manifest descriptor: %w", err)
 	}
-	resolvedRef = resolvedRef + "@" + manifestDesc.Digest.String()
+	resolvedRef := repositoryRef + "@" + manifestDesc.Digest.String()
 	if _, err := digest.Parse(tagOrDigestRef); err == nil {
 		// tagOrDigestRef is a digest reference
 		if tagOrDigestRef != manifestDesc.Digest.String() {
 			// tagOrDigestRef does not match the resolved digest
 			return ocispec.Descriptor{}, "", fmt.Errorf("user input digest %s does not match the resolved digest %s", tagOrDigestRef, manifestDesc.Digest.String())
 		}
-		return manifestDesc, resolvedRef, nil
+		return manifestDesc, repositoryRef, nil
 	}
 	// tagOrDigestRef is a tag reference
 	if fn != nil {
 		fn(tagOrDigestRef, manifestDesc)
 	}
 	return manifestDesc, resolvedRef, nil
+}
+
+// parseReference parses the user input reference based on the input type.
+// Returns the repository reference and tag or digest reference.
+func parseReference(reference string, inputType inputType) (repositoryRef, tagOrDigestRef string, err error) {
+	// sanity check
+	if reference == "" {
+		return "", "", errors.New("missing user input reference")
+	}
+	switch inputType {
+	case inputTypeRegistry:
+		ref, err := registry.ParseReference(reference)
+		if err != nil {
+			return "", "", fmt.Errorf("%q: %w. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference, err)
+		}
+		if ref.Reference == "" {
+			return "", "", fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repo>:<tag> or <registry>/<repo>@<digest>", reference)
+		}
+		tagOrDigestRef = ref.Reference
+		repositoryRef = ref.Registry + "/" + ref.Repository
+	case inputTypeOCILayout:
+		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
+		layoutPathInfo, err := os.Stat(layoutPath)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to resolve user input reference: %w", err)
+		}
+		if !layoutPathInfo.IsDir() {
+			return "", "", errors.New("failed to resolve user input reference: input path is not a dir")
+		}
+		tagOrDigestRef = layoutReference
+		repositoryRef = layoutPath
+	default:
+		return "", "", fmt.Errorf("unsupported user inputType: %d", inputType)
+	}
+	return repositoryRef, tagOrDigestRef, nil
 }
 
 // resolveArtifactDigestReference creates reference in Verification given user input
