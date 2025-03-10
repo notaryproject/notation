@@ -222,4 +222,135 @@ var _ = Describe("blob trust policy maintainer", func() {
 			})
 		})
 	})
+
+	When("initializing trust policy", func() {
+		Context("without existing policy", func() {
+			opts := Opts()
+
+			It("should fail when no name flag is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init", "--trust-store", "ca:example-store", "--trusted-identity", "x509.subject: CN=example").
+						MatchErrKeyWords("required flag(s)", "name", "not set")
+				})
+			})
+
+			It("should fail when no trust-store flag is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init", "--name", "example-policy", "--trusted-identity", "x509.subject: CN=example").
+						MatchErrKeyWords("required flag(s)", "trust-store", "not set")
+				})
+			})
+
+			It("should fail when no trusted-identity flag is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init", "--name", "example-policy", "--trust-store", "ca:example-store").
+						MatchErrKeyWords("required flag(s)", "trusted-identity", "not set")
+				})
+			})
+
+			It("should fail when invalid trusted-identity format is provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init",
+							"--name", "example-policy",
+							"--trust-store", "ca:example-store",
+							"--trusted-identity", "invalid").
+						MatchErrKeyWords("invalid blob policy")
+				})
+			})
+
+			It("should fail when directory doesn't have write permission", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					// Create the notation config directory if it doesn't exist
+					configDir := vhost.AbsolutePath(NotationDirName)
+					err := os.MkdirAll(configDir, 0755)
+					Expect(err).NotTo(HaveOccurred())
+
+					// Remove write permissions from the directory
+					err = os.Chmod(configDir, 0500) // r-x for owner, no write
+					Expect(err).NotTo(HaveOccurred())
+					defer os.Chmod(configDir, 0755) // Restore permissions after test
+
+					notation.ExpectFailure().
+						Exec("blob", "policy", "init",
+							"--name", "example-policy",
+							"--trust-store", "ca:example-store",
+							"--trusted-identity", "x509.subject: C=example,ST=example,O=example").
+						MatchErrKeyWords("failed to write blob trust policy configuration")
+				})
+			})
+
+			It("should successfully initialize policy when all required flags are provided", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.Exec("blob", "policy", "init",
+						"--name", "example-policy",
+						"--global",
+						"--trust-store", "ca:example-store",
+						"--trust-store", "ca:example-store2",
+						"--trusted-identity", "x509.subject: C=example,ST=example,O=example",
+						"--trusted-identity", "x509.subject: C=example2,ST=example,O=example").
+						MatchKeyWords("Successfully initialized blob trust policy file")
+
+					// Verify the policy was created
+					notation.Exec("blob", "policy", "show").
+						MatchContent(`{
+  "version": "1.0",
+  "trustPolicies": [
+    {
+      "name": "example-policy",
+      "signatureVerification": {
+        "level": "strict"
+      },
+      "trustStores": [
+        "ca:example-store",
+        "ca:example-store2"
+      ],
+      "trustedIdentities": [
+        "x509.subject: C=example,ST=example,O=example",
+        "x509.subject: C=example2,ST=example,O=example"
+      ],
+      "globalPolicy": true
+    }
+  ]
+}`)
+				})
+			})
+		})
+
+		Context("with existing policy", func() {
+			opts := Opts(AddBlobTrustPolicyOption(validBlobTrustPolicyName))
+
+			It("should canceled when trying to initialize with existing policy", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.Exec("blob", "policy", "init",
+						"--name", "new-policy",
+						"--trust-store", "ca:new-store",
+						"--trusted-identity", "x509.subject: C=example,ST=example,O=example").
+						MatchKeyWords("The blob trust policy configuration already exists")
+				})
+			})
+
+			It("should successfully initialize policy with force flag when policy exists", func() {
+				Host(opts, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+					notation.Exec("blob", "policy", "init",
+						"--name", "new-policy",
+						"--trust-store", "ca:new-store",
+						"--trusted-identity", "x509.subject: C=example, ST=example, O=example",
+						"--force").
+						MatchKeyWords("Successfully initialized blob trust policy file")
+
+					// Verify the new policy was created and replaced the old one
+					notation.Exec("blob", "policy", "show").
+						MatchKeyWords(
+							"new-policy",
+							"ca:new-store",
+							"x509.subject: C=example, ST=example, O=example",
+						)
+				})
+			})
+		})
+	})
 })
