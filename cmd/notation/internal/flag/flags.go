@@ -11,16 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd contains common flags and routines for all CLIs.
-package cmd
+// Package flag contains common flags for all commands.
+package flag
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/notaryproject/notation/internal/config"
 	"github.com/notaryproject/notation/internal/envelope"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"github.com/spf13/pflag"
 )
 
@@ -39,7 +39,7 @@ var (
 		Usage: "signature envelope format, options: \"jws\", \"cose\"",
 	}
 	SetPflagSignatureFormat = func(fs *pflag.FlagSet, p *string) {
-		config, err := configutil.LoadConfigOnce()
+		config, err := config.LoadConfigOnce()
 		if err != nil || config.SignatureFormat == "" {
 			fs.StringVar(p, PflagSignatureFormat.Name, envelope.JWS, PflagSignatureFormat.Usage)
 			return
@@ -106,6 +106,33 @@ var (
 	}
 	SetPflagReferrersTag = func(fs *pflag.FlagSet, p *bool, usage string) {
 		fs.BoolVar(p, PflagReferrersTag.Name, false, usage)
+	}
+
+	PflagUsername = &pflag.Flag{
+		Name:      "username",
+		Shorthand: "u",
+		Usage:     "username for registry operations (default to $NOTATION_USERNAME if not specified)",
+	}
+	SetFlagUsername = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagUsername.Name, PflagUsername.Shorthand, "", PflagUsername.Usage)
+	}
+
+	PflagPassword = &pflag.Flag{
+		Name:      "password",
+		Shorthand: "p",
+		Usage:     "password for registry operations (default to $NOTATION_PASSWORD if not specified)",
+	}
+	SetFlagPassword = func(fs *pflag.FlagSet, p *string) {
+		fs.StringVarP(p, PflagPassword.Name, PflagPassword.Shorthand, "", PflagPassword.Usage)
+	}
+
+	PflagInsecureRegistry = &pflag.Flag{
+		Name:     "insecure-registry",
+		Usage:    "use HTTP protocol while connecting to registries. Should be used only for testing",
+		DefValue: "false",
+	}
+	SetFlagInsecureRegistry = func(fs *pflag.FlagSet, p *bool) {
+		fs.BoolVar(p, PflagInsecureRegistry.Name, false, PflagInsecureRegistry.Usage)
 	}
 )
 

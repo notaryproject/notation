@@ -19,19 +19,18 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
-	"github.com/notaryproject/notation/cmd/notation/internal/verifier"
-	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/cmd/notation/internal/verify"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
 
 type verifyOpts struct {
-	cmd.LoggingFlagOpts
-	SecureFlagOpts
-	option.Common
+	flag.LoggingFlagOpts
+	flag.SecureFlagOpts
+	printer              *output.Printer
 	reference            string
 	pluginConfig         []string
 	userMetadata         []string
@@ -79,7 +78,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 			if opts.ociLayout {
 				opts.inputType = inputTypeOCILayout
 			}
-			opts.Common.Parse(cmd)
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 			return experimental.CheckFlagsAndWarn(cmd, "oci-layout", "scope")
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -92,7 +91,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SecureFlagOpts.ApplyFlags(command.Flags())
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataVerifyUsage)
+	flag.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, flag.PflagUserMetadataVerifyUsage)
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
@@ -106,20 +105,20 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 	ctx := opts.LoggingFlagOpts.InitializeLogger(command.Context())
 
 	// initialize
-	displayHandler := display.NewVerifyHandler(opts.Printer)
-	sigVerifier, err := verifier.GetVerifier(ctx)
+	displayHandler := display.NewVerifyHandler(opts.printer)
+	sigVerifier, err := verify.GetVerifier(ctx)
 	if err != nil {
 		return err
 	}
 
 	// set up verification plugin config
-	configs, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	configs, err := flag.ParseFlagMap(opts.pluginConfig, flag.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
 
 	// set up user metadata
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := flag.ParseFlagMap(opts.userMetadata, flag.PflagUserMetadata.Name)
 	if err != nil {
 		return err
 	}
@@ -146,7 +145,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 		UserMetadata:         userMetadata,
 	}
 	_, outcomes, err := notation.Verify(ctx, sigVerifier, sigRepo, verifyOpts)
-	err = ioutil.ComposeVerificationFailurePrintout(outcomes, resolvedRef, err)
+	err = verify.ComposeVerificationFailurePrintout(outcomes, resolvedRef, err)
 	if err != nil {
 		return err
 	}

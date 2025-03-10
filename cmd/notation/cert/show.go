@@ -21,13 +21,13 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
-	"github.com/notaryproject/notation/internal/cmd"
 	"github.com/spf13/cobra"
 )
 
 type certShowOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	storeType  string
 	namedStore string
 	cert       string

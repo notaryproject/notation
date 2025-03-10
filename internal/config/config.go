@@ -11,9 +11,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configutil
+// Package config provides utility methods related to Notation config.json.
+package config
 
 import (
+	"slices"
 	"strings"
 	"sync"
 
@@ -45,4 +47,16 @@ func loadConfig() (*config.Config, error) {
 		configInfo.SignatureFormat = envelope.JWS
 	}
 	return configInfo, nil
+}
+
+// IsRegistryInsecure checks whether a registry is in the list of insecure
+// registries under Notation's config file.
+func IsRegistryInsecure(target string) bool {
+	config, err := LoadConfigOnce()
+	if err != nil {
+		return false
+	}
+	return slices.ContainsFunc(config.InsecureRegistries, func(registry string) bool {
+		return strings.EqualFold(registry, target)
+	})
 }

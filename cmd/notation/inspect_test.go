@@ -17,24 +17,25 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/spf13/pflag"
 )
 
 func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 	opts := &inspectOpts{}
 	command := inspectCommand(opts)
-	format := option.Format{}
-	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
-	format.CurrentType = string(option.FormatTypeTree)
+	format := flag.OutputFormatFlagOpts{}
+	format.ApplyFlags(&pflag.FlagSet{}, output.FormatTree, output.FormatJSON)
+	format.CurrentFormat = output.FormatTree
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
 		},
-		Format:        format,
+		outputFormat:  format,
 		maxSignatures: 100,
 	}
 	if err := command.ParseFlags([]string{
@@ -54,19 +55,18 @@ func TestInspectCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestInspectCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(defaultUsernameEnv, "user")
-	t.Setenv(defaultPasswordEnv, "password")
-
-	format := option.Format{}
-	format.ApplyFlags(&pflag.FlagSet{}, option.FormatTypeTree, option.FormatTypeJSON)
-	format.CurrentType = string(option.FormatTypeJSON)
+	t.Setenv(flag.EnvironmentUsername, "user")
+	t.Setenv(flag.EnvironmentPassword, "password")
+	format := flag.OutputFormatFlagOpts{}
+	format.ApplyFlags(&pflag.FlagSet{}, output.FormatTree, output.FormatJSON)
+	format.CurrentFormat = output.FormatJSON
 	expected := &inspectOpts{
 		reference: "ref",
-		SecureFlagOpts: SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},
-		Format:        format,
+		outputFormat:  format,
 		maxSignatures: 100,
 	}
 
@@ -106,8 +106,8 @@ func TestInspectCommand_Invalid_Output(t *testing.T) {
 	if err := command.Args(command, command.Flags().Args()); err != nil {
 		t.Fatalf("Parse Args failed: %v", err)
 	}
-	if err := command.PreRunE(command, command.Flags().Args()); err == nil || err.Error() != "invalid format type: \"invalidFormat\"" {
-		t.Fatalf("PreRunE expected error 'invalid format type: \"invalidFormat\"', got: %v", err)
+	if err := command.PreRunE(command, command.Flags().Args()); err == nil || err.Error() != "invalid format: \"invalidFormat\"" {
+		t.Fatalf("PreRunE expected error 'invalid format: \"invalidFormat\"', got: %v", err)
 	}
 	if err := command.RunE(command, command.Flags().Args()); err == nil || err.Error() != "unrecognized output format invalidFormat" {
 		t.Fatalf("RunE expected error 'unrecognized output format invalidFormat', got: %v", err)
