@@ -18,8 +18,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"slices"
-	"strings"
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
@@ -131,7 +129,7 @@ func getAuthClient(ctx context.Context, opts *flag.SecureFlagOpts, ref registry.
 	if opts.InsecureRegistry {
 		insecureRegistry = opts.InsecureRegistry
 	} else {
-		insecureRegistry = isRegistryInsecure(ref.Registry)
+		insecureRegistry = nconfig.IsRegistryInsecure(ref.Registry)
 		if !insecureRegistry {
 			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
 				insecureRegistry = true
@@ -157,16 +155,4 @@ func getAuthClient(ctx context.Context, opts *flag.SecureFlagOpts, ref registry.
 		authClient.Credential = credentials.Credential(credsStore)
 	}
 	return authClient, insecureRegistry, nil
-}
-
-// isRegistryInsecure checks whether the registry is in the list of insecure
-// registries.
-func isRegistryInsecure(target string) bool {
-	config, err := nconfig.LoadConfigOnce()
-	if err != nil {
-		return false
-	}
-	return slices.ContainsFunc(config.InsecureRegistries, func(registry string) bool {
-		return strings.EqualFold(registry, target)
-	})
 }

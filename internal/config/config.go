@@ -15,6 +15,7 @@
 package config
 
 import (
+	"slices"
 	"strings"
 	"sync"
 
@@ -22,17 +23,20 @@ import (
 	"github.com/notaryproject/notation/internal/envelope"
 )
 
-// LoadConfigOnce is a function that invokes loadConfig only once.
-// It returns the previously read config file.
+// loadConfigOnce is a function that invokes loadConfig only once.
+var loadConfigOnce = sync.OnceValues(loadConfig)
+
+// LoadConfigOnce returns the previously read config file.
 // If previous config file does not exist, it reads the config from file
 // or return a default config if not found.
-// The returned config is only suitable for read only scenarios for short-lived
-// processes.
-var LoadConfigOnce = sync.OnceValues(LoadConfig)
+// The returned config is only suitable for read only scenarios for short-lived processes.
+func LoadConfigOnce() (*config.Config, error) {
+	return loadConfigOnce()
+}
 
-// LoadConfig reads the config from file or return a default config if not
+// loadConfig reads the config from file or return a default config if not
 // found.
-func LoadConfig() (*config.Config, error) {
+func loadConfig() (*config.Config, error) {
 	configInfo, err := config.LoadConfig()
 	if err != nil {
 		return nil, err
@@ -43,4 +47,16 @@ func LoadConfig() (*config.Config, error) {
 		configInfo.SignatureFormat = envelope.JWS
 	}
 	return configInfo, nil
+}
+
+// IsRegistryInsecure checks whether a registry is in the list of insecure
+// registries under Notation's config file.
+func IsRegistryInsecure(target string) bool {
+	config, err := LoadConfigOnce()
+	if err != nil {
+		return false
+	}
+	return slices.ContainsFunc(config.InsecureRegistries, func(registry string) bool {
+		return strings.EqualFold(registry, target)
+	})
 }
