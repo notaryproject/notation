@@ -14,11 +14,48 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
+
+func TestResolveReference_ErrorCases(t *testing.T) {
+	t.Run("invalid reference", func(t *testing.T) {
+		_, _, err := resolveReference(nil, inputTypeRegistry, "invalid-format", nil, func(s string, desc ocispec.Descriptor) {
+			return
+		})
+		if err == nil {
+			t.Fatal("Expected error, got nil")
+		}
+		if !strings.Contains(err.Error(), "invalid reference") {
+			t.Fatalf("Expected error containing 'invalid reference', got %q", err.Error())
+		}
+	})
+
+	t.Run("get manifest error", func(t *testing.T) {
+		ctx := context.Background()
+		testRepo := t.TempDir()
+		ref := testRepo + ":v1"
+		sigRepo, err := getRepository(ctx, inputTypeOCILayout, ref, nil, false)
+		if err != nil {
+			t.Fatalf("Failed to get repository: %v", err)
+		}
+		_, _, err = resolveReference(ctx, inputTypeOCILayout, ref, sigRepo, func(s string, d ocispec.Descriptor) {
+			return
+		})
+
+		if err == nil {
+			t.Fatal("Expected error, got nil")
+		}
+		if !strings.Contains(err.Error(), "failed to get manifest descriptor") {
+			t.Fatalf("Expected error containing 'failed to get manifest descriptor', got %q", err.Error())
+		}
+	})
+}
 
 func TestParseReference_ErrorCases(t *testing.T) {
 	// Create temp directory for OCI layout tests

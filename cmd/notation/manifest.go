@@ -35,8 +35,8 @@ func resolveReferenceWithWarning(ctx context.Context, inputType inputType, refer
 	})
 }
 
-// resolveReference resolves user input reference based on user input type.
-// Returns the resolved manifest descriptor and resolvedRef in digest
+// Returns the resolved manifest descriptor and resolvedRef in
+// resolveReference resolves user input reference based on user input tydigest
 func resolveReference(ctx context.Context, inputType inputType, reference string, sigRepo notationregistry.Repository, fn func(string, ocispec.Descriptor)) (ocispec.Descriptor, string, error) {
 	repositoryRef, tagOrDigestRef, err := parseReference(reference, inputType)
 	if err != nil {
