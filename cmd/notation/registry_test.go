@@ -21,6 +21,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"testing"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -107,10 +108,12 @@ func TestIsRegistryInsecure(t *testing.T) {
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 	}(dir.UserConfigDir)
 
 	// update config dir
 	dir.UserConfigDir = "./internal/testdata"
+	config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 
 	type args struct {
 		target string
@@ -125,7 +128,7 @@ func TestIsRegistryInsecure(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isRegistryInsecure(tt.args.target, config.LoadConfig); got != tt.want {
+			if got := isRegistryInsecure(tt.args.target); got != tt.want {
 				t.Errorf("IsRegistryInsecure() = %v, want %v", got, tt.want)
 			}
 		})
@@ -136,10 +139,12 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 	}(dir.UserConfigDir)
 
 	// update config dir
 	dir.UserConfigDir = "./internal/testdata2"
+	config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 
 	type args struct {
 		target string
@@ -153,7 +158,7 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isRegistryInsecure(tt.args.target, config.LoadConfig); got != tt.want {
+			if got := isRegistryInsecure(tt.args.target); got != tt.want {
 				t.Errorf("IsRegistryInsecure() = %v, want %v", got, tt.want)
 			}
 		})
@@ -170,17 +175,19 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 	defer func(oldDir string) error {
 		// restore permission
 		dir.UserConfigDir = oldDir
+		config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 		return os.Chmod(filepath.Join(configDir, "config.json"), 0644)
 	}(dir.UserConfigDir)
 
 	// update config dir
 	dir.UserConfigDir = configDir
+	config.LoadConfigOnce = sync.OnceValues(config.LoadConfig)
 
 	// forbid reading the file
 	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
 		t.Error(err)
 	}
-	if isRegistryInsecure("reg1.io", config.LoadConfig) {
+	if isRegistryInsecure("reg1.io") {
 		t.Error("should false because of missing config.json read permission.")
 	}
 }
