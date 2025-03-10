@@ -151,7 +151,7 @@ Usage:
 Flags:
       --force                              override the existing blob trust policy configuration, never prompt (default --force=false)
       --global                             set the policy as the global policy (default --global=false)
-  -h, --help                               help for import
+  -h, --help                               help for init
   -n, --name                               name of the policy
       --trust-store stringArray            trust store in the format "<store_type>:<store_name>"
       --trusted-identity stringArray       trusted identity, use the format "x509.subject:<subject_of_signing_certificate>" for x509 CA scheme and "<signing_authority_identity>" for x509 signingAuthority scheme
@@ -352,19 +352,7 @@ An example output:
 notation blob inspect -o json /tmp/my-blob.bin.jws.sig
 ```
 
-## Import/Export blob trust policy configuration
-
-### Import blob trust policy configuration from a JSON file
-
-An example of importing trust policy configuration from a JSON file:
-
-```shell
-notation blob policy import ./my_policy.json
-```
-
-The blob trust policy configuration in the JSON file should be validated according to [blob trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if blob trust policy configuration is imported successfully. Error logs including the reason should be printed out if the importing fails.
-
-If there is an existing blob trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing blob trust policy configuration without prompt.
+## Initialize/Import/Export blob trust policy configuration
 
 ### Initialize blob trust policy configuration
 
@@ -404,9 +392,9 @@ For a `ca` type of trust store, the `--trust-store` value follows the format `ca
 
 The `--trust-store` and `--trusted-identity` flags can be specified multiple times if multiple trust stores or trust identities need to be configured.
 
-To trust any identities, set the flag `--trusted-identity` to `"*"`. However, this is not recommended for production environments. Additionally, the flag cannot be set to multiple values.
+To trust any identities, set the flag `--trusted-identity` to `"*"`. However, this is not recommended for production environments. Additionally, when set to `"*"`, the flag cannot be set to multiple values.
 
-If a blob trust policy has already been initialized, regardless of whether the policy name is the same, running this command will prompt the user to confirm whether they want to overwrite the existing blob policy.
+This command always overwrites any existing blob trust policy configuration. Running this command will prompt the user to confirm whether they want to proceed.
 
 To overwrite the existing blob trust policy configuration without a prompt, use the `--force` flag:
 
@@ -419,6 +407,18 @@ To set the policy specified by the `--name` flag as the global policy, use the `
 ```shell
 notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
 ```
+
+### Import blob trust policy configuration from a JSON file
+
+An example of importing trust policy configuration from a JSON file:
+
+```shell
+notation blob policy import ./my_policy.json
+```
+
+The blob trust policy configuration in the JSON file should be validated according to [blob trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if blob trust policy configuration is imported successfully. Error logs including the reason should be printed out if the importing fails.
+
+If there is an existing blob trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing blob trust policy configuration without prompt.
 
 ### Show blob trust policies
 
