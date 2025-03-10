@@ -72,7 +72,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
     - Set up trust policy for blobs with a new command `notation blob policy init`. This command streamlines the process, eliminating the need for users to consult documentation for the correct trust policy format and preventing the accidental use of policies intended for OCI artifact verification.
 
         ```shell
-        notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+        notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
         ```
 
         Show the policies configured for verifying blobs:
@@ -243,7 +243,7 @@ For registry-based distribution, such as using an OCI-compliant container regist
     - Set up the trust policy:
 
         ```shell
-        notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+        notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
         ```
 
     - Download the blob and signature using ORAS tool:
@@ -279,19 +279,19 @@ The following commands are available for managing blob trust poliies:
 - Initialize blob trust policy configuration:
 
     ```shell
-    notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+    notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
     ```
 
 - Initialize the blob trust policy configuration and set the policy specified by the `--name` flag as the global policy.
 
     ```shell
-    notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+    notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
     ```
 
 - Overwrite an existing policy with a prompt:
 
     ```shell
-    notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+    notation blob policy init --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
     ```
 
     If the blob policy named `myBlobPolicy` has already been initialized before, running this command will prompt the user to confirm whether they want to overwrite the existing blob policy.
@@ -299,7 +299,7 @@ The following commands are available for managing blob trust poliies:
 - Overwrite an existing policy with a prompt using the flag `--force`:
 
     ```shell
-    notation blob policy init --force --name "myBlobPolicy" --trust-store "ca:myCACerts" --trust-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
+    notation blob policy init --force --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
     ```
 
 - Show the blob policy:
