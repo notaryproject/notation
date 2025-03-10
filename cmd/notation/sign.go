@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
@@ -35,9 +34,8 @@ import (
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry/remote"
 )
-
-const referrersTagSchemaDeleteError = "failed to delete dangling referrers index"
 
 // timestampingTimeout is the timeout when requesting timestamp countersignature
 // from a TSA
@@ -164,7 +162,11 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	if err != nil {
 		return err
 	}
-	manifestDesc, resolvedRef, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
+	repositoryRef, _, err := parseReference(cmdOpts.reference, cmdOpts.inputType)
+	if err != nil {
+		return err
+	}
+	manifestDesc, _, err := resolveReference(ctx, cmdOpts.inputType, cmdOpts.reference, sigRepo, func(ref string, manifestDesc ocispec.Descriptor) {
 		fmt.Fprintf(os.Stderr, "Warning: Always sign the artifact using digest(@sha256:...) rather than a tag(:%s) because tags are mutable and a tag reference can point to a different artifact than the one signed.\n", ref)
 	})
 	if err != nil {
@@ -173,18 +175,17 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	signOpts.ArtifactReference = manifestDesc.Digest.String()
 
 	// core process
-	_, err = notation.Sign(ctx, signer, sigRepo, signOpts)
+	artifactManifestDesc, sigManifestDesc, err := notation.SignOCI(ctx, signer, sigRepo, signOpts)
 	if err != nil {
-		var errorPushSignatureFailed notation.ErrorPushSignatureFailed
-		if errors.As(err, &errorPushSignatureFailed) && strings.Contains(err.Error(), referrersTagSchemaDeleteError) {
-			fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
-			// write out
-			fmt.Println("Successfully signed", resolvedRef)
-			return nil
+		var referrerError *remote.ReferrersError
+		if !errors.As(err, &referrerError) || !referrerError.IsReferrersIndexDelete() {
+			return err
 		}
-		return err
+		// show warning for referrers index deletion failed
+		fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
 	}
-	fmt.Println("Successfully signed", resolvedRef)
+	fmt.Printf("Successfully signed %s@%s\n", repositoryRef, artifactManifestDesc.Digest.String())
+	fmt.Printf("Pushed the signature to %s@%s\n", repositoryRef, sigManifestDesc.Digest.String())
 	return nil
 }
 

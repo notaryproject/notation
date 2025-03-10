@@ -71,14 +71,20 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 
 	It("sign the container image with jws format (by default)", func() {
 		notation.Exec("sign", artifact.ReferenceWithDigest()).
-			MatchContent(fmt.Sprintf("Successfully signed %s\n", artifact.ReferenceWithDigest()))
+			MatchKeyWords(
+				fmt.Sprintf("Successfully signed %s\n", artifact.ReferenceWithDigest()),
+				"Pushed the signature to",
+			)
 
 		notation.Exec("ls", artifact.ReferenceWithDigest()).
 			MatchKeyWords(fmt.Sprintf("%s\n└── application/vnd.cncf.notary.signature\n    └── sha256:", artifact.ReferenceWithDigest()))
 	})
 	It("sign the container image with cose format", func() {
 		notation.Exec("sign", "--signature-format", "cose", artifact2.ReferenceWithDigest()).
-			MatchContent(fmt.Sprintf("Successfully signed %s\n", artifact2.ReferenceWithDigest()))
+			MatchKeyWords(
+				fmt.Sprintf("Successfully signed %s\n", artifact2.ReferenceWithDigest()),
+				"Pushed the signature to",
+			)
 
 		notation.Exec("ls", artifact2.ReferenceWithDigest()).
 			MatchKeyWords(fmt.Sprintf("%s\n└── application/vnd.cncf.notary.signature\n    └── sha256:", artifact2.ReferenceWithDigest()))
