@@ -111,5 +111,5 @@ func runInit(opts *initOpts) error {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	return opts.printer.Printf("Successfully initialized blob trust policy file to %s\n", policyPath)
+	return opts.printer.Printf("Successfully initialized blob trust policy file to %s.\n", policyPath)
 }
