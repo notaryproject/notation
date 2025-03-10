@@ -53,7 +53,7 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 			// tagOrDigestRef does not match the resolved digest
 			return ocispec.Descriptor{}, "", fmt.Errorf("user input digest %s does not match the resolved digest %s", tagOrDigestRef, manifestDesc.Digest.String())
 		}
-		return manifestDesc, repositoryRef, nil
+		return manifestDesc, resolvedRef, nil
 	}
 	// tagOrDigestRef is a tag reference
 	if fn != nil {
