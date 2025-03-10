@@ -20,14 +20,14 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
 
 type initOpts struct {
-	option.Common
+	printer           *output.Printer
 	name              string
 	trustStores       []string
 	trustedIdentities []string
@@ -47,7 +47,7 @@ Example - init a blob trust policy configuration with a trust store and a truste
 `,
 		Args: cobra.ExactArgs(0),
 		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.Common.Parse(cmd)
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInit(&opts)
@@ -87,7 +87,7 @@ func runInit(opts *initOpts) error {
 	// optional confirmation
 	if _, err := trustpolicy.LoadBlobDocument(); err == nil {
 		if !opts.force {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The blob trust policy configuration already exists, do you want to overwrite it?", opts.force)
+			confirmed, err := display.AskForConfirmation(os.Stdin, "The blob trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}
@@ -95,7 +95,7 @@ func runInit(opts *initOpts) error {
 				return nil
 			}
 		} else {
-			opts.Printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten\n")
+			opts.printer.PrintErrorf("Warning: existing blob trust policy configuration will be overwritten\n")
 		}
 	}
 
@@ -111,5 +111,5 @@ func runInit(opts *initOpts) error {
 		return fmt.Errorf("failed to write blob trust policy configuration: %w", err)
 	}
 
-	return opts.Printer.Printf("Successfully initialized blob trust policy file to %s\n", policyPath)
+	return opts.printer.Printf("Successfully initialized blob trust policy file to %s\n", policyPath)
 }
