@@ -20,7 +20,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 )
 
 const (
@@ -42,7 +42,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPISupported(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := cmd.SecureFlagOpts{
+	secureOpts := flag.SecureFlagOpts{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
@@ -65,7 +65,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersAPINotSupported(t *testing.T) 
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := cmd.SecureFlagOpts{
+	secureOpts := flag.SecureFlagOpts{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", true)
@@ -89,7 +89,7 @@ func TestRegistry_getRemoteRepositoryWithReferrersTagSchema(t *testing.T) {
 	if err != nil {
 		t.Fatalf("invalid test http server: %v", err)
 	}
-	secureOpts := cmd.SecureFlagOpts{
+	secureOpts := flag.SecureFlagOpts{
 		InsecureRegistry: true,
 	}
 	_, err = getRemoteRepository(context.Background(), &secureOpts, uri.Host+"/test:v1", false)

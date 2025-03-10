@@ -21,7 +21,7 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
 	"github.com/notaryproject/notation/internal/osutil"
 	"github.com/spf13/cobra"
 )
@@ -78,7 +78,7 @@ func runImport(command *cobra.Command, opts importOpts) error {
 	// optional confirmation
 	if _, err := trustpolicy.LoadOCIDocument(); err == nil {
 		if !opts.force {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The OCI trust policy configuration already exists, do you want to overwrite it?", opts.force)
+			confirmed, err := display.AskForConfirmation(os.Stdin, "The OCI trust policy configuration already exists, do you want to overwrite it?", opts.force)
 			if err != nil {
 				return err
 			}

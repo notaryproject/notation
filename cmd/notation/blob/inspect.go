@@ -20,14 +20,15 @@ import (
 
 	"github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/cmd/notation/internal/option"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/spf13/cobra"
 )
 
 type inspectOpts struct {
-	option.Common
-	option.Format
-	sigPath string
+	outputFormat flag.OutputFormatFlagOpts
+	printer      *output.Printer
+	sigPath      string
 }
 
 func inspectCommand() *cobra.Command {
@@ -51,20 +52,20 @@ Example - Inspect a signature and output as JSON:
 			return nil
 		},
 		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.Common.Parse(cmd)
+			opts.printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInspect(opts)
 		},
 	}
 
-	opts.Format.ApplyFlags(command.Flags(), option.FormatTypeTree, option.FormatTypeJSON)
+	opts.outputFormat.ApplyFlags(command.Flags(), output.FormatTree, output.FormatJSON)
 	return command
 }
 
 func runInspect(opts *inspectOpts) error {
 	// initialize display handler
-	displayHandler, err := display.NewBlobInspectHandler(opts.Printer, opts.Format)
+	displayHandler, err := display.NewBlobInspectHandler(opts.printer, opts.outputFormat.CurrentFormat)
 	if err != nil {
 		return err
 	}

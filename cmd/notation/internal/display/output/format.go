@@ -26,21 +26,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package option abstracts the options and flags for commands to be used in
-// methods, such as ApplyFlags and Parse.
-package option
+// Package output provides functionalities of displaying command printouts.
+package output
 
-import (
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	"github.com/spf13/cobra"
+// Format is the type of output format.
+type Format string
+
+// formats
+var (
+	// FormatJSON is the JSON format.
+	FormatJSON Format = "json"
+	// FormatText is the text format.
+	FormatText Format = "text"
+	// FormatTree is the tree format.
+	FormatTree Format = "tree"
 )
-
-// Common option struct.
-type Common struct {
-	Printer *output.Printer
-}
-
-// Parse gets target options from user input.
-func (opts *Common) Parse(cmd *cobra.Command) {
-	opts.Printer = output.NewPrinter(cmd.OutOrStdout(), cmd.OutOrStderr())
-}

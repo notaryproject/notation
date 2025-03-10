@@ -16,19 +16,21 @@ package cert
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	notationgoTruststore "github.com/notaryproject/notation-go/verifier/truststore"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
-	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
 	"github.com/spf13/cobra"
 )
 
 type certListOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	storeType  string
 	namedStore string
 }
@@ -93,7 +95,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			}
 			certPaths = append(certPaths, certs...)
 		}
-		return ioutil.PrintCertMap(os.Stdout, certPaths)
+		return printCertMap(os.Stdout, certPaths)
 	}
 
 	// List all certificates under truststore/x509/storeType/namedStore,
@@ -111,7 +113,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			logger.Debugln("Failed to complete list at path:", path)
 			return fmt.Errorf("failed to list all certificates stored in the named store %s of type %s, with error: %s", namedStore, storeType, err.Error())
 		}
-		return ioutil.PrintCertMap(os.Stdout, certPaths)
+		return printCertMap(os.Stdout, certPaths)
 	}
 
 	// List all certificates under x509/storeType, display empty if store type
@@ -129,7 +131,7 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 			logger.Debugln("Failed to complete list at path:", path)
 			return fmt.Errorf("failed to list all certificates stored of type %s, with error: %s", storeType, err.Error())
 		}
-		return ioutil.PrintCertMap(os.Stdout, certPaths)
+		return printCertMap(os.Stdout, certPaths)
 	}
 
 	// List all certificates under named store namedStore, display empty if
@@ -147,5 +149,24 @@ func listCerts(ctx context.Context, opts *certListOpts) error {
 		}
 		certPaths = append(certPaths, certs...)
 	}
-	return ioutil.PrintCertMap(os.Stdout, certPaths)
+	return printCertMap(os.Stdout, certPaths)
+}
+
+// printCertMap lists certificate files in the trust store given array of cert
+// paths
+func printCertMap(w io.Writer, certPaths []string) error {
+	if len(certPaths) == 0 {
+		return nil
+	}
+	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
+	fmt.Fprintln(tw, "STORE TYPE\tSTORE NAME\tCERTIFICATE\t")
+	for _, cert := range certPaths {
+		fileName := filepath.Base(cert)
+		dir := filepath.Dir(cert)
+		namedStore := filepath.Base(dir)
+		dir = filepath.Dir(dir)
+		storeType := filepath.Base(dir)
+		fmt.Fprintf(tw, "%s\t%s\t%s\t\n", storeType, namedStore, fileName)
+	}
+	return tw.Flush()
 }

@@ -17,13 +17,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/config"
-
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/internal/cmd"
-	"github.com/notaryproject/notation/internal/ioutil"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -39,7 +39,7 @@ var (
 )
 
 type keyAddOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	name         string
 	plugin       string
 	id           string
@@ -48,13 +48,13 @@ type keyAddOpts struct {
 }
 
 type keyUpdateOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	name      string
 	isDefault bool
 }
 
 type keyDeleteOpts struct {
-	cmd.LoggingFlagOpts
+	flag.LoggingFlagOpts
 	names []string
 }
 
@@ -106,7 +106,7 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 
 	command.Flags().StringVar(&opts.id, "id", "", "key id (required if --plugin is set)")
 
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	flag.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	setKeyDefaultFlag(command.Flags(), &opts.isDefault)
 
 	return command
@@ -177,7 +177,7 @@ func addKey(ctx context.Context, opts *keyAddOpts) error {
 	// set log level
 	ctx = opts.LoggingFlagOpts.InitializeLogger(ctx)
 
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := flag.ParseFlagMap(opts.pluginConfig, flag.PflagPluginConfig.Name)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func listKeys() error {
 	}
 
 	// write out
-	return ioutil.PrintKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
+	return printKeyMap(os.Stdout, signingKeys.Default, signingKeys.Keys)
 }
 
 func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
@@ -275,4 +275,26 @@ func deleteKeys(ctx context.Context, opts *keyDeleteOpts) error {
 		}
 	}
 	return nil
+}
+
+// printKeyMap prints out key information given array of KeySuite
+func printKeyMap(w io.Writer, target *string, v []config.KeySuite) error {
+	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
+	fmt.Fprintln(tw, "NAME\tKEY PATH\tCERTIFICATE PATH\tID\tPLUGIN NAME\t")
+	for _, key := range v {
+		name := key.Name
+		if target != nil && key.Name == *target {
+			name = "* " + name
+		}
+		kp := key.X509KeyPair
+		if kp == nil {
+			kp = &config.X509KeyPair{}
+		}
+		ext := key.ExternalKey
+		if ext == nil {
+			ext = &config.ExternalKey{}
+		}
+		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\t%s\t\n", name, kp.KeyPath, kp.CertificatePath, ext.ID, ext.PluginName)
+	}
+	return tw.Flush()
 }
