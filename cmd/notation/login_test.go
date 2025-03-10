@@ -17,15 +17,15 @@ import (
 	"os"
 	"testing"
 
-	cmdopts "github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 )
 
 func TestLoginCommand_PasswordFromArgs(t *testing.T) {
-	t.Setenv(cmdopts.EnvironmentUsername, "user")
+	t.Setenv(flag.EnvironmentUsername, "user")
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
-		SecureFlagOpts: cmdopts.SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Username: "user",
 			Password: "password",
 		},
@@ -50,12 +50,12 @@ func TestLoginCommand_PasswordFromArgs(t *testing.T) {
 }
 
 func TestLogin_PasswordFromStdin(t *testing.T) {
-	t.Setenv(cmdopts.EnvironmentUsername, "user")
+	t.Setenv(flag.EnvironmentUsername, "user")
 	opts := &loginOpts{}
 	cmd := loginCommand(opts)
 	expected := &loginOpts{
 		passwordStdin: true,
-		SecureFlagOpts: cmdopts.SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Username: "user",
 			Password: "password",
 		},

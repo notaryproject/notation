@@ -1,0 +1,9 @@
+{
+    "keys": [
+        {
+            "name": "test",
+            "keyPath": "notation/localkeys/test.key",
+            "certPath": "notation/localkeys/test.crt"
+        }
+    ]
+}

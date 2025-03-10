@@ -25,9 +25,9 @@ import (
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/cmd/notation/internal/cmdutil"
-	"github.com/notaryproject/notation/cmd/notation/internal/signer"
-	"github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/cmd/notation/internal/sign"
 	"github.com/notaryproject/notation/internal/envelope"
 	"github.com/notaryproject/notation/internal/httputil"
 	"github.com/notaryproject/notation/internal/osutil"
@@ -42,8 +42,8 @@ import (
 const timestampingTimeout = 15 * time.Second
 
 type blobSignOpts struct {
-	cmd.LoggingFlagOpts
-	cmd.SignerFlagOpts
+	flag.LoggingFlagOpts
+	flag.SignerFlagOpts
 	expiry                 time.Duration
 	pluginConfig           []string
 	userMetadata           []string
@@ -122,9 +122,9 @@ Example - Sign a blob artifact with timestamping:
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
 	opts.SignerFlagOpts.ApplyFlagsToCommand(command)
-	cmd.SetPflagExpiry(command.Flags(), &opts.expiry)
-	cmd.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
-	cmd.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, cmd.PflagUserMetadataSignUsage)
+	flag.SetPflagExpiry(command.Flags(), &opts.expiry)
+	flag.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
+	flag.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, flag.PflagUserMetadataSignUsage)
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
 	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
@@ -139,7 +139,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	ctx := cmdOpts.LoggingFlagOpts.InitializeLogger(command.Context())
 	logger := log.GetLogger(ctx)
 
-	blobSigner, err := signer.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
+	blobSigner, err := sign.GetSigner(ctx, &cmdOpts.SignerFlagOpts)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	// optional confirmation
 	if !cmdOpts.force {
 		if _, err := os.Stat(signaturePath); err == nil {
-			confirmed, err := cmdutil.AskForConfirmation(os.Stdin, "The signature file already exists, do you want to overwrite it?", cmdOpts.force)
+			confirmed, err := display.AskForConfirmation(os.Stdin, "The signature file already exists, do you want to overwrite it?", cmdOpts.force)
 			if err != nil {
 				return err
 			}
@@ -192,11 +192,11 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	pluginConfig, err := cmd.ParseFlagMap(opts.pluginConfig, cmd.PflagPluginConfig.Name)
+	pluginConfig, err := flag.ParseFlagMap(opts.pluginConfig, flag.PflagPluginConfig.Name)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}
-	userMetadata, err := cmd.ParseFlagMap(opts.userMetadata, cmd.PflagUserMetadata.Name)
+	userMetadata, err := flag.ParseFlagMap(opts.userMetadata, flag.PflagUserMetadata.Name)
 	if err != nil {
 		return notation.SignBlobOptions{}, err
 	}

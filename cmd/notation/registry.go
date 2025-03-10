@@ -21,10 +21,10 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 	notationauth "github.com/notaryproject/notation/internal/auth"
-	"github.com/notaryproject/notation/internal/cmd"
+	nconfig "github.com/notaryproject/notation/internal/config"
 	"github.com/notaryproject/notation/internal/httputil"
-	"github.com/notaryproject/notation/pkg/configutil"
 	"oras.land/oras-go/v2/registry"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
@@ -41,7 +41,7 @@ const (
 
 // getRepository returns a notationregistry.Repository given user input
 // type and user input reference
-func getRepository(ctx context.Context, inputType inputType, reference string, opts *cmd.SecureFlagOpts, forceReferrersTag bool) (notationregistry.Repository, error) {
+func getRepository(ctx context.Context, inputType inputType, reference string, opts *flag.SecureFlagOpts, forceReferrersTag bool) (notationregistry.Repository, error) {
 	switch inputType {
 	case inputTypeRegistry:
 		return getRemoteRepository(ctx, opts, reference, forceReferrersTag)
@@ -68,7 +68,7 @@ func getRepository(ctx context.Context, inputType inputType, reference string, o
 // References:
 // https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#listing-referrers
 // https://github.com/opencontainers/distribution-spec/blob/v1.1.0/spec.md#referrers-tag-schema
-func getRemoteRepository(ctx context.Context, opts *cmd.SecureFlagOpts, reference string, forceReferrersTag bool) (notationregistry.Repository, error) {
+func getRemoteRepository(ctx context.Context, opts *flag.SecureFlagOpts, reference string, forceReferrersTag bool) (notationregistry.Repository, error) {
 	logger := log.GetLogger(ctx)
 	ref, err := registry.ParseReference(reference)
 	if err != nil {
@@ -77,12 +77,12 @@ func getRemoteRepository(ctx context.Context, opts *cmd.SecureFlagOpts, referenc
 	if ref.Reference == "" {
 		return nil, fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repository>:<tag> or <registry>/<repository>@<digest>", reference)
 	}
+
 	// generate notation repository
 	remoteRepo, err := getRepositoryClient(ctx, opts, ref)
 	if err != nil {
 		return nil, err
 	}
-
 	if forceReferrersTag {
 		logger.Info("Force to store signatures using the referrers tag schema")
 		if err := remoteRepo.SetReferrersCapability(false); err != nil {
@@ -92,12 +92,11 @@ func getRemoteRepository(ctx context.Context, opts *cmd.SecureFlagOpts, referenc
 	return notationregistry.NewRepository(remoteRepo), nil
 }
 
-func getRepositoryClient(ctx context.Context, opts *cmd.SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
+func getRepositoryClient(ctx context.Context, opts *flag.SecureFlagOpts, ref registry.Reference) (*remote.Repository, error) {
 	authClient, insecureRegistry, err := getAuthClient(ctx, opts, ref, true)
 	if err != nil {
 		return nil, err
 	}
-
 	return &remote.Repository{
 		Client:    authClient,
 		Reference: ref,
@@ -105,12 +104,11 @@ func getRepositoryClient(ctx context.Context, opts *cmd.SecureFlagOpts, ref regi
 	}, nil
 }
 
-func getRegistryLoginClient(ctx context.Context, opts *cmd.SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
+func getRegistryLoginClient(ctx context.Context, opts *flag.SecureFlagOpts, serverAddress string) (*remote.Registry, error) {
 	reg, err := remote.NewRegistry(serverAddress)
 	if err != nil {
 		return nil, err
 	}
-
 	reg.Client, reg.PlainHTTP, err = getAuthClient(ctx, opts, reg.Reference, false)
 	if err != nil {
 		return nil, err
@@ -126,12 +124,12 @@ func getRegistryLoginClient(ctx context.Context, opts *cmd.SecureFlagOpts, serve
 //
 // If withCredential is false, the returned *auth.Client will have a nil
 // Credential function.
-func getAuthClient(ctx context.Context, opts *cmd.SecureFlagOpts, ref registry.Reference, withCredential bool) (*auth.Client, bool, error) {
+func getAuthClient(ctx context.Context, opts *flag.SecureFlagOpts, ref registry.Reference, withCredential bool) (*auth.Client, bool, error) {
 	var insecureRegistry bool
 	if opts.InsecureRegistry {
 		insecureRegistry = opts.InsecureRegistry
 	} else {
-		insecureRegistry = configutil.IsRegistryInsecure(ref.Registry)
+		insecureRegistry = nconfig.IsRegistryInsecure(ref.Registry)
 		if !insecureRegistry {
 			if host, _, _ := net.SplitHostPort(ref.Registry); host == "localhost" {
 				insecureRegistry = true
@@ -144,7 +142,6 @@ func getAuthClient(ctx context.Context, opts *cmd.SecureFlagOpts, ref registry.R
 	if !withCredential {
 		return authClient, insecureRegistry, nil
 	}
-
 	cred := opts.Credential()
 	if cred != auth.EmptyCredential {
 		// use the specified credential
