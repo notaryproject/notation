@@ -11,13 +11,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package flag
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/notaryproject/notation-go/log"
+	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/internal/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -53,7 +57,7 @@ func (opts *SignerFlagOpts) ApplyFlagsToCommand(command *cobra.Command) {
 	command.MarkFlagsMutuallyExclusive("key", "plugin")
 }
 
-// LoggingFlagOpts option struct.
+// LoggingFlagOpts cmd opts for logging.
 type LoggingFlagOpts struct {
 	Debug   bool
 	Verbose bool
@@ -122,4 +126,39 @@ func (opts *SecureFlagOpts) Credential() auth.Credential {
 		Username: opts.Username,
 		Password: opts.Password,
 	}
+}
+
+// OutputFormatFlagOpts cmd opts for output format.
+type OutputFormatFlagOpts struct {
+	// CurrentFormat is the current output format in type of string.
+	// Its default value is set by ApplyFlags.
+	CurrentFormat output.Format
+
+	// allowedFormats is the allowed output formats set by ApplyFlags.
+	allowedFormats []output.Format
+}
+
+// ApplyFlags sets up the options for the output format flag.
+//
+// The defaultType is the default format type.
+// The otherTypes are additional format types that are allowed.
+func (opts *OutputFormatFlagOpts) ApplyFlags(fs *pflag.FlagSet, defaultType output.Format, otherTypes ...output.Format) {
+	opts.CurrentFormat = defaultType
+	opts.allowedFormats = append(otherTypes, defaultType)
+
+	var quotedAllowedTypes []string
+	for _, t := range opts.allowedFormats {
+		quotedAllowedTypes = append(quotedAllowedTypes, fmt.Sprintf("'%s'", t))
+	}
+	usage := fmt.Sprintf("output format, options: %s", strings.Join(quotedAllowedTypes, ", "))
+	// apply flags
+	fs.StringVarP((*string)(&opts.CurrentFormat), "output", "o", string(opts.CurrentFormat), usage)
+}
+
+// Validate validates if the current output format is allowed.
+func (opts *OutputFormatFlagOpts) Validate(_ *cobra.Command) error {
+	if ok := slices.Contains(opts.allowedFormats, opts.CurrentFormat); !ok {
+		return fmt.Errorf("invalid format: %q", opts.CurrentFormat)
+	}
+	return nil
 }

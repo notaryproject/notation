@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package configutil
+package config
 
 import (
 	"os"
@@ -24,14 +24,53 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 )
 
+func TestLoadConfigOnce(t *testing.T) {
+	defer func() {
+		loadConfigOnce = sync.OnceValues(loadConfig)
+	}()
+	config1, err := LoadConfigOnce()
+	if err != nil {
+		t.Fatal("LoadConfigOnce failed.")
+	}
+	config2, err := LoadConfigOnce()
+	if err != nil {
+		t.Fatal("LoadConfigOnce failed.")
+	}
+	if config1 != config2 {
+		t.Fatal("LoadConfigOnce should return the same config.")
+	}
+}
+
+func TestLoadConfigOnceError(t *testing.T) {
+	dir.UserConfigDir = t.TempDir()
+	defer func() {
+		dir.UserConfigDir = ""
+		loadConfigOnce = sync.OnceValues(loadConfig)
+	}()
+	if err := os.WriteFile(filepath.Join(dir.UserConfigDir, dir.PathConfigFile), []byte("invalid json"), 0600); err != nil {
+		t.Fatal("Failed to create file.")
+	}
+
+	_, err := LoadConfigOnce()
+	if err == nil || !strings.Contains(err.Error(), "invalid character") {
+		t.Fatal("LoadConfigOnce should fail.")
+	}
+	_, err2 := LoadConfigOnce()
+	if err != err2 {
+		t.Fatal("LoadConfigOnce should return the same error.")
+	}
+}
+
 func TestIsRegistryInsecure(t *testing.T) {
 	// for restore dir
 	defer func(oldDir string) {
 		dir.UserConfigDir = oldDir
 		loadConfigOnce = sync.OnceValues(loadConfig)
 	}(dir.UserConfigDir)
+
 	// update config dir
-	dir.UserConfigDir = "testdata"
+	dir.UserConfigDir = "./testdata"
+	loadConfigOnce = sync.OnceValues(loadConfig)
 
 	type args struct {
 		target string
@@ -51,7 +90,6 @@ func TestIsRegistryInsecure(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestIsRegistryInsecureMissingConfig(t *testing.T) {
@@ -60,8 +98,10 @@ func TestIsRegistryInsecureMissingConfig(t *testing.T) {
 		dir.UserConfigDir = oldDir
 		loadConfigOnce = sync.OnceValues(loadConfig)
 	}(dir.UserConfigDir)
+
 	// update config dir
 	dir.UserConfigDir = "./testdata2"
+	loadConfigOnce = sync.OnceValues(loadConfig)
 
 	type args struct {
 		target string
@@ -87,6 +127,7 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 		t.Skip("skipping test on Windows")
 	}
 	configDir := "./testdata"
+
 	// for restore dir
 	defer func(oldDir string) error {
 		// restore permission
@@ -97,62 +138,13 @@ func TestIsRegistryInsecureConfigPermissionError(t *testing.T) {
 
 	// update config dir
 	dir.UserConfigDir = configDir
+	loadConfigOnce = sync.OnceValues(loadConfig)
 
 	// forbid reading the file
 	if err := os.Chmod(filepath.Join(configDir, "config.json"), 0000); err != nil {
 		t.Error(err)
 	}
-
 	if IsRegistryInsecure("reg1.io") {
 		t.Error("should false because of missing config.json read permission.")
 	}
-}
-
-func TestResolveKey(t *testing.T) {
-	defer func(oldDir string) {
-		dir.UserConfigDir = oldDir
-		loadConfigOnce = sync.OnceValues(loadConfig)
-	}(dir.UserConfigDir)
-
-	t.Run("valid e2e key", func(t *testing.T) {
-		dir.UserConfigDir = "./testdata/valid_signingkeys"
-		keySuite, err := ResolveKey("e2e")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if keySuite.Name != "e2e" {
-			t.Error("key name is not correct.")
-		}
-	})
-
-	t.Run("key name is empty (using default key)", func(t *testing.T) {
-		dir.UserConfigDir = "./testdata/valid_signingkeys"
-		keySuite, err := ResolveKey("")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if keySuite.Name != "e2e" {
-			t.Error("key name is not correct.")
-		}
-	})
-
-	t.Run("signingkeys.json without read permission", func(t *testing.T) {
-		if runtime.GOOS == "windows" {
-			t.Skip("skipping test on Windows")
-		}
-		dir.UserConfigDir = "./testdata/valid_signingkeys"
-		defer func() error {
-			// restore the permission
-			return os.Chmod(filepath.Join(dir.UserConfigDir, "signingkeys.json"), 0644)
-		}()
-
-		// forbid reading the file
-		if err := os.Chmod(filepath.Join(dir.UserConfigDir, "signingkeys.json"), 0000); err != nil {
-			t.Error(err)
-		}
-		_, err := ResolveKey("")
-		if !strings.Contains(err.Error(), "permission denied") {
-			t.Error("should error with permission denied")
-		}
-	})
 }

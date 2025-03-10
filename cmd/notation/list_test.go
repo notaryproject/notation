@@ -16,7 +16,7 @@ package main
 import (
 	"testing"
 
-	cmdopts "github.com/notaryproject/notation/internal/cmd"
+	"github.com/notaryproject/notation/cmd/notation/internal/flag"
 )
 
 func TestListCommand_SecretsFromArgs(t *testing.T) {
@@ -24,7 +24,7 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 	cmd := listCommand(opts)
 	expected := &listOpts{
 		reference: "ref",
-		SecureFlagOpts: cmdopts.SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Password:         "password",
 			InsecureRegistry: true,
 			Username:         "user",
@@ -47,12 +47,12 @@ func TestListCommand_SecretsFromArgs(t *testing.T) {
 }
 
 func TestListCommand_SecretsFromEnv(t *testing.T) {
-	t.Setenv(cmdopts.EnvironmentUsername, "user")
-	t.Setenv(cmdopts.EnvironmentPassword, "password")
+	t.Setenv(flag.EnvironmentUsername, "user")
+	t.Setenv(flag.EnvironmentPassword, "password")
 	opts := &listOpts{}
 	expected := &listOpts{
 		reference: "ref",
-		SecureFlagOpts: cmdopts.SecureFlagOpts{
+		SecureFlagOpts: flag.SecureFlagOpts{
 			Password: "password",
 			Username: "user",
 		},
