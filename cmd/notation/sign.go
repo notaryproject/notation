@@ -34,6 +34,7 @@ import (
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
+	"oras.land/oras-go/v2/registry/remote"
 )
 
 // timestampingTimeout is the timeout when requesting timestamp countersignature
@@ -176,7 +177,12 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 	// core process
 	artifactManifestDesc, sigManifestDesc, err := notation.SignOCI(ctx, signer, sigRepo, signOpts)
 	if err != nil {
-		return err
+		var referrerError *remote.ReferrersError
+		if !errors.As(err, &referrerError) || !referrerError.IsReferrersIndexDelete() {
+			return err
+		}
+		// show warning for referrers index deletion failed
+		fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
 	}
 	fmt.Printf("Successfully signed %s@%s\n", repositoryRef, artifactManifestDesc.Digest.String())
 	fmt.Printf("Pushed the signature to %s@%s\n", repositoryRef, sigManifestDesc.Digest.String())
