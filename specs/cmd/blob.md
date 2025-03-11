@@ -151,7 +151,7 @@ Usage:
 Flags:
       --force                              override the existing blob trust policy configuration, never prompt (default --force=false)
       --global                             set the policy as the global policy (default --global=false)
-  -h, --help                               help for import
+  -h, --help                               help for init
   -n, --name                               name of the policy
       --trust-store stringArray            trust store in the format "<store_type>:<store_name>"
       --trusted-identity stringArray       trusted identity, use the format "x509.subject:<subject_of_signing_certificate>" for x509 CA scheme and "<signing_authority_identity>" for x509 signingAuthority scheme
@@ -310,40 +310,40 @@ notation blob inspect /tmp/my-blob.bin.jws.sig
 An example output:
 ```shell
 /tmp/my-blob.bin.jws.sig
-    ├── signature algorithm: RSASSA-PSS-SHA-256
-    ├── signature envelope type: application/jose+json
-    ├── signed attributes
-    │   ├── content type: application/vnd.cncf.notary.payload.v1+json
-    │   ├── signing scheme: notary.signingAuthority.x509
-    │   ├── signing time: Fri Jun 23 22:04:01 2023
-    │   ├── expiry: Sat Jun 29 22:04:01 2024
-    │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
-    ├── unsigned attributes
-    │   ├── signing agent: notation/1.0.0                               //client version
-    │   └── timestamp signature                                         //TSA response
-    │       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
-    │       └── certificates
-    │           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
-    │               ├── issued to: wabbit-com Software Timestamp
-    │               ├── issued by: wabbit-com Software Trusted Timestamping
-    │               └── expiry: Fri Oct 13 23:59:59 2034
-    ├── certificates
-    │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
-    │   │   ├── issued to: wabbit-com Software
-    │   │   ├── issued by: wabbit-com Software Root Certificate Authority
-    │   │   └── expiry: Sun Jul 06 20:50:17 2025
-    │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
-    │   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
-    │   │   ├── issued by: wabbit-com Software Root Certificate Authority
-    │   │   └── expiry: Sun Jul 06 20:50:17 2025
-    │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
-    │       ├── issued to: wabbit-com Software Root Certificate Authority
-    │       ├── issued by: wabbit-com Software Root Certificate Authority
-    │       └── expiry: Sat Jun 23 22:04:01 2035
-    └── signed artifact
-        ├── media type: application/octet-stream
-        ├── digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-        └── size: 16724
+├── signature algorithm: RSASSA-PSS-SHA-256
+├── signature envelope type: application/jose+json
+├── signed attributes
+│   ├── content type: application/vnd.cncf.notary.payload.v1+json
+│   ├── signing scheme: notary.signingAuthority.x509
+│   ├── signing time: Fri Jun 23 22:04:01 2023
+│   ├── expiry: Sat Jun 29 22:04:01 2024
+│   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
+├── unsigned attributes
+│   ├── signing agent: notation/1.0.0                               //client version
+│   └── timestamp signature                                         //TSA response
+│       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+│       └── certificates
+│           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+│               ├── issued to: wabbit-com Software Timestamp
+│               ├── issued by: wabbit-com Software Trusted Timestamping
+│               └── expiry: Fri Oct 13 23:59:59 2034
+├── certificates
+│   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
+│   │   ├── issued to: wabbit-com Software
+│   │   ├── issued by: wabbit-com Software Root Certificate Authority
+│   │   └── expiry: Sun Jul 06 20:50:17 2025
+│   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
+│   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
+│   │   ├── issued by: wabbit-com Software Root Certificate Authority
+│   │   └── expiry: Sun Jul 06 20:50:17 2025
+│   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
+│       ├── issued to: wabbit-com Software Root Certificate Authority
+│       ├── issued by: wabbit-com Software Root Certificate Authority
+│       └── expiry: Sat Jun 23 22:04:01 2035
+└── signed artifact
+    ├── media type: application/octet-stream
+    ├── digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    └── size: 16724
 ```
 
 ### Inspect the given blob signature with JSON Output
@@ -352,19 +352,7 @@ An example output:
 notation blob inspect -o json /tmp/my-blob.bin.jws.sig
 ```
 
-## Import/Export blob trust policy configuration
-
-### Import blob trust policy configuration from a JSON file
-
-An example of importing trust policy configuration from a JSON file:
-
-```shell
-notation blob policy import ./my_policy.json
-```
-
-The blob trust policy configuration in the JSON file should be validated according to [blob trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if blob trust policy configuration is imported successfully. Error logs including the reason should be printed out if the importing fails.
-
-If there is an existing blob trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing blob trust policy configuration without prompt.
+## Initialize/Import/Export blob trust policy configuration
 
 ### Initialize blob trust policy configuration
 
@@ -404,9 +392,9 @@ For a `ca` type of trust store, the `--trust-store` value follows the format `ca
 
 The `--trust-store` and `--trusted-identity` flags can be specified multiple times if multiple trust stores or trust identities need to be configured.
 
-To trust any identities, set the flag `--trusted-identity` to `"*"`. However, this is not recommended for production environments. Additionally, the flag cannot be set to multiple values.
+To trust any identities, set the flag `--trusted-identity` to `"*"`. However, this is not recommended for production environments. Additionally, when set to `"*"`, the flag cannot be set to multiple values.
 
-If a blob trust policy has already been initialized, regardless of whether the policy name is the same, running this command will prompt the user to confirm whether they want to overwrite the existing blob policy.
+This command always overwrites any existing blob trust policy configuration. Running this command will prompt the user to confirm whether they want to proceed.
 
 To overwrite the existing blob trust policy configuration without a prompt, use the `--force` flag:
 
@@ -419,6 +407,18 @@ To set the policy specified by the `--name` flag as the global policy, use the `
 ```shell
 notation blob policy init --global --name "myBlobPolicy" --trust-store "ca:myCACerts" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-network.io"
 ```
+
+### Import blob trust policy configuration from a JSON file
+
+An example of importing trust policy configuration from a JSON file:
+
+```shell
+notation blob policy import ./my_policy.json
+```
+
+The blob trust policy configuration in the JSON file should be validated according to [blob trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#blob-trust-policy). A successful message should be printed out if blob trust policy configuration is imported successfully. Error logs including the reason should be printed out if the importing fails.
+
+If there is an existing blob trust policy configuration, prompt for users to confirm whether discarding existing configuration or not. Users can use `--force` flag to discard existing blob trust policy configuration without prompt.
 
 ### Show blob trust policies
 
