@@ -367,7 +367,7 @@ func TestParseReference(t *testing.T) {
 	t.Run("valid reference", func(t *testing.T) {
 		reference := "registry/repository@digest"
 		expectedRepositoryRef := "registry/repository"
-		repositoryRef, err := parseReference(reference)
+		repositoryRef, err := parseRepositoryReference(reference)
 		if err != nil {
 			t.Fatalf("Parse reference failed: %v", err)
 		}
@@ -378,7 +378,7 @@ func TestParseReference(t *testing.T) {
 
 	t.Run("invalid reference", func(t *testing.T) {
 		reference := "registry/repository"
-		_, err := parseReference(reference)
+		_, err := parseRepositoryReference(reference)
 		if err == nil {
 			t.Fatal("Parse reference expected error, but ok")
 		}
