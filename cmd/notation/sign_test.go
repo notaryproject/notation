@@ -362,25 +362,3 @@ func TestSignCommand_MissingArgs(t *testing.T) {
 		t.Fatal("Parse Args expected error, but ok")
 	}
 }
-
-func TestParseReference(t *testing.T) {
-	t.Run("valid reference", func(t *testing.T) {
-		reference := "registry/repository@digest"
-		expectedRepositoryRef := "registry/repository"
-		repositoryRef, err := parseRepositoryReference(reference)
-		if err != nil {
-			t.Fatalf("Parse reference failed: %v", err)
-		}
-		if repositoryRef != expectedRepositoryRef {
-			t.Fatalf("Expect reference %s, got %s", reference, repositoryRef)
-		}
-	})
-
-	t.Run("invalid reference", func(t *testing.T) {
-		reference := "registry/repository"
-		_, err := parseRepositoryReference(reference)
-		if err == nil {
-			t.Fatal("Parse reference expected error, but ok")
-		}
-	})
-}

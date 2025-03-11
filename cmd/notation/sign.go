@@ -182,10 +182,7 @@ func runSign(command *cobra.Command, cmdOpts *signOpts) error {
 		fmt.Fprintln(os.Stderr, "Warning: Removal of outdated referrers index from remote registry failed. Garbage collection may be required.")
 	}
 
-	repositoryRef, err := parseRepositoryReference(resolvedRef)
-	if err != nil {
-		return err
-	}
+	repositoryRef, _, _ := strings.Cut(resolvedRef, "@")
 	fmt.Printf("Successfully signed %s@%s\n", repositoryRef, artifactManifestDesc.Digest.String())
 	fmt.Printf("Pushed the signature to %s@%s\n", repositoryRef, sigManifestDesc.Digest.String())
 	return nil
@@ -232,14 +229,4 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 		signOpts.TSARevocationValidator = tsaRevocationValidator
 	}
 	return signOpts, nil
-}
-
-// parseRepositoryReference parses the reference with digest and returns the
-// repository reference
-func parseRepositoryReference(reference string) (string, error) {
-	if idx := strings.LastIndex(reference, "@"); idx != -1 {
-		// `digest` found
-		return reference[:idx], nil
-	}
-	return "", fmt.Errorf("invalid reference: %q: missing digest. Expecting <repository>@<digest>", reference)
 }
