@@ -64,11 +64,13 @@ func resolveReference(ctx context.Context, inputType inputType, reference string
 
 // parseReference parses the user input reference based on the input type.
 // Returns the repository reference and tag or digest reference.
-func parseReference(reference string, inputType inputType) (repositoryRef, tagOrDigestRef string, err error) {
+func parseReference(reference string, inputType inputType) (string, string, error) {
 	// sanity check
 	if reference == "" {
 		return "", "", errors.New("missing user input reference")
 	}
+	var repositoryRef string
+	var tagOrDigestRef string
 	switch inputType {
 	case inputTypeRegistry:
 		ref, err := registry.ParseReference(reference)
@@ -78,8 +80,8 @@ func parseReference(reference string, inputType inputType) (repositoryRef, tagOr
 		if ref.Reference == "" {
 			return "", "", fmt.Errorf("%q: invalid reference: no tag or digest. Expecting <registry>/<repo>:<tag> or <registry>/<repo>@<digest>", reference)
 		}
-		tagOrDigestRef = ref.Reference
 		repositoryRef = ref.Registry + "/" + ref.Repository
+		tagOrDigestRef = ref.Reference
 	case inputTypeOCILayout:
 		layoutPath, layoutReference, err := parseOCILayoutReference(reference)
 		if err != nil {
@@ -92,8 +94,8 @@ func parseReference(reference string, inputType inputType) (repositoryRef, tagOr
 		if !layoutPathInfo.IsDir() {
 			return "", "", errors.New("failed to resolve user input reference: input path is not a dir")
 		}
-		tagOrDigestRef = layoutReference
 		repositoryRef = layoutPath
+		tagOrDigestRef = layoutReference
 	default:
 		return "", "", fmt.Errorf("unsupported user inputType: %d", inputType)
 	}
