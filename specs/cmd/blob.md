@@ -310,40 +310,40 @@ notation blob inspect /tmp/my-blob.bin.jws.sig
 An example output:
 ```shell
 /tmp/my-blob.bin.jws.sig
-  ├── signature algorithm: RSASSA-PSS-SHA-256
-  ├── signature envelope type: application/jose+json
-  ├── signed attributes
-  │   ├── content type: application/vnd.cncf.notary.payload.v1+json
-  │   ├── signing scheme: notary.signingAuthority.x509
-  │   ├── signing time: Fri Jun 23 22:04:01 2023
-  │   ├── expiry: Sat Jun 29 22:04:01 2024
-  │   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
-  ├── unsigned attributes
-  │   ├── signing agent: notation/1.0.0                               //client version
-  │   └── timestamp signature                                         //TSA response
-  │       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
-  │       └── certificates
-  │           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
-  │               ├── issued to: wabbit-com Software Timestamp
-  │               ├── issued by: wabbit-com Software Trusted Timestamping
-  │               └── expiry: Fri Oct 13 23:59:59 2034
-  ├── certificates
-  │   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
-  │   │   ├── issued to: wabbit-com Software
-  │   │   ├── issued by: wabbit-com Software Root Certificate Authority
-  │   │   └── expiry: Sun Jul 06 20:50:17 2025
-  │   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
-  │   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
-  │   │   ├── issued by: wabbit-com Software Root Certificate Authority
-  │   │   └── expiry: Sun Jul 06 20:50:17 2025
-  │   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
-  │       ├── issued to: wabbit-com Software Root Certificate Authority
-  │       ├── issued by: wabbit-com Software Root Certificate Authority
-  │       └── expiry: Sat Jun 23 22:04:01 2035
-  └── signed artifact
-      ├── media type: application/octet-stream
-      ├── digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-      └── size: 16724
+├── signature algorithm: RSASSA-PSS-SHA-256
+├── signature envelope type: application/jose+json
+├── signed attributes
+│   ├── content type: application/vnd.cncf.notary.payload.v1+json
+│   ├── signing scheme: notary.signingAuthority.x509
+│   ├── signing time: Fri Jun 23 22:04:01 2023
+│   ├── expiry: Sat Jun 29 22:04:01 2024
+│   └── io.cncf.notary.verificationPlugin: com.example.nv2plugin
+├── unsigned attributes
+│   ├── signing agent: notation/1.0.0                               //client version
+│   └── timestamp signature                                         //TSA response
+│       ├── timestamp: [Fri Jun 23 22:04:31 2023, Fri Jun 23 22:04:31 2023]
+│       └── certificates
+│           └── SHA256 fingerprint: d2f6e46ded7422ccd1d440576841366f828ada559aae3316af4d1a9ad40c7828
+│               ├── issued to: wabbit-com Software Timestamp
+│               ├── issued by: wabbit-com Software Trusted Timestamping
+│               └── expiry: Fri Oct 13 23:59:59 2034
+├── certificates
+│   ├── SHA256 fingerprint: b13a843be16b1f461f08d61c14f3eab7d87c073570da077217541a7eb31c084d
+│   │   ├── issued to: wabbit-com Software
+│   │   ├── issued by: wabbit-com Software Root Certificate Authority
+│   │   └── expiry: Sun Jul 06 20:50:17 2025
+│   ├── SHA256 fingerprint: 4b9fa61d5aed0fabbc7cb8fe2efd049da57957ed44f2b98f7863ce18effd3b89
+│   │   ├── issued to: wabbit-com Software Code Signing PCA 2010
+│   │   ├── issued by: wabbit-com Software Root Certificate Authority
+│   │   └── expiry: Sun Jul 06 20:50:17 2025
+│   └── SHA256 fingerprint: ea3939548ad0c0a86f164ab8b97858854238c797f30bddeba6cb28688f3f6536
+│       ├── issued to: wabbit-com Software Root Certificate Authority
+│       ├── issued by: wabbit-com Software Root Certificate Authority
+│       └── expiry: Sat Jun 23 22:04:01 2035
+└── signed artifact
+    ├── media type: application/octet-stream
+    ├── digest: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    └── size: 16724
 ```
 
 ### Inspect the given blob signature with JSON Output
