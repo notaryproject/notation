@@ -19,6 +19,7 @@ import (
 	"io/fs"
 	"os"
 	"runtime"
+	"syscall"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -80,16 +81,17 @@ func optimizeError(err error) error {
 	if err == nil {
 		return nil
 	}
-	// for plugin is not executable
-	var execError *plugin.PluginExecutableFileError
-	if errors.As(err, &execError) {
-		return fmt.Errorf("%w. Please ensure that the plugin executable file is compatible with %s/%s and has appropriate permissions.", err, runtime.GOOS, runtime.GOARCH)
-	}
-
-	// for plugin does not exist
 	var pathError *fs.PathError
-	if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
-		return fmt.Errorf("%w. Each plugin executable must be located under $PLUGIN_DIRECTORY/{plugin-name} directory, with executable named as notation-{plugin-name}.", pathError)
+	if errors.As(err, &pathError) {
+		// for plugin does not exist
+		if errors.Is(pathError, fs.ErrNotExist) {
+			return fmt.Errorf("%w. Each plugin executable must be located under $PLUGIN_DIRECTORY/{plugin-name} directory, with executable named as notation-{plugin-name}", pathError)
+		}
+
+		// for plugin is not executable
+		if pathError.Op == "fork/exec" && pathError.Err == syscall.Errno(8) {
+			return fmt.Errorf("%w. Please ensure that the plugin executable file is compatible with %s/%s", pathError, runtime.GOOS, runtime.GOARCH)
+		}
 	}
 	return err
 }

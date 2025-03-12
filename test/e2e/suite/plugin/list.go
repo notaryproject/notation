@@ -14,6 +14,9 @@
 package plugin
 
 import (
+	"os"
+	"runtime"
+
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 	. "github.com/onsi/ginkgo/v2"
@@ -35,6 +38,43 @@ var _ = Describe("notation plugin list", func() {
 				MatchKeyWords("VERSION", "1.0.0").
 				MatchKeyWords("CAPABILITIES", "[SIGNATURE_VERIFIER.TRUSTED_IDENTITY SIGNATURE_VERIFIER.REVOCATION_CHECK]").
 				MatchKeyWords("ERROR", "<nil>")
+		})
+	})
+
+	It("missing plugin binary", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			// create azure-kv plugin directory
+			pluginDir := vhost.AbsolutePath(NotationDirName, "plugins", "azure-kv")
+			if err := os.MkdirAll(pluginDir, os.ModePerm); err != nil {
+				Fail(err.Error())
+			}
+
+			notation.Exec("plugin", "list").
+				MatchKeyWords("azure-kv").
+				MatchKeyWords("no such file or directory")
+		})
+	})
+
+	It("with invalid binary file", func() {
+		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
+			// create azure-kv plugin directory
+			pluginDir := vhost.AbsolutePath(NotationDirName, "plugins", "azure-kv")
+			if err := os.MkdirAll(pluginDir, os.ModePerm); err != nil {
+				Fail(err.Error())
+			}
+
+			// create invalid plugin binary
+			invalidPluginBinary := vhost.AbsolutePath(NotationDirName, "plugins", "azure-kv", "notation-azure-kv")
+			if runtime.GOOS == "windows" {
+				invalidPluginBinary += ".exe"
+			}
+			if err := os.WriteFile(invalidPluginBinary, []byte("invalid"), 0755); err != nil {
+				Fail(err.Error())
+			}
+
+			notation.Exec("plugin", "list").
+				MatchKeyWords("azure-kv").
+				MatchKeyWords("exec format error")
 		})
 	})
 })
