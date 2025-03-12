@@ -7,7 +7,7 @@ require (
 	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250122072255-6eb53a50d69e
 	github.com/onsi/ginkgo/v2 v2.23.0
 	github.com/onsi/gomega v1.36.2
-	github.com/opencontainers/image-spec v1.1.0
+	github.com/opencontainers/image-spec v1.1.1
 	oras.land/oras-go/v2 v2.5.0
 )
 
