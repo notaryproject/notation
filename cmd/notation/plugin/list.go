@@ -16,7 +16,9 @@ package plugin
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"runtime"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -68,7 +70,26 @@ func listPlugins(command *cobra.Command) error {
 			}
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			n, metaData.Description, metaData.Version, metaData.Capabilities, err)
+			n, metaData.Description, metaData.Version, metaData.Capabilities, optimizeError(err))
 	}
 	return tw.Flush()
+}
+
+// optimizeError is used to optimize the error message to be more user-friendly.
+func optimizeError(err error) error {
+	if err == nil {
+		return nil
+	}
+	// for plugin is not executable
+	var execError *plugin.PluginExecutableFileError
+	if errors.As(err, &execError) {
+		return fmt.Errorf("%w. Please ensure that the plugin executable file is compatible with %s/%s and has appropriate permissions.", err, runtime.GOOS, runtime.GOARCH)
+	}
+
+	// for plugin does not exist
+	var pathError *fs.PathError
+	if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
+		return fmt.Errorf("%w. Each plugin executable must be located under $PLUGIN_DIRECTORY/{plugin-name} directory, with executable named as notation-{plugin-name}.", pathError)
+	}
+	return err
 }
