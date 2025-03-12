@@ -28,7 +28,7 @@ import (
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
 	"github.com/notaryproject/notation-go/verifier/truststore"
 
-	clirev "github.com/notaryproject/notation/internal/revocation"
+	clirev "github.com/notaryproject/notation/v2/internal/revocation"
 )
 
 // Verifier is embedded with notation.BlobVerifier and notation.Verifier.

@@ -19,11 +19,11 @@ import (
 	"os/signal"
 
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/cmd/notation/blob"
-	"github.com/notaryproject/notation/cmd/notation/cert"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/cmd/notation/plugin"
-	"github.com/notaryproject/notation/cmd/notation/policy"
+	"github.com/notaryproject/notation/v2/cmd/notation/blob"
+	"github.com/notaryproject/notation/v2/cmd/notation/cert"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/plugin"
+	"github.com/notaryproject/notation/v2/cmd/notation/policy"
 	"github.com/spf13/cobra"
 )
 

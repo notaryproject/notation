@@ -21,8 +21,8 @@ import (
 	"strings"
 	"testing"
 
-	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
-	"github.com/notaryproject/notation/internal/osutil"
+	notationplugin "github.com/notaryproject/notation/v2/cmd/notation/internal/plugin"
+	"github.com/notaryproject/notation/v2/internal/osutil"
 	"github.com/spf13/cobra"
 )
 

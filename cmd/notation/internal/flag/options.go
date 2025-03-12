@@ -21,8 +21,8 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	"github.com/notaryproject/notation/internal/trace"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/internal/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"

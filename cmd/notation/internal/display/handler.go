@@ -16,11 +16,11 @@ package display
 import (
 	"fmt"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/json"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/text"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/metadata/tree"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/metadata"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/metadata/json"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/metadata/text"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/metadata/tree"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
 )
 
 // NewInspectHandler creates a new metadata InspectHandler based on the output

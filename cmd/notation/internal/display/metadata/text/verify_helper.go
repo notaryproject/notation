@@ -22,7 +22,7 @@ import (
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
 )
 
 // printVerificationSuccess prints out messages when verification succeeds

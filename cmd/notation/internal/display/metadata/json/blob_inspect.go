@@ -15,7 +15,7 @@ package json
 
 import (
 	coresignature "github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
 )
 
 // BlobInspectHandler is a handler for inspecting metadata information and

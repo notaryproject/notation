@@ -16,7 +16,7 @@ package tree
 import (
 	coresignature "github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 

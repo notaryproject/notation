@@ -25,8 +25,8 @@ import (
 	"github.com/notaryproject/notation-core-go/testhelper"
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
-	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/truststore"
+	"github.com/notaryproject/notation/v2/internal/osutil"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

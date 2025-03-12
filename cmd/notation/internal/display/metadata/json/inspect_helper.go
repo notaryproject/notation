@@ -23,7 +23,7 @@ import (
 
 	coresignature "github.com/notaryproject/notation-core-go/signature"
 	"github.com/notaryproject/notation-go/plugin/proto"
-	envelopeutil "github.com/notaryproject/notation/internal/envelope"
+	envelopeutil "github.com/notaryproject/notation/v2/internal/envelope"
 	"github.com/notaryproject/tspclient-go"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )

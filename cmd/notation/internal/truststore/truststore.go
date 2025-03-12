@@ -28,8 +28,8 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/truststore"
-	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/v2/internal/osutil"
 )
 
 // AddCert adds a single cert file at path to the trust store

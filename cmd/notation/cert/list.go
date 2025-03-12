@@ -24,8 +24,8 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	notationgoTruststore "github.com/notaryproject/notation-go/verifier/truststore"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
 

@@ -17,7 +17,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
 
