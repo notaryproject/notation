@@ -71,13 +71,13 @@ func listPlugins(command *cobra.Command) error {
 			}
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			n, metaData.Description, metaData.Version, metaData.Capabilities, optimizeError(err))
+			n, metaData.Description, metaData.Version, metaData.Capabilities, userFriendlyError(err))
 	}
 	return tw.Flush()
 }
 
-// optimizeError is used to optimize the error message to be more user-friendly.
-func optimizeError(err error) error {
+// userFriendlyError optimizes the error message for the user.
+func userFriendlyError(err error) error {
 	if err == nil {
 		return nil
 	}
