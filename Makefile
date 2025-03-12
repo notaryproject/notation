@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-MODULE         = github.com/notaryproject/notation
+MODULE         = github.com/notaryproject/notation/v2
 COMMANDS       = notation
 GIT_TAG        = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
 GIT_COMMIT     = $(shell git rev-parse HEAD)
@@ -68,7 +68,7 @@ e2e-covdata:
 	export GOCOVERDIR=$(CURDIR)/test/e2e/.cover; \
 	rm -rf $$GOCOVERDIR; \
 	mkdir -p $$GOCOVERDIR; \
-	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/internal/...,github.com/notaryproject/notation/cmd/..."'; \
+	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/v2/internal/...,github.com/notaryproject/notation/v2/cmd/..."'; \
 	$(MAKE) e2e && go tool covdata textfmt -i=$$GOCOVERDIR -o "$(CURDIR)/test/e2e/coverage.txt"
 
 .PHONY: clean
