@@ -23,7 +23,7 @@ import (
 
 	"github.com/notaryproject/notation-go/log"
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	notationerrors "github.com/notaryproject/notation/cmd/notation/internal/errors"
+	notationerrors "github.com/notaryproject/notation/v2/cmd/notation/internal/errors"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"oras.land/oras-go/v2/registry"

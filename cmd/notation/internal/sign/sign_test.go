@@ -21,7 +21,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/signer"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 )
 
 func TestGenericSignerImpl(t *testing.T) {

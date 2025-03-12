@@ -22,7 +22,7 @@ ifndef BUILD_METADATA
 endif
 
 ifneq ($(GIT_TAG),)
-	BUILD_METADATA := 
+	BUILD_METADATA :=
 endif
 
 # set flags
@@ -68,7 +68,7 @@ e2e-covdata:
 	export GOCOVERDIR=$(CURDIR)/test/e2e/.cover; \
 	rm -rf $$GOCOVERDIR; \
 	mkdir -p $$GOCOVERDIR; \
-	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/internal/...,github.com/notaryproject/notation/pkg/...,github.com/notaryproject/notation/cmd/..."'; \
+	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/internal/...,github.com/notaryproject/notation/cmd/..."'; \
 	$(MAKE) e2e && go tool covdata textfmt -i=$$GOCOVERDIR -o "$(CURDIR)/test/e2e/coverage.txt"
 
 .PHONY: clean

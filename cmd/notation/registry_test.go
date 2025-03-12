@@ -20,7 +20,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 )
 
 const (

@@ -17,8 +17,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/notaryproject/notation/internal/trace"
-	"github.com/notaryproject/notation/internal/version"
+	"github.com/notaryproject/notation/v2/internal/trace"
+	"github.com/notaryproject/notation/v2/internal/version"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 

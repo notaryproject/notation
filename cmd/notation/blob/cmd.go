@@ -15,7 +15,7 @@
 package blob
 
 import (
-	"github.com/notaryproject/notation/cmd/notation/blob/policy"
+	"github.com/notaryproject/notation/v2/cmd/notation/blob/policy"
 	"github.com/spf13/cobra"
 )
 

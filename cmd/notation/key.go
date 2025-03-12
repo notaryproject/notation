@@ -23,7 +23,7 @@ import (
 
 	"github.com/notaryproject/notation-go/config"
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

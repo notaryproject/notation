@@ -16,7 +16,7 @@ package main
 import (
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 )
 
 func TestListCommand_SecretsFromArgs(t *testing.T) {

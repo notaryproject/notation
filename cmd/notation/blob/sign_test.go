@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/internal/envelope"
 )
 
 func TestBlobSignCommand_BasicArgs(t *testing.T) {

@@ -31,9 +31,9 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation-go/plugin"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	notationplugin "github.com/notaryproject/notation/cmd/notation/internal/plugin"
-	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	notationplugin "github.com/notaryproject/notation/v2/cmd/notation/internal/plugin"
+	"github.com/notaryproject/notation/v2/internal/osutil"
 	"github.com/spf13/cobra"
 )
 

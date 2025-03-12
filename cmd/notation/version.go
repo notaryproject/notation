@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/notaryproject/notation/internal/version"
+	"github.com/notaryproject/notation/v2/internal/version"
 	"github.com/spf13/cobra"
 )
 
