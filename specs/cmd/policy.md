@@ -6,7 +6,7 @@ As part of signature verification workflow of signed OCI artifacts, users need t
 
 The `notation policy` command provides a user-friendly way to manage trust policies for signed OCI images. It allows users to show trust policy configuration, import/export trust policy configuration from/to a JSON file. Users who want to manage trust policies for signed arbitrary blobs, please refer to `notation blob policy` command.
 
-To get started, user can refer to the following trust policy configuration sample `trustpolicy.json` that is applicable for verifying signed OCI artifacts using `notation verify` command. In this sample, there are four policies configured for different requirements:
+To get started, user can refer to the following trust policy configuration sample `trustpolicy.oci.json` that is applicable for verifying signed OCI artifacts using `notation verify` command. In this sample, there are four policies configured for different requirements:
 
 - The Policy named "wabbit-networks-images" is for verifying OCI artifacts signed by Wabbit Networks and stored in two repositories `registry.acme-rockets.io/software/net-monitor` and `registry.acme-rockets.io/software/net-logger`.
 - Policy named "unsigned-image" is for skipping the verification on unsigned OCI artifacts stored in repository `registry.acme-rockets.io/software/unsigned/net-utils`.
@@ -19,14 +19,14 @@ To get started, user can refer to the following trust policy configuration sampl
     "trustPolicies": [
         {
             "name": "wabbit-networks-images",
-            "registryScopes": [ 
+            "registryScopes": [
               "registry.acme-rockets.io/software/net-monitor",
-              "registry.acme-rockets.io/software/net-logger" 
+              "registry.acme-rockets.io/software/net-logger"
             ],
             "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
+            "trustStores": [
               "ca:wabbit-networks",
             ],
             "trustedIdentities": [
@@ -37,7 +37,7 @@ To get started, user can refer to the following trust policy configuration sampl
             "name": "unsigned-image",
             "registryScopes": [ "registry.acme-rockets.io/software/unsigned/net-utils" ],
             "signatureVerification": {
-              "level" : "skip" 
+              "level" : "skip"
             }
         },
         {
@@ -54,14 +54,14 @@ To get started, user can refer to the following trust policy configuration sampl
         },
         {
             "name": "global-policy-for-all-other-images",
-            "registryScopes": [ "*" ],       
-            "signatureVerification": {                                
+            "registryScopes": [ "*" ],
+            "signatureVerification": {
                 "level": "strict"
             },
-            "trustStores": [ 
+            "trustStores": [
               "ca:acme-rockets"
-            ],                  
-            "trustedIdentities": [                                    
+            ],
+            "trustedIdentities": [
                 "x509.subject: C=US, ST=WA, L=Seattle, O=acme-rockets.io, CN=SecureBuilder"
             ]
         }
@@ -118,7 +118,7 @@ Flags:
 
 An example of import trust policy configuration from a JSON file:
 
-```shell  
+```shell
 notation policy import ./my_policy.json
 ```
 
