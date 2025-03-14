@@ -16,7 +16,10 @@ package plugin
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"runtime"
+	"syscall"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/dir"
@@ -68,7 +71,27 @@ func listPlugins(command *cobra.Command) error {
 			}
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			n, metaData.Description, metaData.Version, metaData.Capabilities, err)
+			n, metaData.Description, metaData.Version, metaData.Capabilities, userFriendlyError(err))
 	}
 	return tw.Flush()
+}
+
+// userFriendlyError optimizes the error message for the user.
+func userFriendlyError(err error) error {
+	if err == nil {
+		return nil
+	}
+	var pathError *fs.PathError
+	if errors.As(err, &pathError) {
+		// for plugin does not exist
+		if errors.Is(pathError, fs.ErrNotExist) {
+			return fmt.Errorf("%w. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError)
+		}
+
+		// for plugin is not executable
+		if pathError.Op == "fork/exec" && pathError.Err == syscall.Errno(8) {
+			return fmt.Errorf("%w. Please ensure that the plugin executable file is compatible with %s/%s", pathError, runtime.GOOS, runtime.GOARCH)
+		}
+	}
+	return err
 }
