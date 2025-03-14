@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func main() {
+func run() error {
 	cmd := &cobra.Command{
 		Use:          "notation",
 		Short:        "Notation - a tool to sign and verify artifacts",
@@ -71,7 +71,11 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
-	if err := cmd.ExecuteContext(ctx); err != nil {
+	return cmd.ExecuteContext(ctx)
+}
+
+func main() {
+	if err := run(); err != nil {
 		os.Exit(1)
 	}
 }
