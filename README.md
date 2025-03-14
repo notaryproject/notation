@@ -37,6 +37,7 @@ Notary Project is a [CNCF Incubating project](https://www.cncf.io/projects/notar
 - [Build Notation from source code](/building.md)
 - [Governance for Notary Project](https://github.com/notaryproject/.github/blob/master/GOVERNANCE.md)
 - [Maintainers and reviewers list](https://github.com/notaryproject/notation/blob/main/CODEOWNERS)
+- [Contributing Guide](https://github.com/notaryproject/.github/blob/main/CONTRIBUTING.md)
 - Regular conversations for Notary Project occur on the [Cloud Native Computing Slack](https://slack.cncf.io/) **notary-project** channel.
 
 ### Notary Project Community Meeting
