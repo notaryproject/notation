@@ -85,7 +85,7 @@ func userFriendlyError(err error) error {
 	if errors.As(err, &pathError) {
 		// for plugin does not exist
 		if errors.Is(pathError, fs.ErrNotExist) {
-			return fmt.Errorf("%w. Each plugin executable must be located under $PLUGIN_DIRECTORY/{plugin-name} directory, with executable named as notation-{plugin-name}", pathError)
+			return fmt.Errorf("%w. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError)
 		}
 
 		// for plugin is not executable
