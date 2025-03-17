@@ -254,7 +254,7 @@ Upon successful execution, a local key file and certificate file named `wabbit-n
 Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command. For example,
 
 ```bash
-notation certificate generate-test "wabbit-networks.io"
+notation certificate cleanup-test "wabbit-networks.io"
 ```
 
 Upon successful execution, the following items are cleaned up:
