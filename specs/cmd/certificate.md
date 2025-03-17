@@ -257,7 +257,7 @@ Use the following command to clean up a test RSA key and its corresponding certi
 notation certificate cleanup-test "wabbit-networks.io"
 ```
 
-Upon successful execution, the following items are cleaned up:
+Upon successful execution, the following items are done:
 - The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
 - The local certificate file named `wabbit-networks.io.crt` is deleted from the trust store named `wabbit-networks.io` of type `ca`.
 - The local RSA key file `wabbit-networks.io.key` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
