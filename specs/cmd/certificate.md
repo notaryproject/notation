@@ -45,6 +45,7 @@ Aliases:
 
 Available Commands:
   add           Add certificates to the trust store.
+  cleanup-test  Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
   delete        Delete certificates from the trust store.
   generate-test Generate a test RSA key and a corresponding self-signed certificate.
   list          List certificates in the trust store.
@@ -130,6 +131,18 @@ Usage:
 Flags:
   -b, --bits int   RSA key bits (default 2048)
       --default    mark as default signing key
+  -h, --help       help for generate-test
+```
+
+### notation certificate cleanup-test
+
+```text
+Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
+
+Usage:
+  notation certificate cleanup-test [flags] <key_name>
+
+Flags:
   -h, --help       help for generate-test
 ```
 
@@ -235,3 +248,17 @@ notation certificate generate-test "wabbit-networks.io"
 ```
 
 Upon successful execution, a local key file and certificate file named `wabbit-networks.io` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as certificate subject.CommonName.
+
+### Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command
+
+Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command. For example,
+
+```bash
+notation certificate generate-test "wabbit-networks.io"
+```
+
+Upon successful execution, the following items are cleaned up:
+- The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
+- The local certificate file named `wabbit-networks.io.crt` is deleted from the trust store named `wabbit-networks.io` of type `ca`.
+- The local RSA key file `wabbit-networks.io.key` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
+- The local certificate file `wabbit-networks.io.crt` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
