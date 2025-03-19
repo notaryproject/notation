@@ -258,7 +258,7 @@ Use the following command to clean up a test RSA key and its corresponding certi
 notation certificate cleanup-test "wabbit-networks.io"
 ```
 
-A prompt will be displayed, asking the user to confirm the deletion. 
+A prompt will be displayed, asking the user to confirm the cleanup. 
 
 ```text
 Are you sure you want to clean up test key <name> and its corresponding certificate? [y/N]
@@ -271,7 +271,7 @@ To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, t
 - The local RSA key file `wabbit-networks.io.key` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
 - The local certificate file `wabbit-networks.io.crt` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
 
-If any step encounters a non-existent condition, the entire process will not be terminated. This ensures that any previous incomplete cleanup can be addressed.
+If any step encounters non-existent conditions, the entire process will not be terminated. This ensures that any previous incomplete cleanup can be addressed.
 
 A sample output for a successful execution:
 
@@ -283,7 +283,7 @@ Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
 Cleanup completed successfully.
 ```
 
-A sample output for a non-existent condition:
+A sample output for non-existent conditions:
 
 ```text
 The certificate <name>.crt does not exist in the store <name> (type ca).
