@@ -144,6 +144,7 @@ Usage:
 
 Flags:
   -h, --help       help for generate-test
+  -y, --yes        do not prompt for confirmation
 ```
 
 ## Usage
@@ -251,14 +252,50 @@ Upon successful execution, a local key file and certificate file named `wabbit-n
 
 ### Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command
 
-Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command. For example,
+Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the `generate-test` command. For example,
 
 ```bash
 notation certificate cleanup-test "wabbit-networks.io"
 ```
 
-Upon successful execution, the following items are done:
-- The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
+A prompt will be displayed, asking the user to confirm the deletion. 
+
+```text
+Are you sure you want to clean up test key <name> and its corresponding certificate? [y/N]
+```
+
+To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup` command:
+
 - The local certificate file named `wabbit-networks.io.crt` is deleted from the trust store named `wabbit-networks.io` of type `ca`.
+- The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
 - The local RSA key file `wabbit-networks.io.key` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
 - The local certificate file `wabbit-networks.io.crt` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
+
+If any step encounters a non-existent condition, the entire process will not be terminated. This ensures that any previous incomplete cleanup can be addressed.
+
+A sample output for a successful execution:
+
+```text
+Successfully deleted certificate <name>.crt from store <name> (type ca).
+Successfully removed key <name> from the key list.
+Successfully deleted key file: {NOTATION_CONFIG}/localkeys/<name>.key.
+Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
+Cleanup completed successfully.
+```
+
+A sample output for a non-existent condition:
+
+```text
+The certificate <name>.crt does not exist in the store <name> (type ca).
+The key <name> does not exist in the key list.
+The key file does not exist: {NOTATION_CONFIG}/localkeys/<name>.key.
+Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
+Cleanup completed successfully.
+```
+
+A sample output for failure:
+
+```text
+Failed to clean up test the test key <name> and its corresponding certificate: <Reason>.
+```
+
