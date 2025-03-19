@@ -85,7 +85,7 @@ func userFriendlyError(err error) error {
 	if errors.As(err, &pathError) {
 		// for plugin does not exist
 		if errors.Is(pathError, fs.ErrNotExist) {
-			return fmt.Errorf("%w. Please try using `notation plugin install` command to correctly install the plugin. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError)
+			return fmt.Errorf("%w. Please try using `notation plugin install` command to correctly install the plugin installation. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError)
 		}
 
 		// for plugin is not executable
