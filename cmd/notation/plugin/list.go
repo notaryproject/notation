@@ -89,7 +89,7 @@ func userFriendlyError(err error) error {
 		}
 
 		// for plugin is not executable
-		if pathError.Op == "fork/exec" && pathError.Err == syscall.Errno(8) {
+		if pathError.Err == syscall.ENOEXEC {
 			return fmt.Errorf("%w. Please ensure that the plugin executable file is compatible with %s/%s", pathError, runtime.GOOS, runtime.GOARCH)
 		}
 	}
