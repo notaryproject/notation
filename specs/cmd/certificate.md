@@ -261,10 +261,16 @@ notation certificate cleanup-test "wabbit-networks.io"
 A prompt will be displayed, asking the user to confirm the cleanup. 
 
 ```text
-Are you sure you want to clean up test key <name> and its corresponding certificate? [y/N]
+The test key <name> and its corresponding certificate will be cleaned up with the following changes: 
+- Delete certificate <name>.crt from store <name> (type ca). 
+- Remove key <name> from the key list. 
+- Delete key file: {NOTATION_CONFIG}/localkeys/<name>.key. 
+- Delete certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
+
+Are you sure you want to continue? [y/N]
 ```
 
-To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup` command:
+To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup-test` command:
 
 - The local certificate file named `wabbit-networks.io.crt` is deleted from the trust store named `wabbit-networks.io` of type `ca`.
 - The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
@@ -296,6 +302,6 @@ Cleanup completed successfully.
 A sample output for failure:
 
 ```text
-Failed to clean up test the test key <name> and its corresponding certificate: <Reason>.
+Failed to clean up the test key <name> and its corresponding certificate: <Reason>.
 ```
 
