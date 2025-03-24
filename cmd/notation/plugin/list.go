@@ -25,6 +25,7 @@ import (
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	pluginFramework "github.com/notaryproject/notation-plugin-framework-go/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -83,18 +84,19 @@ func userFriendlyError(pluginName string, err error) error {
 	}
 	var pathError *fs.PathError
 	if errors.As(err, &pathError) {
-		executableName := "notation-" + pluginName
+		pluginFileName := pluginFramework.BinaryPrefix + pluginName
 		if runtime.GOOS == "windows" {
-			executableName += ".exe"
+			pluginFileName += ".exe"
 		}
+
 		// for plugin does not exist
 		if errors.Is(pathError, fs.ErrNotExist) {
-			return fmt.Errorf("%w. Plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError, executableName)
+			return fmt.Errorf("%w. Plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin.", pathError, pluginFileName)
 		}
 
 		// for plugin is not executable
 		if pathError.Err == syscall.ENOEXEC {
-			return fmt.Errorf("%w. Please ensure that the plugin executable file is compatible with %s/%s", pathError, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w. Plugin executable file `%s` is not executable. Use `notation plugin install` command to install the plugin. Please ensure that the plugin executable file is compatible with %s/%s", pathError, pluginFileName, runtime.GOOS, runtime.GOARCH)
 		}
 	}
 	return err
