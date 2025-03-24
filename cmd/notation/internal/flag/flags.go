@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/notaryproject/notation/internal/config"
-	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/v2/internal/config"
+	"github.com/notaryproject/notation/v2/internal/envelope"
 	"github.com/spf13/pflag"
 )
 

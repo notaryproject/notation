@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/notaryproject/notation-go/config"
-	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/v2/internal/envelope"
 )
 
 // loadConfigOnce is a function that invokes loadConfig only once.

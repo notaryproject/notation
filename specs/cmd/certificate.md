@@ -45,6 +45,7 @@ Aliases:
 
 Available Commands:
   add           Add certificates to the trust store.
+  cleanup-test  Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
   delete        Delete certificates from the trust store.
   generate-test Generate a test RSA key and a corresponding self-signed certificate.
   list          List certificates in the trust store.
@@ -131,6 +132,19 @@ Flags:
   -b, --bits int   RSA key bits (default 2048)
       --default    mark as default signing key
   -h, --help       help for generate-test
+```
+
+### notation certificate cleanup-test
+
+```text
+Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
+
+Usage:
+  notation certificate cleanup-test [flags] <key_name>
+
+Flags:
+  -h, --help       help for generate-test
+  -y, --yes        do not prompt for confirmation
 ```
 
 ## Usage
@@ -235,3 +249,59 @@ notation certificate generate-test "wabbit-networks.io"
 ```
 
 Upon successful execution, a local key file and certificate file named `wabbit-networks.io` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as certificate subject.CommonName.
+
+### Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command
+
+Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the `generate-test` command. For example,
+
+```bash
+notation certificate cleanup-test "wabbit-networks.io"
+```
+
+A prompt will be displayed, asking the user to confirm the cleanup. 
+
+```text
+The test key <name> and its corresponding certificate will be cleaned up with the following changes: 
+- Delete certificate <name>.crt from store <name> (type ca). 
+- Remove key <name> from the key list. 
+- Delete key file: {NOTATION_CONFIG}/localkeys/<name>.key. 
+- Delete certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
+
+Are you sure you want to continue? [y/N]
+```
+
+To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup-test` command:
+
+- The local certificate file named `wabbit-networks.io.crt` is deleted from the trust store named `wabbit-networks.io` of type `ca`.
+- The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
+- The local RSA key file `wabbit-networks.io.key` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
+- The local certificate file `wabbit-networks.io.crt` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
+
+If any step encounters non-existent conditions, the entire process will not be terminated. This ensures that any previous incomplete cleanup can be addressed.
+
+A sample output for a successful execution:
+
+```text
+Successfully deleted certificate <name>.crt from store <name> (type ca).
+Successfully removed key <name> from the key list.
+Successfully deleted key file: {NOTATION_CONFIG}/localkeys/<name>.key.
+Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
+Cleanup completed successfully.
+```
+
+A sample output for non-existent conditions:
+
+```text
+The certificate <name>.crt does not exist in the store <name> (type ca).
+The key <name> does not exist in the key list.
+The key file does not exist: {NOTATION_CONFIG}/localkeys/<name>.key.
+Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
+Cleanup completed successfully.
+```
+
+A sample output for failure:
+
+```text
+Failed to clean up the test key <name> and its corresponding certificate: <Reason>.
+```
+

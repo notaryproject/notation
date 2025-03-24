@@ -61,9 +61,9 @@ Use `notation certificate` command to configure trust stores.
 
 ### Configure Trust Policy
 
-Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.json` or `trustpolicy.oci.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
+Users who consume signed artifact from a registry use the trust policy to specify trusted identities which sign the artifacts, and level of signature verification to use. The trust policy is a JSON document. User needs to create a file named `trustpolicy.oci.json` under `{NOTATION_CONFIG}`. See [Notation Directory Structure](https://notaryproject.dev/docs/user-guides/how-to/directory-structure/) for `{NOTATION_CONFIG}`.
 
-An example of `trustpolicy.json`:
+An example of `trustpolicy.oci.json`:
 
 ```jsonc
 {
@@ -85,7 +85,7 @@ An example of `trustpolicy.json`:
 }
 ```
 
-An example of `trustpolicy.json` with RFC 3161 timestamp verification support:
+An example of `trustpolicy.oci.json` with RFC 3161 timestamp verification support:
 
 ```jsonc
 {
@@ -107,11 +107,11 @@ An example of `trustpolicy.json` with RFC 3161 timestamp verification support:
 }
 ```
 
-For a Linux user, store file `trustpolicy.json` under directory `${HOME}/.config/notation/`.
+For a Linux user, store file `trustpolicy.oci.json` under directory `${HOME}/.config/notation/`.
 
-For a MacOS user, store file `trustpolicy.json` under directory `${HOME}/Library/Application Support/notation/`.
+For a MacOS user, store file `trustpolicy.oci.json` under directory `${HOME}/Library/Application Support/notation/`.
 
-For a Windows user, store file `trustpolicy.json` under directory `%USERPROFILE%\AppData\Roaming\notation\`.
+For a Windows user, store file `trustpolicy.oci.json` under directory `%USERPROFILE%\AppData\Roaming\notation\`.
 
 Example values on trust policy properties:
 
@@ -142,7 +142,7 @@ Configure trust store and trust policy properly before using `notation verify` c
 # Configure trust store by adding a certificate file into trust store named "wabbit-network" of type "ca"
 notation certificate add --type ca --store wabbit-networks wabbit-networks.crt
 
-# Create a JSON file named "trustpolicy.json" under directory "{NOTATION_CONFIG}".
+# Create a JSON file named "trustpolicy.oci.json" under directory "{NOTATION_CONFIG}".
 
 # Verify signatures on the supplied OCI artifact identified by the digest
 notation verify localhost:5000/net-monitor@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9

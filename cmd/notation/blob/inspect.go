@@ -19,9 +19,9 @@ import (
 	"os"
 
 	"github.com/notaryproject/notation-core-go/signature"
-	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 	"github.com/spf13/cobra"
 )
 

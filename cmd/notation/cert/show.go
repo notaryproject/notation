@@ -21,8 +21,8 @@ import (
 	corex509 "github.com/notaryproject/notation-core-go/x509"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/log"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/cmd/notation/internal/truststore"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/truststore"
 	"github.com/spf13/cobra"
 )
 

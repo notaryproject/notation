@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/notaryproject/notation/internal/httputil"
+	"github.com/notaryproject/notation/v2/internal/httputil"
 )
 
 // MaxPluginSourceBytes specifies the limit on how many bytes are allowed in the

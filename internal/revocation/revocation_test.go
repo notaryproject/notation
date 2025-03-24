@@ -24,7 +24,7 @@ import (
 	corecrl "github.com/notaryproject/notation-core-go/revocation/crl"
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/internal/httputil"
+	"github.com/notaryproject/notation/v2/internal/httputil"
 )
 
 func TestNewRevocationValidator(t *testing.T) {

@@ -20,9 +20,9 @@ import (
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
-	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	"github.com/notaryproject/notation/internal/osutil"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/internal/osutil"
 	"github.com/spf13/cobra"
 )
 
@@ -44,6 +44,18 @@ func initCmd() *cobra.Command {
 
 Example - init a blob trust policy configuration with a trust store and a trusted identity:
   notation blob policy init --name examplePolicy --trust-store ca:exampleStore --trusted-identity "x509.subject: C=US, ST=WA, O=acme-rockets.io"
+
+Example - init a blob trust policy configuration and set the policy statement as the global policy:
+  notation blob policy init --name examplePolicy --trust-store ca:exampleStore --trusted-identity "x509.subject: C=US, ST=WA, O=acme-rockets.io" --global
+
+Example - init a blob trust policy configuration with multiple trust stores and trusted identities:
+  notation blob policy init --name examplePolicy --trust-store ca:exampleStore --trust-store ca:exampleStore2 --trusted-identity "x509.subject: C=US, ST=WA, O=acme-rockets.io" --trusted-identity "x509.subject: C=US, ST=WA, L=Seattle, O=wabbit-networks.io"
+
+Example - init a blob trust policy configuration with any trusted identity:
+  notation blob policy init --name examplePolicy --trust-store ca:exampleStore --trusted-identity "*"
+
+Example - init a blob trust policy configuration without prompt:
+  notation blob policy init --name examplePolicy --trust-store ca:exampleStore --trusted-identity "x509.subject: C=US, ST=WA, O=acme-rockets.io" --force
 `,
 		Args: cobra.ExactArgs(0),
 		PreRun: func(cmd *cobra.Command, args []string) {

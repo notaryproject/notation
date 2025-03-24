@@ -19,11 +19,11 @@ import (
 	"fmt"
 
 	notationregistry "github.com/notaryproject/notation-go/registry"
-	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	cmderr "github.com/notaryproject/notation/cmd/notation/internal/errors"
-	"github.com/notaryproject/notation/cmd/notation/internal/experimental"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
+	cmderr "github.com/notaryproject/notation/v2/cmd/notation/internal/errors"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/experimental"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )

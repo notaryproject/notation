@@ -17,7 +17,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {

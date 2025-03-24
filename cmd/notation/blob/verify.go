@@ -21,11 +21,11 @@ import (
 	"strings"
 
 	"github.com/notaryproject/notation-go"
-	"github.com/notaryproject/notation/cmd/notation/internal/display"
-	"github.com/notaryproject/notation/cmd/notation/internal/display/output"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/cmd/notation/internal/verify"
-	"github.com/notaryproject/notation/internal/envelope"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/verify"
+	"github.com/notaryproject/notation/v2/internal/envelope"
 	"github.com/spf13/cobra"
 )
 

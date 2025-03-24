@@ -19,15 +19,15 @@ import (
 	"os/signal"
 
 	"github.com/notaryproject/notation-go/dir"
-	"github.com/notaryproject/notation/cmd/notation/blob"
-	"github.com/notaryproject/notation/cmd/notation/cert"
-	"github.com/notaryproject/notation/cmd/notation/internal/flag"
-	"github.com/notaryproject/notation/cmd/notation/plugin"
-	"github.com/notaryproject/notation/cmd/notation/policy"
+	"github.com/notaryproject/notation/v2/cmd/notation/blob"
+	"github.com/notaryproject/notation/v2/cmd/notation/cert"
+	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	"github.com/notaryproject/notation/v2/cmd/notation/plugin"
+	"github.com/notaryproject/notation/v2/cmd/notation/policy"
 	"github.com/spf13/cobra"
 )
 
-func main() {
+func run() error {
 	cmd := &cobra.Command{
 		Use:          "notation",
 		Short:        "Notation - a tool to sign and verify artifacts",
@@ -71,7 +71,11 @@ func main() {
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
-	if err := cmd.ExecuteContext(ctx); err != nil {
+	return cmd.ExecuteContext(ctx)
+}
+
+func main() {
+	if err := run(); err != nil {
 		os.Exit(1)
 	}
 }
