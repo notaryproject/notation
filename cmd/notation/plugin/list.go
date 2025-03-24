@@ -96,7 +96,7 @@ func userFriendlyError(pluginName string, err error) error {
 
 		// for plugin is not executable
 		if pathError.Err == syscall.ENOEXEC {
-			return fmt.Errorf("%w. Plugin executable file `%s` is not executable. Use `notation plugin install` command to install the plugin. Please ensure that the plugin executable file is compatible with %s/%s", pathError, pluginFileName, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("%w. Plugin file `%s` is not executable. Use `notation plugin install` command to install the plugin. Please ensure that the plugin executable file is compatible with %s/%s", pathError, pluginFileName, runtime.GOOS, runtime.GOARCH)
 		}
 	}
 	return err
