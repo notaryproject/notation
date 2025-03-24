@@ -61,8 +61,8 @@ func listPlugins(command *cobra.Command) error {
 
 	var pl plugin.Plugin
 	var resp *proto.GetMetadataResponse
-	for _, n := range pluginNames {
-		pl, err = mgr.Get(command.Context(), n)
+	for _, pluginName := range pluginNames {
+		pl, err = mgr.Get(command.Context(), pluginName)
 		metaData := &proto.GetMetadataResponse{}
 		if err == nil {
 			resp, err = pl.GetMetadata(command.Context(), &proto.GetMetadataRequest{})
@@ -71,21 +71,25 @@ func listPlugins(command *cobra.Command) error {
 			}
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			n, metaData.Description, metaData.Version, metaData.Capabilities, userFriendlyError(err))
+			pluginName, metaData.Description, metaData.Version, metaData.Capabilities, userFriendlyError(pluginName, err))
 	}
 	return tw.Flush()
 }
 
 // userFriendlyError optimizes the error message for the user.
-func userFriendlyError(err error) error {
+func userFriendlyError(pluginName string, err error) error {
 	if err == nil {
 		return nil
 	}
 	var pathError *fs.PathError
 	if errors.As(err, &pathError) {
+		executableName := "notation-" + pluginName
+		if runtime.GOOS == "windows" {
+			executableName += ".exe"
+		}
 		// for plugin does not exist
 		if errors.Is(pathError, fs.ErrNotExist) {
-			return fmt.Errorf("%w. Please try using `notation plugin install` command to correctly install the plugin installation. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError)
+			return fmt.Errorf("%w. Plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin. Each plugin executable must be placed in the $PLUGIN_DIRECTORY/{plugin-name} directory, with the executable named as 'notation-{plugin-name}'", pathError, executableName)
 		}
 
 		// for plugin is not executable
