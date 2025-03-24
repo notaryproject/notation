@@ -169,10 +169,10 @@ Upon successful listing, all the certificate files in the trust store are printe
 
 An example of the output:
 ```
-STORE TYPE         STORE NAME   CERTIFICATE   
-ca                 myStore1     cert1.pem    
-ca                 myStore2     cert2.crt       
-signingAuthority   myStore1     cert3.crt    
+STORE TYPE         STORE NAME   CERTIFICATE
+ca                 myStore1     cert1.pem
+ca                 myStore2     cert2.crt
+signingAuthority   myStore1     cert3.crt
 signingAuthority   myStore2     cert4.pem
 ```
 ### List all certificate files of a certain named store
@@ -233,7 +233,7 @@ notation certificate delete --type <type> --store <name> <cert_fileName>
 A prompt is displayed, asking the user to confirm the deletion. Upon successful deletion, the specific certificate is deleted from the trust store named `<name>` of type `<type>`. The output message is printed out as following:
 
 ```text
-Successfully deleted <cert_fileName> from the trust store. 
+Successfully deleted <cert_fileName> from the trust store.
 ```
 
 If users execute the deletion without specifying required flags using `notation cert delete <cert_fileName>`, the deletion fails and the error output message is printed out as follows:
@@ -258,16 +258,10 @@ Use the following command to clean up a test RSA key and its corresponding certi
 notation certificate cleanup-test "wabbit-networks.io"
 ```
 
-A prompt will be displayed, asking the user to confirm the cleanup. 
+A prompt will be displayed, asking the user to confirm the cleanup.
 
 ```text
-The test key <name> and its corresponding certificate will be cleaned up with the following changes: 
-- Delete certificate <name>.crt from store <name> (type ca). 
-- Remove key <name> from the key list. 
-- Delete key file: {NOTATION_CONFIG}/localkeys/<name>.key. 
-- Delete certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
-
-Are you sure you want to continue? [y/N]
+Are you sure you want to clean up test key <name> and its certificate? [y/N]
 ```
 
 To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup-test` command:

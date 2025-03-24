@@ -29,6 +29,7 @@ func Cmd() *cobra.Command {
 		certShowCommand(nil),
 		certDeleteCommand(nil),
 		certGenerateTestCommand(nil),
+		certCleanupTestCommand(nil),
 	)
 
 	return command
