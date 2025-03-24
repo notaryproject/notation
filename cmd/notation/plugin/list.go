@@ -91,12 +91,12 @@ func userFriendlyError(pluginName string, err error) error {
 
 		// for plugin does not exist
 		if errors.Is(pathError, fs.ErrNotExist) {
-			return fmt.Errorf("%w. Plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin", pathError, pluginFileName)
+			return fmt.Errorf("plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin", pluginFileName)
 		}
 
 		// for plugin is not executable
 		if pathError.Err == syscall.ENOEXEC {
-			return fmt.Errorf("%w. Plugin file `%s` is not executable. Use `notation plugin install` command to install the plugin. Please ensure that the plugin executable file is compatible with %s/%s", pathError, pluginFileName, runtime.GOOS, runtime.GOARCH)
+			return fmt.Errorf("plugin file `%s` is not executable. Use `notation plugin install` command to install the plugin. Please ensure that the plugin executable file is compatible with %s/%s", pluginFileName, runtime.GOOS, runtime.GOARCH)
 		}
 	}
 	return err
