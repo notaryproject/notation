@@ -51,7 +51,7 @@ var _ = Describe("notation plugin list", func() {
 
 			notation.Exec("plugin", "list").
 				MatchKeyWords("azure-kv").
-				MatchKeyWords("no such file or directory")
+				MatchKeyWords("not found")
 		})
 	})
 
@@ -74,7 +74,7 @@ var _ = Describe("notation plugin list", func() {
 
 			notation.Exec("plugin", "list").
 				MatchKeyWords("azure-kv").
-				MatchKeyWords("exec format error")
+				MatchKeyWords("not executable")
 		})
 	})
 })
