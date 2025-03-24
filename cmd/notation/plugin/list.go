@@ -91,7 +91,7 @@ func userFriendlyError(pluginName string, err error) error {
 
 		// for plugin does not exist
 		if errors.Is(pathError, fs.ErrNotExist) {
-			return fmt.Errorf("%w. Plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin.", pathError, pluginFileName)
+			return fmt.Errorf("%w. Plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin", pathError, pluginFileName)
 		}
 
 		// for plugin is not executable
