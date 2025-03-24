@@ -276,8 +276,8 @@ If any step encounters non-existent conditions, the entire process will not be t
 A sample output for a successful execution:
 
 ```text
-Successfully deleted certificate <name>.crt from store <name> (type ca).
-Successfully removed key <name> from the key list.
+Successfully deleted certificate <name>.crt from trust store <name> of type ca.
+Successfully removed key <name> from signingkeys.json.
 Successfully deleted key file: {NOTATION_CONFIG}/localkeys/<name>.key.
 Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
 Cleanup completed successfully.
@@ -286,9 +286,9 @@ Cleanup completed successfully.
 A sample output for non-existent conditions:
 
 ```text
-The certificate <name>.crt does not exist in the store <name> (type ca).
-The key <name> does not exist in the key list.
-The key file does not exist: {NOTATION_CONFIG}/localkeys/<name>.key.
+Certificate <name>.crt does not exist in trust store <name> of type ca.
+Key <name> does not exist in signingkeys.json.
+Key file {NOTATION_CONFIG}/localkeys/<name>.key does not exist.
 Successfully deleted certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt.
 Cleanup completed successfully.
 ```
