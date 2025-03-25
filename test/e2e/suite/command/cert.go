@@ -16,6 +16,7 @@ package command
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
@@ -264,13 +265,13 @@ var _ = Describe("notation cert", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("cert", "generate-test", "e2e-test")
 
-			localKeyPath := vhost.AbsolutePath(NotationDirName, LocalKeysDirName, "e2e-test.key")
-			os.Chmod(localKeyPath, 0000)
-			defer os.Chmod(localKeyPath, 0600)
+			localKeysDir := vhost.AbsolutePath(NotationDirName, LocalKeysDirName)
+			os.Chmod(localKeysDir, 0000)
+			defer os.Chmod(localKeysDir, 0755)
 
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchErrKeyWords(
-					fmt.Sprintf("failed to delete key file %s: permission denied", localKeyPath),
+					fmt.Sprintf("failed to delete key file %s: permission denied", filepath.Join(localKeysDir, "e2e-test.key")),
 				)
 		})
 	})
