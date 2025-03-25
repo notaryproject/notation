@@ -14,10 +14,12 @@
 package command
 
 import (
+	"fmt"
+	"path/filepath"
+
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 
-	// . "github.com/notaryproject/notation/test/e2e/suite/common"
 	. "github.com/onsi/ginkgo/v2"
 )
 
@@ -118,12 +120,14 @@ var _ = Describe("notation cert", func() {
 					"e2e-test: added to the key list",
 				)
 
+			localKeyPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.key")
+			localCertPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.crt")
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
 					`Successfully removed key e2e-test from signingkeys.json`,
-					`Successfully deleted key file:`,
-					`Successfully deleted certificate file:`,
+					fmt.Sprintf(`Successfully deleted key file: %s`, localKeyPath),
+					fmt.Sprintf(`Successfully deleted certificate file: %s`, localCertPath),
 					"Cleanup completed successfully",
 				)
 		})
@@ -142,12 +146,14 @@ var _ = Describe("notation cert", func() {
 					"e2e-test: mark as default signing key",
 				)
 
-			notation.Exec("cert", "cleanup-test", "e2e-test").
+			localKeyPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.key")
+			localCertPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.crt")
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
 					`Successfully removed key e2e-test from signingkeys.json`,
-					`Successfully deleted key file:`,
-					`Successfully deleted certificate file:`,
+					fmt.Sprintf(`Successfully deleted key file: %s`, localKeyPath),
+					fmt.Sprintf(`Successfully deleted certificate file: %s`, localCertPath),
 					"Cleanup completed successfully",
 				)
 		})
