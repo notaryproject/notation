@@ -247,19 +247,37 @@ var _ = Describe("notation cert", func() {
 		})
 	})
 
-	// It("cleanup test failed at deleting certificate from trust store", func() {
-	// 	Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
-	// 		notation.Exec("cert", "generate-test", "e2e-test")
+	It("cleanup test failed at deleting certificate from trust store", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
 
-	// 		certPath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test", "e2e-test.crt")
-	// 		os.Chmod(certPath, 0400)
-	// 		notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
-	// 			MatchErrKeyWords(
-	// 				"failed to delete certificate e2e-test.crt from trust store e2e-test of type ca: permission denied",
-	// 			)
-	// 		os.Chmod(certPath, 0600)
-	// 	})
-	// })
+			certPath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test")
+			os.Chmod(certPath, 0000)
+			defer os.Chmod(certPath, 0755)
+
+			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchErrKeyWords(
+					"failed to delete certificate e2e-test.crt from trust store e2e-test of type ca",
+					"permission denied",
+				)
+		})
+	})
+
+	It("cleanup test failed at removing key from signingkeys.json", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
+
+			signingKeyPath := vhost.AbsolutePath(NotationDirName, SigningKeysFileName)
+			os.Chmod(signingKeyPath, 0000)
+			defer os.Chmod(signingKeyPath, 0600)
+
+			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchErrKeyWords(
+					"failed to remove key e2e-test from signingkeys.json",
+					"permission denied",
+				)
+		})
+	})
 
 	It("cleanup test failed at deleting local key file", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
@@ -271,7 +289,8 @@ var _ = Describe("notation cert", func() {
 
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchErrKeyWords(
-					fmt.Sprintf("failed to delete key file %s: permission denied", filepath.Join(localKeysDir, "e2e-test.key")),
+					fmt.Sprintf("failed to delete key file %s", filepath.Join(localKeysDir, "e2e-test.key")),
+					"permission denied",
 				)
 		})
 	})
