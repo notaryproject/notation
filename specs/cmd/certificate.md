@@ -4,10 +4,11 @@
 
 Use ```notation certificate``` command to add/list/delete certificates in notation's trust store. Updating an existing certificate is not allowed since the thumbprint will be inconsistent, which results in a new certificate.
 
-The trust store is in the format of a directory in the filesystem as`x509/<type>/<name>/*.crt|*.cer|*.pem`. Currently two types of trust store are supported:
+The trust store is in the format of a directory in the filesystem as`x509/<type>/<name>/*.crt|*.cer|*.pem`. Currently three types of trust store are supported:
 
-* `Certificate Authority`: The directory name is `ca`.
+* `Certificate Authority`: The directory name is `ca`
 * `Signing Authority`: The directory name is `signingAuthority`
+* `Timestamping Authority`: The directory name is `tsa`
 
 There could be more trust store types introduced in the future.
 
@@ -26,9 +27,13 @@ $XDG_CONFIG_HOME/notation/truststore
         /signingAuthority
             /wabbit-networks
                 cert3.crt
+
+        /tsa
+            /trusted-tsa
+                tsa.crt
 ```
 
-In this example, there are two certificates stored in trust store named `acme-rockets` of type `ca`. There is one certificate stored in trust store named `wabbit-networks` of type `signingAuthority`.
+In this example, there are two certificates stored in trust store named `acme-rockets` of type `ca`. There is one certificate stored in trust store named `wabbit-networks` of type `signingAuthority`. And there is one certificate stored in trust store named `trusted-tsa` of type `tsa`.
 
 ## Outline
 
@@ -66,7 +71,7 @@ Usage:
 Flags:
   -h, --help           help for add
   -s, --store string   specify named store
-  -t, --type string    specify trust store type, options: ca, signingAuthority
+  -t, --type string    specify trust store type, options: ca, signingAuthority, tsa
 ```
 
 ### notation certificate list
@@ -84,7 +89,7 @@ Flags:
   -d, --debug          debug mode
   -h, --help           help for list
   -s, --store string   specify named store
-  -t, --type string    specify trust store type, options: ca, signingAuthority
+  -t, --type string    specify trust store type, options: ca, signingAuthority, tsa
   -v, --verbose        verbose mode
 ```
 
@@ -100,7 +105,7 @@ Flags:
   -d, --debug          debug mode
   -h, --help           help for show
   -s, --store string   specify named store
-  -t, --type string    specify trust store type, options: ca, signingAuthority
+  -t, --type string    specify trust store type, options: ca, signingAuthority, tsa
   -v, --verbose        verbose mode
 ```
 
@@ -116,7 +121,7 @@ Flags:
   -a, --all            delete all certificates in the named store
   -h, --help           help for delete
   -s, --store string   specify named store
-  -t, --type string    specify trust store type, options: ca, signingAuthority
+  -t, --type string    specify trust store type, options: ca, signingAuthority, tsa
   -y, --yes            do not prompt for confirmation
 ```
 
@@ -174,6 +179,7 @@ ca                 myStore1     cert1.pem
 ca                 myStore2     cert2.crt
 signingAuthority   myStore1     cert3.crt
 signingAuthority   myStore2     cert4.pem
+tsa                myTSA        tsa.crt
 ```
 ### List all certificate files of a certain named store
 
@@ -252,7 +258,7 @@ Upon successful execution, a local key file and certificate file named `wabbit-n
 
 ### Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command
 
-Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the `generate-test` command. For example,
+Use the following command to clean up a test RSA key and its corresponding certificate that were generated using the `generate-test` command.
 
 ```bash
 notation certificate cleanup-test "wabbit-networks.io"
@@ -267,7 +273,7 @@ Are you sure you want to clean up test key <name> and its certificate? [y/N]
 To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup-test` command:
 
 - The local certificate file named `wabbit-networks.io.crt` is deleted from the trust store named `wabbit-networks.io` of type `ca`.
-- The configuration with local RSA key named `wabbit-networks.io` is removed from the Notation configuration file `{NOTATION_CONFIG}/signingkeys.json`.
+- The configuration with local RSA key named `wabbit-networks.io` is removed from `{NOTATION_CONFIG}/signingkeys.json`.
 - The local RSA key file `wabbit-networks.io.key` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
 - The local certificate file `wabbit-networks.io.crt` is deleted from the directory "{NOTATION_CONFIG}/localkeys".
 
