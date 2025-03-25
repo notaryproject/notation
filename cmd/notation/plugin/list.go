@@ -16,12 +16,16 @@ package plugin
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"runtime"
+	"syscall"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/plugin"
 	"github.com/notaryproject/notation-go/plugin/proto"
+	pluginFramework "github.com/notaryproject/notation-plugin-framework-go/plugin"
 	"github.com/spf13/cobra"
 )
 
@@ -58,8 +62,8 @@ func listPlugins(command *cobra.Command) error {
 
 	var pl plugin.Plugin
 	var resp *proto.GetMetadataResponse
-	for _, n := range pluginNames {
-		pl, err = mgr.Get(command.Context(), n)
+	for _, pluginName := range pluginNames {
+		pl, err = mgr.Get(command.Context(), pluginName)
 		metaData := &proto.GetMetadataResponse{}
 		if err == nil {
 			resp, err = pl.GetMetadata(command.Context(), &proto.GetMetadataRequest{})
@@ -68,7 +72,32 @@ func listPlugins(command *cobra.Command) error {
 			}
 		}
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%v\t%v\t\n",
-			n, metaData.Description, metaData.Version, metaData.Capabilities, err)
+			pluginName, metaData.Description, metaData.Version, metaData.Capabilities, userFriendlyError(pluginName, err))
 	}
 	return tw.Flush()
+}
+
+// userFriendlyError optimizes the error message for the user.
+func userFriendlyError(pluginName string, err error) error {
+	if err == nil {
+		return nil
+	}
+	var pathError *fs.PathError
+	if errors.As(err, &pathError) {
+		pluginFileName := pluginFramework.BinaryPrefix + pluginName
+		if runtime.GOOS == "windows" {
+			pluginFileName += ".exe"
+		}
+
+		// for plugin does not exist
+		if errors.Is(pathError, fs.ErrNotExist) {
+			return fmt.Errorf("plugin executable file `%s` not found. Use `notation plugin install` command to install the plugin", pluginFileName)
+		}
+
+		// for plugin is not executable
+		if pathError.Err == syscall.ENOEXEC {
+			return fmt.Errorf("plugin file `%s` is not executable. Use `notation plugin install` command to install the plugin. Please ensure that the plugin executable file is compatible with %s/%s", pluginFileName, runtime.GOOS, runtime.GOARCH)
+		}
+	}
+	return err
 }
