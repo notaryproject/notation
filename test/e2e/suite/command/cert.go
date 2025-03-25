@@ -255,7 +255,7 @@ var _ = Describe("notation cert", func() {
 			if err != nil {
 				Fail(err.Error())
 			}
-			os.Chmod(certPath, 0200)
+			os.Chmod(certPath, 0400)
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchErrKeyWords(
 					"failed to delete certificate e2e-test.crt from trust store e2e-test of type ca: permission denied",
