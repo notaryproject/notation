@@ -84,7 +84,7 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	if err != nil {
 		var pathError *fs.PathError
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
-			fmt.Printf("Certificate %s does not exist in trust store %s of type ca.", certFileName, name)
+			fmt.Printf("Certificate %s does not exist in trust store %s of type ca\n", certFileName, name)
 		} else {
 			return err
 		}
@@ -98,33 +98,35 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	err = config.LoadExecSaveSigningKeys(exec)
 	if err != nil {
 		if errors.Is(err, config.KeyNotFoundError{KeyName: name}) {
-			fmt.Printf("Key %s does not exist in signingkeys.json.", name)
+			fmt.Printf("Key %s does not exist in signingkeys.json\n", name)
 		} else {
 			return err
 		}
 	}
 	fmt.Printf("Successfully removed key %s from signingkeys.json\n", name)
 
-	// 3. remove key and certificate files from LocalKeyPath
+	// 3. delete key and certificate files from LocalKeyPath
 	keyPath, _ := configFS.SysPath(relativeKeyPath) // err is always nil
 	err = os.Remove(keyPath)
 	if err != nil {
 		var pathError *fs.PathError
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
-			fmt.Printf("The key file %s does not exist.", keyPath)
+			fmt.Printf("Key file %s does not exist\n", keyPath)
 		} else {
 			return err
 		}
 	}
+	fmt.Printf("Successfully deleted key file: %s\n", keyPath)
 	err = os.Remove(certPath)
 	if err != nil {
 		var pathError *fs.PathError
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
-			fmt.Printf("The certificate file %s does not exist.", certPath)
+			fmt.Printf("Certificate file %s does not exist.", certPath)
 		} else {
 			return err
 		}
 	}
-	fmt.Println("Cleanup completed successfully.")
+	fmt.Printf("Successfully deleted certificate file: %s\n", certPath)
+	fmt.Printf("Cleanup completed successfully")
 	return nil
 }
