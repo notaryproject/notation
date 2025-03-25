@@ -15,8 +15,8 @@ package command
 
 import (
 	"fmt"
-	"path/filepath"
 
+	"github.com/notaryproject/notation-go/dir"
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 
@@ -120,8 +120,9 @@ var _ = Describe("notation cert", func() {
 					"e2e-test: added to the key list",
 				)
 
-			localKeyPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.key")
-			localCertPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.crt")
+			relativeKeyPath, relativeCertPath := dir.LocalKeyPath("e2e-test")
+			localKeyPath, _ := dir.ConfigFS().SysPath(relativeKeyPath)
+			localCertPath, _ := dir.ConfigFS().SysPath(relativeCertPath)
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
@@ -145,9 +146,9 @@ var _ = Describe("notation cert", func() {
 					"e2e-test: added to the key list",
 					"e2e-test: mark as default signing key",
 				)
-
-			localKeyPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.key")
-			localCertPath := filepath.Join(NotationE2ELocalKeysDir, "e2e-test.crt")
+			relativeKeyPath, relativeCertPath := dir.LocalKeyPath("e2e-test")
+			localKeyPath, _ := dir.ConfigFS().SysPath(relativeKeyPath)
+			localCertPath, _ := dir.ConfigFS().SysPath(relativeCertPath)
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
