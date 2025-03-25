@@ -39,7 +39,7 @@ var _ = Describe("notation blob", Serial, func() {
 			notation.Exec("cert", "generate-test", "--default", "testcert").
 				MatchKeyWords(
 					"Successfully added testcert.crt to named store testcert of type ca",
-					"testcert: added to the key list",
+					"testcert: added to signingkeys.json",
 				)
 
 			// sign the file

@@ -118,7 +118,7 @@ var _ = Describe("notation cert", func() {
 					"wrote key:", "e2e-test.key",
 					"wrote certificate:", "e2e-test.crt",
 					"Successfully added e2e-test.crt to named store e2e-test of type ca",
-					"e2e-test: added to the key list",
+					"e2e-test: added to signingkeys.json",
 				)
 
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
@@ -141,8 +141,8 @@ var _ = Describe("notation cert", func() {
 					"wrote key:", "e2e-test.key",
 					"wrote certificate:", "e2e-test.crt",
 					"Successfully added e2e-test.crt to named store e2e-test of type ca",
-					"e2e-test: added to the key list",
-					"e2e-test: mark as default signing key",
+					"e2e-test: added to signingkeys.json",
+					"e2e-test: marked as default signing key",
 				)
 
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").

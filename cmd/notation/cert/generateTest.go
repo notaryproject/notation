@@ -136,9 +136,9 @@ func generateTestCert(opts *certGenerateTestOpts) error {
 	}
 
 	// write out
-	fmt.Printf("%s: added to the key list\n", name)
+	fmt.Printf("%s: added to signingkeys.json\n", name)
 	if opts.isDefault {
-		fmt.Printf("%s: mark as default signing key\n", name)
+		fmt.Printf("%s: marked as default signing key\n", name)
 	}
 	return nil
 }

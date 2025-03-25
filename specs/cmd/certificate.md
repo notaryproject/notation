@@ -248,13 +248,13 @@ If users execute the deletion without specifying required flags using `notation 
 Error: required flag(s) "store", "type" not set
 ```
 
-### Generate a local RSA key and a corresponding self-generated certificate for testing purpose and add the certificate into trust store
+### Generate a local RSA key and a corresponding self-generated certificate for testing purpose
 
 ```bash
 notation certificate generate-test "wabbit-networks.io"
 ```
 
-Upon successful execution, a local key file and certificate file named `wabbit-networks.io` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as certificate subject.CommonName.
+Upon successful execution, a local key file named `wabbit-networks.io.key` and a certificate file named `wabbit-networks.io.crt` are generated and stored in `$XDG_CONFIG_HOME/notation/localkeys/`. `wabbit-networks.io` is also used as the certificate's subject.CommonName. The certificate is added to trust store `wabbit-networks.io` of type `ca`. And the key with name `wabbit-networks.io` is added into `{NOTATION_CONFIG}/signingkeys.json`.
 
 ### Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command
 
