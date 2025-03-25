@@ -126,7 +126,7 @@ Flags:
 Generate a test RSA key and a corresponding self-signed certificate.
 
 Usage:
-  notation certificate generate-test [flags] <common_name>
+  notation certificate generate-test [flags] <key_name>
 
 Flags:
   -b, --bits int   RSA key bits (default 2048)
