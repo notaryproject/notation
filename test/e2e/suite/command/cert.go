@@ -14,6 +14,9 @@
 package command
 
 import (
+	"os"
+
+	"github.com/notaryproject/notation-go/config"
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 
@@ -43,7 +46,7 @@ var _ = Describe("notation cert", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("cert", "delete", "--type", "ca", "--store", "e2e", "e2e.crt", "-y").
 				MatchKeyWords(
-					"Successfully deleted e2e.crt",
+					"Successfully deleted e2e.crt from trust store e2e of type ca",
 				)
 		})
 	})
@@ -120,9 +123,9 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
-					`Successfully removed key e2e-test from signingkeys.json`,
-					`Successfully deleted key file:`, "e2e-test.key",
-					`Successfully deleted certificate file:`, "e2e-test.crt",
+					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully deleted key file:", "e2e-test.key",
+					"Successfully deleted certificate file:", "e2e-test.crt",
 					"Cleanup completed successfully",
 				)
 		})
@@ -144,10 +147,122 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
-					`Successfully removed key e2e-test from signingkeys.json`,
-					`Successfully deleted key file:`, "e2e-test.key",
-					`Successfully deleted certificate file:`, "e2e-test.crt",
+					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully deleted key file:", "e2e-test.key",
+					"Successfully deleted certificate file:", "e2e-test.crt",
 					"Cleanup completed successfully",
+				)
+		})
+	})
+
+	It("cleanup test with certificate not in trust store", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
+
+			notation.Exec("cert", "delete", "--type", "ca", "--store", "e2e-test", "e2e-test.crt", "-y").
+				MatchKeyWords(
+					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
+				)
+
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchKeyWords(
+					"Certificate e2e-test.crt does not exist in trust store e2e-test of type ca",
+					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully deleted key file:", "e2e-test.key",
+					"Successfully deleted certificate file:", "e2e-test.crt",
+					"Cleanup completed successfully",
+				)
+		})
+	})
+
+	It("cleanup test with key not in signingkeys.json", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
+
+			exec := func(s *config.SigningKeys) error {
+				_, err := s.Remove("e2e-test")
+				return err
+			}
+			if err := config.LoadExecSaveSigningKeys(exec); err != nil {
+				Fail(err.Error())
+			}
+
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchKeyWords(
+					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
+					"Key e2e-test does not exist in signingkeys.json",
+					"Successfully deleted key file:", "e2e-test.key",
+					"Successfully deleted certificate file:", "e2e-test.crt",
+					"Cleanup completed successfully",
+				)
+		})
+	})
+
+	It("cleanup test without local key file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
+
+			localKeyPath := vhost.AbsolutePath(NotationDirName, LocalKeysDirName, "e2e-test.key")
+			if err := os.Remove(localKeyPath); err != nil {
+				Fail(err.Error())
+			}
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchKeyWords(
+					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
+					"Successfully removed key e2e-test from signingkeys.json",
+					"Key file e2e-test.key does not exist",
+					"Successfully deleted certificate file:", "e2e-test.crt",
+					"Cleanup completed successfully",
+				)
+		})
+	})
+
+	It("cleanup test without local certificate file", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
+
+			localCertPath := vhost.AbsolutePath(NotationDirName, LocalKeysDirName, "e2e-test.crt")
+			if err := os.Remove(localCertPath); err != nil {
+				Fail(err.Error())
+			}
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchKeyWords(
+					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
+					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully deleted key file: e2e-test.key",
+					"Certificate file e2e-test.crt does not exist",
+					"Cleanup completed successfully",
+				)
+		})
+	})
+
+	It("cleanup test missing key name", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("cert", "cleanup-test").
+				MatchErrKeyWords(
+					"missing key name",
+				)
+		})
+	})
+
+	It("cleanup test with empty key name", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("cert", "cleanup-test", "").
+				MatchErrKeyWords(
+					"key name must follow [a-zA-Z0-9_.-]+ format",
+				)
+		})
+	})
+
+	It("cleanup test failed at deleting certificate from trust store", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test")
+
+			certPath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test", "e2e-test.crt")
+			os.Chmod(certPath, 0200)
+			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchErrKeyWords(
+					"failed to delete certificate e2e-test.crt from trust store e2e-test of type ca: permission denied",
 				)
 		})
 	})

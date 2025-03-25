@@ -43,8 +43,8 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 			if len(args) == 0 {
 				return errors.New("missing key name")
 			}
-			if args[0] == "" {
-				return errors.New("key name cannot be empty")
+			if !truststore.IsValidFileName(args[0]) {
+				return errors.New("key name must follow [a-zA-Z0-9_.-]+ format")
 			}
 			opts.name = args[0]
 			return nil
@@ -63,9 +63,6 @@ Example - Clean up a test key and corresponding certificate named "wabbit-networ
 
 func cleanupTestCert(opts *certCleanupTestOpts) error {
 	name := opts.name
-	if !truststore.IsValidFileName(name) {
-		return errors.New("name needs to follow [a-zA-Z0-9_.-]+ format")
-	}
 	prompt := fmt.Sprintf("Are you sure you want to clean up test key %q and its certificate?", name)
 	confirmed, err := display.AskForConfirmation(os.Stdin, prompt, opts.confirmed)
 	if err != nil {
@@ -86,7 +83,7 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
 			fmt.Printf("Certificate %s does not exist in trust store %s of type ca\n", certFileName, name)
 		} else {
-			return err
+			return fmt.Errorf("failed to delete certificate %s from trust store %s of type ca: %w", certFileName, name, err)
 		}
 	}
 
@@ -121,12 +118,12 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	if err != nil {
 		var pathError *fs.PathError
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
-			fmt.Printf("Certificate file %s does not exist.", certPath)
+			fmt.Printf("Certificate file %s does not exist\n", certPath)
 		} else {
 			return err
 		}
 	}
 	fmt.Printf("Successfully deleted certificate file: %s\n", certPath)
-	fmt.Printf("Cleanup completed successfully")
+	fmt.Println("Cleanup completed successfully")
 	return nil
 }
