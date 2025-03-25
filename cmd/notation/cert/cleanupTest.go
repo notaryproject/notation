@@ -99,8 +99,9 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		} else {
 			return err
 		}
+	} else {
+		fmt.Printf("Successfully removed key %s from signingkeys.json\n", name)
 	}
-	fmt.Printf("Successfully removed key %s from signingkeys.json\n", name)
 
 	// 3. delete key and certificate files from LocalKeyPath
 	keyPath, _ := configFS.SysPath(relativeKeyPath) // err is always nil
@@ -112,8 +113,9 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		} else {
 			return err
 		}
+	} else {
+		fmt.Printf("Successfully deleted key file: %s\n", keyPath)
 	}
-	fmt.Printf("Successfully deleted key file: %s\n", keyPath)
 	err = os.Remove(certPath)
 	if err != nil {
 		var pathError *fs.PathError
@@ -122,8 +124,9 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		} else {
 			return err
 		}
+	} else {
+		fmt.Printf("Successfully deleted certificate file: %s\n", certPath)
 	}
-	fmt.Printf("Successfully deleted certificate file: %s\n", certPath)
 	fmt.Println("Cleanup completed successfully")
 	return nil
 }
