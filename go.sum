@@ -38,8 +38,13 @@ github.com/jcmturner/rpc/v2 v2.0.3 h1:7FXXj8Ti1IaVFpSAziCZWNzbNuZmnvw/i6CqLNdWfZ
 github.com/jcmturner/rpc/v2 v2.0.3/go.mod h1:VUJYCIDm3PVOEHw8sgt091/20OJjskO/YJki3ELg/Hc=
 github.com/notaryproject/notation-core-go v1.2.0 h1:WElMG9X0YXJhBd0A4VOxLNalTLrTjvqtIAj7JHr5X08=
 github.com/notaryproject/notation-core-go v1.2.0/go.mod h1:+y3L1dOs2/ZwJIU5Imo7BBvZ/M3CFjXkydGGdK09EtA=
+<<<<<<< HEAD
 github.com/notaryproject/notation-go v1.3.1 h1:JLJ9HiwMwPAFNkJEBkF8iBdNazdEKrGAylOKoFjTd6o=
 github.com/notaryproject/notation-go v1.3.1/go.mod h1:Qytzn2v8nYkA9G44fbXKh1Tnvz8ONmod2Tgtkrl5zYc=
+=======
+github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250310060348-fdcf9cc47604 h1:uw65pHgN+NXAqHssmlRJUkcl515AQgMIOdC6tbBHHXE=
+github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250310060348-fdcf9cc47604/go.mod h1:NXYZyzIawUSyv+C0Gs8bBYJ1q8a1gy78GEss8fPNZmY=
+>>>>>>> b7a2f0c (fix: plugin error message (#1217))
 github.com/notaryproject/notation-plugin-framework-go v1.0.0 h1:6Qzr7DGXoCgXEQN+1gTZWuJAZvxh3p8Lryjn5FaLzi4=
 github.com/notaryproject/notation-plugin-framework-go v1.0.0/go.mod h1:RqWSrTOtEASCrGOEffq0n8pSg2KOgKYiWqFWczRSics=
 github.com/notaryproject/tspclient-go v1.0.0 h1:AwQ4x0gX8IHnyiZB1tggpn5NFqHpTEm1SDX8YNv4Dg4=
