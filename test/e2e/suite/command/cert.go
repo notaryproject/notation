@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/notaryproject/notation-go/dir"
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
 	"github.com/notaryproject/notation/test/e2e/internal/utils"
 
@@ -251,10 +250,7 @@ var _ = Describe("notation cert", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("cert", "generate-test", "e2e-test")
 
-			certPath, err := dir.ConfigFS().SysPath(TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test", "e2e-test.crt")
-			if err != nil {
-				Fail(err.Error())
-			}
+			certPath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test", "e2e-test.crt")
 			os.Chmod(certPath, 0400)
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchErrKeyWords(
