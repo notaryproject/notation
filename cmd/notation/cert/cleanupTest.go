@@ -51,7 +51,7 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 		},
 		Long: `Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
 Example - Clean up a test key and corresponding certificate named "wabbit-networks.io":
-  notation cert cleanup-test "wabbit-networks.io"
+  notation cert cleanup-test wabbit-networks.io
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cleanupTestCert(opts)

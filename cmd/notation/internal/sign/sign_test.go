@@ -177,7 +177,7 @@ func TestGetSignerFailed(t *testing.T) {
 
 	t.Run("key not found", func(t *testing.T) {
 		dir.UserConfigDir = "./testdata/valid_signingkeys"
-		expectedErrMsg := `signing key not found`
+		expectedErrMsg := `signing key test2 not found`
 		opts := &flag.SignerFlagOpts{
 			Key: "test2",
 		}
