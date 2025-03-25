@@ -67,7 +67,7 @@ Example - Delete certificate "wabbit-networks-timestamp.pem" with "tsa" type fro
 			return deleteCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority, tsa")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.Flags().BoolVarP(&opts.all, "all", "a", false, "delete all certificates in the named store")
 	command.Flags().BoolVarP(&opts.confirmed, "yes", "y", false, "do not prompt for confirmation")

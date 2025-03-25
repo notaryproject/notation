@@ -66,7 +66,7 @@ Example - Show details of certificate "wabbit-networks-timestamp.pem" with type 
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority, tsa")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.MarkFlagRequired("type")
 	command.MarkFlagRequired("store")
