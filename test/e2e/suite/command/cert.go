@@ -265,7 +265,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "generate-test", "e2e-test")
 
 			localKeyPath := vhost.AbsolutePath(NotationDirName, LocalKeysDirName, "e2e-test.key")
-			os.Chmod(localKeyPath, 0400)
+			os.Chmod(localKeyPath, 0000)
 			defer os.Chmod(localKeyPath, 0600)
 
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
