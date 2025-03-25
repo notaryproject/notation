@@ -97,7 +97,7 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		if errors.Is(err, config.KeyNotFoundError{KeyName: name}) {
 			fmt.Printf("Key %s does not exist in signingkeys.json\n", name)
 		} else {
-			return err
+			return fmt.Errorf("failed to remove key %s from signingkeys.json: %w", name, err)
 		}
 	} else {
 		fmt.Printf("Successfully removed key %s from signingkeys.json\n", name)
@@ -111,7 +111,7 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
 			fmt.Printf("Key file %s does not exist\n", keyPath)
 		} else {
-			return err
+			return fmt.Errorf("failed to delete key file %s: %w", keyPath, err)
 		}
 	} else {
 		fmt.Printf("Successfully deleted key file: %s\n", keyPath)
@@ -122,7 +122,7 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
 			fmt.Printf("Certificate file %s does not exist\n", certPath)
 		} else {
-			return err
+			return fmt.Errorf("failed to delete certificate file %s: %w", certPath, err)
 		}
 	} else {
 		fmt.Printf("Successfully deleted certificate file: %s\n", certPath)

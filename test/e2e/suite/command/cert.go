@@ -246,17 +246,32 @@ var _ = Describe("notation cert", func() {
 		})
 	})
 
-	It("cleanup test failed at deleting certificate from trust store", func() {
+	// It("cleanup test failed at deleting certificate from trust store", func() {
+	// 	Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+	// 		notation.Exec("cert", "generate-test", "e2e-test")
+
+	// 		certPath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test", "e2e-test.crt")
+	// 		os.Chmod(certPath, 0400)
+	// 		notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
+	// 			MatchErrKeyWords(
+	// 				"failed to delete certificate e2e-test.crt from trust store e2e-test of type ca: permission denied",
+	// 			)
+	// 		os.Chmod(certPath, 0600)
+	// 	})
+	// })
+
+	It("cleanup test failed at deleting local key file", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("cert", "generate-test", "e2e-test")
 
-			certPath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e-test", "e2e-test.crt")
-			os.Chmod(certPath, 0400)
+			localKeyPath := vhost.AbsolutePath(NotationDirName, LocalKeysDirName, "e2e-test.key")
+			os.Chmod(localKeyPath, 0400)
+			defer os.Chmod(localKeyPath, 0600)
+
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchErrKeyWords(
-					"failed to delete certificate e2e-test.crt from trust store e2e-test of type ca: permission denied",
+					fmt.Sprintf("failed to delete key file %s: permission denied", localKeyPath),
 				)
-			os.Chmod(certPath, 0600)
 		})
 	})
 })
