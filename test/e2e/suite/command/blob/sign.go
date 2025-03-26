@@ -135,7 +135,7 @@ var _ = Describe("notation blob sign", func() {
 	It("with invalid key", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("blob", "sign", "--key", "invalid", blobPath).
-				MatchErrKeyWords("signing key not found")
+				MatchErrKeyWords("signing key invalid not found")
 		})
 	})
 

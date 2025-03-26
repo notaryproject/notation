@@ -11,6 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cert provides implementation of the `notation certificate` command
 package cert
 
 import "github.com/spf13/cobra"
@@ -29,6 +30,7 @@ func Cmd() *cobra.Command {
 		certShowCommand(nil),
 		certDeleteCommand(nil),
 		certGenerateTestCommand(nil),
+		certCleanupTestCommand(nil),
 	)
 
 	return command
