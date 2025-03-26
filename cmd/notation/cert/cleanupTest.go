@@ -86,11 +86,10 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	// 1. remove from trust store
 	err = truststore.DeleteCert("ca", name, certFileName, true)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			fmt.Printf("Certificate %s does not exist in trust store %s of type ca\n", certFileName, name)
-		} else {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to delete certificate %s from trust store %s of type ca: %w", certFileName, name, err)
 		}
+		fmt.Printf("Certificate %s does not exist in trust store %s of type ca\n", certFileName, name)
 	}
 
 	// 2. remove key from signingkeys.json config
@@ -101,11 +100,10 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	err = config.LoadExecSaveSigningKeys(exec)
 	if err != nil {
 		var keyNotFoundError config.KeyNotFoundError
-		if errors.As(err, &keyNotFoundError) {
-			fmt.Printf("Key %s does not exist in the key list\n", name)
-		} else {
+		if !errors.As(err, &keyNotFoundError) {
 			return fmt.Errorf("failed to remove key %s from the key list: %w", name, err)
 		}
+		fmt.Printf("Key %s does not exist in the key list\n", name)
 	} else {
 		fmt.Printf("Successfully removed key %s from the key list\n", name)
 	}
@@ -113,21 +111,19 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	// 3. delete key and certificate files from LocalKeyPath
 	err = os.Remove(keyPath)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			fmt.Printf("Key file %s does not exist\n", keyPath)
-		} else {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to delete key file %s: %w", keyPath, err)
 		}
+		fmt.Printf("Key file %s does not exist\n", keyPath)
 	} else {
 		fmt.Printf("Successfully deleted key file: %s\n", keyPath)
 	}
 	err = os.Remove(certPath)
 	if err != nil {
-		if errors.Is(err, fs.ErrNotExist) {
-			fmt.Printf("Certificate file %s does not exist\n", certPath)
-		} else {
+		if !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("failed to delete certificate file %s: %w", certPath, err)
 		}
+		fmt.Printf("Certificate file %s does not exist\n", certPath)
 	} else {
 		fmt.Printf("Successfully deleted certificate file: %s\n", certPath)
 	}
