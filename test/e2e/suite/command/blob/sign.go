@@ -28,12 +28,20 @@ const tsaURL = "http://timestamp.digicert.com"
 
 var _ = Describe("notation blob sign", func() {
 	// Success cases
-	It("with blob sign", func() {
+	It("with store signature file in the same directory as the blob by default", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			blobDir := filepath.Dir(blobPath)
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords(fmt.Sprintf("Signature file written to %s", blobDir))
+		})
+	})
+
+	It("with store signature file in the current working directory", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath, "--signature-directory", ".").
+				MatchKeyWords(SignSuccessfully).
+				MatchKeyWords("Signature file written to .")
 		})
 	})
 
