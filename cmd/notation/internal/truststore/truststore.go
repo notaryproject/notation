@@ -190,7 +190,7 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 		return err
 	}
 	// write out on success
-	fmt.Printf("Successfully deleted %s\n", cert)
+	fmt.Printf("Successfully deleted %s from trust store %s of type %s\n", cert, namedStore, storeType)
 	return nil
 }
 

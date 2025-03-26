@@ -148,7 +148,7 @@ Usage:
   notation certificate cleanup-test [flags] <common_name>
 
 Flags:
-  -h, --help       help for generate-test
+  -h, --help       help for cleanup-test
   -y, --yes        do not prompt for confirmation
 ```
 
