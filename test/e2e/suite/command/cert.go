@@ -156,6 +156,48 @@ var _ = Describe("notation cert", func() {
 		})
 	})
 
+	It("cleanup test with same name more than one time", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "generate-test", "e2e-test").
+				MatchKeyWords(
+					"generating RSA Key with 2048 bits",
+					"generated certificate expiring on",
+					"wrote key:", "e2e-test.key",
+					"wrote certificate:", "e2e-test.crt",
+					"Successfully added e2e-test.crt to named store e2e-test of type ca",
+					"e2e-test: added to the key list",
+				)
+
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchKeyWords(
+					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
+					"Successfully removed key e2e-test from the key list",
+					"Successfully deleted key file:", "e2e-test.key",
+					"Successfully deleted certificate file:", "e2e-test.crt",
+					"Cleanup completed successfully",
+				)
+
+			notation.Exec("cert", "generate-test", "e2e-test").
+				MatchKeyWords(
+					"generating RSA Key with 2048 bits",
+					"generated certificate expiring on",
+					"wrote key:", "e2e-test.key",
+					"wrote certificate:", "e2e-test.crt",
+					"Successfully added e2e-test.crt to named store e2e-test of type ca",
+					"e2e-test: added to the key list",
+				)
+
+			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
+				MatchKeyWords(
+					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
+					"Successfully removed key e2e-test from the key list",
+					"Successfully deleted key file:", "e2e-test.key",
+					"Successfully deleted certificate file:", "e2e-test.crt",
+					"Cleanup completed successfully",
+				)
+		})
+	})
+
 	It("cleanup test with key never generated", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			localKeyPath := vhost.AbsolutePath(NotationDirName, LocalKeysDirName, "e2e-test.key")
@@ -229,20 +271,20 @@ var _ = Describe("notation cert", func() {
 		})
 	})
 
-	It("cleanup test missing key name", func() {
+	It("cleanup test missing certificate common name", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("cert", "cleanup-test").
 				MatchErrKeyWords(
-					"missing key name",
+					"missing certificate common name",
 				)
 		})
 	})
 
-	It("cleanup test with empty key name", func() {
+	It("cleanup test with empty certificate common name", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "").
 				MatchErrKeyWords(
-					"key name must follow [a-zA-Z0-9_.-]+ format",
+					"certificate common name must follow [a-zA-Z0-9_.-]+ format",
 				)
 		})
 	})

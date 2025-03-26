@@ -41,10 +41,10 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 		Short: `Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				return errors.New("missing key name")
+				return errors.New("missing certificate common name")
 			}
 			if !truststore.IsValidFileName(args[0]) {
-				return errors.New("key name must follow [a-zA-Z0-9_.-]+ format")
+				return errors.New("certificate common name must follow [a-zA-Z0-9_.-]+ format")
 			}
 			opts.name = args[0]
 			return nil
@@ -86,8 +86,7 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	// 1. remove from trust store
 	err = truststore.DeleteCert("ca", name, certFileName, true)
 	if err != nil {
-		var pathError *fs.PathError
-		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
+		if errors.Is(err, fs.ErrNotExist) {
 			fmt.Printf("Certificate %s does not exist in trust store %s of type ca\n", certFileName, name)
 		} else {
 			return fmt.Errorf("failed to delete certificate %s from trust store %s of type ca: %w", certFileName, name, err)
@@ -101,7 +100,8 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	}
 	err = config.LoadExecSaveSigningKeys(exec)
 	if err != nil {
-		if errors.Is(err, config.KeyNotFoundError{KeyName: name}) {
+		var keyNotFoundError config.KeyNotFoundError
+		if errors.As(err, &keyNotFoundError) {
 			fmt.Printf("Key %s does not exist in the key list\n", name)
 		} else {
 			return fmt.Errorf("failed to remove key %s from the key list: %w", name, err)
@@ -113,8 +113,7 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	// 3. delete key and certificate files from LocalKeyPath
 	err = os.Remove(keyPath)
 	if err != nil {
-		var pathError *fs.PathError
-		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
+		if errors.Is(err, fs.ErrNotExist) {
 			fmt.Printf("Key file %s does not exist\n", keyPath)
 		} else {
 			return fmt.Errorf("failed to delete key file %s: %w", keyPath, err)
@@ -124,8 +123,7 @@ Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	}
 	err = os.Remove(certPath)
 	if err != nil {
-		var pathError *fs.PathError
-		if errors.As(err, &pathError) && errors.Is(pathError, fs.ErrNotExist) {
+		if errors.Is(err, fs.ErrNotExist) {
 			fmt.Printf("Certificate file %s does not exist\n", certPath)
 		} else {
 			return fmt.Errorf("failed to delete certificate file %s: %w", certPath, err)
