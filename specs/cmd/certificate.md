@@ -270,6 +270,7 @@ The test key <name> and its corresponding certificate will be cleaned up with th
 - Remove key <name> from the key list
 - Delete key file: {NOTATION_CONFIG}/localkeys/<name>.key
 - Delete certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt
+
 Are you sure you want to continue? [y/N]
 ```
 
