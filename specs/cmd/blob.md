@@ -87,7 +87,7 @@ Flags:
       --media-type string            media type of the blob (default "application/octet-stream")
       --plugin string                signing plugin name (required if --id is set). This is mutually exclusive with the --key flag
       --plugin-config stringArray    {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
-      --signature-directory string   directory where the signature file needs to be placed (default same directory as the blob)
+      --signature-directory string   directory where the signature file is placed (default same directory as the blob)
       --signature-format string      signature envelope format, options: "jws", "cose" (default "jws")
       --timestamp-root-cert string   filepath of timestamp authority root certificate
       --timestamp-url string         RFC 3161 Timestamping Authority (TSA) server URL
