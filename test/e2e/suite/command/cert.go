@@ -124,7 +124,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
-					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully removed key e2e-test from the key list",
 					"Successfully deleted key file:", "e2e-test.key",
 					"Successfully deleted certificate file:", "e2e-test.crt",
 					"Cleanup completed successfully",
@@ -148,7 +148,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
-					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully removed key e2e-test from the key list",
 					"Successfully deleted key file:", "e2e-test.key",
 					"Successfully deleted certificate file:", "e2e-test.crt",
 					"Cleanup completed successfully",
@@ -163,7 +163,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Certificate e2e-test.crt does not exist in trust store e2e-test of type ca",
-					"Key e2e-test does not exist in signingkeys.json",
+					"Key e2e-test does not exist in the key list",
 					fmt.Sprintf("Key file %s does not exist", localKeyPath),
 					fmt.Sprintf("Certificate file %s does not exist", localCertPath),
 					"Cleanup completed successfully",
@@ -183,7 +183,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Certificate e2e-test.crt does not exist in trust store e2e-test of type ca",
-					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully removed key e2e-test from the key list",
 					"Successfully deleted key file:", "e2e-test.key",
 					"Successfully deleted certificate file:", "e2e-test.crt",
 					"Cleanup completed successfully",
@@ -202,7 +202,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
-					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully removed key e2e-test from the key list",
 					fmt.Sprintf("Key file %s does not exist", localKeyPath),
 					"Successfully deleted certificate file:", "e2e-test.crt",
 					"Cleanup completed successfully",
@@ -221,7 +221,7 @@ var _ = Describe("notation cert", func() {
 			notation.Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e-test.crt from trust store e2e-test of type ca",
-					"Successfully removed key e2e-test from signingkeys.json",
+					"Successfully removed key e2e-test from the key list",
 					"Successfully deleted key file:", "e2e-test.key",
 					fmt.Sprintf("Certificate file %s does not exist", localCertPath),
 					"Cleanup completed successfully",
@@ -273,7 +273,7 @@ var _ = Describe("notation cert", func() {
 
 			notation.ExpectFailure().Exec("cert", "cleanup-test", "e2e-test", "-y").
 				MatchErrKeyWords(
-					"failed to remove key e2e-test from signingkeys.json",
+					"failed to remove key e2e-test from the key list",
 					"permission denied",
 				)
 		})

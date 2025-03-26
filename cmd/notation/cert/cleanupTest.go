@@ -95,12 +95,12 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	err = config.LoadExecSaveSigningKeys(exec)
 	if err != nil {
 		if errors.Is(err, config.KeyNotFoundError{KeyName: name}) {
-			fmt.Printf("Key %s does not exist in signingkeys.json\n", name)
+			fmt.Printf("Key %s does not exist in the key list\n", name)
 		} else {
-			return fmt.Errorf("failed to remove key %s from signingkeys.json: %w", name, err)
+			return fmt.Errorf("failed to remove key %s from the key list: %w", name, err)
 		}
 	} else {
-		fmt.Printf("Successfully removed key %s from signingkeys.json\n", name)
+		fmt.Printf("Successfully removed key %s from the key list\n", name)
 	}
 
 	// 3. delete key and certificate files from LocalKeyPath
