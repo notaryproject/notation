@@ -265,7 +265,12 @@ notation certificate cleanup-test "wabbit-networks.io"
 A prompt will be displayed, asking the user to confirm the cleanup.
 
 ```text
-Are you sure you want to clean up test key <name> and its certificate? [y/N]
+The test key <name> and its corresponding certificate will be cleaned up with the following changes:
+- Delete certificate <name>.crt from trust store <name> of type ca
+- Remove key <name> from the key list
+- Delete key file: {NOTATION_CONFIG}/localkeys/<name>.key
+- Delete certificate file: {NOTATION_CONFIG}/localkeys/<name>.crt
+Are you sure you want to continue? [y/N]
 ```
 
 To suppress the prompt, use the `--yes` or `-y` flag. If the user chooses `y`, the following steps will be executed by the `cleanup-test` command:
