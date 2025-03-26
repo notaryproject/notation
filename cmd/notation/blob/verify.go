@@ -86,7 +86,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 		},
 	}
 	opts.LoggingFlagOpts.ApplyFlags(command.Flags())
-	command.Flags().StringVar(&opts.signaturePath, "signature", "", "filepath of the signature to be verified")
+	command.Flags().StringVarP(&opts.signaturePath, "signature", "s", "", "filepath of the signature to be verified")
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
 	command.Flags().StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
