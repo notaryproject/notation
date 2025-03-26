@@ -28,8 +28,10 @@ const tsaURL = "http://timestamp.digicert.com"
 
 var _ = Describe("notation blob sign", func() {
 	// Success cases
-	It("with store signature file in the same directory as the blob by default", func() {
+	It("by default", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "jws"))
+
 			blobDir := filepath.Dir(blobPath)
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
@@ -37,16 +39,10 @@ var _ = Describe("notation blob sign", func() {
 		})
 	})
 
-	It("with store signature file in the current working directory", func() {
-		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath, "--signature-directory", ".").
-				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords("Signature file written to .")
-		})
-	})
-
 	It("with COSE format", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "cose"))
+
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--signature-format", "cose", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
@@ -55,6 +51,8 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with specified media-type", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "jws"))
+
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--media-type", "other-media-type", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
@@ -63,6 +61,8 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with specific key", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "jws"))
+
 			const keyName = "sKey"
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("cert", "generate-test", keyName).
 				MatchKeyWords(fmt.Sprintf("notation/localkeys/%s.crt", keyName))
@@ -75,6 +75,8 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with expiry in 24h", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "jws"))
+
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--expiry", "24h", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
@@ -91,6 +93,8 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with user metadata", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "jws"))
+
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--user-metadata", "k1=v1", "--user-metadata", "k2=v2", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
@@ -99,6 +103,8 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with timestamping", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			defer os.Remove(signatureFilepath(blobPath, blobPath, "jws"))
+
 			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
@@ -265,3 +271,9 @@ var _ = Describe("notation blob sign", func() {
 		})
 	})
 })
+
+func signatureFilepath(signatureDirectory, blobPath, signatureFormat string) string {
+	blobFilename := filepath.Base(blobPath)
+	signatureFilename := fmt.Sprintf("%s.%s.sig", blobFilename, signatureFormat)
+	return filepath.Join(signatureDirectory, signatureFilename)
+}

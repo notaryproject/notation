@@ -14,7 +14,6 @@
 package blob
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -280,9 +279,3 @@ var _ = Describe("notation blob verify", func() {
 		})
 	})
 })
-
-func signatureFilepath(signatureDirectory, blobPath, signatureFormat string) string {
-	blobFilename := filepath.Base(blobPath)
-	signatureFilename := fmt.Sprintf("%s.%s.sig", blobFilename, signatureFormat)
-	return filepath.Join(signatureDirectory, signatureFilename)
-}
