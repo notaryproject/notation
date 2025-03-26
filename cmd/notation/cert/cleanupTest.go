@@ -65,11 +65,9 @@ Example - Clean up a test key and corresponding certificate named "wabbit-networ
 func cleanupTestCert(opts *certCleanupTestOpts) error {
 	name := opts.name
 	relativeKeyPath, relativeCertPath := dir.LocalKeyPath(name)
-	configFS := dir.ConfigFS()
-	certPath, _ := configFS.SysPath(relativeCertPath) // err is always nil
+	certPath, _ := dir.ConfigFS().SysPath(relativeCertPath) // err is always nil
 	certFileName := filepath.Base(certPath)
-	keyPath, _ := configFS.SysPath(relativeKeyPath) // err is always nil
-
+	keyPath, _ := dir.ConfigFS().SysPath(relativeKeyPath) // err is always nil
 	prompt := fmt.Sprintf(`The test key %s and its corresponding certificate will be cleaned up with the following changes:
 - Delete certificate %s.crt from trust store %s of type ca
 - Remove key %s from the key list
