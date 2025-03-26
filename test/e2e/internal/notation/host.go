@@ -105,8 +105,14 @@ func HostWithBlob(options []utils.HostOption, fn BlobTestFunc) {
 		panic(err)
 	}
 
+	// create a blob file for testing
+	blobPath, err := CreateBlobFile(vhost.AbsolutePath())
+	if err != nil {
+		panic(err)
+	}
+
 	// run the main logic
-	fn(vhost.Executor, BlobPath, vhost)
+	fn(vhost.Executor, blobPath, vhost)
 }
 
 // OldNotation create an old version notation ExecOpts in a VirtualHost
@@ -345,4 +351,16 @@ func EnableExperimental() utils.HostOption {
 		vhost.UpdateEnv(map[string]string{"NOTATION_EXPERIMENTAL": "1"})
 		return nil
 	}
+}
+
+// CreateBlobFile creates a blob file for testing blob commands.
+func CreateBlobFile(dir string) (string, error) {
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", err
+	}
+	blobPath := filepath.Join(dir, "blobFile.txt")
+	if err := os.WriteFile(blobPath, []byte("test blob commands"), 0600); err != nil {
+		return "", err
+	}
+	return blobPath, nil
 }

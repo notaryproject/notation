@@ -48,7 +48,6 @@ const (
 	envKeyOCILayoutPath                     = "NOTATION_E2E_OCI_LAYOUT_PATH"
 	envKeyTestRepo                          = "NOTATION_E2E_TEST_REPO"
 	envKeyTestTag                           = "NOTATION_E2E_TEST_TAG"
-	envKeyBlobPath                          = "NOTATION_E2E_BLOB_PATH"
 	envKeyNotationE2EBlobTrustPolicyPath    = "NOTATION_E2E_BLOB_TRUST_POLICY_PATH"
 )
 
@@ -74,7 +73,6 @@ var (
 	TestRepoUri         string
 	TestTag             string
 	RegistryStoragePath string
-	BlobPath            string
 	BlobTrustPolicyPath string
 )
 
@@ -91,7 +89,6 @@ func setUp() {
 	setValue(envKeyDomainRegistryHost, &TestRegistry.DomainHost)
 
 	setPathValue(envKeyOCILayoutPath, &OCILayoutPath)
-	setPathValue(envKeyBlobPath, &BlobPath)
 	setPathValue(envKeyNotationE2EBlobTrustPolicyPath, &BlobTrustPolicyPath)
 	setValue(envKeyTestRepo, &TestRepoUri)
 	setValue(envKeyTestTag, &TestTag)

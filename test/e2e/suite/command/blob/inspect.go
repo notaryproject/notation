@@ -265,12 +265,12 @@ var _ = Describe("notation blob inspect", func() {
 
 	It("with blob sign in jws", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath).
+			notation.Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 
-			sigName := filepath.Base(blobPath) + ".jws.sig"
-			notation.Exec("blob", "inspect", vhost.AbsolutePath(sigName)).
+			blobDir := filepath.Dir(blobPath)
+			notation.Exec("blob", "inspect", signatureFilepath(blobDir, blobPath, "jws")).
 				MatchKeyWords(
 					"signature algorithm",
 					"signature envelope type",
@@ -284,12 +284,12 @@ var _ = Describe("notation blob inspect", func() {
 
 	It("with blob sign in cose", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--signature-format", "cose", blobPath).
+			notation.Exec("blob", "sign", "--signature-format", "cose", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 
-			sigName := filepath.Base(blobPath) + ".cose.sig"
-			notation.Exec("blob", "inspect", vhost.AbsolutePath(sigName)).
+			blobDir := filepath.Dir(blobPath)
+			notation.Exec("blob", "inspect", signatureFilepath(blobDir, blobPath, "cose")).
 				MatchKeyWords(
 					"signature algorithm",
 					"signature envelope type",

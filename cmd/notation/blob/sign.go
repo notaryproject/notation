@@ -111,16 +111,6 @@ Example - Sign a blob artifact with timestamping:
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// timestamping
-			if cmd.Flags().Changed("timestamp-url") {
-				if opts.tsaServerURL == "" {
-					return errors.New("timestamping: tsa url cannot be empty")
-				}
-				if opts.tsaRootCertificatePath == "" {
-					return errors.New("timestamping: tsa root certificate path cannot be empty")
-				}
-			}
-
 			// signature directory
 			if cmd.Flags().Changed("signature-directory") {
 				if opts.signatureDirectory == "" {
@@ -130,6 +120,18 @@ Example - Sign a blob artifact with timestamping:
 				// --signature-directory flag is not set. By default, save the
 				// signature file in the same directory as the blob.
 				opts.signatureDirectory = filepath.Dir(opts.blobPath)
+			}
+
+			// timestamping
+			if cmd.Flags().Changed("timestamp-url") {
+				if opts.tsaServerURL == "" {
+					return errors.New("timestamping: tsa url cannot be empty")
+				}
+			}
+			if cmd.Flags().Changed("timestamp-root-cert") {
+				if opts.tsaRootCertificatePath == "" {
+					return errors.New("timestamping: tsa root certificate path cannot be empty")
+				}
 			}
 			return nil
 		},
