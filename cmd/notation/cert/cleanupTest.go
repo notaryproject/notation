@@ -50,6 +50,7 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 			return nil
 		},
 		Long: `Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
+
 Example - Clean up a test key and corresponding certificate named "wabbit-networks.io":
   notation cert cleanup-test wabbit-networks.io
 `,
@@ -63,7 +64,19 @@ Example - Clean up a test key and corresponding certificate named "wabbit-networ
 
 func cleanupTestCert(opts *certCleanupTestOpts) error {
 	name := opts.name
-	prompt := fmt.Sprintf("Are you sure you want to clean up test key %q and its certificate?", name)
+	relativeKeyPath, relativeCertPath := dir.LocalKeyPath(name)
+	configFS := dir.ConfigFS()
+	certPath, _ := configFS.SysPath(relativeCertPath) // err is always nil
+	certFileName := filepath.Base(certPath)
+	keyPath, _ := configFS.SysPath(relativeKeyPath) // err is always nil
+
+	prompt := fmt.Sprintf(`The test key %s and its corresponding certificate will be cleaned up with the following changes:
+- Delete certificate %s.crt from trust store %s of type ca
+- Remove key %s from the key list
+- Delete key file: %s
+- Delete certificate file: %s
+
+Are you sure you want to continue?`, name, name, name, name, keyPath, certPath)
 	confirmed, err := display.AskForConfirmation(os.Stdin, prompt, opts.confirmed)
 	if err != nil {
 		return err
@@ -73,10 +86,6 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	}
 
 	// 1. remove from trust store
-	relativeKeyPath, relativeCertPath := dir.LocalKeyPath(name)
-	configFS := dir.ConfigFS()
-	certPath, _ := configFS.SysPath(relativeCertPath) // err is always nil
-	certFileName := filepath.Base(certPath)
 	err = truststore.DeleteCert("ca", name, certFileName, true)
 	if err != nil {
 		var pathError *fs.PathError
@@ -104,7 +113,6 @@ func cleanupTestCert(opts *certCleanupTestOpts) error {
 	}
 
 	// 3. delete key and certificate files from LocalKeyPath
-	keyPath, _ := configFS.SysPath(relativeKeyPath) // err is always nil
 	err = os.Remove(keyPath)
 	if err != nil {
 		var pathError *fs.PathError
