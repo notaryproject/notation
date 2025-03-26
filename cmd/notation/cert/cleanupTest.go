@@ -37,7 +37,7 @@ func certCleanupTestCommand(opts *certCleanupTestOpts) *cobra.Command {
 		opts = &certCleanupTestOpts{}
 	}
 	command := &cobra.Command{
-		Use:   "cleanup-test [flags] <key_name>",
+		Use:   "cleanup-test [flags] <common_name>",
 		Short: `Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {

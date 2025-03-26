@@ -52,7 +52,7 @@ var _ = Describe("notation quickstart E2E test", Ordered, func() {
 		notation.Exec("cert", "generate-test", "--default", "wabbit-networks.io").
 			MatchKeyWords(
 				"Successfully added wabbit-networks.io.crt",
-				"wabbit-networks.io: added to signingkeys.json",
+				"wabbit-networks.io: added to the key list",
 				"wabbit-networks.io: marked as default signing key")
 
 		notation.Exec("key", "ls").

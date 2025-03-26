@@ -131,7 +131,7 @@ Flags:
 Generate a test RSA key and a corresponding self-signed certificate.
 
 Usage:
-  notation certificate generate-test [flags] <key_name>
+  notation certificate generate-test [flags] <common_name>
 
 Flags:
   -b, --bits int   RSA key bits (default 2048)
@@ -145,7 +145,7 @@ Flags:
 Clean up a test RSA key and its corresponding certificate that were generated using the "generate-test" command.
 
 Usage:
-  notation certificate cleanup-test [flags] <key_name>
+  notation certificate cleanup-test [flags] <common_name>
 
 Flags:
   -h, --help       help for generate-test
