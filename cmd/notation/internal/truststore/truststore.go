@@ -189,8 +189,22 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 	if err = os.Remove(path); err != nil {
 		return err
 	}
+
 	// write out on success
 	fmt.Printf("Successfully deleted %s from trust store %s of type %s\n", cert, namedStore, storeType)
+
+	// remove the trust store directory if empty
+	storePath := filepath.Dir(path)
+	isEmpty, err := osutil.IsDirEmpty(storePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, fmt.Sprintf("Warning: failed to check if the trust store directory %s is empty: %v\n", storePath, err))
+		return nil
+	}
+	if isEmpty {
+		if err := os.Remove(storePath); err != nil {
+			fmt.Fprintf(os.Stderr, fmt.Sprintf("Warning: failed to remove the empty trust store directory %s: %v\n", storePath, err))
+		}
+	}
 	return nil
 }
 

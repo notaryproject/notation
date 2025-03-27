@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -268,4 +269,42 @@ func TestValidateChecksum(t *testing.T) {
 	if err := ValidateSHA256Sum("./testdata/test", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"); err != nil {
 		t.Fatalf("expected nil err, but got %v", err)
 	}
+}
+
+func TestIsDirEmpty(t *testing.T) {
+	t.Run("empty dir", func(t *testing.T) {
+		tempDir := t.TempDir()
+		isEmpty, err := IsDirEmpty(tempDir)
+		if !isEmpty {
+			t.Fatal("should be empty")
+		}
+		if err != nil {
+			t.Fatalf("expected nil error, but got %s", err)
+		}
+	})
+
+	t.Run("dir does not exist", func(t *testing.T) {
+		nonExistDir := "invalid"
+		_, err := IsDirEmpty(nonExistDir)
+		if err == nil {
+			t.Fatalf("expected error, but got nil")
+		}
+	})
+
+	t.Run("failed to read content of dir", func(t *testing.T) {
+		if runtime.GOOS == "windows" {
+			t.Skip("skipping test on Windows")
+		}
+		tempDir := t.TempDir()
+		if err := os.Chmod(tempDir, 0000); err != nil {
+			t.Fatal(err)
+		}
+		defer os.Chmod(tempDir, 0700)
+
+		expectedErrorMsg := "permission denied"
+		_, err := IsDirEmpty(tempDir)
+		if err == nil || !strings.Contains(err.Error(), expectedErrorMsg) {
+			t.Fatalf("expected permission denied, but got %s", err)
+		}
+	})
 }
