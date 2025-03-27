@@ -122,7 +122,6 @@ export NOTATION_E2E_TEST_TAG=v1
 export NOTATION_E2E_PLUGIN_PATH=$CWD/plugin/bin/$PLUGIN_NAME
 export NOTATION_E2E_PLUGIN_TAR_GZ_PATH=$CWD/plugin/bin/$PLUGIN_NAME.tar.gz
 export NOTATION_E2E_MALICIOUS_PLUGIN_ARCHIVE_PATH=$CWD/testdata/malicious-plugin
-export NOTATION_E2E_BLOB_PATH=$CWD/testdata/blob/blobFile.txt
 export NOTATION_E2E_BLOB_TRUST_POLICY_PATH=$CWD/testdata/blob/trustpolicies
 export NOTATION_E2E_TEST_DATA_PATH=$CWD/testdata
 
