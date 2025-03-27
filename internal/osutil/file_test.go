@@ -275,11 +275,11 @@ func TestIsDirEmpty(t *testing.T) {
 	t.Run("empty dir", func(t *testing.T) {
 		tempDir := t.TempDir()
 		isEmpty, err := IsDirEmpty(tempDir)
-		if !isEmpty {
-			t.Fatal("should be empty")
-		}
 		if err != nil {
 			t.Fatalf("expected nil error, but got %s", err)
+		}
+		if !isEmpty {
+			t.Fatal("should be empty")
 		}
 	})
 
