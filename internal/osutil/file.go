@@ -16,6 +16,7 @@ package osutil
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -153,4 +154,20 @@ func ValidateSHA256Sum(path string, checksum string) error {
 		return fmt.Errorf("plugin SHA-256 checksum does not match user input. Expecting %s", checksum)
 	}
 	return nil
+}
+
+// IsDirEmpty checks if directory dir is empty.
+// It returns true and nil error if and only if dir is empty.
+func IsDirEmpty(dir string) (bool, error) {
+	d, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer d.Close()
+
+	_, err = d.Readdirnames(1)
+	if errors.Is(err, io.EOF) {
+		return true, nil
+	}
+	return false, err
 }
