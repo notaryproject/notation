@@ -61,7 +61,7 @@ func signCommand(opts *blobSignOpts) *cobra.Command {
 	}
 	longMessage := `Produce a detached signature for a given blob.
 
-The signature file will be written to the currently working directory with file name "{blob file name}.{signature format}.sig".
+By default, the signature file will be written to the same directory as the blob with file name "{blob file name}.{signature format}.sig".
 
 Note: a signing key must be specified. This can be done temporarily by specifying a key ID, or a new key can be configured using the command "notation key add"
 
@@ -104,19 +104,38 @@ Example - Sign a blob artifact with timestamping:
 			if len(args) == 0 {
 				return errors.New("missing file path to the blob artifact: use `notation blob sign --help` to see what parameters are required")
 			}
+			if args[0] == "" {
+				return errors.New("blob path cannot be empty")
+			}
 			opts.blobPath = args[0]
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			// signature directory
+			if cmd.Flags().Changed("signature-directory") {
+				if opts.signatureDirectory == "" {
+					return errors.New("signature directory cannot be empty")
+				}
+			} else {
+				// --signature-directory flag is not set. By default, save the
+				// signature file in the same directory as the blob.
+				opts.signatureDirectory = filepath.Dir(opts.blobPath)
+			}
+
 			// timestamping
 			if cmd.Flags().Changed("timestamp-url") {
 				if opts.tsaServerURL == "" {
 					return errors.New("timestamping: tsa url cannot be empty")
 				}
+			}
+			if cmd.Flags().Changed("timestamp-root-cert") {
 				if opts.tsaRootCertificatePath == "" {
 					return errors.New("timestamping: tsa root certificate path cannot be empty")
 				}
 			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
 			return runBlobSign(cmd, opts)
 		},
 	}
@@ -126,7 +145,7 @@ Example - Sign a blob artifact with timestamping:
 	flag.SetPflagPluginConfig(command.Flags(), &opts.pluginConfig)
 	flag.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, flag.PflagUserMetadataSignUsage)
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "application/octet-stream", "media type of the blob")
-	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", ".", "directory where the blob signature needs to be placed")
+	command.Flags().StringVar(&opts.signatureDirectory, "signature-directory", "", "directory where the signature file is placed (default same directory as the blob)")
 	command.Flags().StringVar(&opts.tsaServerURL, "timestamp-url", "", "RFC 3161 Timestamping Authority (TSA) server URL")
 	command.Flags().StringVar(&opts.tsaRootCertificatePath, "timestamp-root-cert", "", "filepath of timestamp authority root certificate")
 	command.Flags().BoolVar(&opts.force, "force", false, "override the existing signature file, never prompt")

@@ -28,17 +28,18 @@ const tsaURL = "http://timestamp.digicert.com"
 
 var _ = Describe("notation blob sign", func() {
 	// Success cases
-	It("with blob sign", func() {
+	It("with default", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", blobPath).
+			blobDir := filepath.Dir(blobPath)
+			notation.Exec("blob", "sign", blobPath).
 				MatchKeyWords(SignSuccessfully).
-				MatchKeyWords("Signature file written to")
+				MatchKeyWords(fmt.Sprintf("Signature file written to %s", signatureFilepath(blobDir, blobPath, "jws")))
 		})
 	})
 
 	It("with COSE format", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--signature-format", "cose", blobPath).
+			notation.Exec("blob", "sign", "--signature-format", "cose", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -46,7 +47,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with specified media-type", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--media-type", "other-media-type", blobPath).
+			notation.Exec("blob", "sign", "--media-type", "other-media-type", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -55,10 +56,10 @@ var _ = Describe("notation blob sign", func() {
 	It("with specific key", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			const keyName = "sKey"
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("cert", "generate-test", keyName).
+			notation.Exec("cert", "generate-test", keyName).
 				MatchKeyWords(fmt.Sprintf("notation/localkeys/%s.crt", keyName))
 
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--key", keyName, blobPath).
+			notation.Exec("blob", "sign", "--key", keyName, blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -66,7 +67,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with expiry in 24h", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--expiry", "24h", blobPath).
+			notation.Exec("blob", "sign", "--expiry", "24h", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -82,7 +83,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with user metadata", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--user-metadata", "k1=v1", "--user-metadata", "k2=v2", blobPath).
+			notation.Exec("blob", "sign", "--user-metadata", "k1=v1", "--user-metadata", "k2=v2", blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -90,7 +91,7 @@ var _ = Describe("notation blob sign", func() {
 
 	It("with timestamping", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
-			notation.WithWorkDir(vhost.AbsolutePath()).Exec("blob", "sign", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
+			notation.Exec("blob", "sign", "--timestamp-url", tsaURL, "--timestamp-root-cert", filepath.Join(NotationE2EConfigPath, "timestamp", "DigiCertTSARootSHA384.cer"), blobPath).
 				MatchKeyWords(SignSuccessfully).
 				MatchKeyWords("Signature file written to")
 		})
@@ -110,6 +111,20 @@ var _ = Describe("notation blob sign", func() {
 	})
 
 	// Failure cases
+	It("with empty blob path", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "sign", "").
+				MatchErrKeyWords("blob path cannot be empty")
+		})
+	})
+
+	It("with empty signature directory", func() {
+		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
+			notation.ExpectFailure().Exec("blob", "sign", blobPath, "--signature-directory", "").
+				MatchErrKeyWords("signature directory cannot be empty")
+		})
+	})
+
 	It("with undefined signature format", func() {
 		HostWithBlob(BaseOptions(), func(notation *utils.ExecOpts, blobPath string, vhost *utils.VirtualHost) {
 			notation.ExpectFailure().Exec("blob", "sign", "--signature-format", "invalid", blobPath).
@@ -242,3 +257,9 @@ var _ = Describe("notation blob sign", func() {
 		})
 	})
 })
+
+func signatureFilepath(signatureDirectory, blobPath, signatureFormat string) string {
+	blobFilename := filepath.Base(blobPath)
+	signatureFilename := fmt.Sprintf("%s.%s.sig", blobFilename, signatureFormat)
+	return filepath.Join(signatureDirectory, signatureFilename)
+}
