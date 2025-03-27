@@ -107,8 +107,9 @@ var _ = Describe("notation cert", func() {
 				MatchKeyWords(
 					"Successfully deleted e2e.crt from trust store e2e of type ca",
 				).
-				MatchErrContent(
-					"failed to remove the empty trust store directory",
+				MatchErrKeyWords(
+					fmt.Sprintf("Warning: failed to check if the trust store directory %s is empty", trustStorePath),
+					"permission denied",
 				)
 
 			if _, err := os.Stat(trustStorePath); err == nil {
