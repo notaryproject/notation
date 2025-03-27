@@ -40,15 +40,42 @@ var _ = Describe("notation cert", func() {
 				MatchKeyWords(
 					"Successfully deleted",
 				)
+
+			trustStorePath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e")
+			if _, err := os.Stat(trustStorePath); err == nil {
+				Fail(fmt.Sprintf("empty trust store directory %s should not exist", trustStorePath))
+			}
 		})
 	})
 
-	It("delete a specfic cert", func() {
+	It("delete a specfic cert and remove the empty trust store directory", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			notation.Exec("cert", "delete", "--type", "ca", "--store", "e2e", "e2e.crt", "-y").
 				MatchKeyWords(
 					"Successfully deleted e2e.crt from trust store e2e of type ca",
 				)
+
+			trustStorePath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e")
+			if _, err := os.Stat(trustStorePath); err == nil {
+				Fail(fmt.Sprintf("empty trust store directory %s should not exist", trustStorePath))
+			}
+		})
+	})
+
+	It("delete a specfic cert from trust store containing more than one certificates", func() {
+		Host(BaseOptions(), func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
+			notation.Exec("cert", "add", "--type", "ca", "--store", "e2e", filepath.Join(NotationE2ELocalKeysDir, "expired_e2e.crt")).
+				MatchKeyWords("Successfully added following certificates")
+
+			notation.Exec("cert", "delete", "--type", "ca", "--store", "e2e", "expired_e2e.crt", "-y").
+				MatchKeyWords(
+					"Successfully deleted expired_e2e.crt from trust store e2e of type ca",
+				)
+
+			trustStorePath := vhost.AbsolutePath(NotationDirName, TrustStoreDirName, "x509", TrustStoreTypeCA, "e2e")
+			if _, err := os.Stat(trustStorePath); err != nil {
+				Fail(fmt.Sprintf("trust store directory %s should exist", trustStorePath))
+			}
 		})
 	})
 
