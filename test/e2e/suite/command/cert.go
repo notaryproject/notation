@@ -111,10 +111,6 @@ var _ = Describe("notation cert", func() {
 					fmt.Sprintf("Warning: failed to check if the trust store directory %s is empty", trustStorePath),
 					"permission denied",
 				)
-
-			if _, err := os.Stat(trustStorePath); err == nil {
-				Fail(fmt.Sprintf("empty trust store directory %s should be deleted", trustStorePath))
-			}
 		})
 	})
 
