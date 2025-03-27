@@ -71,6 +71,7 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	if _, err := os.Stat(filepath.Join(trustStorePath, filepath.Base(certPath))); err == nil {
 		return errors.New("certificate already exists in the Trust Store")
 	}
+
 	// add cert to trust store
 	_, err = osutil.CopyToDir(certPath, trustStorePath)
 	if err != nil {
@@ -81,7 +82,6 @@ func AddCert(path, storeType, namedStore string, display bool) error {
 	if display {
 		fmt.Printf("Successfully added %s to named store %s of type %s\n", filepath.Base(certPath), namedStore, storeType)
 	}
-
 	return nil
 }
 
@@ -114,7 +114,6 @@ func ListCerts(root string, depth int) ([]string, error) {
 	}); err != nil {
 		return nil, err
 	}
-
 	return certPaths, nil
 }
 
@@ -163,6 +162,7 @@ func DeleteAllCerts(storeType, namedStore string, confirmed bool) error {
 	if err = os.RemoveAll(path); err != nil {
 		return err
 	}
+
 	// write out on success
 	fmt.Printf("Successfully deleted %s\n", path)
 	return nil
@@ -190,21 +190,20 @@ func DeleteCert(storeType, namedStore, cert string, confirmed bool) error {
 		return err
 	}
 
-	// write out on success
-	fmt.Printf("Successfully deleted %s from trust store %s of type %s\n", cert, namedStore, storeType)
-
 	// remove the trust store directory if empty
 	storePath := filepath.Dir(path)
-	isEmpty, err := osutil.IsDirEmpty(storePath)
+	empty, err := osutil.IsDirEmpty(storePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to check if the trust store directory %s is empty: %v\n", storePath, err)
-		return nil
 	}
-	if isEmpty {
+	if empty {
 		if err := os.Remove(storePath); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to remove the empty trust store directory %s: %v\n", storePath, err)
 		}
 	}
+
+	// write out on success
+	fmt.Printf("Successfully deleted %s from trust store %s of type %s\n", cert, namedStore, storeType)
 	return nil
 }
 

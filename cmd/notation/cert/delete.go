@@ -96,6 +96,7 @@ func deleteCerts(opts *certDeleteOpts) error {
 		}
 		return nil
 	}
+
 	// Delete a certain certificate with path storeType/namedStore/cert
 	cert := opts.cert
 	if cert == "" {
