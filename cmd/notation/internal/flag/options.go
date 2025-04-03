@@ -17,12 +17,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"slices"
 	"strings"
 
 	"github.com/notaryproject/notation-go/log"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/display/output"
 	"github.com/notaryproject/notation/v2/internal/trace"
+	"github.com/notaryproject/notation/v2/internal/version"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -78,6 +80,15 @@ func (opts *LoggingFlagOpts) InitializeLogger(ctx context.Context) context.Conte
 	} else {
 		return ctx
 	}
+
+	// Log environment information
+	logger := log.GetLogger(ctx)
+	logger.Infof("Notation Version: %s", version.GetVersion())
+	if version.GitCommit != "" {
+		logger.Infof("Git Commit: %s", version.GitCommit)
+	}
+	logger.Infof("OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH)
+
 	return withExecutableTrace(ctx)
 }
 
