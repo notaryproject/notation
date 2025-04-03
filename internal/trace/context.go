@@ -42,7 +42,6 @@ func WithLoggerLevel(ctx context.Context, level logrus.Level) context.Context {
 	var formatter logrus.TextFormatter
 	if level == logrus.DebugLevel {
 		formatter.FullTimestamp = true
-		// Set timestamp format to include nanoseconds and timezone
 		formatter.TimestampFormat = "2006-01-02 15:04:05.000000000Z"
 	} else {
 		formatter.DisableTimestamp = true
