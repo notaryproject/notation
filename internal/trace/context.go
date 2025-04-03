@@ -43,7 +43,7 @@ func WithLoggerLevel(ctx context.Context, level logrus.Level) context.Context {
 	if level == logrus.DebugLevel {
 		formatter.FullTimestamp = true
 		// Set timestamp format to include nanoseconds and timezone
-		formatter.TimestampFormat = "2006-01-02 15:04:05.000000000 -07:00"
+		formatter.TimestampFormat = "2006-01-02 15:04:05.000000000Z"
 	} else {
 		formatter.DisableTimestamp = true
 	}
@@ -54,6 +54,23 @@ func WithLoggerLevel(ctx context.Context, level logrus.Level) context.Context {
 	logger.SetFormatter(&formatter)
 	logger.SetLevel(level)
 
-	// save logger to context
+	// Add UTC hook to convert timestamps to UTC
+	logger.AddHook(&UTCHook{})
+
 	return log.WithLogger(ctx, logger)
+}
+
+// UTCHook is a hook for logrus that converts timestamps to UTC
+type UTCHook struct{}
+
+// Levels returns the levels this hook is enabled for
+func (h *UTCHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+// Fire is called by logrus when a log entry is created.
+// This implementation converts the timestamp to UTC.
+func (h *UTCHook) Fire(entry *logrus.Entry) error {
+	entry.Time = entry.Time.UTC()
+	return nil
 }
