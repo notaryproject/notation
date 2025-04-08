@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// ExtractSingleFileFromZip extracts a single file from a zip archive.
 func ExtractSingleFileFromZip(zipFilePath, fileName, targetPath string) error {
 	// Open the zip file
 	reader, err := zip.OpenReader(zipFilePath)
