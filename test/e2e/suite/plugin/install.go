@@ -83,7 +83,7 @@ var _ = Describe("notation plugin install", func() {
 			// identified as a malicious file by the antivirus software
 			wrappedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb_wrap.zip")
 			fileName := "zip_bomb.zip"
-			targetPath := vhost.AbsolutePath(NotationDirName, "zip_bomb.zip")
+			targetPath := vhost.AbsolutePath(NotationDirName, fileName)
 			if err := utils.ExtractSingleFileFromZip(wrappedFilePath, fileName, targetPath); err != nil {
 				Fail(fmt.Sprintf("failed to extract file from zip: %v", err))
 			}
