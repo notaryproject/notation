@@ -81,7 +81,7 @@ var _ = Describe("notation plugin install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			// extract the test file from the wrapped file to avoid the issue of the zip bomb being
 			// identified as a malicious file by the antivirus software
-			wrappedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb_wrap.zip")
+			wrappedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "wrapped_zip_bomb.zip")
 			fileName := "zip_bomb.zip"
 			targetPath := vhost.AbsolutePath(NotationDirName, fileName)
 			if err := utils.ExtractSingleFileFromZip(wrappedFilePath, fileName, targetPath); err != nil {
