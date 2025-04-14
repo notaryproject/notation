@@ -78,7 +78,6 @@ func (opts *LoggingFlagOpts) InitializeLogger(ctx context.Context) context.Conte
 	} else {
 		return ctx
 	}
-
 	return withExecutableTrace(ctx)
 }
 
