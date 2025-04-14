@@ -64,35 +64,35 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with zip bomb single file exceeds 256 MiB size limit in zip format", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "large_file_zip.zip")).
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "large_file_zip.zip"), "-v").
 				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
 		})
 	})
 
 	It("with zip bomb single file exceeds 256 MiB size limit in tar.gz format", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "large_file_tarGz.tar.gz")).
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "large_file_tarGz.tar.gz"), "-v").
 				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
 		})
 	})
 
 	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip")).
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip"), "-v").
 				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
 		})
 	})
 
 	It("with zip slip", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_slip.zip")).
+			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_slip.zip"), "-v").
 				MatchErrContent("Error: plugin installation failed: file name in zip cannot contain '..', but found \"../../../../../../../../tmp/evil.txt\"\n")
 		})
 	})
 
 	It("with valid plugin file path", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 		})
 	})
@@ -116,7 +116,7 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with plugin already installed but force install", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath).
+			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "-v").
 				MatchContent("Successfully installed plugin e2e-plugin, version 1.0.0\n")
 
 			notation.Exec("plugin", "install", "--file", NotationE2EPluginTarGzPath, "--force").
