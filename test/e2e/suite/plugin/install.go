@@ -14,7 +14,9 @@
 package plugin
 
 import (
+	"encoding/base64"
 	"fmt"
+	"os"
 	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -79,14 +81,20 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			// The original test file was encrypted to avoid being identified as
-			// a malicious file by antivirus software. Decrypt on the fly to
-			// avoid the issue.
-			aesKey := []byte("9951d6610db9e6327b4af77f057fb494")
-			encryptedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip.enc")
+			encodedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip.base64")
+			encoded, err := os.ReadFile(encodedFilePath)
+			if err != nil {
+				Fail(fmt.Sprintf("failed to read file %s: %v", encodedFilePath, err))
+			}
+			// decode base64
+			decoded, err := base64.StdEncoding.DecodeString(string(encoded))
+			if err != nil {
+				Fail(fmt.Sprintf("failed to decode file %s: %v", encodedFilePath, err))
+			}
 			targetPath := vhost.AbsolutePath(NotationDirName, "zip_bomb.zip")
-			if err := utils.DecryptFile(encryptedFilePath, aesKey, targetPath); err != nil {
-				Fail(fmt.Sprintf("failed to extract file from zip: %v", err))
+			err = os.WriteFile(targetPath, decoded, 0644)
+			if err != nil {
+				Fail(fmt.Sprintf("failed to write file %s: %v", targetPath, err))
 			}
 
 			notation.ExpectFailure().Exec("plugin", "install", "--file", targetPath, "-v").
