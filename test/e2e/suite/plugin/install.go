@@ -79,12 +79,13 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			// extract the test file from the wrapped file to avoid the issue of the zip bomb being
-			// identified as a malicious file by the antivirus software
-			wrappedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "wrapped_zip_bomb.zip")
-			fileName := "zip_bomb.zip"
-			targetPath := vhost.AbsolutePath(NotationDirName, fileName)
-			if err := utils.ExtractSingleFileFromZip(wrappedFilePath, fileName, targetPath); err != nil {
+			// The original test file was encrypted to avoid being identified as
+			// a malicious file by antivirus software. Decrypt on the fly to
+			// avoid the issue.
+			aesKey := []byte("9951d6610db9e6327b4af77f057fb494")
+			encryptedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip.enc")
+			targetPath := vhost.AbsolutePath(NotationDirName, "zip_bomb.zip")
+			if err := utils.DecryptFile(encryptedFilePath, aesKey, targetPath); err != nil {
 				Fail(fmt.Sprintf("failed to extract file from zip: %v", err))
 			}
 
