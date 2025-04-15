@@ -14,6 +14,9 @@
 package plugin
 
 import (
+	"encoding/base64"
+	"fmt"
+	"os"
 	"path/filepath"
 
 	. "github.com/notaryproject/notation/test/e2e/internal/notation"
@@ -78,7 +81,23 @@ var _ = Describe("notation plugin install", func() {
 
 	It("with zip bomb total file size exceeds 256 MiB size limit", func() {
 		Host(nil, func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
-			notation.ExpectFailure().Exec("plugin", "install", "--file", filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip"), "-v").
+			encodedFilePath := filepath.Join(NotationE2EMaliciousPluginArchivePath, "zip_bomb.zip.base64")
+			encoded, err := os.ReadFile(encodedFilePath)
+			if err != nil {
+				Fail(fmt.Sprintf("failed to read file %s: %v", encodedFilePath, err))
+			}
+			// decode base64
+			decoded, err := base64.StdEncoding.DecodeString(string(encoded))
+			if err != nil {
+				Fail(fmt.Sprintf("failed to decode file %s: %v", encodedFilePath, err))
+			}
+			targetPath := vhost.AbsolutePath(NotationDirName, "zip_bomb.zip")
+			err = os.WriteFile(targetPath, decoded, 0644)
+			if err != nil {
+				Fail(fmt.Sprintf("failed to write file %s: %v", targetPath, err))
+			}
+
+			notation.ExpectFailure().Exec("plugin", "install", "--file", targetPath, "-v").
 				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
 		})
 	})
