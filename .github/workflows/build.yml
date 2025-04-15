@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   build:
@@ -30,6 +31,11 @@ jobs:
         go-version: ['1.24']
       fail-fast: true
     steps:
+      - name: Check signed commits in PR
+        if: github.event_name == 'pull_request'
+        uses: 1Password/check-signed-commits-action@ed2885f3ed2577a4f5d3c3fe895432a557d23d52 #v1.2.0
+        with:
+          comment: One or more commits in your pull request are not signed. The Notary Project requires all commits to be signed. Please sign your commits by following the [guide](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). Thank you!
       - name: Set up Go ${{ matrix.go-version }}
         uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
         with:
