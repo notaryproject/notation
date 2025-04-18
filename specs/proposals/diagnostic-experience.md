@@ -5,7 +5,7 @@
 
 ## Overview
 
-Notation v1.x offers two global options, `--verbose` and `--debug`, which enable users to generate verbose output and logs respectively. These features facilitate both users and developers in inspecting `notation`'s performance, interactions with external services and internal systems, and in diagnosing issues by providing a clear picture of the tool's operations.
+Notation v1.x offers two global options, `--verbose` and `--debug`, which allows users to generate verbose output and debug logs respectively. These features facilitate both users and developers in inspecting `notation`'s performance, interactions with external services and internal systems, and in diagnosing issues by providing a clear picture of the tool's operations.
 
 This proposal document aims to:
 
