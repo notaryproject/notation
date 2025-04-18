@@ -52,7 +52,7 @@ There are four types of output in `notation` CLI:
 - **Status output**: such as operation progress information and command execution result.
 - **Metadata output**: showing what has been executed in specified format, such as JSON, text.
 - **Content output**: it is to output the raw data obtained from the remote registry server or file system, such as the generated signature file.
-- **Error output**: error message are expected to be helpful to troubleshoot where the user has done something wrong and the program is guiding them in the right direction.
+- **Error output**: error messages are expected to be helpful to troubleshoot where the user has done something wrong and the program is guiding them in the right direction.
 
 The target users of these types of output are general users. 
 
@@ -72,7 +72,7 @@ Here are the proposals for `notation` diagnostic experience enhancements:
 - Deprecate the `--verbose` flag but keep `--debug` flag to avoid ambiguity and duplicated INFO level logs in two outputs. It is reasonable to continue using `--debug` to enable logs with different levels as it is in `notation`.
 - Add two empty lines as the separator between each request and response for readability.
 - Use the [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision to print the timestamp for each request and response at the beginning.
-- Debug log level SHOULD be colored-code on terminal for better readability 
+- Debug log level SHOULD be colored-coded on terminal for better readability 
 - Show running environment details of `notation` such as `OS/Arch` in the output of `notation version`. It would be helpful to help the notation developers locate and reproduce the issue easier. 
 
 These proposals are applicable for all `notation` commands. This document uses the debug log of `notation sign` as an example below.
