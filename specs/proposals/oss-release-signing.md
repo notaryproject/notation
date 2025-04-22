@@ -1,4 +1,4 @@
-## Proposal for Signing Github Release Assets
+## Proposal for Signing and Verifying OSS Release Assets
 
 ### Overview
 
