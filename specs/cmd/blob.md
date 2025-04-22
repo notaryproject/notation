@@ -582,3 +582,32 @@ An example of output messages for an unsuccessful verification:
 ```text
 Error: signature verification failed: no applicable blob trust policy with name "wabbit-networks-policy"
 ```
+
+### Verify blob signature in stateless mode
+
+You can verify the blob signature using Notation's stateless verification mode, which does not require configuring persistent trust stores or policy files. This is ideal for OSS users who want to quickly verify a downloaded file and its signature using a public certificate and trusted identity.
+
+#### Example: Using a remote certificate
+
+```shell
+SIGNATURE=<signature-path>
+TARGET_FILE=<signed-target-file-path>
+notation blob verify \
+  --certificate-url "https://raw.githubusercontent.com/xxxx/refs/tags/v0.1.0/notation.crt" \
+  --certificate-sha256-fingerprint "F3:5E:B5:3F:6A:BF:55:89:BA:51:EB:39:7B:1A:BA:3A:0A:30:77:14:2C:12:BD:86:EF:5F:CD:54:C5:BE:8B:C4" \
+  --trusted-identity "x509.subject: C = US, ST = Redmond, L = Redmond, O = notation, CN = notation-local-signer" \
+  --signature $SIGNATURE \
+  $TARGET_FILE
+```
+
+#### Example: Using a local certificate file
+
+```shell
+SIGNATURE=<signature-path>
+TARGET_FILE=<signed-target-file-path>
+notation blob verify \
+  --certificate-path "./notation.crt" \
+  --trusted-identity "x509.subject: C = US, ST = Redmond, L = Redmond, O = notation, CN = notation-local-signer" \
+  --signature $SIGNATURE \
+  $TARGET_FILE
+```
