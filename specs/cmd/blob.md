@@ -178,12 +178,16 @@ Usage:
   notation blob verify [flags] --signature <signature_path> <blob_path>
 
 Flags:
-  -d, --debug                       debug mode
-  -h, --help                        help for verify
-      --media-type string           media type of the blob to verify
-      --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
-      --policy-name string          policy name to verify against. If not provided, the global policy is used if exists
-  -s  --signature string            filepath of the signature to be verified
+      --certificate-url string                  the URL to the root certificate for stateless verification
+      --certificate-sha256-fingerprint string   the SHA256 fingerprint of the root certificate (used with --certificate-url)
+      --certificate-path string                 local path to the root certificate for stateless verification
+  -d, --debug                                   debug mode
+  -h, --help                                    help for verify
+      --media-type string                       media type of the blob to verify
+      --plugin-config stringArray               {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
+      --policy-name string                      policy name to verify against. If not provided, the global policy is used if exists
+  -s  --signature string                        filepath of the signature to be verified
+      --trusted-identity stringArray            trusted identity for the signing certificate (e.g., x509.subject:...) for stateless verification
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
   -v, --verbose                     verbose mode
 ```
