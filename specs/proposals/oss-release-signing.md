@@ -4,13 +4,21 @@
 
 This document proposes enhancing Notation's capabilities for signing and verifying Open Source Software (OSS) community released assets. It outlines the design for a new vendor-neutral `notation-signer` plugin and introduces a simplified, stateless verification mode for the `notation blob verify` command.
 
+
+
 ### Problem Statement & Motivation
 
-Notation v2.0.0-alpha.1 introduced blob signing, enabling the signing of assets like GitHub releases. However, several issues remain:
-1.  A key challenge is the lack of a vendor-neutral Notation plugin; existing plugins are cloud-provider specific (AKV, AWS), while the OSS community often prefers neutral solutions.
-2.  Furthermore, the standard verification process is overly complex for typical community users whose primary need is simple verification of a downloaded file and its signature. This complexity, requiring multiple manual steps (adding certificates to a trust store, configuring trust policies) for each publisher, hinders adoption for simple asset verification use cases.
+The existing issue points of potential customer needs for notation:
+- [Sign Notation CLI release assets with Notation GitHub Actions](https://github.com/notaryproject/notation/issues/973)
+- [Support using signing key from GitHub Encrypted Secret](https://github.com/notaryproject/notation/issues/905)
+- [Signing with local private keys](https://github.com/notaryproject/notation/issues/539)
+- [UX: broken default `notation verify` experience](https://github.com/notaryproject/notation/issues/430)
 
-Addressing these challenges is crucial to significantly broaden Notation's use case and improve its adoption within the OSS community for asset signing.
+To summarize the existing issues, we have two pain points:
+1. A key challenge is the lack of a vendor-neutral Notation plugin to sign with a local encrypted key; existing plugins are cloud-provider specific (AKV, AWS), while the OSS community often prefers neutral solutions.
+2. Furthermore, the standard verification process is overly complex for typical community users whose primary need is simple verification of a downloaded file and its signature. This complexity, requiring multiple manual steps (adding certificates to a trust store, configuring trust policies) for each publisher, hinders adoption for simple asset verification use cases.
+
+Considering Notation v2.0.0-alpha.1 introduced blob signing, enabling the signing of assets like GitHub releases is possible. Addressing these challenges is crucial to significantly broaden Notation's use case and improve its adoption within the OSS community for asset signing.
 
 **Goals:**
 
