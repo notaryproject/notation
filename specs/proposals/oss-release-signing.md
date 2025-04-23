@@ -45,7 +45,25 @@ Currently, verifying a detached blob signature with Notation requires users to m
 
 This proposal suggests two key enhancements:
 
-1.  **Notation Signer Plugin (`notation-signer`)**: A new plugin implementation allowing users to sign blobs or artifacts using a locally stored key and certificate bundle. The key would ideally be encrypted, with the password manageable via environment variables or secure inputs (e.g., GitHub Actions secrets). The certificate could be stored alongside the signed assets or in the code repository for easy public access. This provides a vendor-neutral signing option.
+1.  **Notation Signer Plugin (`notation-signer`)**: A new plugin implementation allowing users to sign blobs or artifacts using a locally stored key and certificate bundle. The key would ideally be encrypted, with the password manageable via environment variables or secure inputs (e.g., GitHub Actions secrets). The certificate could be stored alongside the signed assets or in the code repository for easy public access. This provides a vendor-neutral signing option. 
+
+    **Desired User Experience / CLI Operation:**
+    1. The publisher obtains a private key `notation.key` with a certificate bundle `notation.pem`, either self-signed or CA-issued.
+    2. Download the `notation-signer` plugin locally, and call `encrypt` command with password to get an encrypted key `notation.key.enc`.
+        ```sh
+        # on local machine
+        notation-signer encrypt notation.key
+        ```
+    3. The publisher adds the content of the encrypted key `notation.key.enc` and the password to the CI workflow secret (GitHub Action Secret), then exports them as environment variables `NOTATION_SIGNER_KEY` and `NOTATION_SIGNER_KEY_PASSWORD` later for the `notation` binary.
+    4. Configure the release workflow to set up `notation` with the `notation-signer` plugin.
+    5. Export the secrets as environment variables for notation and call the `notation blob sign` command to sign the release asset:
+        ```sh
+        # on CI workflow
+        notation blob sign --id signer --plugin signer \
+          --plugin-config certificate_bundle_path=./notation.pem \
+          <release-asset-path>
+        ```
+    6. The publisher attaches the assets, along with their signatures, to the release page.
 
 2.  **Simplified Notation Blob Verify Command (`notation blob verify`)**: This proposes adding flags to the existing `notation blob verify` command to enable a simplified, stateless verification mode for blob signatures. These flags are:
     * `--certificate-url <url>`: A URL to the root certificate.
