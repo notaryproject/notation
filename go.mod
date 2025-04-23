@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/notaryproject/notation-core-go v1.3.0
-	github.com/notaryproject/notation-go v1.3.1
+	github.com/notaryproject/notation-go v1.3.2
 	github.com/notaryproject/notation-plugin-framework-go v1.0.0
 	github.com/notaryproject/tspclient-go v1.0.1-0.20250306063739-4f55b14d9f01
 	github.com/opencontainers/go-digest v1.0.0

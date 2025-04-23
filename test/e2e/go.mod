@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/notaryproject/notation-core-go v1.3.0
-	github.com/notaryproject/notation-go v1.3.1
+	github.com/notaryproject/notation-go v1.3.2
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
 	github.com/opencontainers/image-spec v1.1.1
