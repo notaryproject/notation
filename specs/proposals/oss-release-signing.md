@@ -4,8 +4,6 @@
 
 This document proposes enhancing Notation's capabilities for signing and verifying Open Source Software (OSS) community released assets. It outlines the design for a new vendor-neutral `notation-signer` plugin and introduces a simplified, stateless verification mode for the `notation blob verify` command.
 
-
-
 ### Problem Statement & Motivation
 
 The existing issues highlight potential customer needs for notation:
