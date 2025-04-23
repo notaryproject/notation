@@ -174,7 +174,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
-					"signature is not produced by a trusted signer").
+					"the signature's certificate chain does not contain any trusted certificate").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -244,7 +244,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
-					"signature is not produced by a trusted signer").
+					"the signature's certificate chain does not contain any trusted certificate").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -289,7 +289,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
 				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
-					"signature is not produced by a trusted signer").
+					"the signature's certificate chain does not contain any trusted certificate").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
