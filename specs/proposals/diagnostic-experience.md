@@ -24,17 +24,15 @@ Specifically, there are known issues or confusion when diagnosing a problem.
 - Both `--verbose` and `--debug` output the INFO level logs which is duplicated information. 
 - Poor readability of debug logs. No separator lines between request and response information.
 - Timestamp does not use [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision, which is not accurate to trace historical operation.
-- No easy way to get the user environment information. This causes a higher cost to reproduce the issues for `notation` developers.
+- No easy way to get the user environment information. 
 
 ## Scenarios
 
-Alice is a DevSecOps engineer who uses `notation` CLI to sign artifacts in a CI/CD pipeline. The signing step failed for some reasons with debug logs generated. Alice tries to figure out the root cause by reading the debug logs but she can't locate the problem. In this scenario, she has to submit a GitHub issue to request help from the Notary Project community and provide debug logs. The debug logs will be used by `notation` developers to analyze the operations and locate the root cause. `notation` developers need to reproduce the failed steps for troubleshooting. 
+Alice is a DevSecOps engineer who uses `notation` CLI to sign artifacts in a CI/CD pipeline. The signing step failed for some reasons with debug logs generated. Alice tries to figure out the root cause by reading the verbose output and debug logs, but she is confused about two type of logs and she even can't locate the problem from the debug logs. In this scenario, she has to submit a GitHub issue to request help from the Notary Project community and provide debug logs. The debug logs will be used by `notation` developers to analyze the operations and locate the root cause. 
+
+`notation` developers need to reproduce Alice's failed steps with the logs for troubleshooting purposes. However, the poor readability of debug logs and missing user system environment information cause a higher cost to reproduce for `notation` developers.
 
 ## Concepts
-
-There are differences between output and logs in `notation`:
-
-### Logs
 
 Logs focus on providing technical details for in-depth diagnosing and troubleshooting issues. It is intended for developers or technical users who need to understand the inner workings of the tool. Debug logs are detailed and technical, often including HTTP request and response from interactions between client and server, timestamps, as well as code-specific information. In general, there are different levels of logs. [Logrus](https://github.com/sirupsen/logrus) is the logging framework used by `notation`, which provides seven logging levels: `Trace`, `Debug`, `Info`, `Warning`, `Error`, `Fatal` and `Panic`. Only `Debug`, `Info`, `Warning`, and `Error` are used by `notation` debug logs. 
 
@@ -43,18 +41,7 @@ Logs focus on providing technical details for in-depth diagnosing and troublesho
 - **Content**: Debug logs focus on providing context needed to troubleshoot issues, like variable values, execution paths, error stack traces, and internal states of the application.
 - **Level of Detail**: Extremely detailed, providing insights into the application's internal workings and logic, often including low-level details that are essential for debugging.
 
-Currently, the verbose output of `notation` prints INFO level of logs, which is overlapped with debug logs. This is duplicated information for users.
-
-### Output
-
-There are four types of output in `notation` CLI:
-
-- **Status output**: such as operation progress information and command execution result.
-- **Metadata output**: showing what has been executed in specified format, such as JSON, text.
-- **Content output**: it is to output the raw data obtained from the remote registry server or file system, such as the generated signature file.
-- **Error output**: error messages are expected to be helpful to troubleshoot where the user has done something wrong and the program is guiding them in the right direction.
-
-The target users of these types of output are general users. 
+Currently, the verbose output of `notation` prints INFO level of logs, which overlaps with debug logs. This is duplicated information for users.
 
 ## Proposals
 
@@ -62,7 +49,7 @@ The target users of these types of output are general users.
 
 By defining the common conventions, it helps `notation` print out clear and analyzable debug logs.
 
-- Timestamp Each Log Entry with precise timing: Ensure each log entry has a precise timestamp to trace the sequence of events accurately. `notation` SHOULD use the [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision to print the timestamp in the first field of each line. Example: `[2024-08-02 23:56:02.6738192Z] `
+- Timestamp each log entry with precise timing in UTC time format: Ensure each log entry has a precise timestamp to trace the sequence of events accurately. `notation` SHOULD use the [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision to print the timestamp in the first field of each line. Example: `[2024-08-02 23:56:02.6738192Z] `
 - Avoid logging sensitive information for privacy and security requirement: Abstain from logging sensitive information such as passwords, personal data, or authentication tokens. Example: `[2024-08-02 23:56:02.7338192Z] Attempting to authenticate user [UserID: usr123]` (`notation` SHOULD exclude authentication token and password information).
 
 ### Enhancements
@@ -72,7 +59,7 @@ Here are the proposals for `notation` diagnostic experience enhancements:
 - Deprecate the `--verbose` flag but keep `--debug` flag to avoid ambiguity and duplicated INFO level logs in two outputs. It is reasonable to continue using `--debug` to enable logs with different levels as it is in `notation`.
 - Add two empty lines as the separator between each request and response for readability.
 - Use the [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision to print the timestamp for each request and response at the beginning.
-- Debug log level SHOULD be colored-coded on terminal for better readability 
+- Debug log level SHOULD be color-coded on terminal for better readability. 
 - Show running environment details of `notation` such as `OS/Arch` in the output of `notation version`. It would be helpful to help the notation developers locate and reproduce the issue easier. 
 
 These proposals are applicable for all `notation` commands. This document uses the debug log of `notation sign` as an example below.
