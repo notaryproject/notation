@@ -14,7 +14,9 @@
 package main
 
 import (
+	"context"
 	"os"
+	"os/signal"
 
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/cmd/notation/cert"
@@ -23,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func main() {
+func run() error {
 	cmd := &cobra.Command{
 		Use:          "notation",
 		Short:        "Notation - a tool to sign and verify artifacts",
@@ -63,7 +65,14 @@ func main() {
 		versionCommand(),
 		inspectCommand(nil),
 	)
-	if err := cmd.Execute(); err != nil {
+
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+	return cmd.ExecuteContext(ctx)
+}
+
+func main() {
+	if err := run(); err != nil {
 		os.Exit(1)
 	}
 }

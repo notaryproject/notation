@@ -56,7 +56,7 @@ Example - Add a certificate to the "tsa" type of a named store "timestamp":
 			return addCerts(opts)
 		},
 	}
-	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority")
+	command.Flags().StringVarP(&opts.storeType, "type", "t", "", "specify trust store type, options: ca, signingAuthority, tsa")
 	command.Flags().StringVarP(&opts.namedStore, "store", "s", "", "specify named store")
 	command.MarkFlagRequired("type")
 	command.MarkFlagRequired("store")
