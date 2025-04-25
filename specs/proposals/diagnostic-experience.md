@@ -60,7 +60,7 @@ Here are the proposals for `notation` diagnostic experience enhancements:
 - Deprecate the `--verbose` flag but keep `--debug` flag to avoid ambiguity and duplicated INFO level logs in two outputs. It is reasonable to continue using `--debug` to enable logs with different levels as it is in `notation`.
 - Add two empty lines as the separator between each request and response for readability.
 - Use the [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision to print the timestamp for each request and response at the beginning.
-- Debug log level SHOULD be color-coded on terminal for better readability. 
+- Debug log level SHOULD be color-coded for better readability on console. 
 - Show running environment details of `notation` such as `OS/Arch` in the output of `notation version`. It would be helpful to help the notation developers locate and reproduce the issue easier. 
 
 These proposals are applicable for all `notation` commands. This document uses the debug log of `notation sign` as an example below.
