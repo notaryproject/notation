@@ -25,12 +25,13 @@ Specifically, there are known issues or confusion when diagnosing a problem.
 - Poor readability of debug logs. No separator lines between request and response information.
 - Timestamp does not use [Nanoseconds](https://pkg.go.dev/time#Duration.Nanoseconds) precision, which is not accurate to trace historical operation.
 - No easy way to get the user environment information. 
+- Reproduce an issue locally usually takes a lot of time. A detailed debug log can help inspect the root cause and save time before reproducing it.
 
 ## Scenarios
 
-Alice is a DevSecOps engineer who uses `notation` CLI to sign artifacts in a CI/CD pipeline. The signing step failed for some reasons with debug logs generated. Alice tries to figure out the root cause by reading the verbose output and debug logs, but she is confused about two type of logs and she even can't locate the problem from the debug logs. In this scenario, she has to submit a GitHub issue to request help from the Notary Project community and provide debug logs. The debug logs will be used by `notation` developers to analyze the operations and locate the root cause. 
+Alice is a DevSecOps engineer who uses `notation` CLI to sign artifacts in a CI/CD pipeline. The signing step failed for some reasons with debug logs generated. Alice tries to figure out the root cause by reading the verbose output and debug logs, but she is confused about two type of logs and she even can't locate the problem from the debug logs. In this scenario, she has to submit a GitHub issue to request help from the Notary Project community and provide debug logs. The debug logs will be used by `notation` developers to analyze the operations and locate the root cause. `notation` developers need to reproduce Alice's failed steps with the logs for troubleshooting purposes. However, the poor readability of debug logs and missing user system environment information cause a higher cost to reproduce for `notation` developers. 
 
-`notation` developers need to reproduce Alice's failed steps with the logs for troubleshooting purposes. However, the poor readability of debug logs and missing user system environment information cause a higher cost to reproduce for `notation` developers.
+With well-structured debug logs, clear readability, and accurate user system information, Notation users and developers can efficiently troubleshoot root causes with less noise and confusion — resulting in a better diagnostic experience.
 
 ## Concepts
 
