@@ -135,7 +135,7 @@ func parseErrorOnVerificationFailure(err error) error {
 		}
 	}
 
-	var errorVerificationFailed notation.ErrorVerificationFailed
+	var errorVerificationFailed notation.VerificationFailedError
 	if !errors.As(err, &errorVerificationFailed) {
 		return fmt.Errorf("signature verification failed: %w", err)
 	}
