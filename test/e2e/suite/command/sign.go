@@ -86,7 +86,7 @@ var _ = Describe("notation sign", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.WithDescription("verify by tag schema").
-				Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -98,7 +98,7 @@ var _ = Describe("notation sign", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			notation.WithDescription("verify by referrers api").
-				Exec("verify", artifact.ReferenceWithDigest(), "-v").
+				Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -132,7 +132,7 @@ var _ = Describe("notation sign", func() {
 			// sleep to wait for expiry
 			time.Sleep(2100 * time.Millisecond)
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("expiry validation failed.").
 				MatchErrKeyWords("signature verification failed for all the signatures")
 		})

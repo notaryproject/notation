@@ -91,7 +91,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("sign", "--force-referrers-tag", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("list", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("list", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",
@@ -104,7 +104,7 @@ var _ = Describe("notation list", func() {
 			notation.Exec("sign", "--force-referrers-tag=false", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("list", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("list", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(
 					"└── application/vnd.cncf.notary.signature",
 					"└── sha256:",

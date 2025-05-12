@@ -29,7 +29,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords(`trust policy statement "e2e" is either missing trust stores or trusted identities, both must be specified`)
 		})
 	})
@@ -40,7 +40,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("the trust store \"invalid_store\" of type \"ca\" does not exist")
 		})
 	})
@@ -51,7 +51,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords(`trust policy statement "e2e" uses an unsupported trust store name "" in trust store value "ca:". Named store name needs to follow [a-zA-Z0-9_.-]+ format`)
 		})
 	})
@@ -62,7 +62,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords(`trust policy statement "e2e" has malformed trust store value "*". The required format is <TrustStoreType>:<TrustStoreName>`)
 		})
 	})
@@ -71,7 +71,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 		Host(nil, func(notation *utils.ExecOpts, artifact1 *Artifact, vhost *utils.VirtualHost) {
 			// artifact1 signed with new_e2e.crt
 			OldNotation(AuthOption("", ""), AddKeyOption(filepath.Join(NotationE2ELocalKeysDir, "e2e.key"), filepath.Join(NotationE2ELocalKeysDir, "new_e2e.crt"))).
-				Exec("sign", artifact1.ReferenceWithDigest(), "-v").
+				Exec("sign", artifact1.ReferenceWithDigest(), "-d").
 				MatchKeyWords(SignSuccessfully)
 
 			// artifact2 signed with e2e.crt
@@ -85,11 +85,11 @@ var _ = Describe("notation trust policy trust store test", func() {
 			)
 
 			notation.WithDescription("verify artifact1 with trust store ca/e2e-new").
-				Exec("verify", artifact1.ReferenceWithDigest(), "-v").
+				Exec("verify", artifact1.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 
 			notation.WithDescription("verify artifact2 with trust store ca/e2e").
-				Exec("verify", artifact2.ReferenceWithDigest(), "-v").
+				Exec("verify", artifact2.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -98,7 +98,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 		Skip("overlapped trust stores were not checked")
 		Host(nil, func(notation *utils.ExecOpts, artifact *Artifact, vhost *utils.VirtualHost) {
 			// artifact signed with new_e2e.crt
-			notation.Exec("sign", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("sign", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(SignSuccessfully)
 
 			// setup overlapped trust store
@@ -106,7 +106,7 @@ var _ = Describe("notation trust policy trust store test", func() {
 				AddTrustPolicyOption("overlapped_trust_store_trustpolicy.json", false),
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2ELocalKeysDir, "e2e.crt")))
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords(VerifyFailed)
 		})
 	})

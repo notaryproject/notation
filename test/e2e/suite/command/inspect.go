@@ -116,7 +116,7 @@ var _ = Describe("notation inspect", func() {
 			notation.Exec("sign", "--force-referrers-tag", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("inspect", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("inspect", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(inspectSuccessfully...)
 		})
 	})
@@ -126,7 +126,7 @@ var _ = Describe("notation inspect", func() {
 			notation.Exec("sign", "--force-referrers-tag=false", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("inspect", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("inspect", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(inspectSuccessfully...)
 		})
 	})
