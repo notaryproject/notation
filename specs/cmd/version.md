@@ -11,6 +11,7 @@ Notation - a tool to sign and verify artifacts.
 
 Version:     <MAJOR.MINOR.PATCH>
 Go version:  go<MAJOR.MINOR.PATCH>
+OS/Arch:     <OS>/<ARCH>
 Git commit:  <long_hash>
 ```
 
@@ -41,5 +42,6 @@ Notation - a tool to sign and verify artifacts.
 
 Version:     1.0.0
 Go Version:  go1.19.2
+OS/Arch:     linux/amd64
 Git commit:  1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a
 ```
