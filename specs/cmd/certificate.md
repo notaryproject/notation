@@ -90,7 +90,6 @@ Flags:
   -h, --help           help for list
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority, tsa
-  -v, --verbose        verbose mode
 ```
 
 ### notation certificate show
@@ -106,7 +105,6 @@ Flags:
   -h, --help           help for show
   -s, --store string   specify named store
   -t, --type string    specify trust store type, options: ca, signingAuthority, tsa
-  -v, --verbose        verbose mode
 ```
 
 ### notation certificate delete

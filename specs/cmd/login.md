@@ -19,7 +19,6 @@ Flags:
   -p, --password string     password for registry operations (default to $NOTATION_PASSWORD if not specified)
       --password-stdin      take the password from stdin
   -u, --username string     username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -v, --verbose             verbose mode
 ```
 
 ## Usage

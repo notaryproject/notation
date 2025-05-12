@@ -15,7 +15,6 @@ Usage:
 Flags:
   -d, --debug     debug mode
   -h, --help      help for logout
-  -v, --verbose   verbose mode
 ```
 
 ## Usage

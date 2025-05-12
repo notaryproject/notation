@@ -45,7 +45,6 @@ Flags:
   -o, --output string         output format, options: 'json', 'tree' (default "tree")
   -p, --password string       password for registry operations (default to $NOTATION_PASSWORD if not specified)
   -u, --username string       username for registry operations (default to $NOTATION_USERNAME if not specified)
-  -v, --verbose               verbose mode
 ```
 
 ## Usage

@@ -59,22 +59,18 @@ func (opts *SignerFlagOpts) ApplyFlagsToCommand(command *cobra.Command) {
 
 // LoggingFlagOpts cmd opts for logging.
 type LoggingFlagOpts struct {
-	Debug   bool
-	Verbose bool
+	Debug bool
 }
 
 // ApplyFlags applies flags to a command flag set.
 func (opts *LoggingFlagOpts) ApplyFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&opts.Debug, "debug", "d", false, "debug mode")
-	fs.BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose mode")
 }
 
 // InitializeLogger sets up the logger based on common options.
 func (opts *LoggingFlagOpts) InitializeLogger(ctx context.Context) context.Context {
 	if opts.Debug {
 		ctx = trace.WithLoggerLevel(ctx, logrus.DebugLevel)
-	} else if opts.Verbose {
-		ctx = trace.WithLoggerLevel(ctx, logrus.InfoLevel)
 	} else {
 		return ctx
 	}

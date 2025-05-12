@@ -92,7 +92,6 @@ Flags:
       --timestamp-root-cert string   filepath of timestamp authority root certificate
       --timestamp-url string         RFC 3161 Timestamping Authority (TSA) server URL
   -m, --user-metadata stringArray    {key}={value} pairs that are added to the signature payload
-  -v, --verbose                      verbose mode
 ```
 
 ### notation blob inspect
@@ -106,7 +105,6 @@ Usage:
 Flags:
   -o, --output string         output format, options: 'json', 'tree' (default "tree")
   -d, --debug                 debug mode
-  -v, --verbose               verbose mode
   -h, --help                  help for inspect
 ```
 
@@ -185,7 +183,6 @@ Flags:
       --policy-name string          policy name to verify against. If not provided, the global policy is used if exists
   -s  --signature string            filepath of the signature to be verified
   -m, --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
-  -v, --verbose                     verbose mode
 ```
 
 ## Usage

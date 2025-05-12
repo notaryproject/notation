@@ -14,7 +14,7 @@ First and foremost, make the error messages descriptive and informative. Error m
 
 Second, when necessary, it is highly suggested for Notation CLI contributors to provide recommendations for users how to resolve the problems based on the error messages they encountered. Showing descriptive words and straightforward prompt with executable commands as a potential solution is a good practice for error messages.
 
-Third, for unhandled errors you didn't expect the user to run into. For that, have a way to view full traceback information as well as full debug or verbose logs output, and instructions on how to submit a bug.
+Third, for unhandled errors you didn't expect the user to run into. For that, have a way to view full traceback information as well as full debug logs output, and instructions on how to submit a bug.
 
 Fourth, signal-to-noise ratio is crucial. The more irrelevant output you produce, the longer it's going to take the user to figure out what they did wrong. If your program produces multiple errors of the same type, consider grouping them under a single explanatory header instead of printing many similar-looking lines.
 
@@ -31,7 +31,7 @@ Last, error logs can also be useful for post-mortem debugging and can also be wr
 - Print human readable error message. If the error message is mainly from the server and varies by different servers, tell users that the error response is from server. This implies that users may need to contact server side for troubleshooting.
 - Provide specific and actionable prompt message with argument suggestion or show the example usage for reference. (e.g, Instead of showing flag or argument options is missing, please provide available argument options and guide users to `--help` to view more examples).
 - If the actionable prompt message is too long to show in the CLI output, consider guide users to Notation user manual or troubleshooting guide with the versioned permanent link.
-- If the error message is not enough for troubleshooting, guide users to use `--verbose` to print much more detailed logs.
+- If the error message is not enough for troubleshooting, guide users to use `--debug` to print much more detailed logs.
 - If server returns an error without any [message or detail](https://github.com/opencontainers/distribution-spec/blob/v1.1.0-rc.3/spec.md#error-codes), consider providing customized error logs to make it clearer. The original server logs can be displayed in debug mode.
 - As a security tool, `notation` SHOULD prompt users to stop upon verification errors. 
 

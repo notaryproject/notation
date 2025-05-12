@@ -48,7 +48,6 @@ Flags:
        --scope string                [Experimental] set trust policy scope for artifact verification, required and can only be used when flag "--oci-layout" is set
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   user defined {key}={value} pairs that must be present in the signature for successful verification if provided
-  -v,  --verbose                     verbose mode
 ```
 
 ## Usage
