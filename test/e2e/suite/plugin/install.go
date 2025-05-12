@@ -97,7 +97,7 @@ var _ = Describe("notation plugin install", func() {
 				Fail(fmt.Sprintf("failed to write file %s: %v", targetPath, err))
 			}
 
-			notation.ExpectFailure().Exec("plugin", "install", "--file", targetPath, "-d").
+			notation.ExpectFailure().Exec("plugin", "install", "--file", targetPath).
 				MatchErrContent("Error: plugin installation failed: total file size reached the 256 MiB size limit\n")
 		})
 	})
