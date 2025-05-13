@@ -53,7 +53,6 @@ Flags:
   -h, --help               help for install
       --sha256sum string   must match SHA256 of the plugin source, required when "--url" flag is set
       --url                install plugin from an HTTPS URL. The plugin download timeout is 10m0s
-  -v, --verbose            verbose mode
 
 Aliases:
   install, add
@@ -70,7 +69,6 @@ Usage:
 Flags:
   -d, --debug         debug mode
   -h, --help          help for remove
-  -v, --verbose       verbose mode
   -y, --yes           do not prompt for confirmation
 Aliases:
   uninstall, remove, rm

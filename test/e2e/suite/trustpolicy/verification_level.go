@@ -27,7 +27,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("expiry validation failed.",
 					VerifyFailed)
 		})
@@ -42,7 +42,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("authenticTimestamp validation failed",
 					VerifyFailed)
 		})
@@ -59,7 +59,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			// trust store.
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("authenticity validation failed",
 					VerifyFailed)
 		})
@@ -69,7 +69,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 		Host(BaseOptions(), func(notation *utils.ExecOpts, _ *Artifact, vhost *utils.VirtualHost) {
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("integrity validation failed",
 					VerifyFailed)
 		})
@@ -81,7 +81,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("expiry was set to \"log\" and failed with error: digital signature has expired").
 				MatchKeyWords(VerifySuccessfully)
 		})
@@ -96,7 +96,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
 					"after certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" validity period, it was expired at \"Tue, 27 Jun 2023 06:10:00 +0000\"").
 				MatchKeyWords(VerifySuccessfully)
@@ -114,7 +114,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			// trust store.
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("authenticity validation failed",
 					VerifyFailed)
 		})
@@ -126,7 +126,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("integrity validation failed",
 					VerifyFailed)
 		})
@@ -138,7 +138,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("digital signature has expired",
 					"expiry was set to \"log\"").
 				MatchKeyWords(VerifySuccessfully)
@@ -154,7 +154,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
 					"after certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" validity period, it was expired at \"Tue, 27 Jun 2023 06:10:00 +0000\"").
 				MatchKeyWords(VerifySuccessfully)
@@ -172,7 +172,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			// trust store.
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
 					"the signature's certificate chain does not contain any trusted certificate").
 				MatchKeyWords(VerifySuccessfully)
@@ -185,7 +185,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("integrity validation failed",
 					VerifyFailed)
 		})
@@ -197,7 +197,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-invalid-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords("Trust policy is configured to skip signature verification")
 		})
 	})
@@ -208,7 +208,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("digital signature has expired",
 					"expiry was set to \"log\"").
 				MatchKeyWords(VerifySuccessfully)
@@ -224,7 +224,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("Warning: authenticTimestamp was set to \"log\"",
 					"after certificate \"O=Internet Widgits Pty Ltd,ST=Some-State,C=AU\" validity period, it was expired at \"Tue, 27 Jun 2023 06:10:00 +0000\"").
 				MatchKeyWords(VerifySuccessfully)
@@ -242,7 +242,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			// trust store.
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
 					"the signature's certificate chain does not contain any trusted certificate").
 				MatchKeyWords(VerifySuccessfully)
@@ -255,7 +255,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("expiry validation failed.",
 					VerifyFailed)
 		})
@@ -272,7 +272,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("authenticTimestamp validation failed",
 					VerifyFailed)
 		})
@@ -287,7 +287,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("Warning: authenticity was set to \"log\"",
 					"the signature's certificate chain does not contain any trusted certificate").
 				MatchKeyWords(VerifySuccessfully)
@@ -303,7 +303,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords(`"integrity" verification can not be overridden in custom signature verification`)
 		})
 	})
@@ -314,7 +314,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 
 			artifact := GenerateArtifact("e2e-expired-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("expiry validation failed.",
 					VerifyFailed)
 		})
@@ -331,7 +331,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 				AddTrustStoreOption("e2e", filepath.Join(NotationE2EConfigPath, "localkeys", "expired_e2e.crt")),
 			)
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("authenticTimestamp validation failed",
 					VerifyFailed)
 		})
@@ -348,7 +348,7 @@ var _ = Describe("notation trust policy verification level test", func() {
 			// trust store.
 			artifact := GenerateArtifact("e2e-valid-signature", "")
 
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("authenticity validation failed",
 					VerifyFailed)
 		})

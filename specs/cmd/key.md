@@ -39,7 +39,6 @@ Flags:
       --id string                   key id (required if --plugin is set)
       --plugin string               signing plugin name
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, refer plugin's documentation to set appropriate values
-  -v, --verbose                     verbose mode
 ```
 
 ### notation key delete
@@ -53,7 +52,6 @@ Usage:
 Flags:
   -d, --debug     debug mode
   -h, --help      help for delete
-  -v, --verbose   verbose mode
 ```
 
 ### notation key list
@@ -86,7 +84,6 @@ Flags:
   -d, --debug     debug mode
       --default   mark as default
   -h, --help      help for update
-  -v, --verbose   verbose mode
 ```
 
 ## Usage

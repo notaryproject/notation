@@ -29,7 +29,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -39,7 +39,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithTag(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithTag(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -69,7 +69,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", "--force-referrers-tag", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -79,7 +79,7 @@ var _ = Describe("notation verify", func() {
 			notation.Exec("sign", "--force-referrers-tag=false", artifact.ReferenceWithDigest()).
 				MatchKeyWords(SignSuccessfully)
 
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -163,7 +163,7 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			vhost.UpdateEnv(map[string]string{"NOTATION_CONFIG": "/not/exist"})
-			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.ExpectFailure().Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchErrKeyWords("trust policy is not present")
 		})
 	})
@@ -174,7 +174,7 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			vhost.UpdateEnv(map[string]string{"NOTATION_CONFIG": vhost.AbsolutePath(NotationDirName)})
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})
@@ -185,7 +185,7 @@ var _ = Describe("notation verify", func() {
 				MatchKeyWords(SignSuccessfully)
 
 			vhost.UpdateEnv(map[string]string{"NOTATION_CACHE": vhost.AbsolutePath(NotationDirName)})
-			notation.Exec("verify", artifact.ReferenceWithDigest(), "-v").
+			notation.Exec("verify", artifact.ReferenceWithDigest(), "-d").
 				MatchKeyWords(VerifySuccessfully)
 		})
 	})

@@ -46,7 +46,6 @@ Flags:
        --timestamp-url string        RFC 3161 Timestamping Authority (TSA) server URL
   -u,  --username string             username for registry operations (default to $NOTATION_USERNAME if not specified)
   -m,  --user-metadata stringArray   {key}={value} pairs that are added to the signature payload
-  -v,  --verbose                     verbose mode
 ```
 
 ### Set config property for OCI image manifest
