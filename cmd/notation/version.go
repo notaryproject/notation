@@ -38,6 +38,7 @@ func runVersion() {
 
 	fmt.Printf("Version:     %s\n", version.GetVersion())
 	fmt.Printf("Go version:  %s\n", runtime.Version())
+	fmt.Printf("OS/Arch:     %s/%s\n", runtime.GOOS, runtime.GOARCH)
 
 	if version.GitCommit != "" {
 		fmt.Printf("Git commit:  %s\n", version.GitCommit)
