@@ -45,7 +45,7 @@ Notary Project is a [CNCF Incubating project](https://www.cncf.io/projects/notar
 You can choose one of the following two meeting series based on your time zone ([Convert the UTC time to your local time](https://dateful.com/convert/utc)).
 
 - APAC-friendly series: Every 2 weeks on Tuesday at 1:30 AM - 2:30 AM UTC at [Zoom meetng room 92845115383](https://zoom.us/j/92845115383). Please download and import the [iCalendar (.ics) file](https://zoom.us/meeting/tJYlc-yprz4pEtfURgkU87H92Lp5_tEUFUlU/ics?icsToken=DFsuxg27fSEsMo7tewAALAAAAGAjUyl-OF5plM9lOFCrpHnZXosEXk5n-tLtsqKh536tFi9N6wUbHvDObIuPsqNHNdm01l7wM7eyL1d_rDAwMDAwMQ&meetingMasterEventId=3KMpeJ5TS6G9a3N4vuLuHg) to your calendar system.
-- U.S.-friendly series: Every 2 weeks on Wednesday at 4:00 PM – 5:00 PM Pacific time at [Zoom meetng room 95363269801](https://zoom.us/j/95363269801). Please download and import the [iCalendar (.ics) file](https://www.zoom.us/meeting/tJEuceqqqDIiGtUQKXiRMH44tFHULzhkHZ-T/ics?meetingMasterEventId=5QOyHuxhS0KKE5L-X-w41A) to your calendar system.
+- U.S.-friendly series: Every 2 weeks on Wednesday at 4:00 PM – 5:00 PM UTC at [Zoom meetng room 95363269801](https://zoom.us/j/95363269801). Please download and import the [iCalendar (.ics) file](https://www.zoom.us/meeting/tJEuceqqqDIiGtUQKXiRMH44tFHULzhkHZ-T/ics?meetingMasterEventId=5QOyHuxhS0KKE5L-X-w41A) to your calendar system.
 
 Please see the [CNCF Calendar](https://www.cncf.io/calendar/) for details. You can log in to hackmd.io to add your topics to the [meeting agenda](https://hackmd.io/@EG2api1FTUudGEK6PMjvuQ/rk30ceMAyl). 
 
