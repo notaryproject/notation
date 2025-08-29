@@ -5,8 +5,8 @@ go 1.24.0
 require (
 	github.com/notaryproject/notation-core-go v1.3.0
 	github.com/notaryproject/notation-go v1.2.0-beta.1.0.20250512015818-2bc67e7695ef
-	github.com/onsi/ginkgo/v2 v2.25.1
-	github.com/onsi/gomega v1.38.1
+	github.com/onsi/ginkgo/v2 v2.25.2
+	github.com/onsi/gomega v1.38.2
 	github.com/opencontainers/image-spec v1.1.1
 	oras.land/oras-go/v2 v2.6.0
 )
