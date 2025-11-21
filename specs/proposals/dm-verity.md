@@ -2,13 +2,13 @@
 
 ## Overview
 
-This proposal extends the Notation CLI to support signing and verifying OCI container image layers with dm-verity Merkle tree root hashes. While Notation currently supports signing container images at the manifest level, this proposal enables container image per-layer integrity protection that can be continuously enforced at runtime using dm-verity and [Integrity Policy Enforcement](https://docs.kernel.org/next/admin-guide/LSM/ipe.html) (IPE). Code integrity ensures that only cryptographically verified and trusted code can execute on a system, which is critical for platforms that require kernel-level verification of container image layers.
+This proposal extends the Notation CLI to support signing and verifying OCI container image layers with dm-verity Merkle tree root hashes. While Notation currently supports signing container images at the manifest level, this proposal enables container image per-layer integrity protection that can be continuously enforced at runtime using dm-verity and [Integrity Policy Enforcement](https://docs.kernel.org/next/admin-guide/LSM/ipe.html) (IPE). Container layer DM-verity signing is critical for extending the trust from kernel code-integrity guarantees to workloads within trusted containers, while blocking the execution of untrusted containers and binaries created in mutable container state.
 
 ## Problem Statement & Motivation
 
 Modern Linux container hosts may achieve a high level of security by running an immutable host OS, preventing tampering with system binaries. However, OCI container images themselves have traditionally not been held to the same standard – integrity is only verified at image pull time, with no continuous enforcement at runtime. This leaves a gap where if an attacker injects or executes a malicious binary inside a container, the host has no built-in mechanism to prevent it from running.
 
-In developing [Azure Linux with OS Guard](https://techcommunity.microsoft.com/blog/linuxandopensourceblog/azure-linux-with-os-guard-immutable-container-host-with-code-integrity-and-open-/4437473) we aim to to extend code integrity protections into OCI containers using dm-verity and IPE. Each container image layer is backed by a read-only dm-verity block device whose integrity is ensured by a Merkle-tree hash. The root hash of that Merkle tree is signed by a key that the Linux kernel trusts. At container start, the kernel verifies each root hash signature before allowing the layer to mount. IPE policies then allow execution only from layers with verified hashes.
+In developing [Azure Linux with OS Guard](https://techcommunity.microsoft.com/blog/linuxandopensourceblog/azure-linux-with-os-guard-immutable-container-host-with-code-integrity-and-open-/4437473) we aim to to extend code integrity protections into OCI containers using dm-verity and IPE. Each container image layer is backed by a read-only dm-verity block device whose integrity is ensured by a Merkle tree root hash. The root hash is signed by a key that the Linux kernel trusts. At container start, the kernel verifies each root hash signature before allowing the layer to mount. IPE policies then allow execution only from layers with verified hashes.
 
 Signing container images at the manifest level alone is not sufficient to ensure continuous runtime integrity. While manifest signatures protect against image tampering during distribution (image pull), they do not enable enforcement at runtime. Container layers must also have kernel-verifiable signatures to ensure their integrity. With the increasing adoption of immutable infrastructure and zero-trust security models, securing these artifacts with continuous kernel enforcement is critical. By adding per-layer container image signing, Notation can extend its capabilities to enable kernel-enforced container integrity.
 
@@ -22,8 +22,10 @@ The following describes how per-layer dm-verity signing can enhance container se
 
 Sarah, a DevOps engineer, deploys a containerized application to a production Kubernetes cluster. The container images are signed using standard Notation manifest signatures. An attacker gains access to a worker node and modifies one of the container layers on the host filesystem by injecting a malicious binary. When the container restarts, the modified layer is mounted without detection because:
 - Notation's manifest signature only verifies the image at pull time
-- No runtime verification occurs when layers are mounted
 - The digest in the manifest still matches the original layer blob in the registry
+- The layer is mounted without verification of root hashes after being tampered with offline (offline attack allowed)
+- The malicious binary cannot be detected at runtime since IPE is not present to prevent binaries executing from unsigned dm-verity volumes (runtime attack allowed)
+
 
 The malicious binary executes successfully, compromising the application. Current Notation signatures cannot prevent this attack because they don't provide continuous runtime enforcement at the image layer level.
 
@@ -40,10 +42,10 @@ David, a platform engineer, uses Notation with the proposed dm-verity signing ch
 When containers are deployed:
 1. The EROFS containerd snapshotter fetches the OCI image and its attached referrer artifact that contains the  layer signatures from the registry
 2. For each layer, the snapshotter creates a dm-verity block device, passing the root hash and PKCS#7 signature to the kernel
-3. The Linux kernel verifies the PKCS#7 signature against trusted keys before mounting the layer
-4. IPE policies enforce that only correctly signed dm-verity volumes can execute code at runtime
+3. The Linux kernel verifies the PKCS#7 signed root hash against trusted keys before mounting the layer (offline attack blocked)
+4. IPE policies enforce that only correctly signed dm-verity volumes can execute code at runtime (runtime attack blocked)
 
-If an attacker attempts to modify a layer like in the first scenario, the Merkle tree verification fails immediately, the kernel refuses to mount the tampered layer. If an attacker drops an unsigned binary into a running container and tries to execute it, IPE blocks execution because it was not loaded from signed dm-verity.
+If an attacker attempts to modify a layer like in the first scenario, the root hash verification fails immediately and the kernel refuses to mount the tampered layer. If an attacker drops an unsigned binary into a running container and tries to execute it, IPE blocks execution because it was not loaded from a signed dm-verity volume.
 
 ## Proposal
 
@@ -147,7 +149,7 @@ The new entries are described below:
 The new referrer artifact is expected to add less than 5 KB of metadata per layer in the registry
   - 1-2 KB for the json manifest entry
   - 1-2 KB per signature blob
-  
+
 **Verification command:**
 
 ```bash
