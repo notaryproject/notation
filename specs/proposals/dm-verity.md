@@ -156,10 +156,9 @@ The new referrer artifact is expected to add less than 5 KB of metadata per laye
 notation verify myregistry.azurecr.io/myapp@sha256:def456...
 ```
 
-The command interface will not change. If the image has dm-verity signatures attached, Notation should:
+The command interface will not change. This command will not check layer signature compatibility with any keys. It will only output additional information for dm-verity. If the image has dm-verity signatures attached, Notation should:
 1. Detect the `io.cncf.notary.dm-verity.signature=true` annotation
 2. Inform the user that kernel-level verification is required
-3. This command will not check signature compatibility with any keys
 
 **Sample output:**
 
