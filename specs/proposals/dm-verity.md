@@ -61,17 +61,19 @@ This section outlines the proposed solution for signing and verifying OCI contai
 2. Per-layer signing capability
 3. Deterministic EROFS image and Merkle tree generation
 4. OCI registry distribution for a new artifact containing the signed layer root hashes via ORAS Attached Artifacts
-5. A new AKV plugin for the PKCS#7 format
 
 ### Extended Notation CLI
 
-Extend `notation sign` with a new `--dm-verity` flag to enable automated per-layer signing:
+Extend `notation sign` with a new `--dm-verity` flag to enable automated per-layer signing. While the command below assumes the container image exists in a remote registry, this argument should also work when signing [OCI image layouts](https://github.com/notaryproject/notation/blob/main/specs/cmd/sign.md#experimental-sign-container-images-stored-in-oci-layout-directory) with argument `--oci-layout` for local signing.
+
+The manifest from the default sign behavior is signed with the expected JWS/COSE formats that can be verified in userspace while the layer hashes are signed with the PKCS#7 format by default until other formats are supported. 
+
+This command will not recursively sign multi-arch container images. In this case, the command should be run for each individual image for the requested architecture.
 
 **Sample command:**
 ```bash
 notation sign --dm-verity \
   --id myKeyId \
-  --signature-format pkcs7 \
   myregistry.azurecr.io/myapp@sha256:def456...
 ```
 **Sample output:**
@@ -146,9 +148,13 @@ The new entries are described below:
 - io.cncf.notary.dm-verity.root-hash: The root hash value of the dm-verity block device
 - io.cncf.notary.dm-verity.signature=true: This is a flag that notifies Notation that dm-verity signatures and root hashes exist in the artifact
 
-The new referrer artifact is expected to add less than 5 KB of metadata per layer in the registry
-  - 1-2 KB for the json manifest entry
-  - 1-2 KB per signature blob
+**Performance Metrics:**
+  - Registry overhead: ~4 KB per layer
+    - PKCS#7 signature blob: ~2 KB
+    - Manifest entry: ~2 KB
+  - Signing time: ~4-5 seconds per layer
+  - Timeout: 5 minutes for EROFS conversion with no hardcoded maximum layer size
+
 
 **Verification command:**
 
