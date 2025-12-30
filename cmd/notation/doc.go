@@ -1,4 +1,4 @@
-//go:build !gendoc
+//go:build gendoc
 
 // Copyright The Notary Project Authors.
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,20 +16,31 @@
 package main
 
 import (
-	"context"
+	"fmt"
 	"os"
-	"os/signal"
+
+	"github.com/spf13/cobra/doc"
 )
 
-func run() error {
-	cmd := NewRootCommand()
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
-	return cmd.ExecuteContext(ctx)
-}
-
 func main() {
-	if err := run(); err != nil {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "Usage: %s <output-dir>\n", os.Args[0])
 		os.Exit(1)
 	}
+
+	outputDir := os.Args[1]
+
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating output directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	cmd := NewRootCommand()
+
+	if err := doc.GenMarkdownTree(cmd, outputDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Error generating documentation: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Successfully generated CLI documentation in %s\n", outputDir)
 }
