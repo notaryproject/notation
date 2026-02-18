@@ -98,3 +98,8 @@ install-notation: bin/notation ## installs the notation cli
 .PHONY: install-docker-%
 install-docker-%: bin/docker-%
 	cp $< ~/.docker/cli-plugins/
+
+.PHONY: cli-docs
+cli-docs: ## generate CLI reference documentation
+	@echo "Generating CLI documentation..."
+	@go run -tags=gendoc ./cmd/notation ./docs/cli
