@@ -44,13 +44,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Set up Go ${{ matrix.go-version }} environment
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@42a7e1b7c8cf5c0c8d05507cd91e3b8b3640f04a # v6.0.0
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        uses: github/codeql-action/init@f2c0e13b6990a7b10c93c00b1996e0907c02dc86 # v4.31.0
         with:
           languages: go
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        uses: github/codeql-action/analyze@f2c0e13b6990a7b10c93c00b1996e0907c02dc86 # v4.31.0

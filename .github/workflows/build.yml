@@ -37,14 +37,14 @@ jobs:
         with:
           comment: One or more commits in your pull request are not signed. The Notary Project requires all commits to be signed. Please sign your commits by following the [guide](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). Thank you!
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@42a7e1b7c8cf5c0c8d05507cd91e3b8b3640f04a # v6.0.0
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
       - name: Check out code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Cache Go modules
-        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache@0781ae7a013985cbc9ff13fc8e46e4f2dc69cf0e # v4.3.0
         id: go-mod-cache
         with:
           path: ~/go/pkg/mod
@@ -65,6 +65,6 @@ jobs:
             make e2e-covdata
           fi
       - name: Upload coverage to codecov.io
-        uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
+        uses: codecov/codecov-action@21f4c9e6b9abbcd7b88f5d9a67fa4984a502af9a # v5.5.1
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
