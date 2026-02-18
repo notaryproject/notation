@@ -44,7 +44,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Set up Go ${{ matrix.go-version }} environment
-        uses: actions/setup-go@42a7e1b7c8cf5c0c8d05507cd91e3b8b3640f04a # v6.0.0
+        uses: actions/setup-go@b7bc3c12cff44b00d5edf2b1fc3a20a272449c77 # v6.0.0
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true

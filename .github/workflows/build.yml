@@ -37,7 +37,7 @@ jobs:
         with:
           comment: One or more commits in your pull request are not signed. The Notary Project requires all commits to be signed. Please sign your commits by following the [guide](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits). Thank you!
       - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@42a7e1b7c8cf5c0c8d05507cd91e3b8b3640f04a # v6.0.0
+        uses: actions/setup-go@b7bc3c12cff44b00d5edf2b1fc3a20a272449c77 # v6.0.0
         with:
           go-version: ${{ matrix.go-version }}
           check-latest: true
