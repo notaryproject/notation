@@ -71,6 +71,10 @@ e2e-covdata:
 	export GO_INSTRUMENT_FLAGS='-coverpkg "github.com/notaryproject/notation/v2/internal/...,github.com/notaryproject/notation/v2/cmd/..."'; \
 	$(MAKE) e2e && go tool covdata textfmt -i=$$GOCOVERDIR -o "$(CURDIR)/test/e2e/coverage.txt"
 
+.PHONY: lint
+lint: ## run golangci-lint (install: https://golangci-lint.run/welcome/install/)
+	golangci-lint run
+
 .PHONY: clean
 clean:
 	git status --ignored --short | grep '^!! ' | sed 's/!! //' | xargs rm -rf
