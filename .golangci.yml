@@ -16,11 +16,12 @@ version: "2"
 run:
   timeout: 5m
 
-# Adopt linting incrementally: only fail on issues introduced by new commits,
-# not on the pre-existing backlog. Remove `new-from-rev` once the backlog under
-# `make lint` is cleared to enforce linting across the whole tree.
+# Adopt linting incrementally: only fail on issues introduced by a PR relative
+# to its merge base with the default branch, not on the pre-existing backlog.
+# Remove `new-from-merge-base` once the backlog under `make lint` is cleared to
+# enforce linting across the whole tree.
 issues:
-  new-from-rev: HEAD
+  new-from-merge-base: origin/main
   max-issues-per-linter: 0
   max-same-issues: 0
 

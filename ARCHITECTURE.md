@@ -187,7 +187,7 @@ Build tooling is driven by the [`Makefile`](Makefile). Key targets:
 | `make build` | Builds `bin/notation` with version info injected via `-ldflags`. |
 | `make install` | Builds and copies `notation` to `~/bin/`. |
 | `make test` | Runs unit tests with race detector and coverage (`coverage.txt`). |
-| `make lint` | Runs `golangci-lint` using `.golangci.yml` (adopted incrementally via `new-from-rev`). |
+| `make lint` | Runs `golangci-lint` using `.golangci.yml` (adopted incrementally via `new-from-merge-base`). |
 | `make e2e` | Builds the CLI and runs the Ginkgo e2e suite against a `zot` registry. |
 | `make e2e-covdata` | Runs e2e with binary coverage instrumentation. |
 | `make download` | Downloads Go module dependencies. |
@@ -276,8 +276,8 @@ approximate value-to-effort.
   a matrix over registry backends) improves signal and parallelism.
 - **Cache e2e registry images** to reduce flakiness and runtime.
 - **Burn down the lint backlog.** `make lint` is adopted incrementally
-  (`new-from-rev` in `.golangci.yml`) so only new issues fail CI. Roughly ~76
-  pre-existing findings remain; clearing them lets `new-from-rev` be removed to
+  (`new-from-merge-base` in `.golangci.yml`) so only new issues fail CI. Roughly ~76
+  pre-existing findings remain; clearing them lets `new-from-merge-base` be removed to
   enforce linting across the whole tree.
 - **Pin and document the Go toolchain** via a `go.work`/toolchain directive so
   local and CI builds are reproducible.
