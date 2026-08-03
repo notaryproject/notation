@@ -34,7 +34,6 @@ Notary Project is a [CNCF Incubating project](https://www.cncf.io/projects/notar
 
 ### Development and Contributing
 
-- [Architecture overview](/ARCHITECTURE.md)
 - [Build Notation from source code](/building.md)
 - [Governance for Notary Project](https://github.com/notaryproject/.github/blob/master/GOVERNANCE.md)
 - [Maintainers and reviewers list](https://github.com/notaryproject/notation/blob/main/CODEOWNERS)
