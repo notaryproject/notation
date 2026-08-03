@@ -112,16 +112,16 @@ func runLogin(ctx context.Context, opts *loginOpts) error {
 	cred := opts.Credential()
 	credsStore, err := auth.NewCredentialsStore()
 	if err != nil {
-		return fmt.Errorf("failed to get credentials store: %v", err)
+		return fmt.Errorf("failed to get credentials store: %w", err)
 	}
 	registry, err := getRegistryLoginClient(ctx, &opts.SecureFlagOpts, serverAddress)
 	if err != nil {
-		return fmt.Errorf("failed to get registry client: %v", err)
+		return fmt.Errorf("failed to get registry client: %w", err)
 	}
 	if err := credentials.Login(ctx, credsStore, registry, cred); err != nil {
 		registryName := registry.Reference.Registry
 		if !errors.Is(err, credentials.ErrPlaintextPutDisabled) {
-			return fmt.Errorf("failed to log in to %s: %v", registryName, err)
+			return fmt.Errorf("failed to log in to %s: %w", registryName, err)
 		}
 
 		// ErrPlaintextPutDisabled returned by Login() indicates that the
