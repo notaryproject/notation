@@ -35,14 +35,14 @@ For package- and symbol-level detail, see the Go documentation (`go doc ./...` o
 
 ```mermaid
 flowchart TD
-    CLI["CLI Layer — cmd/notation/*.go (Cobra commands)<br/>sign · verify · list · inspect · login/logout · key<br/>subcommands: blob/ · cert/ · plugin/ · policy/"]
-    Internal["CLI-internal — cmd/notation/internal/<br/>flag · display · sign (GetSigner) · verify (GetVerifier)<br/>truststore · experimental · errors · plugin"]
-    Utils["Shared utils — internal/<br/>auth · config · envelope · httputil<br/>revocation · x509 · osutil · trace · version"]
-    Libs["External Notary libs<br/>notation-go (sign/verify)<br/>notation-core-go (crypto)<br/>oras-go (registry)"]
+    A["CLI layer — cmd/notation/<br/>sign · verify · list · inspect · login · key<br/>+ blob/ · cert/ · plugin/ · policy/"]
+    B["CLI-internal — cmd/notation/internal/<br/>flag · display · sign · verify<br/>truststore · experimental · errors · plugin"]
+    C["Shared utils — internal/<br/>auth · config · envelope<br/>httputil · revocation · x509"]
+    D["External Notary libraries<br/>notation-go · notation-core-go · oras-go"]
 
-    CLI -->|delegates to| Internal
-    Internal -->|uses| Utils
-    Internal -->|uses| Libs
+    A --> B
+    B --> C
+    B --> D
 ```
 
 The package layout under these trees is documented in the Go source itself; run `go doc ./cmd/notation/...` or `go doc ./internal/...` for the authoritative, always-current listing.
@@ -52,32 +52,29 @@ The package layout under these trees is documented in the Go source itself; run 
 ### Signing (`runSign`, `cmd/notation/sign.go`)
 
 ```mermaid
-flowchart TD
-    A["sign.GetSigner<br/>notation-go signer (local key pair OR plugin signer)"]
-    B["getRepository<br/>oras OCI repository (remote registry or OCI layout)"]
-    C["prepareSigningOpts → notation.SignOptions<br/>(envelope media type, expiry, plugin config,<br/>user metadata, optional TSA timestamper + revocation)"]
-    D["resolveReference<br/>tag resolved to immutable digest"]
-    E["notation.SignOCI(ctx, signer, sigRepo, opts)<br/>notation-go signs and PUSHES the signature to the<br/>registry as an OCI referrer of the target artifact"]
-
-    A --> B --> C --> D --> E
+flowchart LR
+    A["GetSigner<br/>local key or plugin"] --> B["getRepository<br/>registry or OCI layout"]
+    B --> C["prepareSigningOpts<br/>envelope · expiry · TSA · revocation"]
+    C --> D["resolveReference<br/>tag → digest"]
+    D --> E["notation.SignOCI<br/>pushes signature as OCI referrer"]
 ```
 
 ### Verification (`runVerify`, `cmd/notation/verify.go`)
 
 ```mermaid
-flowchart TD
-    A["verify.GetVerifier<br/>verifier with X.509 trust store, OCI trust policy<br/>(trustpolicy.LoadOCIDocument), revocation validators<br/>(CRL/OCSP), plugin manager"]
-    B["getRepository + resolveReference"]
-    C["notation.Verify(ctx, sigVerifier, sigRepo, opts)"]
-    D["ComposeVerificationFailurePrintout (on failure)"]
-    E["display handler renders result (tree / json / text)"]
-
-    A --> B --> C --> D --> E
+flowchart LR
+    A["GetVerifier<br/>trust store · trust policy · revocation · plugins"] --> B["getRepository +<br/>resolveReference"]
+    B --> C["notation.Verify"]
+    C -->|failure| D["ComposeVerification<br/>FailurePrintout"]
+    C --> E["display handler<br/>tree · json · text"]
+    D --> E
 ```
 
 Blob commands mirror these flows using `notation.BlobSigner` / `BlobVerifier`.
 
 ## Trust Model
+
+> The formal trust-policy specification lives in [notaryproject/specifications](https://github.com/notaryproject/specifications), which is the source of truth. The summary below is a practical orientation to how this CLI implements that spec, not a restatement of it.
 
 Verification is governed by three on-disk artifacts, all under the Notation config directory (overridable with `NOTATION_CONFIG`):
 
@@ -109,13 +106,20 @@ Version metadata (`GitCommit`, `BuildMetadata`) is injected at link time from gi
 
 ```mermaid
 flowchart TD
-    Trigger["push / pull_request"]
-    Build["build.yml (Continuous Integration)<br/>check signed commits · setup Go 1.24 + cache<br/>make download → make build · golangci-lint (new-issue gating)<br/>make test (unit, race, coverage) · make e2e-covdata (e2e against zot)<br/>upload coverage → codecov.io"]
-    Tag["push tag v*"]
-    Release["release-github.yml<br/>GoReleaser (v2) → GitHub release with cross-platform binaries"]
+    subgraph CI["build.yml — on push / pull_request"]
+        direction TB
+        S1["Check signed commits"] --> S2["Setup Go 1.24 + module cache"]
+        S2 --> S3["make build"]
+        S3 --> S4["golangci-lint<br/>new-issue gating"]
+        S4 --> S5["make test<br/>unit · race · coverage"]
+        S5 --> S6["make e2e-covdata<br/>against zot"]
+        S6 --> S7["Upload coverage<br/>to codecov.io"]
+    end
 
-    Trigger --> Build
-    Tag --> Release
+    subgraph Release["release-github.yml — on tag v*"]
+        direction TB
+        T1["GoReleaser v2"] --> T2["GitHub release<br/>cross-platform binaries"]
+    end
 ```
 
 Additional workflows: `codeql.yml` (SAST), `scorecard.yml` (OpenSSF), `license-checker.yml`, `stale.yml`, `add-to-project.yml`. Dependencies are kept current by `dependabot.yml`. All commits must be **signed**.
