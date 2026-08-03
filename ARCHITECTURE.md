@@ -145,7 +145,7 @@ flowchart LR
     class D fail
 ```
 
-Blob commands mirror both flows using `notation.BlobSigner` / `BlobVerifier` against local files instead of a registry.
+Blob commands mirror both flows using `notation.BlobSigner` / `notation.BlobVerifier` against local files instead of a registry.
 
 ## Trust Model
 
@@ -158,7 +158,7 @@ flowchart TD
     CFG("Notation config directory")
     TS("<b>Trust store</b><br/>truststore/x509/{ca,signingAuthority,tsa}/&lt;store&gt;/<br/>managed by <code>notation cert</code>")
     TP("<b>Trust policy</b><br/>trustpolicy.oci.json · trustpolicy.blob.json<br/>managed by <code>notation policy</code> / <code>notation blob policy</code>")
-    KEY("<b>Signing keys</b><br/>key list in config.json<br/>managed by <code>notation key</code>")
+    KEY("<b>Signing keys</b><br/>signingkeys.json + localkeys/<br/>managed by <code>notation key</code>")
 
     CFG --> TS
     CFG --> TP
@@ -236,7 +236,7 @@ Build tooling is driven by the [`Makefile`](Makefile):
 | `make e2e` | Builds the CLI and runs the Ginkgo e2e suite against a `zot` registry |
 | `make e2e-covdata` | Runs e2e with binary coverage instrumentation |
 | `make download` / `make vendor` | Downloads / vendors Go module dependencies |
-| `make check-line-endings` / `fix-line-endings` | Enforces LF line endings on `.go` files |
+| `make check-line-endings` / `make fix-line-endings` | Enforces LF line endings on `.go` files |
 
 Version metadata (`Version`, `BuildMetadata`, `GitCommit`) lives in [`internal/version`](internal/version) and is injected at link time — see the `LDFLAGS` block in the Makefile.
 
