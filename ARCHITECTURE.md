@@ -35,14 +35,24 @@ For package- and symbol-level detail, see the Go documentation (`go doc ./...` o
 
 ```mermaid
 flowchart TD
-    A["CLI layer — cmd/notation/<br/>sign · verify · list · inspect · login · key<br/>+ blob/ · cert/ · plugin/ · policy/"]
-    B["CLI-internal — cmd/notation/internal/<br/>flag · display · sign · verify<br/>truststore · experimental · errors · plugin"]
-    C["Shared utils — internal/<br/>auth · config · envelope<br/>httputil · revocation · x509"]
-    D["External Notary libraries<br/>notation-go · notation-core-go · oras-go"]
+    A("CLI layer<br/><b>cmd/notation/</b><br/>sign · verify · list · inspect · login · key<br/>+ blob/ · cert/ · plugin/ · policy/")
+    B("CLI-internal<br/><b>cmd/notation/internal/</b><br/>flag · display · sign · verify<br/>truststore · experimental · errors · plugin")
+    C("Shared utilities<br/><b>internal/</b><br/>auth · config · envelope<br/>httputil · revocation · x509")
+    D("External Notary libraries<br/>notation-go · notation-core-go · oras-go")
 
-    A --> B
-    B --> C
-    B --> D
+    A -->|"delegates to"| B
+    B -->|"built on"| C
+    B -->|"calls"| D
+
+    classDef cli fill:#dbeafe,stroke:#1d4ed8,stroke-width:1.5px,color:#1e3a8a;
+    classDef internal fill:#fef3c7,stroke:#b45309,stroke-width:1.5px,color:#78350f;
+    classDef utils fill:#dcfce7,stroke:#15803d,stroke-width:1.5px,color:#14532d;
+    classDef libs fill:#f3e8ff,stroke:#7e22ce,stroke-width:1.5px,color:#581c87;
+
+    class A cli
+    class B internal
+    class C utils
+    class D libs
 ```
 
 The package layout under these trees is documented in the Go source itself; run `go doc ./cmd/notation/...` or `go doc ./internal/...` for the authoritative, always-current listing.
