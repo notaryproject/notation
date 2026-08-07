@@ -48,7 +48,7 @@ jobs:
           # (new-issues) gating to diff a PR against the default branch.
           fetch-depth: 0
       - name: Cache Go modules
-        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         id: go-mod-cache
         with:
           path: ~/go/pkg/mod
