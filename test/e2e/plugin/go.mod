@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation/test/e2e/plugin
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -26,6 +26,6 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
-	oras.land/oras-go/v2 v2.6.0 // indirect
+	golang.org/x/sync v0.22.0 // indirect
+	oras.land/oras-go/v2 v2.6.2 // indirect
 )
