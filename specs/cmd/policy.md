@@ -81,10 +81,28 @@ Usage:
 
 Available Commands:
   import    import OCI trust policy configuration from a JSON file
+  init      initialize OCI trust policy configuration
   show      show OCI trust policy configuration
 
 Flags:
   -h, --help   help for policy
+```
+
+### notation policy init
+
+```text
+Initialize OCI trust policy configuration.
+
+Usage:
+  notation policy init [flags] --name <policy_name> --trust-store "<store_type>:<store_name>" --trusted-identity "<trusted_identity>"
+
+Flags:
+      --force                          override the existing OCI trust policy configuration, never prompt (default --force=false)
+  -h, --help                           help for init
+  -n, --name                           name of the OCI trust policy
+      --registry-scope stringArray     registry scope the policy applies to, e.g. "registry.acme-rockets.io/software/net-monitor"; defaults to "*" for all registries
+      --trust-store stringArray        trust store in the format "<store_type>:<store_name>"
+      --trusted-identity stringArray   trusted identity, use the format "x509.subject:<subject_of_signing_certificate>" for x509 CA scheme and "<signing_authority_identity>" for x509 signingAuthority scheme
 ```
 
 ### notation policy import
@@ -113,6 +131,51 @@ Flags:
 ```
 
 ## Usage
+
+### Initialize trust policy configuration
+
+New users often don't have a trust policy yet and hand-writing `trustpolicy.oci.json` from the specification is error prone. `notation policy init` scaffolds a valid single-statement policy from flags so the file is ready for `notation verify` right away.
+
+```shell
+notation policy init --name "wabbit-networks-images" --trust-store "ca:wabbit-networks" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-networks.io"
+```
+
+The statement is generated with `signatureVerification.level` set to `strict`. Sample output for a successful initialization:
+
+```jsonc
+{
+  "version": "1.0",
+  "trustPolicies": [
+    {
+      "name": "wabbit-networks-images",
+      "registryScopes": [ "*" ],
+      "signatureVerification": {
+        "level": "strict"
+      },
+      "trustStores": [ "ca:wabbit-networks" ],
+      "trustedIdentities": [
+        "x509.subject:C=US,ST=WA,O=wabbit-networks.io"
+      ]
+    }
+  ]
+}
+```
+
+The `--trust-store` and `--trusted-identity` flags can be repeated to configure multiple trust stores or trusted identities. To trust any identity, set `--trusted-identity` to `"*"`; this is not recommended for production and cannot be combined with other values.
+
+Unlike a blob trust policy, an OCI trust policy statement is bound to registry scopes rather than a global flag. By default the generated statement uses the wildcard scope `"*"` so it applies to every registry. Use `--registry-scope` (repeatable) to pin it to specific repositories instead:
+
+```shell
+notation policy init --name "wabbit-networks-images" --registry-scope "registry.acme-rockets.io/software/net-monitor" --trust-store "ca:wabbit-networks" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-networks.io"
+```
+
+The generated policy is validated according to [trust policy properties](https://github.com/notaryproject/notaryproject/specs/trust-store-trust-policy.md#trust-policy-properties) before it is written; if validation fails no file is written and the reason is printed to standard error.
+
+If a trust policy configuration already exists, the command prompts for confirmation before overwriting it. Use the `--force` flag to overwrite without a prompt:
+
+```shell
+notation policy init --force --name "wabbit-networks-images" --trust-store "ca:wabbit-networks" --trusted-identity "x509.subject:C=US,ST=WA,O=wabbit-networks.io"
+```
 
 ### Import trust policy configuration from a JSON file
 
