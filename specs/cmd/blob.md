@@ -179,6 +179,7 @@ Flags:
   -d, --debug                       debug mode
   -h, --help                        help for verify
       --media-type string           media type of the blob to verify
+      --ocsp-timeout duration       timeout for OCSP requests during certificate revocation checking (default 2s)
       --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
       --policy-name string          policy name to verify against. If not provided, the global policy is used if exists
   -s  --signature string            filepath of the signature to be verified

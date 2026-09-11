@@ -36,7 +36,7 @@ func TestNewRevocationValidator(t *testing.T) {
 		if runtime.GOOS == "windows" {
 			t.Skip("skipping test on Windows")
 		}
-		if _, err := NewRevocationValidator(context.Background(), purpose.Timestamping); err != nil {
+		if _, err := NewRevocationValidator(context.Background(), purpose.Timestamping, DefaultOCSPTimeout); err != nil {
 			t.Fatal(err)
 		}
 	})
@@ -56,7 +56,7 @@ func TestNewRevocationValidator(t *testing.T) {
 				t.Fatalf("failed to change permission: %v", err)
 			}
 		}()
-		if _, err := NewRevocationValidator(context.Background(), purpose.Timestamping); err != nil {
+		if _, err := NewRevocationValidator(context.Background(), purpose.Timestamping, DefaultOCSPTimeout); err != nil {
 			t.Fatal(err)
 		}
 	})

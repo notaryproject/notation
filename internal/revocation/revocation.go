@@ -29,9 +29,13 @@ import (
 	clicrl "github.com/notaryproject/notation/v2/internal/revocation/crl"
 )
 
+// DefaultOCSPTimeout is the default timeout for OCSP requests issued during
+// certificate revocation checking.
+const DefaultOCSPTimeout = 2 * time.Second
+
 // NewRevocationValidator returns a revocation.Validator given the certificate
-// purpose
-func NewRevocationValidator(ctx context.Context, purpose purpose.Purpose) (revocation.Validator, error) {
+// purpose and the timeout for OCSP requests.
+func NewRevocationValidator(ctx context.Context, purpose purpose.Purpose, ocspTimeout time.Duration) (revocation.Validator, error) {
 	// err is always nil
 	crlFetcher, _ := corecrl.NewHTTPFetcher(httputil.NewClient(ctx, &http.Client{Timeout: 5 * time.Second}))
 	crlFetcher.DiscardCacheError = true                     // discard crl cache error
@@ -47,7 +51,7 @@ func NewRevocationValidator(ctx context.Context, purpose purpose.Purpose) (revoc
 		}
 	}
 	return revocation.NewWithOptions(revocation.Options{
-		OCSPHTTPClient:   httputil.NewClient(ctx, &http.Client{Timeout: 2 * time.Second}),
+		OCSPHTTPClient:   httputil.NewClient(ctx, &http.Client{Timeout: ocspTimeout}),
 		CRLFetcher:       crlFetcher,
 		CertChainPurpose: purpose,
 	})
