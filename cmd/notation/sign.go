@@ -222,7 +222,7 @@ func prepareSigningOpts(ctx context.Context, opts *signOpts) (notation.SignOptio
 		if err != nil {
 			return notation.SignOptions{}, err
 		}
-		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping, clirev.DefaultOCSPTimeout)
 		if err != nil {
 			return notation.SignOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
 		}

@@ -16,6 +16,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
@@ -23,6 +24,7 @@ import (
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/experimental"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/verify"
+	clirev "github.com/notaryproject/notation/v2/internal/revocation"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/spf13/cobra"
 )
@@ -38,6 +40,7 @@ type verifyOpts struct {
 	trustPolicyScope     string
 	inputType            inputType
 	maxSignatureAttempts int
+	ocspTimeout          time.Duration
 }
 
 func verifyCommand(opts *verifyOpts) *cobra.Command {
@@ -93,6 +96,7 @@ Example - [Experimental] Verify a signature on an OCI artifact identified by a t
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	flag.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, flag.PflagUserMetadataVerifyUsage)
 	command.Flags().IntVar(&opts.maxSignatureAttempts, "max-signatures", 100, "maximum number of signatures to evaluate or examine")
+	command.Flags().DurationVar(&opts.ocspTimeout, "ocsp-timeout", clirev.DefaultOCSPTimeout, "timeout for OCSP requests during certificate revocation checking")
 	command.Flags().BoolVar(&opts.ociLayout, "oci-layout", false, "[Experimental] verify the artifact stored as OCI image layout")
 	command.Flags().StringVar(&opts.trustPolicyScope, "scope", "", "[Experimental] set trust policy scope for artifact verification, required and can only be used when flag \"--oci-layout\" is set")
 	command.MarkFlagsRequiredTogether("oci-layout", "scope")
@@ -106,7 +110,7 @@ func runVerify(command *cobra.Command, opts *verifyOpts) error {
 
 	// initialize
 	displayHandler := display.NewVerifyHandler(opts.printer)
-	sigVerifier, err := verify.GetVerifier(ctx)
+	sigVerifier, err := verify.GetVerifier(ctx, opts.ocspTimeout)
 	if err != nil {
 		return err
 	}
