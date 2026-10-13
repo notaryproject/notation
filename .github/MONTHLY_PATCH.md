@@ -20,8 +20,7 @@ membership, or Go requirements. Workflow dependency changes and broader updates
 require a manual controller dispatch by `MONTHLY_PATCH_ACTOR` with
 `approve=true`. The policy does not authorize feature merges, source bug fixes,
 or CVE backports. Reachable source and binary `govulncheck` findings block
-canonical releases at every severity; fork advisory dispositions cannot waive
-them.
+canonical releases at every severity. Advisory dispositions cannot waive them.
 
 Routine cycle authorization does not replace release voting. Go and CLI workers
 first open dependency-only backport PRs to the stable release branch. After
@@ -45,15 +44,34 @@ tagging and publication.
 
 ## Repository setup
 
-Maintainers must install the shared worker, scripts, tests, and validation
-workflow in all three default `main` branches. The CLI additionally installs the
-agent, compiled lock, controller, policy, and CLI packaging configuration.
+The CLI owns `.github/workflows/monthly-patch-worker.yml`, all release scripts
+and tests, the validation workflow, agent, compiled lock, controller, policy,
+and packaging configuration. Each repository owns only its dispatch caller
+`.github/workflows/monthly-patch-release.yml` and repository-specific setup
+documentation. Core and Go do not copy release scripts or tests.
 No product dependency or toolchain upgrade is required by this installation.
+
+The CLI caller uses `./.github/workflows/monthly-patch-worker.yml` and passes
+`worker_sha: ${{ github.sha }}`, selecting the same commit without a circular
+self-SHA literal. Each library caller must use
+`notaryproject/notation/.github/workflows/monthly-patch-worker.yml@FULL40SHA`
+and pass that identical literal SHA as `worker_sha`. Moving tags, `main`,
+different helper pins, arbitrary repositories, and missing pins fail closed.
+There is no fallback to the latest shared code.
+
+Maintainers first commit the central implementation and read its exact commit
+SHA, then create separate library caller commits with that SHA. A draft can
+contain this provisional, unmerged SHA, but library PRs must not merge until the
+central CLI PR merges. Maintainers must replace provisional pins with the final
+upstream merged implementation SHA before merging either library PR or activating
+the system. The controller requires the revision to be reachable from canonical
+CLI default-main history and requires unchanged assessed shared automation.
+Resolving an unmerged commit through GitHub's fork network is not authorization.
 
 | Location | Required configuration |
 |---|---|
 | All repos, **Settings > General** | Enable issues for controller and worker cycle records. Enable **Allow merge commits** for backport and voting PRs. |
-| All repos, **Settings > Actions > General** | Enable the installed pinned Actions and reusable tooling. The workflows use read-only `GITHUB_TOKEN` permissions. |
+| All repos, **Settings > Actions > General > Actions permissions** | Permit the pinned Actions and the public reusable workflow from `notaryproject/notation`. If an allow-list is configured, allow that repository's reusable workflow at the reviewed full SHA. Caller permissions include Contents, Actions, Issues, and Pull requests read; the called worker cannot elevate them. |
 | All repos, **Settings > Rules > Rulesets**, or **Settings > Branches** | Protect `main` and the latest stable `release-MAJOR.MINOR` branch with the normal required checks and reviews. Do not give the release actor bypass rights. |
 | All repos, **Settings > Advanced Security** (or the repository's security settings) | Enable Dependabot alerts and security updates. Review `.github/dependabot.yml` for Go modules and GitHub Actions on `main`; CLI includes root, E2E, and plugin modules. |
 | All repos, **Settings > Secrets and variables > Actions > Secrets** | Add the same `MONTHLY_PATCH_TOKEN`, a dedicated authenticated-user token scoped to the three repositories with Contents, Pull requests, Issues, and Actions read/write. Explicitly approved workflow updates also need Workflows write permission. The token must resolve to `MONTHLY_PATCH_ACTOR` through `GET /user`; GitHub App installation tokens are not supported by this draft's credential check. |
@@ -83,7 +101,15 @@ authorized cycles retain their approvals. Clearing `MONTHLY_PATCH_ENABLED`
 stops writing worker stages.
 
 The controller records exact PR heads, stable baselines, source checkpoints,
-automation tree fingerprints, workflow identities, and dispatch attempts.
+caller automation commits/tree fingerprints, the central worker repository,
+path, commit/tree fingerprint, workflow identities, and dispatch attempts.
+GitHub's reusable context identifies the caller repository, ref, and SHA. The
+worker checks the actual run's `referenced_workflows` entry against the approved
+central path and SHA before checking out any helper or using release credentials.
+Every automation checkout explicitly selects `notaryproject/notation` at that
+validated revision; target source and candidate checkouts remain separate.
+Progress callbacks and producer completion revalidate the same issued receipt
+and actual called revision. A worker-input SHA alone cannot authorize execution.
 On canonical `main`, only recorded worker dependency merges can advance the
 source checkpoint without invalidating the assessment. Changed automation,
 governance, policy, or unrecorded source changes require reassessment. A changed
@@ -108,13 +134,13 @@ downloaded-package checks are required before producer completion.
 
 ## Local validation
 
-The shared regression suite preserves fork authorization behavior separately
-from canonical tests:
+The central regression suite covers canonical authorization, signing, source
+and public-package gates, release votes, caller pins, and reusable-run provenance:
 
 ```sh
-GITHUB_REPOSITORY=yizha1/notation python3 -m unittest discover \
+python3 -m unittest discover \
   -s .github/scripts -p 'test_*release*.py'
-GITHUB_REPOSITORY=notaryproject/notation python3 -m unittest discover \
+python3 -m unittest discover \
   -s .github/scripts -p 'test_upstream_authorization.py'
 ```
 

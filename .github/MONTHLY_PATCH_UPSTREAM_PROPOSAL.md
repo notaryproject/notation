@@ -67,17 +67,24 @@ The central agent and controller belong in **`notaryproject/notation`**.
 
 | Repository | Changes required |
 |---|---|
-| `notation-core-go` | Shared release worker, qualification helpers, and automation tests |
-| `notation-go` | Same worker and gates, plus checked adoption of the planned Core version |
-| `notation` | Agent, controller, CLI worker, library-update PRs, packaging, and downloaded-CLI tests |
+| `notation-core-go` | Thin dispatch caller pinned to the central worker's full commit SHA and local setup documentation |
+| `notation-go` | Thin pinned caller and local setup documentation; central gates verify adoption of the planned Core version |
+| `notation` | Shared reusable worker, all helpers/tests, agent, controller, policy, packaging, and downloaded-CLI tests |
 
-The following setup maps to the code in this draft. The shared payload must be
-installed in all three repositories before activation.
+The following setup maps to the code in this draft. The central implementation
+must merge into canonical CLI `main` before maintainers finalize and merge the
+library callers. CLI uses a relative reusable-workflow call at the same commit.
+Core and Go use the same full 40-character SHA in `uses` and `worker_sha`; they
+do not copy helpers. Provisional draft pins must be replaced with the final
+upstream implementation SHA before library merge or activation. The controller
+checks canonical default-main ancestry, caller/tree identity, and the actual
+run's called workflow path/SHA. A resolvable unmerged fork-network commit does
+not qualify, and there is no fallback to `main`.
 
 | Step | Where | Configuration | Maintainer approval |
 |---|---|---|---|
-| 1. Merge automation | All three repos | Merge the workflows and helpers above into `main`, initially disabled. Use canonical module requirements, not trial `replace` directives. In the CLI, guard `release-github.yml` on `main` and the selected release branch so it does not publish monthly-worker tags. | Required for the PRs and release-branch changes |
-| 2. Configure repositories | All three repos | Enable Actions in **Settings > Actions > General** and issues in **Settings > General**. Maintain the latest stable `release-MAJOR.MINOR` branch and its required checks/reviews. Configure `.github/dependabot.yml` for Go modules and GitHub Actions on `main`; include the CLI's root, E2E, and plugin modules. Enable Dependabot alerts and security updates in repository security settings. | Required for settings and configuration PRs |
+| 1. Merge automation | CLI first, then libraries | Merge the central worker/helpers into CLI `main`, initially disabled. Replace library draft pins with its final upstream SHA, then merge only the thin callers/local setup docs. Use canonical module requirements, not trial `replace` directives. In CLI, guard `release-github.yml` on `main` and the selected release branch so it does not publish monthly-worker tags. | Required for the PRs, final pin review, and release-branch changes |
+| 2. Configure repositories | All three repos | Enable Actions in **Settings > Actions > General**, allow the public `notaryproject/notation` reusable workflow at its reviewed SHA under **Actions permissions**, and enable issues in **Settings > General**. Maintain the latest stable `release-MAJOR.MINOR` branch and its required checks/reviews. Configure `.github/dependabot.yml` for Go modules and GitHub Actions on `main`; include CLI's root, E2E, and plugin modules. Enable Dependabot alerts and security updates in repository security settings. | Required for settings and configuration PRs |
 | 3. Provision release credentials | All three repos | In **Settings > Secrets and variables > Actions > Secrets**, add the same `MONTHLY_PATCH_TOKEN`, an authenticated user token for one common release actor. Scope it to these three repos with contents, PRs, issues, and Actions write permissions; include workflow-write permission for explicitly approved workflow dependency updates. The controller verifies the token with `GET /user`; installation-token rotation is not implemented. Do not grant protection bypass. | Required for credential provisioning |
 | 4. Configure signing and identity | All three repos | Add secret `MONTHLY_PATCH_SIGNING_KEY`. Register its public key as a GitHub signing key on the signer account. In the **Variables** tab, set `MONTHLY_PATCH_ACTOR`, `MONTHLY_PATCH_SIGNER_LOGIN`, and `MONTHLY_PATCH_SIGNER_EMAIL`; optionally set `MONTHLY_PATCH_SIGNER_NAME`. Use the same actor across all three repos. | Required for signer and actor setup |
 | 5. Configure AI access | CLI repo only | Add Actions secret `COPILOT_GITHUB_TOKEN` with **Copilot Requests: Read** permission and access to the selected Copilot engine. Keep it separate from release credentials. | Required for account access and secret provisioning |
@@ -97,8 +104,8 @@ During operation:
 | Publish and verify eligible patches | Execute the authorized plan in dependency order | No additional approval unless release-environment rules require it |
 
 The agent is read-only. Source tests and the agent receive no release secrets.
-Required reviews and release gates are not bypassed. Fork security exceptions
-do not authorize upstream releases.
+Required reviews and release gates are not bypassed. Advisory exceptions are
+not implemented.
 
 Core has no repository-local release-voting requirement in the inspected
 baseline. Its dependency backport PR still requires the repository's ordinary

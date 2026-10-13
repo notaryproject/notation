@@ -186,24 +186,13 @@ class MonthlyReleaseCheckTests(unittest.TestCase):
         self.assertEqual(command.call_args.args[0], ["bash", "./run.sh", "zot", "/download/notation"])
         self.assertEqual(command.call_args.kwargs["cwd"], pathlib.Path("/source/test/e2e"))
 
-    def test_advisory_dispositions_are_explicit_scoped_expiring_and_revision_pinned(self):
-        policy = {
-            "advisory": "GO-2026-1234", "repository": "yizha1/notation", "line": "1.3",
-            "owner": "reviewer", "expires": "2099-01-01", "modified": "2026-01-01",
-            "reason": "Reviewed test condition", "reference": "https://example.com/advisory",
-        }
-        advisory = {"modified": "2026-01-01", "affected": [{"ranges": [{"events": [{"introduced": "0"}]}]}]}
-        self.assertEqual(checks.accepted_findings({"GO-2026-1234"}, {"GO-2026-1234": advisory}), set())
-        context = {"GITHUB_REPOSITORY": "yizha1/notation", "MONTHLY_RELEASE_TAG": "v1.3.1",
-                   "MONTHLY_PATCH_ADVISORY_DISPOSITIONS": json.dumps([policy])}
-        with patch.dict(os.environ, context):
-            self.assertEqual(checks.accepted_findings({"GO-2026-1234"}, {"GO-2026-1234": advisory}), {"GO-2026-1234"})
-        for field, value in (("repository", "other/notation"), ("line", "1.2"), ("expires", "2000-01-01"), ("modified", "changed")):
-            with patch.dict(os.environ, {**context, "MONTHLY_PATCH_ADVISORY_DISPOSITIONS": json.dumps([{**policy, field: value}])}), self.assertRaises(ValueError):
-                checks.accepted_findings({"GO-2026-1234"}, {"GO-2026-1234": advisory})
-        fixed = {**advisory, "affected": [{"ranges": [{"events": [{"fixed": "1.3.2"}]}]}]}
-        with patch.dict(os.environ, context), self.assertRaises(ValueError):
-            checks.accepted_findings({"GO-2026-1234"}, {"GO-2026-1234": fixed})
+    def test_no_repository_context_can_waive_reachable_findings(self):
+        for repository in ("", "notaryproject/notation", "untrusted/notation"):
+            with patch.dict(os.environ, {"GITHUB_REPOSITORY": repository, "MONTHLY_PATCH_ADVISORY_DISPOSITIONS": "[]"}), \
+                 self.assertRaises(ValueError):
+                checks.accepted_findings({"GO-2026-1234"}, {})
+        with patch.dict(os.environ, {"MONTHLY_PATCH_ADVISORY_DISPOSITIONS": ""}):
+            self.assertEqual(checks.accepted_findings({"GO-2026-1234"}, {}), set())
 
     def test_canonical_releases_cannot_reuse_fork_advisory_dispositions(self):
         with patch.dict(os.environ, {
@@ -213,12 +202,12 @@ class MonthlyReleaseCheckTests(unittest.TestCase):
             checks.accepted_findings(set(), {})
 
     def test_workflow_gates_remote_tagging_on_binary_checks_and_public_completion(self):
-        workflow = pathlib.Path(__file__).parent.parent / "workflows/monthly-patch-release.yml"
+        workflow = pathlib.Path(__file__).parent.parent / "workflows/monthly-patch-worker.yml"
         content = workflow.read_text()
         self.assertLess(content.index("build_monthly_assets.py"), content.index("monthly_release.py tag"))
         self.assertIn("needs.verify.result == 'success'", content)
         self.assertIn("fail-fast: false", content)
-        self.assertIn("permissions:\n  contents: read", content)
+        self.assertIn("  contents: read", content)
         self.assertNotIn("pull_request_target:", content)
         self.assertIn("inputs.mode == 'execute' && secrets.MONTHLY_PATCH_TOKEN", content)
         self.assertIn("inputs.mode == 'execute' && secrets.MONTHLY_PATCH_SIGNING_KEY", content)

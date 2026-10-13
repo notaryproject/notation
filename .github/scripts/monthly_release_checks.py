@@ -14,7 +14,6 @@
 """Shared strict source and shipped-asset gates for monthly releases."""
 
 import hashlib
-import datetime
 import json
 import os
 import pathlib
@@ -118,43 +117,9 @@ def scan_messages(output, mode):
 
 
 def accepted_findings(actionable, advisories):
-    raw = os.environ.get("MONTHLY_PATCH_ADVISORY_DISPOSITIONS", "")
-    if not raw:
-        return set()
-    if os.environ.get("GITHUB_REPOSITORY", "").startswith("notaryproject/"):
-        raise ValueError("Canonical releases cannot use fork advisory dispositions; resolve reachable findings")
-    policies = json.loads(raw)
-    if not isinstance(policies, list):
-        raise ValueError("Monthly advisory dispositions must be an explicit JSON list")
-    tag = os.environ.get("MONTHLY_RELEASE_TAG", "")
-    match = re.fullmatch(r"v(\d+)\.(\d+)\.\d+(?:-monthly-test\.\d{6})?", tag)
-    if not match:
-        raise ValueError("Advisory dispositions require the exact monthly release tag context")
-    accepted = set()
-    for policy in policies:
-        if not isinstance(policy, dict) or not all(isinstance(policy.get(field), str) and policy[field].strip()
-                                                  for field in ("advisory", "repository", "line", "owner", "expires", "modified", "reason", "reference")):
-            raise ValueError("Invalid reviewed advisory disposition")
-        if policy["repository"] != os.environ.get("GITHUB_REPOSITORY") or policy["line"] != f"{match[1]}.{match[2]}":
-            raise ValueError("Advisory disposition belongs to another repository or release line")
-        if datetime.datetime.now(datetime.timezone.utc).date() >= datetime.date.fromisoformat(policy["expires"]):
-            raise ValueError("Reviewed advisory disposition has expired")
-        identifier = policy["advisory"]
-        if not re.fullmatch(r"GO-\d{4}-\d+", identifier) or identifier in accepted:
-            raise ValueError("Invalid or duplicate advisory disposition")
-        if identifier not in actionable:
-            continue
-        entry = advisories[identifier]
-        if entry.get("modified") != policy["modified"] or entry.get("withdrawn"):
-            raise ValueError("Advisory metadata changed; renewed review is required")
-        affected = entry.get("affected")
-        if not isinstance(affected, list) or not affected:
-            raise ValueError("Reviewed advisory has invalid affected-version metadata")
-        if any("fixed" in event for module in affected for interval in module.get("ranges", []) for event in interval.get("events", [])):
-            raise ValueError("Reviewed advisory now lists a fixed version; renew its disposition")
-        accepted.add(identifier)
-        print(f"Reviewed advisory disposition: {identifier}; owner={policy['owner']}; expires={policy['expires']}. {policy['reason']}")
-    return accepted
+    if os.environ.get("MONTHLY_PATCH_ADVISORY_DISPOSITIONS"):
+        raise ValueError("Canonical releases cannot use advisory dispositions; resolve reachable findings")
+    return set()
 
 
 def scan(command, evidence, mode, cwd=None):

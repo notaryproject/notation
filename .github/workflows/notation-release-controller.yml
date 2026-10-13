@@ -78,7 +78,7 @@ jobs:
           check-latest: true
       - name: Test deterministic release authorization
         run: |
-          GITHUB_REPOSITORY=yizha1/notation python3 -m unittest discover -s .github/scripts -p 'test_notation_release_controller.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_notation_release_controller.py'
           python3 -m unittest discover -s .github/scripts -p 'test_upstream_authorization.py'
       - name: Advance one approved cycle without waiting on a runner
         env:

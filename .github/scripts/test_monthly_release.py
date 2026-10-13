@@ -28,7 +28,7 @@ REPO = "notaryproject/notation-core-go"
 COMMIT, PREVIOUS = "a" * 40, "b" * 40
 ENVIRONMENT = {
     "GITHUB_REF": "refs/heads/main", "MONTHLY_PATCH_ENABLED": "true",
-    "MONTHLY_PATCH_REHEARSAL_ENABLED": "true", "MONTHLY_PATCH_TOKEN_READY": "true",
+    "MONTHLY_PATCH_TOKEN_READY": "true",
     "MONTHLY_PATCH_SIGNING_KEY": "temporary-test-key", "MONTHLY_PATCH_SIGNER_EMAIL": "test@example.com",
     "MONTHLY_PATCH_SIGNER_LOGIN": "test-actor", "MONTHLY_PATCH_ACTOR": "test-actor",
 }
@@ -90,6 +90,9 @@ class FakeGitHub:
             return iter([{"key": self.public_key}])
         raise AssertionError(path)
 
+    def issue_editor(self, repository, number):
+        return "test-actor"
+
     def request(self, path, method="GET", payload=None):
         if method != "GET":
             self.writes.append((path, method, payload))
@@ -141,6 +144,9 @@ class MonthlyReleaseTests(unittest.TestCase):
         self.environment = patch.dict(os.environ, ENVIRONMENT)
         self.environment.start()
         self.addCleanup(self.environment.stop)
+        self.authorization = patch.object(release, "coordinator_authorization", return_value=None)
+        self.authorization.start()
+        self.addCleanup(self.authorization.stop)
 
     def test_stable_selection_uses_semver_and_excludes_trials(self):
         items = [{"tag_name": tag, "draft": draft, "prerelease": pre} for tag, draft, pre in [
@@ -150,17 +156,10 @@ class MonthlyReleaseTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             release.latest_release([])
 
-    def test_rehearsal_bumps_above_all_same_line_trial_tags(self):
-        candidate = release.baseline_plan(FakeGitHub(), "yizha1/notation-core-go", "2026-10", "rehearse")
-        self.assertEqual(candidate["tag"], "v1.3.4-monthly-test.202610")
-        self.assertEqual(candidate["branch"], "monthly-patch-test-release-1.3")
-        release.validate_plan(candidate)
 
     def test_policy_requires_identity_opt_in_trusted_ref_and_all_credentials(self):
         release.policy(REPO, "execute", ENVIRONMENT, {"default_branch": "main"})
         for name in ENVIRONMENT:
-            if name == "MONTHLY_PATCH_REHEARSAL_ENABLED":
-                continue
             environment = {**ENVIRONMENT, name: ""}
             with self.subTest(name=name), self.assertRaises(ValueError):
                 release.policy(REPO, "execute", environment, {"default_branch": "main"})
@@ -172,7 +171,6 @@ class MonthlyReleaseTests(unittest.TestCase):
         ]:
             with self.subTest(repository=repository, mode=mode), self.assertRaises(ValueError):
                 release.policy(repository, mode, ENVIRONMENT, metadata)
-        release.policy("yizha1/notation", "rehearse", ENVIRONMENT, {"fork": True})
         release.policy(REPO, "dry-run", {}, {})
 
     def test_plan_identity_namespace_and_signature_sha_guards(self):
@@ -250,7 +248,6 @@ class MonthlyReleaseTests(unittest.TestCase):
         manifest["Replace"] = [replacement]
         with self.assertRaises(ValueError):
             release.requirement(manifest, module, REPO, "execute")
-        self.assertEqual(release.requirement(manifest, module, "yizha1/notation-core-go", "rehearse"), replacement["New"]["Version"])
         with self.assertRaises(ValueError):
             release.requirement(manifest, module, "wrong/notation-core-go", "rehearse")
         with self.assertRaisesRegex(ValueError, "explicit dependency"):
@@ -272,7 +269,7 @@ class MonthlyReleaseTests(unittest.TestCase):
         api.closed_pulls = [producer]
         authorization = {"snapshot": {"pulls": [], "merged": []}}
         recorded = [{"number": 14, "commit": COMMIT}]
-        with patch("notation_release_controller.fork_propagation_pull", return_value=False):
+        with patch("notation_release_controller.producer_pull", return_value=False):
             self.assertEqual(release.inventory(api, REPO, "main", authorization, recorded),
                              [{"number": 14, "commit": COMMIT, "merged_at": producer["merged_at"]}])
             self.assertEqual(release.inventory(api, REPO, "main", authorization), [])
@@ -456,13 +453,6 @@ class MonthlyReleaseTests(unittest.TestCase):
         self.assertEqual([path for path, _, _ in api.writes], [
             "repos/notaryproject/notation-go/dispatches", "repos/notaryproject/notation/dispatches"])
         self.assertEqual(list(release.dispatch_consumers(api, REPO, "execute", "v1.3.1", progress[-1])), [])
-        fork = FakeGitHub()
-        list(release.dispatch_consumers(fork, "yizha1/notation-core-go", "rehearse", "v1.3.4-monthly-test.202610"))
-        self.assertTrue(all(path.startswith("repos/yizha1/") for path, _, _ in fork.writes))
-        with self.assertRaises(ValueError):
-            list(release.dispatch_consumers(api, REPO, "execute", "v1.3.1", ["untrusted/notation"]))
-        with patch.object(api, "request", side_effect=release.APIError("HTTP 403")), self.assertRaises(release.APIError):
-            list(release.dispatch_consumers(api, REPO, "execute", "v1.3.1"))
 
     def test_notification_requires_completed_verified_cycle_and_records_progress(self):
         api = FakeGitHub()

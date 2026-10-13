@@ -30,16 +30,14 @@ import urllib.parse
 import monthly_release as release
 from monthly_release_checks import scan_messages
 
-FORK = os.environ.get("GITHUB_REPOSITORY", "") in {
-    f"yizha1/{name}" for name in release.PROJECTS
-}
-OWNER = "yizha1" if FORK else "notaryproject"
+OWNER = "notaryproject"
 HOST = f"{OWNER}/notation"
-MODE = "rehearse" if FORK else "execute"
+MODE = "execute"
 REPOSITORIES = tuple(f"{OWNER}/{name}" for name in release.PROJECTS)
 POLICY_PATH = ".github/monthly-patch-policy.yml"
 AGENT_PATH = ".github/workflows/notation-release-agent.lock.yml"
 WORKER_PATH = ".github/workflows/monthly-patch-release.yml"
+SHARED_PATH = ".github/workflows/monthly-patch-worker.yml"
 DIGEST = re.compile(r"[0-9a-f]{64}$")
 DECISIONS = {"release", "skip", "defer"}
 NODE_STATUSES = {"pending", "dispatching", "running", "failed", "published", "skipped", "deferred"}
@@ -73,39 +71,102 @@ def positive_id(value):
     return value
 
 
-def fork_metadata(api, repository):
+def repository_metadata(api, repository):
     if repository not in REPOSITORIES:
         raise ValueError("Coordinator repository scope is fixed")
     metadata = api.request(f"repos/{repository}")
-    if bool(metadata.get("fork")) != FORK or metadata.get("private") or metadata.get("default_branch") != "main":
-        raise ValueError(f"Expected a public {'fork' if FORK else 'canonical repository'} with trusted default main: {repository}")
+    if metadata.get("fork") or metadata.get("private") or metadata.get("default_branch") != "main":
+        raise ValueError(f"Expected a public canonical repository with trusted default main: {repository}")
     return metadata
 
 
-def installed_worker(api, repository, commit):
+def repository_content(api, repository, path, commit):
+    item = api.optional(f"repos/{repository}/contents/{path}?ref={commit}")
+    if item is None:
+        return None
+    if item.get("encoding") != "base64":
+        raise ValueError(f"Cannot inspect trusted worker installation: {path}")
+    return base64.b64decode(item["content"], validate=False).decode("utf-8")
+
+
+def worker_binding(api, repository, commit):
+    """Bind the dispatch caller to its literal, immutable central implementation."""
+    text = repository_content(api, repository, WORKER_PATH, commit)
+    if text is None:
+        return None
+    sections = re.findall(r"(?m)^jobs:\s*\n([\s\S]*)", text)
+    if len(sections) != 1:
+        raise ValueError("Missing or duplicate caller jobs")
+    section = sections[0]
+    if re.findall(r"(?m)^  ([A-Za-z_][A-Za-z0-9_-]*):", section) != ["release"]:
+        raise ValueError("Release caller must contain only the release reusable job")
+    references = re.findall(r"(?m)^    uses: ([^\n#]+)$", section)
+    pins = re.findall(r"(?m)^      worker_sha: ([^\n#]+)$", section)
+    if len(references) != 1 or len(pins) != 1 or re.search(r"(?m)^\s*(?:<<:|[&*!])", text):
+        raise ValueError("Ambiguous caller shared worker binding")
+    reference, pin = references[0].strip(), pins[0].strip()
+    if repository == HOST:
+        if reference != "./" + SHARED_PATH or pin != "${{ github.sha }}":
+            raise ValueError("CLI caller must use the same-commit relative shared worker")
+        sha = commit
+    else:
+        match = re.fullmatch(re.escape(HOST + "/" + SHARED_PATH + "@") + r"([0-9a-f]{40})", reference or "")
+        if match is None or pin != match[1]:
+            raise ValueError("Library caller must bind uses and worker_sha to the same full central SHA")
+        sha = pin
+    if not release.SHA.fullmatch(sha):
+        raise ValueError("Invalid shared worker revision")
+    return {"worker_repository": HOST, "worker_path": SHARED_PATH, "worker_sha": sha,
+            "worker_digest": automation_digest(api, HOST, sha)}
+
+
+def installed_worker(api, repository, commit, binding=None):
+    binding = binding or worker_binding(api, repository, commit)
+    if binding is None:
+        return False
     files = {
-        WORKER_PATH: ("MONTHLY_PATCH_COORDINATOR_REQUIRED: 'true'", "  workflow_dispatch:"),
+        SHARED_PATH: ("MONTHLY_PATCH_COORDINATOR_REQUIRED: 'true'", "  workflow_call:"),
         ".github/scripts/notation_release_controller.py": ("def worker_authorization(",),
         ".github/scripts/monthly_release.py": ("coordinator_authorization(",),
+        ".github/scripts/monthly_release_pr.py": ("def advance(", "def validate("),
+        ".github/scripts/monthly_release_vote.py": ("def validate_vote(",),
+        ".github/scripts/qualify_monthly_candidate.py": ("def qualify(",),
+        ".github/scripts/build_monthly_assets.py": ("def ",),
+        ".github/scripts/test_monthly_public_release.py": ("def ",),
     }
-    if not FORK:
-        files.update({
-            ".github/scripts/monthly_release_pr.py": ("def advance(", "def validate("),
-            ".github/scripts/monthly_release_vote.py": ("def validate_vote(",),
-            ".github/scripts/qualify_monthly_candidate.py": ("def qualify(",),
-            ".github/scripts/build_monthly_assets.py": ("def ",),
-            ".github/scripts/test_monthly_public_release.py": ("def ",),
-        })
     for path, required in files.items():
-        item = api.optional(f"repos/{repository}/contents/{path}?ref={commit}")
-        if item is None:
+        content = repository_content(api, HOST, path, binding["worker_sha"])
+        if content is None:
             return False
-        if item.get("encoding") != "base64":
-            raise ValueError(f"Cannot inspect trusted worker installation: {path}")
-        content = base64.b64decode(item["content"]).decode("utf-8")
         if any(token not in content for token in required):
             return False
     return True
+
+
+def validate_worker_binding(snapshot):
+    if (snapshot.get("worker_repository") != HOST or snapshot.get("worker_path") != SHARED_PATH
+            or not release.SHA.fullmatch(snapshot.get("worker_sha", ""))
+            or not DIGEST.fullmatch(snapshot.get("worker_digest", ""))):
+        raise ValueError("Missing or invalid central shared worker identity")
+
+
+def trusted_shared_revision(api, binding):
+    main = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+    comparison = api.request(f"repos/{HOST}/compare/{binding['worker_sha']}...{main}")
+    if comparison.get("status") not in {"identical", "ahead"} or comparison.get("behind_by") != 0:
+        raise ValueError("Shared worker revision is not reachable from reviewed central main")
+    if binding["worker_digest"] != automation_digest(api, HOST, main):
+        raise ValueError("Central worker code changed; explicit reassessment is required")
+
+
+def observed_worker(api, repository, run_id, sha):
+    run = api.request(f"repos/{repository}/actions/runs/{positive_id(run_id)}")
+    references = [item for item in run.get("referenced_workflows", [])
+                  if item.get("path", "").split("@", 1)[0] == HOST + "/" + SHARED_PATH]
+    if (len(references) != 1 or references[0].get("sha") != sha
+            or references[0].get("path") != HOST + "/" + SHARED_PATH + "@" + sha):
+        raise ValueError("Observed run does not invoke the authorized shared worker revision")
+    return run
 
 
 def automation_digest(api, repository, commit):
@@ -128,8 +189,6 @@ def source_checkpoint(api, repository, snapshot, month):
     current = api.request(f"repos/{repository}/branches/{snapshot['main']}")["commit"]["sha"]
     if current == snapshot["main_head"]:
         return current
-    if FORK:
-        raise ValueError("Assessed source refs changed")
     candidate = release.Cycle(api, repository, month, MODE).state
     if candidate is None:
         raise ValueError("Source changed without a trusted worker cycle")
@@ -149,12 +208,21 @@ def source_checkpoint(api, repository, snapshot, month):
 
 
 def assessed_automation(api, repository, snapshot, commit):
-    if FORK:
-        if commit != snapshot["automation_sha"]:
-            raise ValueError("Release worker code changed after assessment")
-    elif automation_digest(api, repository, commit) != snapshot.get("automation_digest"):
+    if automation_digest(api, repository, commit) != snapshot.get("automation_digest"):
         raise ValueError("Release worker code changed after assessment; explicit reassessment is required")
     return commit
+
+
+def assessed_worker(api, repository, snapshot, caller_sha):
+    binding = worker_binding(api, repository, caller_sha)
+    if binding is None or any(binding[key] != snapshot.get(key) for key in binding):
+        # A CLI source dependency merge may advance its commit without changing automation.
+        if not (repository == HOST and binding is not None
+                and binding["worker_digest"] == snapshot.get("worker_digest")
+                and binding["worker_repository"] == snapshot.get("worker_repository")
+                and binding["worker_path"] == snapshot.get("worker_path")):
+            raise ValueError("Shared worker pin changed; explicit reassessment is required")
+    return binding
 
 
 def load_policy(api, commit):
@@ -172,7 +240,7 @@ def load_policy(api, commit):
         "release_votes": {"notation-core-go": "branch-rules", "notation-go": "repo-maintainer-majority",
                           "notation": "repo-maintainer-majority"},
     }
-    if FORK or policy != expected or type(policy.get("schema")) is not int or type(policy.get("maximum_assessment_age_hours")) is not int:
+    if policy != expected or type(policy.get("schema")) is not int or type(policy.get("maximum_assessment_age_hours")) is not int:
         raise ValueError("Unsupported automatic-release policy; reviewed implementation is required")
     return policy
 
@@ -206,7 +274,7 @@ def routine_pull(api, repository, pull):
 
 
 def authorize_routine(api, plan):
-    if FORK or os.environ.get("NOTATION_RELEASE_AUTO_APPROVAL_ENABLED") != "true":
+    if os.environ.get("NOTATION_RELEASE_AUTO_APPROVAL_ENABLED") != "true":
         raise ValueError("Automatic cycle authorization is disabled")
     commit = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
     policy = load_policy(api, commit)
@@ -294,7 +362,7 @@ def collect(api, month, output):
         raise ValueError("Invalid assessment month")
     inventory = {"schema": 1, "host": HOST, "month": month, "collected_at": utc_now(), "repositories": {}}
     for repository in REPOSITORIES:
-        metadata = fork_metadata(api, repository)
+        metadata = repository_metadata(api, repository)
         baseline = release.baseline_plan(api, repository, month, MODE)
         automation = api.request(f"repos/{repository}/branches/main")["commit"]["sha"]
         main = api.optional(f"repos/{repository}/branches/{baseline['main']}")
@@ -305,8 +373,11 @@ def collect(api, month, output):
         if main is None or branch is None:
             blockers.append("Reviewed source/release branches are missing")
         workflow = api.optional(f"repos/{repository}/actions/workflows/monthly-patch-release.yml")
-        if workflow is None or workflow.get("state") != "active" or not installed_worker(api, repository, automation):
+        binding = worker_binding(api, repository, automation)
+        if workflow is None or workflow.get("state") != "active" or not installed_worker(api, repository, automation, binding):
             blockers.append("Install and enable the complete coordinator-aware release worker on main")
+        if binding is not None:
+            trusted_shared_revision(api, binding)
         source = repository if branch else f"notaryproject/{repository.split('/')[1]}"
         commit = branch["commit"]["sha"] if branch else api.request(
             f"repos/{source}/commits/{baseline['baseline']}"
@@ -315,12 +386,11 @@ def collect(api, month, output):
             raise ValueError("Invalid source or automation commit")
         source_ref = main["commit"]["sha"] if main else automation
         provenance = {}
-        if not FORK:
-            baseline_sha = api.request(f"repos/{repository}/commits/{baseline['baseline']}")["sha"]
-            provenance = {
-                "baseline_sha": baseline_sha,
-                "baseline_tag_object": release.verified_tag(api, repository, baseline["baseline"], baseline_sha),
-            }
+        baseline_sha = api.request(f"repos/{repository}/commits/{baseline['baseline']}")["sha"]
+        provenance = {
+            "baseline_sha": baseline_sha,
+            "baseline_tag_object": release.verified_tag(api, repository, baseline["baseline"], baseline_sha),
+        }
         pulls = []
         for pull in api.pulls(repository, baseline["main"] if main else "main", "open"):
             if not release.dependabot(pull, baseline["main"] if main else "main"):
@@ -353,7 +423,8 @@ def collect(api, month, output):
             "tag": baseline["tag"], "main_head": main["commit"]["sha"] if main else None,
             "release_head": branch["commit"]["sha"] if branch else None,
             "automation_sha": automation, "workflow_id": workflow["id"] if workflow else None,
-            **({"automation_digest": automation_digest(api, repository, automation)} if not FORK else {}),
+            **(binding or {key: "" for key in ("worker_repository", "worker_path", "worker_sha", "worker_digest")}),
+            **({"automation_digest": automation_digest(api, repository, automation)}),
             **provenance,
             "source_repository": source, "source_commit": commit, "blockers": blockers,
             "pulls": pulls, "merged": merged, "manifests": manifests, "scans": scans,
@@ -407,9 +478,11 @@ def validate_inventory(inventory):
                 numbers.add(number)
         if node["workflow_id"] is not None:
             positive_id(node["workflow_id"])
-        if not FORK and not DIGEST.fullmatch(node.get("automation_digest", "")):
+        if not DIGEST.fullmatch(node.get('automation_digest', '')):
             raise ValueError("Missing automation tree identity")
-        if not FORK and any(not release.SHA.fullmatch(node.get(key, "")) for key in ("baseline_sha", "baseline_tag_object")):
+        if not node["blockers"]:
+            validate_worker_binding(node)
+        if any((not release.SHA.fullmatch(node.get(key, '')) for key in ('baseline_sha', 'baseline_tag_object'))):
             raise ValueError("Missing signed stable-baseline provenance")
     return inventory
 
@@ -462,7 +535,8 @@ def validate_assessment(inventory, assessment):
         "snapshots": {
             repo: {key: node[key] for key in ("baseline", "main", "branch", "tag", "main_head",
                                             "release_head", "automation_sha", "workflow_id", "pulls", "merged",
-                                            *(("automation_digest", "scans", "baseline_sha", "baseline_tag_object") if not FORK else ()))}
+                                            "automation_digest", "scans", "baseline_sha", "baseline_tag_object",
+                                            "worker_repository", "worker_path", "worker_sha", "worker_digest")}
             for repo, node in inventory["repositories"].items()
         },
     }
@@ -492,15 +566,14 @@ def validate_state(state):
         raise ValueError("Controller repository scope changed")
     if state.get("status") not in {"active", "completed"}:
         raise ValueError("Invalid controller status")
-    if not FORK:
-        authorization = state.get("authorization", {})
-        if authorization.get("kind") not in {"explicit", "policy"}:
-            raise ValueError("Missing authorization provenance")
-        if authorization["kind"] == "policy" and (
-            not DIGEST.fullmatch(authorization.get("policy_sha256", ""))
-            or not release.SHA.fullmatch(authorization.get("policy_commit", ""))
-        ):
-            raise ValueError("Invalid policy authorization")
+    authorization = state.get("authorization", {})
+    if authorization.get("kind") not in {"explicit", "policy"}:
+        raise ValueError("Missing authorization provenance")
+    if authorization["kind"] == "policy" and (
+        not DIGEST.fullmatch(authorization.get("policy_sha256", ""))
+        or not release.SHA.fullmatch(authorization.get("policy_commit", ""))
+    ):
+        raise ValueError("Invalid policy authorization")
     for repository, node in state["nodes"].items():
         decision = plan["decisions"][repository]["decision"]
         if decision not in DECISIONS or node["status"] not in NODE_STATUSES or type(node["attempt"]) is not int or node["attempt"] < 0:
@@ -508,6 +581,8 @@ def validate_state(state):
         if decision == "skip" and node["status"] != "skipped" or decision == "defer" and node["status"] != "deferred":
             raise ValueError("Agent decision changed during execution")
         snapshot = plan["snapshots"][repository]
+        if decision == "release":
+            validate_worker_binding(snapshot)
         recovery = snapshot.get("verification_recovery")
         if recovery is not None and (
             not isinstance(recovery, dict) or set(recovery) != {"from_plan_id", "candidate_sha256"}
@@ -602,7 +677,7 @@ class Controller:
         for repository, item in plan["decisions"].items():
             if item["decision"] != "release":
                 continue
-            metadata = fork_metadata(self.api, repository)
+            metadata = repository_metadata(self.api, repository)
             snapshot = plan["snapshots"][repository]
             if not metadata.get("has_issues"):
                 raise ValueError("Worker cycle issues must be enabled before approval")
@@ -664,7 +739,8 @@ class Controller:
                 updated["decisions"][repository] = state["plan"]["decisions"][repository]
                 updated["snapshots"][repository] = {
                     **previous, "automation_sha": snapshot["automation_sha"],
-                    **({"automation_digest": snapshot["automation_digest"], "main_head": snapshot["main_head"]} if not FORK else {}),
+                    "automation_digest": snapshot["automation_digest"], "main_head": snapshot["main_head"],
+                    **{key: snapshot[key] for key in ("worker_repository", "worker_path", "worker_sha", "worker_digest")},
                     "verification_recovery": {
                         "from_plan_id": state["plan"]["plan_id"],
                         "candidate_sha256": digest({key: candidate[key] for key in ("tag", "commit", "assets")}),
@@ -714,17 +790,19 @@ class Controller:
                 node.pop("run_id", None)
                 node["status"] = "pending"
             if node["status"] == "pending":
-                metadata = fork_metadata(self.api, repository)
+                metadata = repository_metadata(self.api, repository)
                 dispatch_sha = assessed_automation(
                     self.api, repository, snapshot,
                     self.api.request(f"repos/{repository}/branches/{metadata['default_branch']}")["commit"]["sha"],
                 )
-                if not FORK:
-                    source_checkpoint(self.api, repository, snapshot, state["month"])
+                binding = assessed_worker(self.api, repository, snapshot, dispatch_sha)
+                trusted_shared_revision(self.api, binding)
+                source_checkpoint(self.api, repository, snapshot, state["month"])
                 worker = self.api.request(f"repos/{repository}/actions/workflows/monthly-patch-release.yml")
                 if worker["id"] != snapshot["workflow_id"] or worker["state"] != "active":
                     raise ValueError("Assessed release worker changed or is disabled")
-                node.update(status="dispatching", attempt=node["attempt"] + 1, dispatched_at=utc_now(), dispatch_sha=dispatch_sha)
+                node.update(status="dispatching", attempt=node["attempt"] + 1, dispatched_at=utc_now(),
+                            dispatch_sha=dispatch_sha, worker_sha=binding["worker_sha"])
                 issue = self.save(issue, state)
                 self.api.request(f"repos/{repository}/actions/workflows/{worker['id']}/dispatches", "POST", {
                     "ref": "main", "inputs": {
@@ -760,11 +838,12 @@ class Controller:
                     or run.get("head_sha") != node.get("dispatch_sha", snapshot["automation_sha"]) or run.get("event") != "workflow_dispatch"
                     or run.get("display_title") != run_title(state["month"], state["plan"]["plan_id"], issue["number"], node["attempt"])):
                 raise ValueError("Recorded worker identity changed")
+            observed_worker(self.api, repository, run["id"], node["worker_sha"])
             cycle = release.Cycle(self.api, repository, state["month"], MODE)
             final = cycle.state is not None and cycle.state["status"] in release.FINAL
-            if run["status"] != "completed" and (not final or not FORK):
+            if run['status'] != 'completed':
                 return issue, state
-            if run["status"] == "completed" and run["conclusion"] != "success" and (not final or not FORK):
+            if run['status'] == 'completed' and run['conclusion'] != 'success':
                 node.update(status="failed", reason=f"Worker {node['run_id']} concluded {run['conclusion']}")
                 return self.save(issue, state), state
             if cycle.state is None:
@@ -805,15 +884,13 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
     if notification and plan is not None:
         raise ValueError("Controller progress notifications cannot authorize writing stages")
     if os.environ.get("MONTHLY_PATCH_COORDINATOR_REQUIRED") != "true":
-        if not FORK:
-            raise ValueError("Canonical workers always require a coordinator receipt")
-        return None
+        raise ValueError("Canonical workers always require a coordinator receipt")
     issue_number = os.environ.get("MONTHLY_PATCH_CONTROLLER_ISSUE", "")
     plan_id = os.environ.get("MONTHLY_PATCH_CONTROLLER_PLAN", "")
     attempt = os.environ.get("MONTHLY_PATCH_CONTROLLER_ATTEMPT", "")
     if not issue_number.isdecimal() or not attempt.isdecimal() or int(issue_number) <= 0 or int(attempt) <= 0 or not DIGEST.fullmatch(plan_id):
         raise ValueError("Writing workers require an approved coordinator receipt")
-    fork_metadata(api, repository)
+    repository_metadata(api, repository)
     issue = api.request(f"repos/{HOST}/issues/{issue_number}")
     release.trusted_editor(api, HOST, issue)
     state = decode_issue(issue, os.environ.get("MONTHLY_PATCH_ACTOR"))
@@ -825,17 +902,32 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
     snapshot = state["plan"]["snapshots"][repository]
     if os.environ.get("GITHUB_SHA") != node.get("dispatch_sha", snapshot["automation_sha"]) or os.environ.get("GITHUB_REF") != "refs/heads/main":
         raise ValueError("Writing worker must use the assessed default-branch code")
-    if not FORK:
-        if release.verified_tag(api, repository, snapshot["baseline"], snapshot["baseline_sha"]) != snapshot["baseline_tag_object"]:
-            raise ValueError("Signed stable baseline changed")
-        assessed_automation(api, repository, snapshot, os.environ["GITHUB_SHA"])
-        assessed_automation(api, repository, snapshot,
-                           api.request(f"repos/{repository}/branches/main")["commit"]["sha"])
-        source_checkpoint(api, repository, snapshot, month)
-        if state["authorization"]["kind"] == "policy":
-            policy_commit = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
-            if digest(load_policy(api, policy_commit)) != state["authorization"]["policy_sha256"]:
-                raise ValueError("Maintainer policy changed; explicit reassessment is required")
+    if release.verified_tag(api, repository, snapshot["baseline"], snapshot["baseline_sha"]) != snapshot["baseline_tag_object"]:
+        raise ValueError("Signed stable baseline changed")
+    assessed_automation(api, repository, snapshot, os.environ["GITHUB_SHA"])
+    binding = assessed_worker(api, repository, snapshot, os.environ["GITHUB_SHA"])
+    if (binding["worker_sha"] != node.get("worker_sha")
+            or os.environ.get("MONTHLY_PATCH_WORKER_SHA") != node["worker_sha"]):
+        raise ValueError("Worker input revision does not match the dispatched shared implementation")
+    run_id = os.environ.get("GITHUB_RUN_ID", "")
+    if not run_id.isdecimal():
+        raise ValueError("Writing worker requires its observed run identity")
+    observed = observed_worker(api, repository, int(run_id), binding["worker_sha"])
+    if (observed.get("actor", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")
+            or observed.get("head_sha") != node["dispatch_sha"]
+            or observed.get("workflow_id") != snapshot["workflow_id"]
+            or observed.get("event") != "workflow_dispatch"
+            or observed.get("display_title") != run_title(month, plan_id, int(issue_number), int(attempt))):
+        raise ValueError("Current worker run does not match the issued dispatch receipt")
+    current = api.request(f"repos/{repository}/branches/main")["commit"]["sha"]
+    assessed_automation(api, repository, snapshot, current)
+    assessed_worker(api, repository, snapshot, current)
+    trusted_shared_revision(api, binding)
+    source_checkpoint(api, repository, snapshot, month)
+    if state["authorization"]["kind"] == "policy":
+        policy_commit = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+        if digest(load_policy(api, policy_commit)) != state["authorization"]["policy_sha256"]:
+            raise ValueError("Maintainer policy changed; explicit reassessment is required")
     recovery = snapshot.get("verification_recovery")
     if recovery is not None:
         candidate = release.Cycle(api, repository, month, MODE).state
@@ -855,24 +947,24 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
         if upstream["status"] not in TERMINAL:
             raise ValueError("Producer verification has not completed")
         if upstream["status"] == "published":
-            if not FORK:
-                producer_snapshot = state["plan"]["snapshots"][source]
-                producer_run = api.request(f"repos/{source}/actions/runs/{positive_id(upstream.get('run_id'))}")
-                if (producer_run.get("actor", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")
-                        or producer_run.get("workflow_id") != producer_snapshot["workflow_id"]
-                        or producer_run.get("head_sha") != upstream.get("dispatch_sha")
-                        or producer_run.get("event") != "workflow_dispatch"
-                        or producer_run.get("conclusion") != "success"
-                        or producer_run.get("display_title") != run_title(month, plan_id, int(issue_number), upstream["attempt"])):
-                    raise ValueError("Producer publication has no trusted successful worker provenance")
-                candidate = release.Cycle(api, source, month, MODE).state
-                if (not candidate or candidate["status"] != "published"
-                        or candidate.get("controller_issue") != int(issue_number)
-                        or candidate.get("controller_plan_id") != plan_id
-                        or candidate["tag"] != upstream["version"] or candidate["commit"] != upstream["commit"]):
-                    raise ValueError("Producer cycle does not match the approved publication")
-                release.assert_tag(api, candidate)
-                release.check_public_assets(api, candidate)
+            producer_snapshot = state["plan"]["snapshots"][source]
+            producer_run = api.request(f"repos/{source}/actions/runs/{positive_id(upstream.get('run_id'))}")
+            observed_worker(api, source, producer_run["id"], upstream["worker_sha"])
+            if (producer_run.get("actor", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")
+                    or producer_run.get("workflow_id") != producer_snapshot["workflow_id"]
+                    or producer_run.get("head_sha") != upstream.get("dispatch_sha")
+                    or producer_run.get("event") != "workflow_dispatch"
+                    or producer_run.get("conclusion") != "success"
+                    or producer_run.get("display_title") != run_title(month, plan_id, int(issue_number), upstream["attempt"])):
+                raise ValueError("Producer publication has no trusted successful worker provenance")
+            candidate = release.Cycle(api, source, month, MODE).state
+            if (not candidate or candidate["status"] != "published"
+                    or candidate.get("controller_issue") != int(issue_number)
+                    or candidate.get("controller_plan_id") != plan_id
+                    or candidate["tag"] != upstream["version"] or candidate["commit"] != upstream["commit"]):
+                raise ValueError("Producer cycle does not match the approved publication")
+            release.assert_tag(api, candidate)
+            release.check_public_assets(api, candidate)
             producers[name] = {"repository": source, "version": upstream["version"]}
     if plan is not None:
         if recovery is not None and (
@@ -891,7 +983,7 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
                 or any(plan.get(key) != snapshot[key] for key in ("baseline", "main", "branch", "tag"))
                 or plan.get("producers", {}) != producers):
             raise ValueError("Worker plan escapes its fixed coordinator authorization")
-        if not FORK and plan.get("status") != "verifying" and plan.get("controller_plan_id") == plan_id:
+        if plan.get('status') != 'verifying' and plan.get('controller_plan_id') == plan_id:
             if plan.get("maintainer_roster_sha") != snapshot["automation_sha"]:
                 raise ValueError("Worker maintainer roster does not match the assessed main")
     return {"issue": int(issue_number), "plan_id": plan_id, "snapshot": snapshot, "producers": producers}
@@ -998,44 +1090,6 @@ def producer_pull(api, repository, pull, producers):
     return producer_manifests(before, after, producers, producer_modules, current)
 
 
-def propagation_branch(month, plan_id):
-    if not release.MONTH.fullmatch(month) or not DIGEST.fullmatch(plan_id):
-        raise ValueError("Invalid fork propagation identity")
-    return f"monthly-patch-test-propagation/{month}/{plan_id}"
-
-
-def fork_propagation_pull(api, repository, pull, authorization):
-    if not FORK or repository not in REPOSITORIES or not authorization or not authorization["producers"]:
-        return False
-    if pull.get("user", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR"):
-        return False
-    blocks = re.findall(r"```json\n(.*?)\n```", pull.get("body") or "", flags=re.DOTALL)
-    if len(blocks) != 1:
-        return False
-    receipt = load_json(blocks[0])
-    if set(receipt) != {"schema", "repository", "month", "controller_issue", "plan_id", "producers", "base", "head"}:
-        return False
-    if (type(receipt["schema"]) is not int or receipt["schema"] != 1 or receipt["repository"] != repository
-            or receipt["controller_issue"] != authorization["issue"] or receipt["plan_id"] != authorization["plan_id"]
-            or receipt["producers"] != authorization["producers"] or not release.MONTH.fullmatch(receipt["month"])
-            or not authorization["snapshot"]["tag"].endswith("-monthly-test." + receipt["month"].replace("-", ""))
-            or not release.SHA.fullmatch(receipt["base"]) or not release.SHA.fullmatch(receipt["head"])
-            or pull["base"]["ref"] != authorization["snapshot"]["main"]
-            or (pull["head"].get("repo") or {}).get("full_name") != repository
-            or pull["head"].get("ref") != propagation_branch(receipt["month"], receipt["plan_id"])
-            or pull["head"]["sha"] != receipt["head"]):
-        return False
-    marker = f"<!-- notation-fork-propagation:{receipt['month']}:{receipt['plan_id']} -->"
-    if marker not in (pull.get("body") or ""):
-        return False
-    commit = api.request(f"repos/{repository}/commits/{receipt['head']}")
-    if not commit["commit"]["verification"]["verified"] or (commit.get("author") or {}).get("login") != os.environ["MONTHLY_PATCH_ACTOR"]:
-        raise ValueError("Fork propagation PR requires a verified commit by the configured actor")
-    scoped = copy.deepcopy(pull)
-    scoped["base"]["sha"] = receipt["base"]
-    return producer_pull(api, repository, scoped, authorization["producers"])
-
-
 def scoped_pull(api, repository, pull, authorization, merged=()):
     snapshot = authorization["snapshot"]
     heads = {item["number"]: item["head"] for item in snapshot["pulls"]}
@@ -1055,7 +1109,7 @@ def scoped_pull(api, repository, pull, authorization, merged=()):
             raise ValueError("Assessed dependency backport provenance changed")
         return True
     if pull.get("user", {}).get("login") != "dependabot[bot]":
-        return fork_propagation_pull(api, repository, pull, authorization)
+        return False
     return producer_pull(api, repository, pull, authorization["producers"])
 
 
@@ -1063,7 +1117,7 @@ def trusted_assessment(api, run_id, output):
     run_id = positive_id(run_id)
     run = api.request(f"repos/{HOST}/actions/runs/{run_id}")
     workflow = api.request(f"repos/{HOST}/actions/workflows/notation-release-agent.lock.yml")
-    metadata = fork_metadata(api, HOST)
+    metadata = repository_metadata(api, HOST)
     if (run.get("workflow_id") != workflow["id"] or run.get("path") != AGENT_PATH
             or run.get("head_branch") != metadata["default_branch"] or run.get("head_repository", {}).get("full_name") != HOST
             or run.get("event") not in {"schedule", "workflow_dispatch"} or run.get("conclusion") != "success"):
@@ -1082,8 +1136,7 @@ def trusted_assessment(api, run_id, output):
     expected = validate_assessment(envelope["inventory"], envelope["assessment"])
     if expected != envelope["plan"]:
         raise ValueError("Validated assessment was modified")
-    if not FORK:
-        assessed_automation(api, HOST, expected["snapshots"][HOST], run["head_sha"])
+    assessed_automation(api, HOST, expected["snapshots"][HOST], run["head_sha"])
     return expected
 
 
@@ -1136,7 +1189,7 @@ def main():
                     raise ValueError("Release credential does not belong to the configured actor")
                 if args.approve or args.replan or args.retry_failed or args.recover_public_verification:
                     explicit_actor()
-                if not FORK and os.environ.get("MONTHLY_PATCH_ENABLED") != "true":
+                if os.environ.get('MONTHLY_PATCH_ENABLED') != 'true':
                     raise ValueError("Canonical monthly release execution is disabled")
                 if args.assessment_run is None and os.environ.get("NOTATION_RELEASE_AUTO_APPROVAL_ENABLED") == "true":
                     runs = api.request(f"repos/{HOST}/actions/workflows/notation-release-agent.lock.yml/runs?status=success&per_page=1")["workflow_runs"]

@@ -56,6 +56,11 @@ class UpstreamAPI(FakeGitHub):
     def issue_editor(self, repository, number):
         return self.editor
 
+    def optional(self, path):
+        if "/contents/" in path and controller.WORKER_PATH in path:
+            return self.request(path)
+        return super().optional(path)
+
     def request(self, path, method="GET", payload=None):
         repository = "/".join(path.split("/")[1:3])
         suffix = "/".join(path.split("/")[3:])
@@ -88,9 +93,26 @@ class UpstreamAPI(FakeGitHub):
         if "/runs?" in suffix:
             return {"workflow_runs": list(self.runs.get(repository, {}).values())}
         if suffix.startswith("actions/runs/"):
-            return self.runs[repository][int(suffix.rsplit("/", 1)[1])]
+            registered = self.runs.get(repository, {}).get(int(suffix.rsplit("/", 1)[1]))
+            if registered is not None:
+                return registered
+            state = next(controller.decode_issue(issue, "test-actor") for issue in self.issues_by_repo[CLI]
+                         if controller.decode_issue(issue, "test-actor") is not None)
+            node = state["nodes"][repository]
+            return {
+                "actor": {"login": "test-actor"}, "head_sha": node.get("dispatch_sha", SOURCE),
+                "workflow_id": (CORE, GO, CLI).index(repository) + 10, "event": "workflow_dispatch",
+                "display_title": controller.run_title(MONTH, state["plan"]["plan_id"], 1, node["attempt"]),
+                "referenced_workflows": [{"path": controller.HOST + "/" + controller.SHARED_PATH + "@" + SOURCE,
+                                          "sha": SOURCE}]}
         if suffix.startswith("compare/"):
-            return {"status": "ahead", "ahead_by": len(self.comparison), "commits": [{"sha": sha} for sha in self.comparison]}
+            return {"status": "ahead", "ahead_by": len(self.comparison), "behind_by": 0,
+                    "commits": [{"sha": sha} for sha in self.comparison]}
+        if suffix.startswith("contents/") and controller.WORKER_PATH in suffix:
+            reference = "./" + controller.SHARED_PATH if repository == CLI else controller.HOST + "/" + controller.SHARED_PATH + "@" + SOURCE
+            pin = "${{ github.sha }}" if repository == CLI else SOURCE
+            text = f"jobs:\n  release:\n    uses: {reference}\n    with:\n      worker_sha: {pin}\n"
+            return {"encoding": "base64", "content": base64.b64encode(text.encode()).decode()}
         if suffix.startswith("pulls/"):
             return self.prs[(repository, int(suffix.rsplit("/", 1)[1]))]
         return super().request(path, method, payload)
@@ -99,10 +121,12 @@ class UpstreamAPI(FakeGitHub):
         node = state["nodes"][repository]
         run_id = len(self.runs) + 100
         run = {
-            "id": run_id, "actor": {"login": "test-actor"}, "head_sha": node["dispatch_sha"],
+            "id": run_id, "actor": {"login": "test-actor"}, "head_sha": node.get("dispatch_sha", SOURCE),
             "workflow_id": (CORE, GO, CLI).index(repository) + 10,
             "event": "workflow_dispatch", "status": "completed", "conclusion": conclusion,
             "display_title": controller.run_title(MONTH, state["plan"]["plan_id"], issue["number"], node["attempt"]),
+            "referenced_workflows": [{"path": controller.HOST + "/" + controller.SHARED_PATH + "@" + node.get("worker_sha", SOURCE),
+                                      "sha": node.get("worker_sha", SOURCE)}],
         }
         self.runs.setdefault(repository, {})[run_id] = run
         producers = {
@@ -129,6 +153,8 @@ def inventory(changes=(CORE,)):
                 "baseline": "v1.3.0", "main": "main", "branch": "release-1.3", "tag": "v1.3.1",
                 "main_head": SOURCE, "release_head": BRANCH, "automation_sha": SOURCE,
                 "automation_digest": AUTOMATION, "workflow_id": index + 10,
+                "worker_repository": controller.HOST, "worker_path": controller.SHARED_PATH,
+                "worker_sha": SOURCE, "worker_digest": AUTOMATION,
                 "baseline_sha": BRANCH, "baseline_tag_object": "e" * 40,
                 "source_repository": repo, "source_commit": BRANCH, "blockers": [],
                 "pulls": [{"number": 1, "head": PR_HEAD}] if repo in changes else [],
@@ -152,7 +178,6 @@ def assessed(evidence, decisions=("release", "release", "release")):
     return controller.validate_assessment(evidence, assessment)
 
 
-@unittest.skipIf(controller.FORK, "Canonical tests run in the canonical repository context")
 class UpstreamAuthorizationTests(unittest.TestCase):
     def setUp(self):
         self.api = UpstreamAPI()
@@ -160,6 +185,7 @@ class UpstreamAuthorizationTests(unittest.TestCase):
             "GITHUB_REPOSITORY": CLI, "GITHUB_REF": "refs/heads/main", "GITHUB_SHA": SOURCE,
             "MONTHLY_PATCH_ACTOR": "test-actor", "MONTHLY_PATCH_COORDINATOR_REQUIRED": "true",
             "NOTATION_RELEASE_AUTO_APPROVAL_ENABLED": "true",
+            "MONTHLY_PATCH_WORKER_SHA": SOURCE, "GITHUB_RUN_ID": "1",
         })
         self.env.start()
         self.addCleanup(self.env.stop)
@@ -210,6 +236,35 @@ class UpstreamAuthorizationTests(unittest.TestCase):
         self.api.comparison.append("f" * 40)
         with self.assertRaisesRegex(ValueError, "outside recorded"):
             controller.worker_authorization(self.api, CORE, MONTH)
+
+    def test_cli_relative_worker_revision_advances_only_with_recorded_source_merges(self):
+        issue, state = self.controller.approve(assessed(inventory((CLI,)), ("skip", "skip", "release")), 22)
+        issue, state = self.controller.advance(issue, state)
+        worker = candidate(CLI, "execute", MONTH, "waiting")
+        worker.update(controller_issue=issue["number"], controller_plan_id=state["plan"]["plan_id"],
+                      merged=[{"number": 1, "commit": MERGED}], producers={}, maintainer_roster_sha=SOURCE)
+        self.api.worker(CLI, issue, state, status="waiting")
+        release.Cycle(self.api, CLI, MONTH, "execute").save(worker)
+        merged = pull(sha=PR_HEAD)
+        merged["head"]["repo"]["full_name"] = CLI
+        merged.update(merged_at="2026-10-01T00:00:00Z", merge_commit_sha=MERGED, state="closed")
+        self.api.prs[(CLI, 1)] = merged
+        self.api.changed[(CLI, "main")] = MERGED
+        self.api.comparison = [MERGED]
+        issue, state = self.controller.advance(issue, state)
+        issue, state = self.controller.advance(issue, state)
+        self.assertEqual(state["nodes"][CLI]["dispatch_sha"], MERGED)
+        self.assertEqual(state["nodes"][CLI]["worker_sha"], MERGED)
+        run = self.api.worker(CLI, issue, state, status="waiting")
+        release.Cycle(self.api, CLI, MONTH, "execute").save(worker)
+        os.environ.update(GITHUB_SHA=MERGED, MONTHLY_PATCH_WORKER_SHA=MERGED, GITHUB_RUN_ID=str(run["id"]),
+                          MONTHLY_PATCH_CONTROLLER_ISSUE=str(issue["number"]),
+                          MONTHLY_PATCH_CONTROLLER_PLAN=state["plan"]["plan_id"],
+                          MONTHLY_PATCH_CONTROLLER_ATTEMPT=str(state["nodes"][CLI]["attempt"]))
+        controller.worker_authorization(self.api, CLI, MONTH, worker)
+        self.api.tree[0]["sha"] = "f" * 40
+        with self.assertRaisesRegex(ValueError, "code changed"):
+            controller.worker_authorization(self.api, CLI, MONTH, worker)
 
     def test_unrecorded_main_changes_require_reassessment(self):
         issue, state = self.dispatch()
@@ -282,7 +337,7 @@ class UpstreamAuthorizationTests(unittest.TestCase):
                 controller.producer_pull(self.api, GO, update, producers)
 
     def test_source_and_packaging_jobs_receive_no_release_secrets(self):
-        workflow = (pathlib.Path(__file__).parent.parent / "workflows/monthly-patch-release.yml").read_text()
+        workflow = (pathlib.Path(__file__).parent.parent / "workflows/monthly-patch-worker.yml").read_text()
         for name, next_name in (("qualify", "package"), ("package", "publish"), ("verify", "complete")):
             section = workflow.split(f"  {name}:\n", 1)[1].split(f"  {next_name}:\n", 1)[0]
             self.assertNotIn("secrets.", section)

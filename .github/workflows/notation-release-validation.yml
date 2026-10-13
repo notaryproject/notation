@@ -19,6 +19,7 @@ on:
     paths:
       - '.github/scripts/**'
       - '.github/workflows/monthly-patch-release.yml'
+      - '.github/workflows/monthly-patch-worker.yml'
       - '.github/monthly-patch-policy.yml'
       - '.github/workflows/notation-release-*'
       - '.github/licenserc.yml'
@@ -27,6 +28,7 @@ on:
     paths:
       - '.github/scripts/**'
       - '.github/workflows/monthly-patch-release.yml'
+      - '.github/workflows/monthly-patch-worker.yml'
       - '.github/monthly-patch-policy.yml'
       - '.github/workflows/notation-release-*'
       - '.github/licenserc.yml'
@@ -57,12 +59,13 @@ jobs:
           check-latest: true
       - name: Test release controller and worker regressions
         run: |
-          GITHUB_REPOSITORY=yizha1/notation python3 -m unittest discover -s .github/scripts -p 'test_*release*.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_*release*.py'
           python3 -m unittest discover -s .github/scripts -p 'test_upstream_authorization.py'
       - name: Lint the worker and validation workflow
         run: |
           go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
           actionlint .github/workflows/monthly-patch-release.yml \
+            .github/workflows/monthly-patch-worker.yml \
             .github/workflows/notation-release-validation.yml
       - name: Validate the compiled assessment workflow when present
         env:
