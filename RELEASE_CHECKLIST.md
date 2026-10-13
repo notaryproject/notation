@@ -6,6 +6,13 @@ This document describes the checklist to publish a release for Notation CLI via 
 
 ## Release Process
 
+For the disabled-by-default monthly dependency patch automation, see
+[Monthly Notation patch releases](.github/MONTHLY_PATCH.md). Its policy-based
+cycle authorization does not replace the separate release-voting PR or the
+maintainer-majority requirement below. The worker qualifies and tags the
+recorded signed voting commit and retains the normal merge tip on the release
+branch.
+
 - Check if there are any security vulnerabilities fixed and security advisories published before a release. Security advisories should be linked on the release notes.
 - Determine a [SemVer2](https://semver.org/)-valid version prefixed with the letter `v` for release. For example, `version="v1.0.0-alpha.1"`.
 - If there is new release in [notation-go](https://github.com/notaryproject/notation-go) or [notation-core-go](https://github.com/notaryproject/notation-core-go) library that are required to be upgraded in Notation CLI, update the dependency versions in the follow `go.mod` and `go.sum` files of Notation CLI:

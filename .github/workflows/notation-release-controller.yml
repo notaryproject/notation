@@ -1,0 +1,111 @@
+# Copyright The Notary Project Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Notation release controller
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  repository_dispatch:
+    types: [notation-release-progress]
+  workflow_dispatch:
+    inputs:
+      assessment_run:
+        description: Successful default-main assessment run ID; omit to resume an approved cycle
+        type: string
+        required: false
+      mode:
+        description: Preview only, or explicitly enabled isolated canonical execution
+        type: choice
+        options: [dry-run, execute]
+        default: dry-run
+        required: true
+      approve:
+        description: Explicitly approve a new assessed release cycle
+        type: boolean
+        default: false
+      retry_failed:
+        description: Retry a failed worker at the same immutable patch version
+        type: boolean
+        default: false
+      replan:
+        description: Explicitly replace stale assessed refs before tagging, retaining completed releases and reserved patch versions
+        type: boolean
+        default: false
+      recover_public_verification:
+        description: With assessment, approval and replan, update only verifier code for an unchanged public candidate
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+
+concurrency:
+  group: notation-release-controller-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  control:
+    if: >-
+      github.repository == 'notaryproject/notation' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'repository_dispatch' || github.actor == vars.MONTHLY_PATCH_ACTOR) &&
+      (github.event_name == 'workflow_dispatch' || vars.NOTATION_RELEASE_COORDINATOR_ENABLED == 'true')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GOWORK: 'off'
+      GOTOOLCHAIN: local
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: stable
+          check-latest: true
+      - name: Test deterministic release authorization
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_notation_release_controller.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_upstream_authorization.py'
+      - name: Advance one approved cycle without waiting on a runner
+        env:
+          GH_TOKEN: ${{ (github.event_name != 'workflow_dispatch' || inputs.mode == 'execute') && secrets.MONTHLY_PATCH_TOKEN || github.token }}
+          MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
+          MONTHLY_PATCH_ACTOR: ${{ vars.MONTHLY_PATCH_ACTOR }}
+          NOTATION_RELEASE_COORDINATOR_ENABLED: ${{ vars.NOTATION_RELEASE_COORDINATOR_ENABLED }}
+          NOTATION_RELEASE_AUTO_APPROVAL_ENABLED: ${{ vars.NOTATION_RELEASE_AUTO_APPROVAL_ENABLED }}
+          MONTHLY_PATCH_ENABLED: ${{ vars.MONTHLY_PATCH_ENABLED }}
+          ASSESSMENT_RUN: ${{ inputs.assessment_run }}
+          MODE: ${{ github.event_name != 'workflow_dispatch' && 'execute' || inputs.mode }}
+          APPROVE: ${{ inputs.approve }}
+          RETRY_FAILED: ${{ inputs.retry_failed }}
+          REPLAN: ${{ inputs.replan }}
+          RECOVER_PUBLIC_VERIFICATION: ${{ inputs.recover_public_verification }}
+        run: |
+          args=()
+          if [[ -n "$ASSESSMENT_RUN" ]]; then args+=(--assessment-run "$ASSESSMENT_RUN"); fi
+          if [[ "$APPROVE" == true ]]; then args+=(--approve); fi
+          if [[ "$RETRY_FAILED" == true ]]; then args+=(--retry-failed); fi
+          if [[ "$REPLAN" == true ]]; then args+=(--replan); fi
+          if [[ "$RECOVER_PUBLIC_VERIFICATION" == true ]]; then args+=(--recover-public-verification); fi
+          python3 .github/scripts/notation_release_controller.py control \
+            --mode "$MODE" --output "$RUNNER_TEMP/controller" "${args[@]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: notation-release-controller
+          path: ${{ runner.temp }}/controller/
+          if-no-files-found: warn
