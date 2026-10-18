@@ -15,6 +15,7 @@
 
 import argparse
 import base64
+import copy
 import datetime
 import hashlib
 import json
@@ -270,7 +271,8 @@ def decode_state(body, repository, month, mode, cycle_id="monthly"):
         raise ValueError("Cycle state belongs to another repository or schema")
     if state.get("month") != month or state.get("mode") != mode or state.get("cycle_id", "monthly") != cycle_id:
         raise ValueError("Cycle state identity changed")
-    if state.get("status") not in {"merging", "waiting", "voting", "ready", "tagged", "verifying", "failed", *FINAL}:
+    if state.get("status") not in {"merging", "waiting", "voting", "ready", "tagged", "staging", "draft",
+                                  "awaiting-publication", "verifying", "failed", *FINAL}:
         raise ValueError("Unknown cycle outcome")
     baseline = semver(state.get("baseline", ""))
     if baseline is None:
@@ -282,9 +284,9 @@ def decode_state(body, repository, month, mode, cycle_id="monthly"):
         raise ValueError("Patch tag does not increment the stable baseline")
     if state.get("branch") != expected_branch or state.get("main") != expected_main:
         raise ValueError("Cycle branches escape the approved execution namespace")
-    if state["status"] in {"ready", "tagged", "verifying", "published"} and not SHA.fullmatch(state.get("commit", "")):
+    if state["status"] in {"ready", "tagged", "staging", "draft", "awaiting-publication", "verifying", "published"} and not SHA.fullmatch(state.get("commit", "")):
         raise ValueError("Cycle has no valid candidate commit")
-    if state["status"] in {"ready", "tagged", "verifying", "published"} and not SHA.fullmatch(state.get("previous_head", "")):
+    if state["status"] in {"ready", "tagged", "staging", "draft", "awaiting-publication", "verifying", "published"} and not SHA.fullmatch(state.get("previous_head", "")):
         raise ValueError("Cycle has no valid original release-branch head")
     return state
 
@@ -456,9 +458,13 @@ def verified_tag(api, repository, tag, commit):
     return ref["object"]["sha"]
 
 
-def check_public_assets(api, plan):
-    release = api.request(f"repos/{plan['repository']}/releases/tags/{plan['tag']}")
-    if release["draft"] or release["prerelease"]:
+def check_release_assets(api, plan, draft):
+    identifier = plan.get("release_id")
+    if type(identifier) is not int or identifier <= 0:
+        raise ValueError("Release manifest has no recorded release ID")
+    release = api.request(f"repos/{plan['repository']}/releases/{identifier}")
+    if (release.get("id") != identifier or release.get("tag_name") != plan["tag"]
+            or release.get("draft") is not draft or release.get("prerelease") is not False):
         raise ValueError("Release visibility or stable/prerelease identity changed")
     if plan_marker(plan) not in (release.get("body") or "") or plan["commit"] not in release["body"]:
         raise ValueError("Release does not identify the qualified cycle")
@@ -472,9 +478,67 @@ def check_public_assets(api, plan):
         raise ValueError("Public release assets differ from the qualified manifest")
     for item in assets:
         match = expected[item["name"]]
-        if item["size"] != match["size"] or item.get("digest") != f"sha256:{match['sha256']}":
+        if (type(match.get("id")) is not int or match["id"] <= 0 or item.get("id") != match["id"]
+                or item["size"] != match["size"] or item.get("digest") != f"sha256:{match['sha256']}"):
             raise ValueError(f"Public release asset integrity changed: {item['name']}")
     return release
+
+
+def check_public_assets(api, plan):
+    if not plan.get("draft_verification") or not plan.get("draft_review_issue"):
+        raise ValueError("Public release was not a qualified reviewed draft")
+    check_draft_review(api, plan)
+    return check_release_assets(api, plan, False)
+
+
+def draft_review_body(plan):
+    from notation_release_controller import safe_title
+    record = {key: plan[key] for key in ("repository", "month", "tag", "commit", "release_id",
+                                        "assets", "draft_verification", "controller_issue")}
+    record["controller_plan_id"] = plan.get("draft_plan_id", plan["controller_plan_id"])
+    marker = f"<!-- monthly-release-review:{plan['repository']}:{plan['month']}:{plan['tag']} -->"
+    scope = ["## Actual release commits", "",
+             "| Change kind | PR | Exact commit |", "|---|---|---|"]
+    for item in plan.get("backports", plan["merged"]):
+        scope.append(f"| Dependabot source | [#{item['number']}](https://github.com/{plan['repository']}/pull/{item['number']}) "
+                     f"{safe_title(item.get('title', 'Dependency update'))} | `{item['commit']}` |")
+        if item.get("backport_commit"):
+            scope.append(f"| Signed dependency backport of PR #{item['number']} | Stable candidate source change | `{item['backport_commit']}` |")
+    backport = plan.get("release_backport", {})
+    scope.append(f"| Qualified stable dependency candidate/backport | Ordinary reviewed release PR | `{backport.get('head_sha', plan['commit'])}` |")
+    label = "Signed release HEAD (Core dependency candidate)" if plan["repository"].endswith("/notation-core-go") else "Signed voted release HEAD (metadata, not Dependabot)"
+    scope.append(f"| {label} | Repository release governance | `{plan['commit']}` |")
+    scope.append(f"| Normal stable-branch merge tip | Preserved branch lease | `{plan['previous_head']}` |")
+    return (
+        f"{marker}\n# Qualified draft release review\n\n"
+        f"Review [{plan['tag']} draft](https://github.com/{plan['repository']}/releases/tag/{plan['tag']}) "
+        f"(release ID {plan['release_id']}). Source, scan, packaged-asset, and downloaded-draft native "
+        "checks passed for the exact candidate and recorded bytes below.\n\n"
+        f"Plan: https://github.com/notaryproject/notation/issues/{plan['controller_issue']}\n\n"
+        "**Maintainer action:** inspect the draft release, all assets, hashes, and retained evidence. "
+        "In GitHub Releases, open this exact draft, choose Edit, and choose Publish release "
+        "without changing its tag, commit, assets, or stable release identity. "
+        "Do not publish if any check or evidence is missing. Closing this issue or commenting "
+        "does not publish or authorize the bot to publish. Only a maintainer publishes in this phase. "
+        "Automation will verify the same release ID and bytes anonymously after publication "
+        "before completing the cycle or releasing consumers.\n\n"
+        "The signed annotated tag is already public. A draft does not hide or revoke the tag. "
+        "Do not move or recreate it. Publication automation is not implemented.\n\n"
+        + "\n".join(scope) + "\n\n"
+        + f"```json\n{json.dumps(record, indent=2)}\n```\n"
+    )
+
+
+def check_draft_review(api, plan):
+    number = plan.get("draft_review_issue")
+    if type(number) is not int or number <= 0:
+        raise ValueError("Missing qualified draft review issue")
+    issue = api.request(f"repos/{plan['repository']}/issues/{number}")
+    if ("pull_request" in issue or issue.get("user", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")
+            or issue.get("body") != draft_review_body(plan)):
+        raise ValueError("Qualified draft review issue changed or has an untrusted author")
+    trusted_editor(api, plan["repository"], issue)
+    return issue
 
 
 def assert_tag(api, plan):
@@ -611,10 +675,10 @@ def prepare(api, repository, mode, month, directory, output, start=False, reconc
     if authorization and cycle.state:
         coordinator_authorization(api, repository, mode, month, cycle.state, allow_previous=True)
         if cycle.state.get("controller_plan_id") != authorization["plan_id"] and cycle.state["status"] in {
-            "merging", "waiting", "voting", "ready", "verifying",
+            "merging", "waiting", "voting", "ready", "draft", "awaiting-publication", "verifying",
         }:
             cycle.state["controller_plan_id"] = authorization["plan_id"]
-            if mode == "execute" and cycle.state["status"] != "verifying":
+            if mode == "execute" and cycle.state["status"] not in {"draft", "awaiting-publication", "verifying"}:
                 roster = authorization["snapshot"]["automation_sha"]
                 if cycle.state.get("release_vote"):
                     from monthly_release_pr import content
@@ -651,11 +715,22 @@ def prepare(api, repository, mode, month, directory, output, start=False, reconc
         with tempfile.TemporaryDirectory(prefix="monthly-vote-signing-") as signing:
             result = advance(api, cycle.state, directory, signing_environment(signing, api), cycle)
         return candidate_bundle(directory, output, result) if result["action"] == "qualify" else result
-    if cycle.state and cycle.state["status"] in {"tagged", "verifying"}:
+    if cycle.state and cycle.state["status"] in {"tagged", "staging", "draft", "awaiting-publication", "verifying"}:
         assert_tag(api, cycle.state)
-        if cycle.state["status"] == "verifying":
+        if cycle.state["status"] in {"awaiting-publication", "verifying"}:
+            check_draft_review(api, cycle.state)
+            remote = api.request(f"repos/{repository}/releases/{cycle.state['release_id']}")
+            if remote.get("draft") is True:
+                check_release_assets(api, cycle.state, True)
+                return {**cycle.state, "action": "waiting", "reason": "Qualified draft awaits maintainer publication"}
             check_public_assets(api, cycle.state)
-        return {**cycle.state, "action": "verify" if cycle.state["status"] == "verifying" else "package"}
+            cycle.state["status"] = "verifying"
+            cycle.save(cycle.state)
+            return {**cycle.state, "action": "verify"}
+        if cycle.state["status"] == "draft":
+            check_release_assets(api, cycle.state, True)
+            return {**cycle.state, "action": "draft-check"}
+        return {**cycle.state, "action": "package"}
     if cycle.state and cycle.state["status"] == "ready":
         existing_tag = api.optional(f"repos/{repository}/git/ref/tags/{cycle.state['tag']}")
         if existing_tag:
@@ -772,6 +847,7 @@ def prepare(api, repository, mode, month, directory, output, start=False, reconc
         git(["worktree", "add", "--detach", str(worktree), expected], directory)
         environment["GIT_COMMITTER_DATE"] = state["started_at"]
         history = git(["log", "--format=%H%x00%B%x00", f"refs/remotes/origin/{state['branch']}"], directory)
+        backports = []
         for item in merged_pulls:
             if f"(cherry picked from commit {item['commit']})" in history:
                 records = history.split("\x00")
@@ -797,13 +873,15 @@ def prepare(api, repository, mode, month, directory, output, start=False, reconc
                     git(["cherry-pick", "--skip"], worktree, environment)
                 else:
                     raise ValueError(f"Dependency backport #{item['number']} failed:\n{cherry.stdout}{cherry.stderr}")
+            else:
+                backports.append({**item, "backport_commit": git(["rev-parse", "HEAD"], worktree)})
         candidate = git(["rev-parse", "HEAD"], worktree)
         if candidate == expected and cycle_id == "monthly":
             state.update(status="skipped", reason="All dependency updates are already on the release branch")
             cycle.save(state)
             return {**state, "action": "complete"}
         state.update(
-            status="ready", reason="", merged=merged_pulls, previous_head=expected,
+            status="ready", reason="", merged=merged_pulls, backports=backports, previous_head=expected,
             commit=candidate,
         )
         root_manifest = json.loads(run(["go", "mod", "edit", "-json"], cwd=worktree))
@@ -905,6 +983,7 @@ def tag_candidate(api, plan, directory):
 
 
 def publish(api, plan, directory):
+    """Stage a true draft only. Automation never makes a release public."""
     validate_plan(plan)
     policy(plan["repository"], plan["mode"], os.environ, api.request(f"repos/{plan['repository']}"))
     authorization = coordinator_authorization(api, plan["repository"], plan["mode"], plan["month"], plan)
@@ -914,6 +993,10 @@ def publish(api, plan, directory):
         from monthly_release_pr import validate
         validate(api, plan)
     assert_tag(api, plan)
+    cycle = Cycle(api, plan["repository"], plan["month"], plan["mode"], plan.get("cycle_id", "monthly"))
+    if (not cycle.state or cycle.state["status"] not in {"tagged", "staging"}
+            or any(cycle.state.get(key) != plan.get(key) for key in ("commit", "tag", "previous_head"))):
+        raise ValueError("Cycle changed before recording draft release")
     assets = []
     for path in sorted(pathlib.Path(directory).iterdir()):
         if path.is_file() and (path.name.endswith((".tar.gz", ".zip", "checksums.txt"))):
@@ -921,8 +1004,9 @@ def publish(api, plan, directory):
     count = 7 if plan["repository"].endswith("/notation") else 2
     if len(assets) != count:
         raise ValueError("Unexpected release asset set")
-    notes = pathlib.Path(os.environ["RUNNER_TEMP"]) / "monthly-release-notes.txt"
-    notes.write_text(
+    if {item["name"] for item in assets} != set(asset_names(plan["repository"].split("/")[1], plan["tag"])):
+        raise ValueError("Unexpected release asset names")
+    notes = (
         f"# {plan['repository'].split('/')[1]} {plan['tag']}\n\n"
         + f"{plan_marker(plan)}\n"
         + f"Qualified commit: {plan['commit']}\n"
@@ -930,32 +1014,53 @@ def publish(api, plan, directory):
         + "Dependabot backports:\n"
         + "\n".join(f"* #{item['number']}: {item['commit']}" for item in plan["merged"])
         + "\n\nAsset verification manifest:\n```json\n" + json.dumps(assets, indent=2) + "\n```\n"
-        + "\nPost-publication verification is pending; the cycle completes only after it passes.\n",
-        encoding="utf-8",
+        + "\nQualification and review are recorded in the separate qualified draft review issue. "
+        + "Do not publish unless that issue exists and its exact-asset checks passed.\n"
     )
-    releases = list(api.pages(f"repos/{plan['repository']}/releases"))
-    existing = next((item for item in releases if item["tag_name"] == plan["tag"]), None)
-    if existing:
-        # Recovery must use the originally published bytes, not a new rebuild.
-        manifest = re.findall(r"Asset verification manifest:\n```json\n(.*?)\n```", existing.get("body") or "", re.DOTALL)
-        if len(manifest) != 1:
-            raise ValueError("Existing release has no unambiguous asset manifest")
-        assets = json.loads(manifest[0])
+    if cycle.state["status"] == "staging":
+        plan = copy.deepcopy(cycle.state)
+        recorded = [{key: item[key] for key in ("name", "sha256", "size")} for item in plan["assets"]]
+        if recorded != assets:
+            raise ValueError("Retry must retain the exact originally staged asset bytes")
+        existing = api.request(f"repos/{plan['repository']}/releases/{plan['release_id']}")
+        if (existing.get("id") != plan["release_id"] or existing.get("draft") is not True
+                or existing.get("prerelease") is not False or existing.get("tag_name") != plan["tag"]
+                or existing.get("body") != notes):
+            raise ValueError("Recorded draft identity or qualification manifest changed")
     else:
-        command = [
-            "gh", "release", "create", plan["tag"], "--repo", plan["repository"],
-            "--verify-tag", "--latest=false", "--title", plan["tag"],
-            "--notes-file", str(notes),
-        ]
-        command.extend(str(pathlib.Path(directory) / item["name"]) for item in assets)
-        run(command)
-    plan.update(status="verifying", assets=assets)
-    check_public_assets(api, plan)
-    cycle = Cycle(api, plan["repository"], plan["month"], plan["mode"], plan.get("cycle_id", "monthly"))
-    if not cycle.state or cycle.state["status"] not in {"tagged", "verifying"} or cycle.state["commit"] != plan["commit"]:
-        raise ValueError("Cycle changed before recording publication")
+        if any(item["tag_name"] == plan["tag"] for item in api.pages(f"repos/{plan['repository']}/releases")):
+            raise ValueError("Unrecorded existing release requires reconciliation; never adopt or replace it")
+        existing = api.request(f"repos/{plan['repository']}/releases", "POST", {
+            "tag_name": plan["tag"], "target_commitish": plan["commit"], "name": plan["tag"],
+            "body": notes, "draft": True, "prerelease": False, "make_latest": "false",
+        })
+        identifier = existing.get("id")
+        if type(identifier) is not int or identifier <= 0 or existing.get("draft") is not True:
+            raise ValueError("Draft creation was not confirmed")
+        plan.update(status="staging", release_id=identifier, assets=assets)
+        cycle.save(plan)
+    remote = list(api.pages(f"repos/{plan['repository']}/releases/{plan['release_id']}/assets"))
+    if len({item["name"] for item in remote}) != len(remote) or any(item["name"] not in {a["name"] for a in assets} for item in remote):
+        raise ValueError("Unexpected or duplicate staged draft assets")
+    for item in plan["assets"]:
+        found = next((a for a in remote if a["name"] == item["name"]), None)
+        if found is None:
+            from urllib.parse import quote
+            found = json.loads(run([
+                "gh", "api", "--method", "POST",
+                f"https://uploads.github.com/repos/{plan['repository']}/releases/{plan['release_id']}/assets?name={quote(item['name'], safe='')}",
+                "-H", "Content-Type: application/octet-stream", "--input", str(pathlib.Path(directory) / item["name"]),
+            ]))
+        if (type(found.get("id")) is not int or found["id"] <= 0
+                or ("id" in item and item["id"] != found["id"]) or found.get("name") != item["name"]
+                or found.get("size") != item["size"] or found.get("digest") != f"sha256:{item['sha256']}"):
+            raise ValueError("Draft uploaded asset differs from the qualified bytes")
+        item["id"] = found["id"]
+        cycle.save(plan)
+    plan.update(status="draft", reason="Draft download/native verification is pending; publication is not authorized")
+    check_release_assets(api, plan, True)
     cycle.save(plan)
-    return {**plan, "action": "verify"}
+    return {**plan, "action": "draft-check"}
 
 
 def complete(api, plan):
@@ -963,9 +1068,45 @@ def complete(api, plan):
     policy(plan["repository"], plan["mode"], os.environ, api.request(f"repos/{plan['repository']}"))
     coordinator_authorization(api, plan["repository"], plan["mode"], plan["month"], plan)
     cycle = Cycle(api, plan["repository"], plan["month"], plan["mode"], plan.get("cycle_id", "monthly"))
-    if not cycle.state or cycle.state.get("commit") != plan["commit"] or cycle.state["status"] != "verifying":
-        raise ValueError("No matching public release awaiting successful verification")
+    if (not cycle.state or cycle.state["status"] not in {"draft", "verifying"}
+            or any(cycle.state.get(key) != plan.get(key) for key in ("status", "commit", "tag", "release_id", "assets"))):
+        raise ValueError("No matching draft/public release awaiting successful verification")
+    plan = copy.deepcopy(cycle.state)
     assert_tag(api, plan)
+    if plan["status"] == "draft":
+        check_release_assets(api, plan, True)
+        run_id = os.environ.get("GITHUB_RUN_ID", "")
+        if not run_id.isdecimal() or int(run_id) <= 0:
+            raise ValueError("Qualified draft requires its native verification run")
+        if not plan.get("draft_verification"):
+            plan["draft_plan_id"] = plan["controller_plan_id"]
+            plan["draft_verification"] = {
+                "run_id": int(run_id), "worker_sha": os.environ["MONTHLY_PATCH_WORKER_SHA"],
+                "platforms": ["linux_amd64", "darwin_arm64", "windows_amd64"],
+                "evidence": f"https://github.com/{plan['repository']}/actions/runs/{run_id}",
+                "artifacts": ["monthly-source-*", "monthly-build-evidence", "monthly-draft-*"],
+            }
+            cycle.save(plan)
+        body = draft_review_body(plan)
+        marker = body.split("\n", 1)[0]
+        reviews = [issue for issue in api.pages(f"repos/{plan['repository']}/issues?state=all")
+                   if marker in (issue.get("body") or "")]
+        if len(reviews) > 1:
+            raise ValueError("Duplicate draft review issues require reconciliation")
+        if reviews:
+            issue = reviews[0]
+            plan["draft_review_issue"] = issue["number"]
+            check_draft_review(api, plan)
+        else:
+            issue = api.request(f"repos/{plan['repository']}/issues", "POST", {
+                "title": f"Review qualified draft: {plan['tag']} ({plan['month']})",
+                "body": body, "state": "open",
+            })
+            plan["draft_review_issue"] = issue["number"]
+            check_draft_review(api, plan)
+        plan.update(status="awaiting-publication", reason="Qualified draft awaits maintainer Publish release action")
+        cycle.save(plan)
+        return {**plan, "action": "waiting"}
     check_public_assets(api, plan)
     plan.update(status="published", reason="Source, artifacts, and public downloaded-package checks passed")
     cycle.save(plan)

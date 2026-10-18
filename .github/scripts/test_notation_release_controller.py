@@ -24,6 +24,7 @@ from unittest.mock import patch
 import monthly_release as release
 import notation_release_controller as coordinator
 from test_upstream_authorization import UpstreamAPI as ControllerAPI, inventory as canonical_inventory
+from test_upstream_authorization import ApprovedController
 from test_monthly_release import FakeGitHub, plan as worker_plan, body, pull
 from test_monthly_release_checks import scanner_messages, stream
 
@@ -184,7 +185,7 @@ class ReleaseControllerTests(unittest.TestCase):
         self.environment.start()
         self.addCleanup(self.environment.stop)
         self.api = ControllerAPI()
-        self.controller = coordinator.Controller(self.api, "test-actor")
+        self.controller = ApprovedController(self.api, "test-actor")
 
     def approved(self, changes=(CORE,), decisions=("release", "release", "release")):
         evidence = inventory(changes)
@@ -219,13 +220,14 @@ class ReleaseControllerTests(unittest.TestCase):
             ((CLI,), ("skip", "skip", "release"), CLI),
         ):
             self.api = ControllerAPI()
-            self.controller = coordinator.Controller(self.api, "test-actor")
+            self.controller = ApprovedController(self.api, "test-actor")
             issue, state = self.approved(changes, decisions)
             self.controller.advance(issue, state)
             self.assertEqual(self.api.dispatched[0][0], expected)
 
     def test_no_change_cycle_finishes_without_dispatch(self):
         issue, state = self.approved((), ("skip", "skip", "skip"))
+        issue, state = self.controller.advance(issue, state)
         self.assertEqual(state["status"], "completed")
         self.controller.advance(issue, state)
         self.assertEqual(self.api.dispatched, [])
@@ -234,7 +236,7 @@ class ReleaseControllerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Resolve deferrals"):
             self.approved((CORE,), ("defer", "release", "release"))
         self.assertEqual(self.api.dispatched, [])
-        self.assertEqual(self.api.writes, [])
+        self.assertTrue(all("/issues" in path for path, _, _ in self.api.writes))
 
     def test_failed_worker_requires_explicit_retry_and_keeps_patch_version(self):
         issue, state = self.approved()
@@ -271,6 +273,7 @@ class ReleaseControllerTests(unittest.TestCase):
         issue, state = self.approved()
         evidence = inventory((CORE,))
         evidence["repositories"][CORE]["pulls"][0]["head"] = "e" * 40
+        evidence["repositories"][CORE]["pulls"][0]["commits"] = [{"sha": "e" * 40, "subject": "Updated dependency"}]
         plan = coordinator.validate_assessment(evidence, assessment(evidence, ("release", "release", "release")))
         issue, state = self.controller.approve(plan, 23, replan=True)
         self.assertEqual(state["plan"]["snapshots"][CORE]["pulls"][0]["head"], "e" * 40)
@@ -281,6 +284,7 @@ class ReleaseControllerTests(unittest.TestCase):
         issue, state = self.approved()
         evidence = inventory((CORE,))
         evidence["repositories"][CORE]["pulls"][0]["head"] = "e" * 40
+        evidence["repositories"][CORE]["pulls"][0]["commits"] = [{"sha": "e" * 40, "subject": "Updated dependency"}]
         plan = coordinator.validate_assessment(evidence, assessment(evidence, ("release", "release", "release")))
         self.controller.advance(issue, state)
         with self.assertRaisesRegex(ValueError, "in-flight"):
@@ -320,8 +324,9 @@ class ReleaseControllerTests(unittest.TestCase):
         old_snapshot = copy.deepcopy(previous["plan"]["snapshots"][CORE])
         issue, state = self.recover_verification(plan)
         snapshot = state["plan"]["snapshots"][CORE]
-        self.assertEqual({key: snapshot[key] for key in old_snapshot if key not in {"automation_sha", "main_head"}},
-                         {key: old_snapshot[key] for key in old_snapshot if key not in {"automation_sha", "main_head"}})
+        self.assertEqual({key: snapshot[key] for key in old_snapshot if key not in {"automation_sha", "main_head", "release_head"}},
+                         {key: old_snapshot[key] for key in old_snapshot if key not in {"automation_sha", "main_head", "release_head"}})
+        self.assertEqual(snapshot["release_head"], MAIN)
         self.assertEqual(snapshot["automation_sha"], "e" * 40)
         self.assertEqual(snapshot["verification_recovery"]["from_plan_id"], previous["plan"]["plan_id"])
         self.assertEqual(state["plan"]["decisions"][CORE]["decision"], "release")
@@ -329,6 +334,27 @@ class ReleaseControllerTests(unittest.TestCase):
         self.assertEqual(state["nodes"][CORE]["status"], "pending")
         self.assertFalse(self.api.dispatched)
         coordinator.validate_state(state)
+
+    def test_draft_recovery_preserves_release_id_assets_and_requires_new_plan_review(self):
+        issue, previous, plan = self.verification_reassessment()
+        cycle = release.Cycle(self.api, CORE, MONTH, "execute")
+        cycle.state["status"] = "draft"
+        cycle.save(cycle.state)
+        original = self.api.optional
+        with patch.object(self.api, "optional", side_effect=lambda path: {"object": {"sha": MAIN}}
+                          if path.startswith(f"repos/{CORE}/git/ref/tags/") else original(path)), \
+             patch.object(release, "assert_tag"), patch.object(release, "check_release_assets") as assets:
+            issue, state = self.controller.approve(plan, 23, replan=True, recover_public_verification=True)
+        assets.assert_called_once()
+        self.assertTrue(assets.call_args.args[2])
+        self.assertEqual(state["authorization"]["kind"], "maintainer")
+        self.assertEqual(state["source_run"], 23)
+        receipt = state["plan"]["snapshots"][CORE]["verification_recovery"]
+        saved = release.Cycle(self.api, CORE, MONTH, "execute").state
+        self.assertEqual(receipt["candidate_sha256"],
+                         coordinator.digest({key: saved.get(key) for key in ("tag", "commit", "assets", "release_id")}))
+        self.assertEqual(saved["release_id"], 777)
+        self.assertFalse(self.api.dispatched)
 
     def test_verification_recovery_cannot_start_a_new_cycle_or_use_the_old_assessment(self):
         evidence = inventory((CORE,))
@@ -353,7 +379,7 @@ class ReleaseControllerTests(unittest.TestCase):
         for field, value in (("release_head", BRANCH), ("baseline", "v1.4.0"), ("workflow_id", 90)):
             with self.subTest(field=field):
                 self.api = ControllerAPI()
-                self.controller = coordinator.Controller(self.api, "test-actor")
+                self.controller = ApprovedController(self.api, "test-actor")
                 _, _, plan = self.verification_reassessment()
                 plan["snapshots"][CORE][field] = value
                 plan["plan_id"] = coordinator.digest({key: value for key, value in plan.items() if key != "plan_id"})
@@ -364,7 +390,7 @@ class ReleaseControllerTests(unittest.TestCase):
         for failure in ("signature", "assets", "stale"):
             with self.subTest(failure=failure):
                 self.api = ControllerAPI()
-                self.controller = coordinator.Controller(self.api, "test-actor")
+                self.controller = ApprovedController(self.api, "test-actor")
                 _, _, plan = self.verification_reassessment()
                 if failure == "stale":
                     self.api.changed[(CORE, "main")] = "f" * 40
@@ -393,7 +419,7 @@ class ReleaseControllerTests(unittest.TestCase):
             "MONTHLY_PATCH_SIGNER_LOGIN": "test-actor",
         }
         with patch.dict(os.environ, environment), patch.object(release, "assert_tag"), \
-             patch.object(release, "check_public_assets"), patch.object(release, "git") as git:
+             patch.object(release, "check_public_assets"), patch.object(release, "check_draft_review"), patch.object(release, "git") as git:
             result = release.prepare(self.api, CORE, "execute", MONTH, pathlib.Path("."), pathlib.Path("."), True)
             self.assertEqual(result["action"], "verify")
             self.assertEqual(result["controller_plan_id"], state["plan"]["plan_id"])
@@ -506,7 +532,7 @@ class ReleaseControllerTests(unittest.TestCase):
     def test_wrong_worker_actor_code_or_title_does_not_complete(self):
         for field, value in (("actor", {"login": "attacker"}), ("head_sha", PR_HEAD), ("display_title", "unrelated")):
             self.api = ControllerAPI()
-            self.controller = coordinator.Controller(self.api, "test-actor")
+            self.controller = ApprovedController(self.api, "test-actor")
             issue, state = self.approved()
             issue, state = self.controller.advance(issue, state)
             run = self.api.worker(CORE, issue, state)
@@ -561,7 +587,7 @@ class WorkerAuthorizationTests(unittest.TestCase):
         self.addCleanup(self.environment.stop)
         evidence = inventory((CORE,))
         plan = coordinator.validate_assessment(evidence, assessment(evidence, ("release", "release", "release")))
-        self.controller = coordinator.Controller(self.api, "test-actor")
+        self.controller = ApprovedController(self.api, "test-actor")
         self.issue, self.state = self.controller.approve(plan, 22)
         self.issue, self.state = self.controller.advance(self.issue, self.state)
         os.environ.update({

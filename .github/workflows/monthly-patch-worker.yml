@@ -417,7 +417,6 @@ jobs:
           GH_TOKEN: ${{ secrets.MONTHLY_PATCH_TOKEN }}
           MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
           MONTHLY_PATCH_ENABLED: ${{ vars.MONTHLY_PATCH_ENABLED }}
-          MONTHLY_PATCH_REHEARSAL_ENABLED: ${{ vars.MONTHLY_PATCH_REHEARSAL_ENABLED }}
           MONTHLY_PATCH_SIGNING_KEY: ${{ secrets.MONTHLY_PATCH_SIGNING_KEY }}
           MONTHLY_PATCH_SIGNER_EMAIL: ${{ vars.MONTHLY_PATCH_SIGNER_EMAIL }}
           MONTHLY_PATCH_SIGNER_NAME: ${{ vars.MONTHLY_PATCH_SIGNER_NAME }}
@@ -427,13 +426,12 @@ jobs:
           python3 automation/.github/scripts/monthly_release.py tag --directory candidate \
             --plan "$RUNNER_TEMP/monthly-candidate/plan.json" \
             --output "$RUNNER_TEMP/tagged"
-      - name: Publish only qualified assets
+      - name: Create or resume a true draft with only the qualified assets (never publish)
         id: release
         env:
           GH_TOKEN: ${{ secrets.MONTHLY_PATCH_TOKEN }}
           MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
           MONTHLY_PATCH_ENABLED: ${{ vars.MONTHLY_PATCH_ENABLED }}
-          MONTHLY_PATCH_REHEARSAL_ENABLED: ${{ vars.MONTHLY_PATCH_REHEARSAL_ENABLED }}
           MONTHLY_PATCH_SIGNING_KEY: ${{ secrets.MONTHLY_PATCH_SIGNING_KEY }}
           MONTHLY_PATCH_SIGNER_EMAIL: ${{ vars.MONTHLY_PATCH_SIGNER_EMAIL }}
           MONTHLY_PATCH_SIGNER_NAME: ${{ vars.MONTHLY_PATCH_SIGNER_NAME }}
@@ -450,15 +448,15 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: monthly-publication
-          path: |
-            ${{ runner.temp }}/published/
+          path: ${{ runner.temp }}/published/plan.json
           if-no-files-found: warn
 
   verify:
     needs: [prepare, publish]
     if: >-
       always() && needs.prepare.result == 'success' &&
-      (needs.publish.result == 'success' || needs.prepare.outputs.action == 'verify')
+      (needs.publish.result == 'success' || needs.prepare.outputs.action == 'verify' ||
+       needs.prepare.outputs.action == 'draft-check')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -488,12 +486,8 @@ jobs:
         with:
           name: monthly-publication
           path: ${{ runner.temp }}/publication
-      - name: Locate publication manifest
-        if: needs.publish.result == 'success'
-        shell: bash
-        run: cp "$RUNNER_TEMP/publication/published/plan.json" "$RUNNER_TEMP/publication/plan.json"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.prepare.outputs.action == 'verify'
+        if: needs.prepare.outputs.action == 'verify' || needs.prepare.outputs.action == 'draft-check'
         with:
           name: monthly-candidate
           path: ${{ runner.temp }}/publication
@@ -502,7 +496,7 @@ jobs:
           go-version: stable
           check-latest: true
           cache-dependency-path: 'candidate/**/go.sum'
-      - name: Test the downloaded public release, never a rebuilt CLI
+      - name: Test recorded draft assets with read-only access, or public assets anonymously
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -518,7 +512,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: monthly-public-${{ matrix.platform }}
+          name: monthly-${{ needs.prepare.outputs.action == 'verify' && 'public' || 'draft' }}-${{ matrix.platform }}
           path: ${{ runner.temp }}/public-evidence/
           if-no-files-found: warn
 
@@ -528,7 +522,8 @@ jobs:
       always() && needs.prepare.result == 'success' && needs.verify.result == 'success' &&
       inputs.mode == 'execute' && github.event_name == 'workflow_dispatch' &&
       github.ref == 'refs/heads/main' && github.actor == vars.MONTHLY_PATCH_ACTOR &&
-      (needs.publish.result == 'success' || needs.prepare.outputs.action == 'verify')
+      (needs.publish.result == 'success' || needs.prepare.outputs.action == 'verify' ||
+       needs.prepare.outputs.action == 'draft-check')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -542,20 +537,16 @@ jobs:
         with:
           name: monthly-publication
           path: ${{ runner.temp }}/publication
-      - name: Locate publication manifest
-        if: needs.publish.result == 'success'
-        run: cp "$RUNNER_TEMP/publication/published/plan.json" "$RUNNER_TEMP/publication/plan.json"
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
-        if: needs.prepare.outputs.action == 'verify'
+        if: needs.prepare.outputs.action == 'verify' || needs.prepare.outputs.action == 'draft-check'
         with:
           name: monthly-candidate
           path: ${{ runner.temp }}/publication
-      - name: Complete the producer cycle only after public package verification
+      - name: Request qualified draft review, or complete only after human publication and public verification
         env:
           GH_TOKEN: ${{ secrets.MONTHLY_PATCH_TOKEN }}
           MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
           MONTHLY_PATCH_ENABLED: ${{ vars.MONTHLY_PATCH_ENABLED }}
-          MONTHLY_PATCH_REHEARSAL_ENABLED: ${{ vars.MONTHLY_PATCH_REHEARSAL_ENABLED }}
           MONTHLY_PATCH_SIGNING_KEY: ${{ secrets.MONTHLY_PATCH_SIGNING_KEY }}
           MONTHLY_PATCH_SIGNER_EMAIL: ${{ vars.MONTHLY_PATCH_SIGNER_EMAIL }}
           MONTHLY_PATCH_SIGNER_LOGIN: ${{ vars.MONTHLY_PATCH_SIGNER_LOGIN }}
@@ -589,7 +580,6 @@ jobs:
           GH_TOKEN: ${{ secrets.MONTHLY_PATCH_TOKEN }}
           MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
           MONTHLY_PATCH_ENABLED: ${{ vars.MONTHLY_PATCH_ENABLED }}
-          MONTHLY_PATCH_REHEARSAL_ENABLED: ${{ vars.MONTHLY_PATCH_REHEARSAL_ENABLED }}
           MONTHLY_PATCH_SIGNING_KEY: ${{ secrets.MONTHLY_PATCH_SIGNING_KEY }}
           MONTHLY_PATCH_SIGNER_EMAIL: ${{ vars.MONTHLY_PATCH_SIGNER_EMAIL }}
           MONTHLY_PATCH_SIGNER_LOGIN: ${{ vars.MONTHLY_PATCH_SIGNER_LOGIN }}

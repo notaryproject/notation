@@ -31,7 +31,7 @@ on:
         default: dry-run
         required: true
       approve:
-        description: Explicitly approve a new assessed release cycle
+        description: Request exceptional plan review as the configured actor (never bypasses maintainer issue approval)
         type: boolean
         default: false
       retry_failed:
@@ -86,7 +86,6 @@ jobs:
           MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
           MONTHLY_PATCH_ACTOR: ${{ vars.MONTHLY_PATCH_ACTOR }}
           NOTATION_RELEASE_COORDINATOR_ENABLED: ${{ vars.NOTATION_RELEASE_COORDINATOR_ENABLED }}
-          NOTATION_RELEASE_AUTO_APPROVAL_ENABLED: ${{ vars.NOTATION_RELEASE_AUTO_APPROVAL_ENABLED }}
           MONTHLY_PATCH_ENABLED: ${{ vars.MONTHLY_PATCH_ENABLED }}
           ASSESSMENT_RUN: ${{ inputs.assessment_run }}
           MODE: ${{ github.event_name != 'workflow_dispatch' && 'execute' || inputs.mode }}

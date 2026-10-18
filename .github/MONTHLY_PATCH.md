@@ -14,15 +14,32 @@ or waive a finding. The controller authenticates the successful default-main
 agent run, revalidates its artifact, and checks the maintainer-owned
 `.github/monthly-patch-policy.yml`.
 
+The controller creates one shared, readable plan review issue in CLI after a
+validated assessment. Its scope table links Dependabot PRs, titles, every
+proposed commit and HEAD (not a fabricated merge), existing source merge
+receipts, reserved patch versions, and exact producer prerequisites. Metadata
+voting commits are separate from Dependabot source commits.
+
+An active CLI repo-level maintainer must post the exact, unedited command
+displayed in the issue: `/approve-plan <plan_id>`. The controller polls every
+six hours or on manual resume. It checks the current `MAINTAINERS` roster,
+the issue's automation author/editor and exact rendered body, comment author,
+comment identity/body/edit timestamps, policy, source heads, and immutable
+worker pins before execution. It re-fetches the same approval on later writes.
+Editing/deleting the comment revokes remaining execution; retired maintainers,
+closing issues, checklists, unknown actors, and AI verdicts cannot approve.
+Reassessment produces a new plan ID requiring a fresh comment.
+
 The implemented routine policy permits stable, nondecreasing Go dependency
 patches on the same major/minor, without changing module identities, dependency
 membership, or Go requirements. Workflow dependency changes and broader updates
 require a manual controller dispatch by `MONTHLY_PATCH_ACTOR` with
-`approve=true`. The policy does not authorize feature merges, source bug fixes,
+`approve=true` to request exceptional plan review; this input never bypasses
+the maintainer comment gate. The policy does not authorize feature merges, source bug fixes,
 or CVE backports. Reachable source and binary `govulncheck` findings block
 canonical releases at every severity. Advisory dispositions cannot waive them.
 
-Routine cycle authorization does not replace release voting. Go and CLI workers
+Plan approval does not replace release voting. Go and CLI workers
 first open dependency-only backport PRs to the stable release branch. After
 ordinary successful CI and required branch reviews, the worker merges the exact
 backport with a normal merge commit. The worker then opens a separate signed
@@ -41,6 +58,45 @@ Go and CLI qualify and tag the recorded signed voting commit. The release
 branch remains at the verified normal merge tip. The worker checks the voted
 tree, merge parents, signatures, majority, and immutable receipt again before
 tagging and publication.
+
+## Qualified draft review and manual publication
+
+The isolated stager pushes the exact signed annotated tag with the existing
+branch/tag leases, then creates a real GitHub draft release (`draft=true`,
+`prerelease=false`) at that stable tag. The tag is already public. A draft does
+not hide the tag or prevent module consumers from observing it.
+
+The stager records the release ID and exact qualified asset names, IDs, sizes,
+and SHA-256 hashes. Source, packaging, and native tests receive no release-write
+credential. Native runners fetch the recorded draft assets with only target
+`GITHUB_TOKEN` Contents read, validate bytes, and run the same package gates
+before any qualified-review request. An asset API response may stream bytes
+or redirect to signed GitHub storage; credentials are never forwarded to the
+storage redirect. Denied read-only access blocks the gate without a write-token
+fallback. Maintainers must validate live draft access before activation.
+Interrupted uploads retain the reserved release ID and original hashes.
+Retries may upload only missing identical bytes; a different rebuild is blocked,
+never used to replace existing assets. Orphaned unrecorded drafts require
+explicit reconciliation rather than adoption.
+
+After every draft/native gate passes, the worker creates or reuses one
+automation-owned draft review issue in the target repository. It lists actual
+Dependabot source receipts, the backport candidate, signed voted HEAD and merge
+tip, release ID, asset IDs/hashes/sizes, and source/scan/native evidence. Failed
+drafts stay blocked and never receive a qualified-review request.
+
+The maintainer inspects that issue and the exact GitHub draft, chooses **Edit**
+in Releases, and chooses **Publish release** without changing its tag or assets.
+An approval comment or issue close cannot publish it. This implementation never
+turns a draft into a public release; future automatic publication is not
+implemented and needs separate review and opt-in. The draft author's identity
+is not used to infer who later published it.
+
+On resume, the worker requires the same release ID, stable tag, signed/voted
+commit, asset IDs, sizes, and hashes. A deleted/replaced release, changed assets,
+or publication before qualification blocks the cycle. It then downloads public
+assets anonymously and repeats native package verification. Only those passing
+checks mark the producer published and unblock exact-version consumers.
 
 ## Repository setup
 
@@ -93,11 +149,11 @@ Dry runs receive no release secrets and create no cycle issues or release PRs.
 Only after setup and policy approval, maintainers set
 `MONTHLY_PATCH_ENABLED=true` in all three repositories. In CLI they separately
 set `NOTATION_RELEASE_AGENT_ENABLED=true`,
-`NOTATION_RELEASE_COORDINATOR_ENABLED=true`, and
-`NOTATION_RELEASE_AUTO_APPROVAL_ENABLED=true`. The first switch enables the
+and `NOTATION_RELEASE_COORDINATOR_ENABLED=true`. The first switch enables the
 monthly assessment at `0 9 1 * *`; the coordinator resumes at `0 */6 * * *`.
-The automatic-approval switch authorizes new routine cycles only; existing
-authorized cycles retain their approvals. Clearing `MONTHLY_PATCH_ENABLED`
+The legacy `NOTATION_RELEASE_AUTO_APPROVAL_ENABLED` setting is obsolete and has
+no approval authority, even when true. Every new/replacement plan needs the
+maintainer issue comment. Clearing `MONTHLY_PATCH_ENABLED`
 stops writing worker stages.
 
 The controller records exact PR heads, stable baselines, source checkpoints,
@@ -123,14 +179,27 @@ with `retry_failed=true`. A changed assessment requires
 versions and refuses in-flight workers or replacement public candidates.
 Verification-only recovery additionally requires
 `recover_public_verification=true` and preserves the original tag, candidate,
-and asset hashes. Ambiguous dispatches, conflicting PR branches, or duplicate
+release ID, asset IDs, and hashes. It can reverify an unchanged draft or public
+candidate, never rebuild, retag, or republish it. The replacement plan still
+requires a fresh maintainer comment. Ambiguous dispatches, conflicting PR branches, or duplicate
 records require explicit reconciliation and are never blindly repeated.
 
 Source tests, packaging, the agent, and downloaded-package tests run without
-release secrets. A separate trusted-default-main publisher signs and publishes
-only after qualification. It uses exact branch/tag leases, never moves existing
-tags, and verifies the signed tag and public asset hashes. Successful native
-downloaded-package checks are required before producer completion.
+release secrets. A separate trusted-default-main stager signs and creates drafts
+only after qualification. It never moves tags or publishes official releases.
+
+The read-only format preview uses the same scope renderer without enabling fork
+execution or creating an approval record:
+
+```sh
+python3 .github/scripts/notation_release_controller.py preview \
+  --output /tmp/notation-plan-preview
+```
+
+It reads live canonical Dependabot metadata, not qualification results. An
+optional `--inventory <captured-preview.json>` uses a previously captured
+read-only preview inventory. A fork issue containing the resulting
+`plan-preview.md` cannot authorize canonical execution.
 
 ## Local validation
 

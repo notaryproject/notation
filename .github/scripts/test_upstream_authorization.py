@@ -33,6 +33,8 @@ POLICY = {
     "go_requirement": "unchanged-for-routine-updates",
     "reachable_vulnerabilities": "block", "optional_backports": "excluded",
     "workflow_updates": "explicit-approval", "maximum_assessment_age_hours": 24,
+    "plan_approval": "active-cli-maintainer-comment",
+    "publication": "maintainer-publishes-qualified-draft",
     "release_votes": {"notation-core-go": "branch-rules", "notation-go": "repo-maintainer-majority",
                       "notation": "repo-maintainer-majority"},
 }
@@ -52,12 +54,14 @@ class UpstreamAPI(FakeGitHub):
         self.comparison = []
         self.prs = {}
         self.editor = "test-actor"
+        self.comments = {}
+        self.roster = "# Repo-Level Maintainers\nMaintainer <maintainer@example.com> (@maintainer)\n"
 
     def issue_editor(self, repository, number):
         return self.editor
 
     def optional(self, path):
-        if "/contents/" in path and controller.WORKER_PATH in path:
+        if "/contents/" in path and (controller.WORKER_PATH in path or "/MAINTAINERS?" in path):
             return self.request(path)
         return super().optional(path)
 
@@ -84,10 +88,16 @@ class UpstreamAPI(FakeGitHub):
             return {"object": {"type": "tag", "sha": "e" * 40}}
         if suffix.startswith("git/tags/"):
             return {"object": {"sha": BRANCH}, "verification": {"verified": True}}
+        if suffix == "releases/777":
+            return {"draft": False}
         if suffix.startswith(f"contents/{controller.POLICY_PATH}"):
             return {"encoding": "base64", "content": base64.b64encode(json.dumps(self.policy).encode()).decode()}
         if suffix.startswith("issues/"):
+            if suffix.startswith("issues/comments/"):
+                return self.comments[int(suffix.rsplit("/", 1)[1])]
             return next(item for item in self.issues_by_repo[repository] if item["number"] == int(suffix.rsplit("/", 1)[1]))
+        if suffix.startswith("contents/MAINTAINERS?"):
+            return {"encoding": "base64", "content": base64.b64encode(self.roster.encode()).decode()}
         if suffix == "actions/workflows/monthly-patch-release.yml":
             return {"id": (CORE, GO, CLI).index(repository) + 10, "state": "active"}
         if "/runs?" in suffix:
@@ -135,7 +145,8 @@ class UpstreamAPI(FakeGitHub):
             if state["nodes"][f"notaryproject/{name}"]["status"] == "published"
         }
         worker = candidate(repository, "execute", MONTH, status)
-        worker.update(controller_issue=issue["number"], controller_plan_id=state["plan"]["plan_id"], producers=producers, assets=[])
+        worker.update(controller_issue=issue["number"], controller_plan_id=state["plan"]["plan_id"], producers=producers,
+                      assets=[], release_id=777)
         worker["maintainer_roster_sha"] = state["plan"]["snapshots"][repository]["automation_sha"]
         release.Cycle(self, repository, MONTH, "execute").save(worker)
         for directory in release.modules(repository):
@@ -143,6 +154,36 @@ class UpstreamAPI(FakeGitHub):
                 "Require": [{"Path": f"github.com/notaryproject/{name}", "Version": item["version"]} for name, item in producers.items()],
             }
         return run
+
+    def pages(self, path):
+        if path.endswith("/comments"):
+            return iter(self.comments.values())
+        return super().pages(path)
+
+    def approve_comment(self, issue, state):
+        identifier = len(self.comments) + 1
+        self.comments[identifier] = {
+            "id": identifier, "body": controller.plan_comment(state["plan"]),
+            "user": {"login": "maintainer", "type": "User"},
+            "created_at": "2099-01-01T00:00:00Z", "updated_at": "2099-01-01T00:00:00Z",
+            "issue_url": f"https://api.github.com/repos/{CLI}/issues/{issue['number']}",
+        }
+
+
+class ApprovedController(controller.Controller):
+    """Old execution regressions use a real, explicit maintainer review receipt."""
+
+    def approve(self, *args, **kwargs):
+        issue, state = super().approve(*args, **kwargs)
+        if state["status"] == "review":
+            for repository, snapshot in state["plan"]["snapshots"].items():
+                for item in snapshot["pulls"]:
+                    update = pull(sha=item["head"])
+                    update["head"]["repo"]["full_name"] = repository
+                    self.api.prs[(repository, item["number"])] = update
+            self.api.approve_comment(issue, state)
+            return self.accept_review(issue, state)
+        return issue, state
 
 
 def inventory(changes=(CORE,)):
@@ -157,7 +198,8 @@ def inventory(changes=(CORE,)):
                 "worker_sha": SOURCE, "worker_digest": AUTOMATION,
                 "baseline_sha": BRANCH, "baseline_tag_object": "e" * 40,
                 "source_repository": repo, "source_commit": BRANCH, "blockers": [],
-                "pulls": [{"number": 1, "head": PR_HEAD}] if repo in changes else [],
+                "pulls": [{"number": 1, "head": PR_HEAD, "commits": [{"sha": PR_HEAD, "subject": "Dependency patch"}]}]
+                         if repo in changes else [],
                 "merged": [], "manifests": {directory: {} for directory in release.modules(repo)},
                 "scans": {directory: {"reachable": [], "informational": [], "advisories": {}} for directory in release.modules(repo)},
             }
@@ -189,7 +231,7 @@ class UpstreamAuthorizationTests(unittest.TestCase):
         })
         self.env.start()
         self.addCleanup(self.env.stop)
-        self.controller = controller.Controller(self.api, "test-actor")
+        self.controller = ApprovedController(self.api, "test-actor")
 
     def dispatch(self):
         issue, state = self.controller.approve(assessed(inventory()), 22)
@@ -217,6 +259,7 @@ class UpstreamAuthorizationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "code changed"):
             controller.worker_authorization(self.api, CORE, MONTH)
         state["nodes"][CORE]["status"] = "pending"
+        issue = self.controller.save(issue, state)
         with self.assertRaisesRegex(ValueError, "code changed"):
             self.controller.advance(issue, state)
 
@@ -277,9 +320,9 @@ class UpstreamAuthorizationTests(unittest.TestCase):
             controller.authorize_routine(self.api, assessed(inventory()))
         self.api.policy["optional_backports"] = "automatic"
         with self.assertRaisesRegex(ValueError, "Unsupported"):
-            controller.authorize_routine(self.api, assessed(inventory()))
+            controller.review_scope(self.api, assessed(inventory()))
 
-    def test_automatic_authorization_checks_semantics_not_agent_rationale(self):
+    def test_manual_review_scope_checks_semantics_not_agent_rationale(self):
         update = pull(sha=PR_HEAD)
         update["base"]["sha"] = SOURCE
         self.api.prs[(CORE, 1)] = update
@@ -288,24 +331,24 @@ class UpstreamAuthorizationTests(unittest.TestCase):
         after["Require"][0]["Version"] = "v1.2.1"
         self.api.manifests[(CORE, SOURCE, ".")] = before
         self.api.manifests[(CORE, PR_HEAD, ".")] = after
-        receipt = controller.authorize_routine(self.api, assessed(inventory()))
-        self.assertEqual(receipt["kind"], "policy")
+        receipt = controller.review_scope(self.api, assessed(inventory()))
+        self.assertEqual(receipt["kind"], "pending")
         for version in ("v2.0.0", "v1.3.0", "v1.1.9", "v1.2.1-rc.1"):
             after["Require"][0]["Version"] = version
             with self.subTest(version=version), self.assertRaises(ValueError):
-                controller.authorize_routine(self.api, assessed(inventory()))
+                controller.review_scope(self.api, assessed(inventory()))
 
     def test_reachable_findings_and_workflow_changes_need_explicit_resolution(self):
         evidence = inventory()
         evidence["repositories"][CORE]["scans"]["."]["reachable"] = ["GO-2026-1234"]
         with self.assertRaisesRegex(ValueError, "Reachable"):
-            controller.authorize_routine(self.api, assessed(evidence))
+            controller.review_scope(self.api, assessed(evidence))
         update = pull(sha=PR_HEAD)
         update["base"]["sha"] = SOURCE
         self.api.prs[(CORE, 1)] = update
         self.api.files = [{"filename": ".github/workflows/build.yml"}]
         with self.assertRaisesRegex(ValueError, "explicit actor"):
-            controller.authorize_routine(self.api, assessed(inventory()))
+            controller.review_scope(self.api, assessed(inventory()))
 
     def test_exceptional_authorization_requires_manual_configured_actor(self):
         for event, actor in (("schedule", "test-actor"), ("workflow_dispatch", "attacker")):

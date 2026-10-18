@@ -18,6 +18,7 @@ import base64
 import copy
 import datetime
 import hashlib
+import html
 import json
 import os
 import pathlib
@@ -237,11 +238,13 @@ def load_policy(api, commit):
         "go_requirement": "unchanged-for-routine-updates", "reachable_vulnerabilities": "block",
         "optional_backports": "excluded", "workflow_updates": "explicit-approval",
         "maximum_assessment_age_hours": 24,
+        "plan_approval": "active-cli-maintainer-comment",
+        "publication": "maintainer-publishes-qualified-draft",
         "release_votes": {"notation-core-go": "branch-rules", "notation-go": "repo-maintainer-majority",
                           "notation": "repo-maintainer-majority"},
     }
     if policy != expected or type(policy.get("schema")) is not int or type(policy.get("maximum_assessment_age_hours")) is not int:
-        raise ValueError("Unsupported automatic-release policy; reviewed implementation is required")
+        raise ValueError("Unsupported monthly-release policy; reviewed implementation is required")
     return policy
 
 
@@ -273,9 +276,7 @@ def routine_pull(api, repository, pull):
                 raise ValueError("Routine dependency versions must remain on the same stable major/minor")
 
 
-def authorize_routine(api, plan):
-    if os.environ.get("NOTATION_RELEASE_AUTO_APPROVAL_ENABLED") != "true":
-        raise ValueError("Automatic cycle authorization is disabled")
+def review_scope(api, plan):
     commit = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
     policy = load_policy(api, commit)
     age = datetime.datetime.now(datetime.timezone.utc) - datetime.datetime.fromisoformat(plan["collected_at"])
@@ -294,7 +295,201 @@ def authorize_routine(api, plan):
             if "commit" in item and pull.get("merge_commit_sha") != item["commit"]:
                 raise ValueError("Assessed merge changed")
             routine_pull(api, repository, pull)
-    return {"kind": "policy", "policy_sha256": digest(policy), "policy_commit": commit}
+    return {"kind": "pending", "policy_sha256": digest(policy), "policy_commit": commit}
+
+
+def authorize_routine(api, plan):
+    raise ValueError("Automatic cycle authorization is disabled; a maintainer must approve the plan issue")
+
+
+def plan_comment(plan):
+    return f"/approve-plan {plan['plan_id']}"
+
+
+def safe_title(value):
+    text = html.escape(" ".join(str(value).split())[:400], quote=True)
+    return re.sub(r"[\\`*_{}\[\]()#+.!|@]", lambda match: f"&#{ord(match[0])};", text)
+
+
+def release_scope(plan):
+    lines = ["## Release scope", "",
+             "| Repository | Baseline to proposed patch | Decision | Planned producer requirement |",
+             "|---|---|---|---|"]
+    for repository in REPOSITORIES:
+        snapshot = plan["snapshots"][repository]
+        producers = []
+        for name in release.PROJECTS[repository.split("/")[1]]:
+            source = f"{OWNER}/{name}"
+            producer = plan["snapshots"][source]
+            decision = plan["decisions"][source]["decision"]
+            producers.append(f"`{name}` exactly `{producer['tag']}` after maintainer publication and public verification"
+                             if decision == "release" else f"`{name}` has no new authorized version ({decision})")
+        decision = "Proposed, not qualified" if plan.get("preview") else plan["decisions"][repository]["decision"]
+        lines.append(f"| `{repository}` | `{snapshot['baseline']}` to `{snapshot['tag']}` | "
+                     f"{decision} | {'; '.join(producers) or 'None'} |")
+    lines += ["", "### Dependabot source commits", "",
+              "| Repository | Dependabot PR/change | Exact source revision(s) | CI/review status |",
+              "|---|---|---|---|"]
+    count = 0
+    for repository in REPOSITORIES:
+        snapshot = plan["snapshots"][repository]
+        for field, revision, label in (("pulls", "head", "Open PR proposed HEAD (not yet merged)"),
+                                       ("merged", "commit", "Already merged source commit to backport")):
+            for item in snapshot[field]:
+                number = positive_id(item["number"])
+                sha = item[revision]
+                if not release.SHA.fullmatch(sha):
+                    raise ValueError("Invalid scope commit identity")
+                title = safe_title(item.get("title", "Dependabot dependency update"))
+                revisions = [f"{label}: [`{sha}`](https://github.com/{repository}/commit/{sha})"]
+                for commit in item.get("commits", []):
+                    if not release.SHA.fullmatch(commit["sha"]):
+                        raise ValueError("Invalid proposed PR commit")
+                    if commit["sha"] != sha:
+                        revisions.append(f"Additional proposed commit: [`{commit['sha']}`]"
+                                         f"(https://github.com/{repository}/commit/{commit['sha']}) {safe_title(commit.get('subject', ''))}")
+                lines.append(f"| `{repository}` | [#{number}](https://github.com/{repository}/pull/{number}) {title} | "
+                             f"{'<br>'.join(revisions)} | {safe_title(item.get('review_status', 'Required checks and reviews must pass'))} |")
+                count += 1
+    if not count:
+        lines.append("| All repositories | No existing Dependabot source PRs in this assessment | No source commit invented | Not qualified |")
+    lines += ["", "Future producer-adoption Dependabot PRs, merge commits, and stable-branch backport commits "
+              "do not exist yet and are not listed as known commits. Workers wait for exact planned producer versions "
+              "and qualifying PRs. Signed Go/CLI version-metadata vote commits are separate release-governance "
+              "changes, not Dependabot source commits. Optional CVE/bug-fix backports remain outside automatic scope.", ""]
+    return "\n".join(lines)
+
+
+def controller_body(state):
+    instructions = (
+        "# Maintainer plan review\n\n"
+        "No worker execution is authorized until an active CLI repo-level maintainer posts "
+        "the exact, unedited comment below in this issue. Closing the issue, editing a checklist, "
+        "the AI assessment, and the legacy automatic-approval flag do not approve this plan.\n\n"
+        f"```text\n{plan_comment(state['plan'])}\n```\n\n"
+        f"Assessment: https://github.com/{HOST}/actions/runs/{state['source_run']}\n\n"
+        "Review the complete decisions, source/dependency heads, worker pins, policy, and "
+        "reserved versions below. Reassessment requires a new approval. Editing or deleting "
+        "the approving comment revokes remaining execution. Publication is manual after "
+        "each repository's qualified draft review; this approval never publishes a release.\n\n"
+    )
+    blocker = f"Execution blocker: {safe_title(state['review_blocker'])}\n\n" if state.get("review_blocker") else ""
+    return (f"{marker(state['month'])}\n{instructions}{release_scope(state['plan'])}\n{blocker}Outcome: **{state['status']}**.\n\n"
+            f"```json\n{json.dumps(state, indent=2)}\n```\n")
+
+
+def pull_scope(api, repository, number):
+    commits = [{"sha": item["sha"], "subject": item["commit"]["message"].split("\n")[0][:400]}
+               for item in api.pages(f"repos/{repository}/pulls/{number}/commits")]
+    if not commits or any(not release.SHA.fullmatch(item["sha"]) for item in commits):
+        raise ValueError("Incomplete or invalid proposed PR commit list")
+    files = [item["filename"] for item in api.pages(f"repos/{repository}/pulls/{number}/files")]
+    return {"commits": commits, "review_status": "Workflow changes need explicit actor review; CI/reviews must pass"
+            if any(path.startswith(".github/workflows/") for path in files) else "CI and required reviews must pass"}
+
+
+def preview_scope(api, output, inventory_path=None):
+    snapshots, decisions = {}, {}
+    captured = load_json(inventory_path.read_text())["repositories"] if inventory_path else None
+    for repository in REPOSITORIES:
+        if captured is not None:
+            node = captured[repository]
+            baseline = node["latest_stable"]
+            if isinstance(baseline, dict):
+                baseline = baseline["tag_name"]
+            version = release.semver(baseline)
+            if version is None:
+                raise ValueError("Preview requires a real stable baseline")
+            snapshots[repository] = {
+                "baseline": baseline, "tag": f"v{version[0]}.{version[1]}.{version[2] + 1}",
+                "main_head": node["main_head"], "pulls": [], "merged": [],
+            }
+            for p in node["pulls"]:
+                if p["author"] != "dependabot[bot]" or p["head_repository"] != repository or p["base"] != "main":
+                    raise ValueError("Preview source is not a canonical Dependabot PR")
+                snapshots[repository]["pulls"].append({
+                    **{key: p[key] for key in ("number", "head", "title", "commits")},
+                    "review_status": "Workflow changes need explicit actor review; CI/reviews are not qualified"
+                    if any(path.startswith(".github/workflows/") for path in p["files"])
+                    else "CI/reviews are not qualified in this format preview",
+                })
+            decisions[repository] = {"decision": "release" if snapshots[repository]["pulls"] else "skip"}
+            continue
+        repository_metadata(api, repository)
+        baseline = release.baseline_plan(api, repository, datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m"), MODE)
+        main = api.request(f"repos/{repository}/branches/main")["commit"]["sha"]
+        stable = api.request(f"repos/{repository}/branches/{baseline['branch']}")["commit"]["sha"]
+        ahead = compare_commits(api, repository, stable, main)
+        pulls = [{"number": p["number"], "head": p["head"]["sha"], "title": p.get("title", ""),
+                  **pull_scope(api, repository, p["number"])}
+                 for p in api.pulls(repository, "main", "open") if release.dependabot(p, "main")]
+        merged = [p for p in release.inventory(api, repository, "main") if p["commit"] in ahead]
+        for item in merged:
+            item["title"] = api.request(f"repos/{repository}/pulls/{item['number']}").get("title", "")
+        snapshots[repository] = {**baseline, "pulls": pulls, "merged": merged, "main_head": main, "release_head": stable}
+        decisions[repository] = {"decision": "release" if pulls or merged else "skip"}
+    for repository in REPOSITORIES:
+        if any(decisions[f"{OWNER}/{name}"]["decision"] == "release" for name in release.PROJECTS[repository.split("/")[1]]):
+            decisions[repository]["decision"] = "release"
+    data = {"snapshots": snapshots, "decisions": decisions, "preview": True}
+    (output / "preview-inventory.json").write_text(json.dumps(data, indent=2) + "\n")
+    revision = release.git(["rev-parse", "HEAD"], pathlib.Path(__file__).resolve().parents[2])
+    (output / "plan-preview.md").write_text(
+        "# FORMAT PREVIEW ONLY: no release authorization\n\n"
+        f"Implementation revision: `{revision}`. Read-only live canonical Dependabot inventory; "
+        "no source qualification, security verdict, or execution approval is represented. "
+        "A copy of this preview in a fork cannot authorize canonical execution.\n\n" + release_scope(data))
+    return {"writes": False, "preview": str(output / "plan-preview.md")}
+
+
+def plan_roster(api, state):
+    current = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+    assessed_automation(api, HOST, state["plan"]["snapshots"][HOST], current)
+    text = repository_content(api, HOST, "MAINTAINERS", current)
+    if text is None:
+        raise ValueError("Missing active CLI maintainer roster")
+    from monthly_release_vote import parse_repo_maintainers
+    return parse_repo_maintainers(text)
+
+
+def approval_comment(api, issue, state, receipt=None):
+    roster = plan_roster(api, state)
+    if (issue.get("state") != "open" or issue.get("body") != controller_body(state)
+            or issue.get("user", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")):
+        raise ValueError("Plan review issue body, author or open state changed")
+    release.trusted_editor(api, HOST, issue)
+    comments = ([api.request(f"repos/{HOST}/issues/comments/{positive_id(receipt['comment_id'])}")]
+                if receipt else api.pages(f"repos/{HOST}/issues/{issue['number']}/comments"))
+    for comment in comments:
+        if (comment.get("body") != plan_comment(state["plan"])
+                or comment.get("user", {}).get("type") != "User"
+                or comment["user"].get("login", "").lower() not in roster
+                or not comment.get("created_at") or comment.get("updated_at") != comment["created_at"]
+                or comment.get("issue_url") != f"https://api.github.com/repos/{HOST}/issues/{issue['number']}"):
+            if receipt:
+                raise ValueError("Maintainer plan approval was edited, revoked or is no longer eligible")
+            continue
+        if comment["created_at"] < issue["created_at"]:
+            raise ValueError("Plan approval predates the review issue")
+        expected = {"kind": "maintainer", "comment_id": positive_id(comment["id"]),
+                    "login": comment["user"]["login"], "created_at": comment["created_at"],
+                    "policy_sha256": state["authorization"]["policy_sha256"],
+                    "policy_commit": state["authorization"]["policy_commit"]}
+        if receipt is not None and receipt != expected:
+            raise ValueError("Maintainer plan approval receipt changed")
+        return expected
+    if receipt:
+        raise ValueError("Maintainer plan approval is missing")
+    return None
+
+
+def require_plan_approval(api, issue, state):
+    if state["authorization"].get("kind") != "maintainer":
+        raise ValueError("Execution requires maintainer approval of the exact plan issue")
+    approval_comment(api, issue, state, state["authorization"])
+    current = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+    if digest(load_policy(api, current)) != state["authorization"]["policy_sha256"]:
+        raise ValueError("Maintainer policy changed; explicit reassessment is required")
 
 
 def explicit_actor():
@@ -399,7 +594,10 @@ def collect(api, month, output):
             ready, reason = release.checks_ready(pull, api.checks(repository, pull["number"]))
             pulls.append({"number": pull["number"], "head": pull["head"]["sha"],
                           "title": (pull.get("title") or "")[:400], "body": (pull.get("body") or "")[:1600],
+                          **pull_scope(api, repository, pull["number"]),
                           "ready": ready, "reason": reason})
+            if pulls[-1]["commits"][-1]["sha"] != pull["head"]["sha"]:
+                raise ValueError("Dependabot PR changed during commit inventory collection")
         merged = []
         if main and branch:
             ahead = compare_commits(api, repository, commit, source_ref)
@@ -415,6 +613,7 @@ def collect(api, month, output):
                         blockers.append(f"Dependency backport #{item['number']} was reverted; manual review is required")
                     continue
                 release.check_files(api, repository, item["number"])
+                item["title"] = api.request(f"repos/{repository}/pulls/{item['number']}").get("title", "")[:400]
                 merged.append(item)
         scans = scan_source(source, commit, release.modules(repository), output / repository.split("/")[1])
         manifests = {directory: api.manifest(source, commit, directory) for directory in release.modules(repository)}
@@ -476,6 +675,12 @@ def validate_inventory(inventory):
                 if number in numbers or not release.SHA.fullmatch(item.get(field, "")):
                     raise ValueError("Duplicate or invalid dependency provenance")
                 numbers.add(number)
+                if kind == "pulls":
+                    commits = item.get("commits")
+                    if (not isinstance(commits, list) or not commits or commits[-1].get("sha") != item["head"]
+                            or any(not release.SHA.fullmatch(commit.get("sha", "")) for commit in commits)
+                            or len({commit["sha"] for commit in commits}) != len(commits)):
+                        raise ValueError("Missing, duplicate or mismatched proposed PR commit list")
         if node["workflow_id"] is not None:
             positive_id(node["workflow_id"])
         if not DIGEST.fullmatch(node.get('automation_digest', '')):
@@ -542,7 +747,10 @@ def validate_assessment(inventory, assessment):
     }
     # PR text helps the agent assess compatibility but is not executable authorization.
     for node in plan["snapshots"].values():
-        node["pulls"] = [{"number": item["number"], "head": item["head"]} for item in node["pulls"]]
+        node["pulls"] = [{"number": item["number"], "head": item["head"],
+                          "title": item.get("title", "Dependabot dependency update"),
+                          "commits": item.get("commits", []), "review_status": item.get("review_status", "CI/reviews required")}
+                         for item in node["pulls"]]
     plan["plan_id"] = digest(plan)
     return plan
 
@@ -564,16 +772,20 @@ def validate_state(state):
         raise ValueError("Approved plan identity changed")
     if set(plan["decisions"]) != set(REPOSITORIES) or set(plan["snapshots"]) != set(REPOSITORIES) or set(state["nodes"]) != set(REPOSITORIES):
         raise ValueError("Controller repository scope changed")
-    if state.get("status") not in {"active", "completed"}:
+    if state.get("status") not in {"review", "active", "completed"}:
         raise ValueError("Invalid controller status")
     authorization = state.get("authorization", {})
-    if authorization.get("kind") not in {"explicit", "policy"}:
+    if authorization.get("kind") not in {"pending", "maintainer"}:
         raise ValueError("Missing authorization provenance")
-    if authorization["kind"] == "policy" and (
+    if (
         not DIGEST.fullmatch(authorization.get("policy_sha256", ""))
         or not release.SHA.fullmatch(authorization.get("policy_commit", ""))
     ):
         raise ValueError("Invalid policy authorization")
+    if (state["status"] == "review") != (authorization["kind"] == "pending"):
+        raise ValueError("Unreviewed plan cannot execute")
+    if authorization["kind"] == "maintainer":
+        positive_id(authorization.get("comment_id"))
     for repository, node in state["nodes"].items():
         decision = plan["decisions"][repository]["decision"]
         if decision not in DECISIONS or node["status"] not in NODE_STATUSES or type(node["attempt"]) is not int or node["attempt"] < 0:
@@ -632,13 +844,13 @@ class Controller:
                 release.trusted_editor(self.api, HOST, issue)
                 records.append((issue, state))
         months = [state["month"] for _, state in records]
-        if len(set(months)) != len(months) or sum(state["status"] == "active" for _, state in records) > 1:
+        if len(set(months)) != len(months) or sum(state["status"] in {"active", "review"} for _, state in records) > 1:
             raise ValueError("Duplicate or overlapping controller cycles require reconciliation")
         return records
 
     def save(self, issue, state):
         validate_state(state)
-        body = f"{marker(state['month'])}\nOutcome: **{state['status']}**.\n\n```json\n{json.dumps(state, indent=2)}\n```\n"
+        body = controller_body(state)
         if len(body.encode()) > 60000:
             raise ValueError("Controller record is too large")
         payload = {"body": body, "state": "closed" if state["status"] == "completed" else "open"}
@@ -654,8 +866,6 @@ class Controller:
     def approve(self, plan, source_run, replan=False, recover_public_verification=False, authorization=None):
         if recover_public_verification and not replan:
             raise ValueError("Public verification recovery requires an explicit replan")
-        if any(item["decision"] == "defer" for item in plan["decisions"].values()):
-            raise ValueError("Resolve deferrals and reassess before approving a release cycle")
         records = self.records()
         for issue, state in records:
             if state["month"] == plan["month"]:
@@ -666,7 +876,7 @@ class Controller:
                 if recover_public_verification:
                     raise ValueError("Verification recovery requires a fresh changed assessment")
                 return issue, state
-            if state["status"] == "active":
+            if state["status"] in {"active", "review"}:
                 raise ValueError("Finish the active cycle before approving another month")
         if recover_public_verification:
             raise ValueError("Verification recovery requires an existing approved cycle")
@@ -688,18 +898,19 @@ class Controller:
                     raise ValueError("Assessed refs changed before approval")
         state = {
             "schema": 1, "host": HOST, "mode": MODE, "month": plan["month"],
-            "plan": copy.deepcopy(plan), "source_run": positive_id(source_run), "status": "active",
-            "authorization": authorization or {"kind": "explicit"},
+            "plan": copy.deepcopy(plan), "source_run": positive_id(source_run), "status": "review",
+            "authorization": {"kind": "pending", "policy_commit": plan["snapshots"][HOST]["automation_sha"],
+                              "policy_sha256": digest(load_policy(self.api, plan["snapshots"][HOST]["automation_sha"]))},
             "nodes": {repo: {"status": {"release": "pending", "skip": "skipped", "defer": "deferred"}[item["decision"]],
                              "attempt": 0}
                       for repo, item in plan["decisions"].items()},
         }
-        if all(node["status"] in TERMINAL for node in state["nodes"].values()):
-            state["status"] = "completed"
+        if authorization and authorization.get("blocker"):
+            state["review_blocker"] = authorization["blocker"]
         return self.save(None, state), state
 
     def replan(self, issue, state, plan, source_run, recover_public_verification=False):
-        if state["status"] != "active" or any(node["status"] in {"dispatching", "running"} for node in state["nodes"].values()):
+        if state["status"] not in {"active", "review"} or any(node["status"] in {"dispatching", "running"} for node in state["nodes"].values()):
             raise ValueError("Cannot revise a completed cycle or an in-flight worker")
         when = datetime.datetime.fromisoformat(plan["collected_at"])
         age = datetime.datetime.now(datetime.timezone.utc) - when
@@ -720,7 +931,7 @@ class Controller:
                     raise ValueError("An immutable public candidate must be recovered, not replanned")
                 cycle = release.Cycle(self.api, repository, state["month"], MODE)
                 candidate = cycle.state
-                if (candidate is None or candidate["status"] != "verifying"
+                if (candidate is None or candidate["status"] not in {"draft", "awaiting-publication", "verifying"}
                         or candidate.get("controller_issue") != issue["number"]
                         or candidate.get("controller_plan_id") != state["plan"]["plan_id"]
                         or any(candidate.get(key) != previous[key] for key in ("baseline", "main", "branch", "tag"))):
@@ -735,15 +946,18 @@ class Controller:
                     if self.api.request(f"repos/{repository}/branches/{name}")["commit"]["sha"] != expected:
                         raise ValueError("Verification recovery assessment refs are stale")
                 release.assert_tag(self.api, candidate)
-                release.check_public_assets(self.api, candidate)
+                if candidate["status"] == "verifying":
+                    release.check_public_assets(self.api, candidate)
+                else:
+                    release.check_release_assets(self.api, candidate, True)
                 updated["decisions"][repository] = state["plan"]["decisions"][repository]
                 updated["snapshots"][repository] = {
-                    **previous, "automation_sha": snapshot["automation_sha"],
+                    **previous, "automation_sha": snapshot["automation_sha"], "release_head": branch_tip,
                     "automation_digest": snapshot["automation_digest"], "main_head": snapshot["main_head"],
                     **{key: snapshot[key] for key in ("worker_repository", "worker_path", "worker_sha", "worker_digest")},
                     "verification_recovery": {
                         "from_plan_id": state["plan"]["plan_id"],
-                        "candidate_sha256": digest({key: candidate[key] for key in ("tag", "commit", "assets")}),
+                        "candidate_sha256": digest({key: candidate.get(key) for key in ("tag", "commit", "assets", "release_id")}),
                     },
                 }
                 recovered = True
@@ -771,11 +985,58 @@ class Controller:
                 node["status"] = "pending"
                 node.pop("run_id", None)
         state.update(plan=updated, source_run=source_run)
-        state["authorization"] = {"kind": "explicit"}
+        state.pop("review_blocker", None)
+        state["status"] = "review"
+        state["authorization"] = {"kind": "pending", "policy_commit": updated["snapshots"][HOST]["automation_sha"],
+                                  "policy_sha256": digest(load_policy(self.api, updated["snapshots"][HOST]["automation_sha"]))}
         return self.save(issue, state), state
+
+    def accept_review(self, issue, state):
+        validate_state(state)
+        if state["status"] == "completed":
+            return issue, state
+        current_issue = self.api.request(f"repos/{HOST}/issues/{issue['number']}")
+        if decode_issue(current_issue, self.actor) != state:
+            raise ValueError("Plan issue changed before execution")
+        if state["status"] == "review":
+            receipt = approval_comment(self.api, current_issue, state)
+            if receipt is None:
+                return current_issue, state
+            if any(item["decision"] == "defer" for item in state["plan"]["decisions"].values()):
+                raise ValueError("Resolve deferrals and reassess before approving a release cycle")
+            if state.get("review_blocker"):
+                raise ValueError(f"Plan execution is blocked: {state['review_blocker']}")
+            current = self.api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+            policy = load_policy(self.api, current)
+            if digest(policy) != state["authorization"]["policy_sha256"]:
+                raise ValueError("Maintainer policy changed; reassess before approval")
+            age = datetime.datetime.now(datetime.timezone.utc) - datetime.datetime.fromisoformat(state["plan"]["collected_at"])
+            if age < datetime.timedelta(0) or age > datetime.timedelta(hours=policy["maximum_assessment_age_hours"]):
+                raise ValueError("Assessment is stale; reassess and approve the new exact plan")
+            for repository, decision in state["plan"]["decisions"].items():
+                if decision["decision"] == "release":
+                    snapshot = state["plan"]["snapshots"][repository]
+                    caller = self.api.request(f"repos/{repository}/branches/main")["commit"]["sha"]
+                    assessed_automation(self.api, repository, snapshot, caller)
+                    trusted_shared_revision(self.api, assessed_worker(self.api, repository, snapshot, caller))
+                    if self.api.request(f"repos/{repository}/branches/{snapshot['branch']}")["commit"]["sha"] != snapshot["release_head"]:
+                        raise ValueError("Stable branch changed before maintainer approval")
+                    source_checkpoint(self.api, repository, snapshot, state["month"])
+                    for item in snapshot["pulls"]:
+                        if self.api.request(f"repos/{repository}/pulls/{item['number']}")["head"]["sha"] != item["head"]:
+                            raise ValueError("Assessed PR head changed before maintainer approval")
+            state.update(status="active", authorization=receipt)
+            issue = self.save(current_issue, state)
+        return issue, state
 
     def advance(self, issue, state, retry_failed=False):
         validate_state(state)
+        if state["status"] == "completed":
+            return issue, state
+        issue, state = self.accept_review(issue, state)
+        if state["status"] == "review":
+            return issue, state
+        require_plan_approval(self.api, issue, state)
         for repository in REPOSITORIES:
             node = state["nodes"][repository]
             if node["status"] in TERMINAL:
@@ -896,6 +1157,7 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
     state = decode_issue(issue, os.environ.get("MONTHLY_PATCH_ACTOR"))
     if state is None or state["month"] != month or state["status"] != "active" or state["plan"]["plan_id"] != plan_id:
         raise ValueError("Untrusted, stale or completed coordinator authorization")
+    require_plan_approval(api, issue, state)
     node = state["nodes"][repository]
     if state["plan"]["decisions"][repository]["decision"] != "release" or node["status"] not in {"dispatching", "running"} or node["attempt"] != int(attempt):
         raise ValueError("Coordinator did not dispatch this worker attempt")
@@ -924,22 +1186,22 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
     assessed_worker(api, repository, snapshot, current)
     trusted_shared_revision(api, binding)
     source_checkpoint(api, repository, snapshot, month)
-    if state["authorization"]["kind"] == "policy":
-        policy_commit = api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
-        if digest(load_policy(api, policy_commit)) != state["authorization"]["policy_sha256"]:
-            raise ValueError("Maintainer policy changed; explicit reassessment is required")
     recovery = snapshot.get("verification_recovery")
     if recovery is not None:
         candidate = release.Cycle(api, repository, month, MODE).state
         if (candidate is None or (
-                candidate["status"] != "verifying" and not (notification and candidate["status"] == "published"))
+                candidate["status"] not in {"draft", "awaiting-publication", "verifying"}
+                and not (notification and candidate["status"] == "published"))
                 or candidate.get("controller_issue") != int(issue_number)
                 or candidate.get("controller_plan_id") not in {plan_id, recovery["from_plan_id"]}
                 or candidate["tag"] != snapshot["tag"]
-                or digest({key: candidate[key] for key in ("tag", "commit", "assets")}) != recovery["candidate_sha256"]):
+                or digest({key: candidate.get(key) for key in ("tag", "commit", "assets", "release_id")}) != recovery["candidate_sha256"]):
             raise ValueError("Verification recovery cannot change or rebuild its immutable public candidate")
         release.assert_tag(api, candidate)
-        release.check_public_assets(api, candidate)
+        if candidate["status"] in {"draft", "awaiting-publication"}:
+            release.check_release_assets(api, candidate, True)
+        else:
+            release.check_public_assets(api, candidate)
     producers = {}
     for name in release.PROJECTS[repository.split("/")[1]]:
         source = f"{OWNER}/{name}"
@@ -968,15 +1230,15 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
             producers[name] = {"repository": source, "version": upstream["version"]}
     if plan is not None:
         if recovery is not None and (
-            plan.get("status") != "verifying"
-            or digest({key: plan.get(key) for key in ("tag", "commit", "assets")}) != recovery["candidate_sha256"]
+            plan.get("status") not in {"draft", "awaiting-publication", "verifying"}
+            or digest({key: plan.get(key) for key in ("tag", "commit", "assets", "release_id")}) != recovery["candidate_sha256"]
         ):
             raise ValueError("A recovered public candidate authorizes verification only")
         allowed_ids = {plan_id}
         if allow_previous and plan.get("status") in {"merging", "waiting", "voting", "ready"}:
             allowed_ids.update(item["from"] for item in state.get("revisions", []))
-        if allow_previous and recovery is not None and plan.get("status") == "verifying":
-            if digest({key: plan[key] for key in ("tag", "commit", "assets")}) == recovery["candidate_sha256"]:
+        if allow_previous and recovery is not None and plan.get("status") in {"draft", "awaiting-publication", "verifying"}:
+            if digest({key: plan.get(key) for key in ("tag", "commit", "assets", "release_id")}) == recovery["candidate_sha256"]:
                 allowed_ids.add(recovery["from_plan_id"])
         if (plan.get("mode") != MODE or plan.get("cycle_id", "monthly") != "monthly"
                 or plan.get("controller_issue") != int(issue_number) or plan.get("controller_plan_id") not in allowed_ids
@@ -1142,7 +1404,7 @@ def trusted_assessment(api, run_id, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["collect", "validate", "control"])
+    parser.add_argument("command", choices=["collect", "validate", "control", "preview"])
     parser.add_argument("--month", default=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m"))
     parser.add_argument("--inventory", type=pathlib.Path)
     parser.add_argument("--agent-output", type=pathlib.Path)
@@ -1159,7 +1421,9 @@ def main():
     try:
         args.output.mkdir(parents=True, exist_ok=True)
         api = release.GitHub()
-        if args.command == "collect":
+        if args.command == "preview":
+            result = preview_scope(api, args.output, args.inventory)
+        elif args.command == "collect":
             inventory = collect(api, args.month, args.output / "scans")
             validate_inventory(inventory)
             (args.output / "inventory.json").write_text(json.dumps(inventory, indent=2) + "\n")
@@ -1191,7 +1455,9 @@ def main():
                     explicit_actor()
                 if os.environ.get('MONTHLY_PATCH_ENABLED') != 'true':
                     raise ValueError("Canonical monthly release execution is disabled")
-                if args.assessment_run is None and os.environ.get("NOTATION_RELEASE_AUTO_APPROVAL_ENABLED") == "true":
+                controller = Controller(api, os.environ["MONTHLY_PATCH_ACTOR"])
+                existing = controller.records()
+                if args.assessment_run is None and not any(state["status"] in {"active", "review"} for _, state in existing):
                     runs = api.request(f"repos/{HOST}/actions/workflows/notation-release-agent.lock.yml/runs?status=success&per_page=1")["workflow_runs"]
                     if runs:
                         args.assessment_run = positive_id(runs[0]["id"])
@@ -1202,7 +1468,7 @@ def main():
                 else:
                     controller = Controller(api, os.environ["MONTHLY_PATCH_ACTOR"])
                     records = controller.records()
-                    active = [(issue, state) for issue, state in records if state["status"] == "active"]
+                    active = [(issue, state) for issue, state in records if state["status"] in {"active", "review"}]
                     completed = any(state["month"] == plan["month"] and state["status"] == "completed" for _, state in records)
                     if not args.approve and active:
                         issue, state = active[0]
@@ -1211,15 +1477,21 @@ def main():
                         (args.output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
                         return 0
                     else:
-                        authorization = {"kind": "explicit"} if args.approve else authorize_routine(api, plan)
-                        issue, state = controller.approve(plan, args.assessment_run, args.replan, args.recover_public_verification, authorization)
+                        review = None
+                        if not args.approve:
+                            try:
+                                review_scope(api, plan)
+                            except ValueError as error:
+                                review = {"blocker": str(error)}
+                        issue, state = controller.approve(plan, args.assessment_run, args.replan,
+                                                          args.recover_public_verification, review)
                     issue, state = controller.advance(issue, state, args.retry_failed)
                     result = {"issue": issue["number"], "state": state}
             elif args.mode == "dry-run":
                 result = {"writes": False, "reason": "Supply an assessment run to preview its validated plan"}
             else:
                 controller = Controller(api, os.environ["MONTHLY_PATCH_ACTOR"])
-                records = [(issue, state) for issue, state in controller.records() if state["status"] == "active"]
+                records = [(issue, state) for issue, state in controller.records() if state["status"] in {"active", "review"}]
                 if records:
                     issue, state = controller.advance(*records[0], retry_failed=args.retry_failed)
                     result = {"issue": issue["number"], "state": state}

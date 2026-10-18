@@ -7,11 +7,15 @@ This document describes the checklist to publish a release for Notation CLI via 
 ## Release Process
 
 For the disabled-by-default monthly dependency patch automation, see
-[Monthly Notation patch releases](.github/MONTHLY_PATCH.md). Its policy-based
-cycle authorization does not replace the separate release-voting PR or the
+[Monthly Notation patch releases](.github/MONTHLY_PATCH.md). Its maintainer-approved
+plan issue does not replace the separate release-voting PR or the
 maintainer-majority requirement below. The worker qualifies and tags the
 recorded signed voting commit and retains the normal merge tip on the release
-branch.
+branch. After qualification, the worker creates a true draft release and a
+repository review issue. A maintainer inspects its exact assets and evidence,
+then uses GitHub **Publish release**. The signed tag is already public; a draft
+does not hide it. Consumers remain blocked until the same release and assets
+pass anonymous public-package verification. Automatic publication is not implemented.
 
 - Check if there are any security vulnerabilities fixed and security advisories published before a release. Security advisories should be linked on the release notes.
 - Determine a [SemVer2](https://semver.org/)-valid version prefixed with the letter `v` for release. For example, `version="v1.0.0-alpha.1"`.

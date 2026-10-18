@@ -102,6 +102,7 @@ class FakeGitHub:
                 issue = {
                     "number": number, "body": payload["body"], "state": payload["state"],
                     "user": {"login": "test-actor"},
+                    "created_at": "2026-01-01T00:00:00Z",
                 }
                 issues[:] = [item for item in issues if item.get("number", 1) != number] + [issue]
                 return issue
@@ -559,19 +560,19 @@ class MonthlyReleaseTests(unittest.TestCase):
 
     def test_asset_recovery_rejects_changed_digest_size_visibility_and_extra_assets(self):
         api = FakeGitHub()
-        candidate = {**plan(status="verifying"), "assets": [
-            {"name": name, "size": 10, "sha256": "a" * 64}
-            for name in ("notation-core-go_1.3.1_source.tar.gz", "notation-core-go_1.3.1_checksums.txt")
+        candidate = {**plan(status="verifying"), "release_id": 1, "draft_verification": {"run_id": 1}, "draft_review_issue": 2, "assets": [
+            {"name": name, "size": 10, "sha256": "a" * 64, "id": index + 10}
+            for index, name in enumerate(("notation-core-go_1.3.1_source.tar.gz", "notation-core-go_1.3.1_checksums.txt"))
         ]}
-        public = {"id": 1, "draft": False, "prerelease": False, "body": body(candidate)}
-        assets = [{"name": item["name"], "size": 10, "digest": "sha256:" + "a" * 64} for item in candidate["assets"]]
+        public = {"id": 1, "tag_name": candidate["tag"], "draft": False, "prerelease": False, "body": body(candidate)}
+        assets = [{"id": item["id"], "name": item["name"], "size": 10, "digest": "sha256:" + "a" * 64} for item in candidate["assets"]]
         asset = assets[0]
-        with patch.object(api, "request", return_value=public), patch.object(api, "pages", return_value=iter(assets)):
+        with patch.object(release, "check_draft_review"), patch.object(api, "request", return_value=public), patch.object(api, "pages", return_value=iter(assets)):
             release.check_public_assets(api, candidate)
         for changed in [[{**asset, "size": 11}, assets[1]], [{**asset, "digest": "sha256:changed"}, assets[1]], [asset, asset]]:
-            with patch.object(api, "request", return_value=public), patch.object(api, "pages", return_value=iter(changed)), self.assertRaises(ValueError):
+            with patch.object(release, "check_draft_review"), patch.object(api, "request", return_value=public), patch.object(api, "pages", return_value=iter(changed)), self.assertRaises(ValueError):
                 release.check_public_assets(api, candidate)
-        with patch.object(api, "request", return_value={**public, "draft": True}), self.assertRaises(ValueError):
+        with patch.object(release, "check_draft_review"), patch.object(api, "request", return_value={**public, "draft": True}), self.assertRaises(ValueError):
             release.check_public_assets(api, candidate)
 
     def test_candidate_bundle_round_trip_without_remote_mutation(self):
