@@ -16,6 +16,9 @@ package text
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/notaryproject/notation-core-go/signature"
@@ -54,4 +57,70 @@ func TestPrintMetadataIfPresent(t *testing.T) {
 			t.Errorf("unexpected output: %q", got)
 		}
 	})
+}
+
+func TestUserMetadataIsSortedByKey(t *testing.T) {
+	annotations := map[string]string{
+		"org.example.zone":    "us-east",
+		"org.example.alpha":   "1",
+		"io.wabbit.buildTime": "2024-01-01",
+		"io.wabbit.buildId":   "123",
+		"com.example.team":    "platform",
+		"a":                   "first",
+		"z":                   "last",
+		"m":                   "middle",
+	}
+	payloadBytes, err := json.Marshal(&envelope.Payload{
+		TargetArtifact: ocispec.Descriptor{Annotations: annotations},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal payload: %v", err)
+	}
+	outcome := &notation.VerificationOutcome{
+		EnvelopeContent: &signature.EnvelopeContent{
+			Payload: signature.Payload{Content: payloadBytes},
+		},
+	}
+
+	want := slices.Sorted(maps.Keys(annotations))
+	// Go randomizes map iteration order, so a single run can be sorted by
+	// chance. Render repeatedly to make the check meaningful.
+	for i := 0; i < 20; i++ {
+		buf := bytes.Buffer{}
+		h := NewVerifyHandler(output.NewPrinter(&buf, &buf))
+		h.OnVerifySucceeded([]*notation.VerificationOutcome{outcome}, "localhost:5000/net-monitor@sha256:abcd")
+		if err := h.Render(); err != nil {
+			t.Fatalf("Render() error: %v", err)
+		}
+		got := metadataKeys(t, buf.String())
+		if !slices.Equal(got, want) {
+			t.Fatalf("run %d: user metadata keys are not sorted: got %v, want %v", i, got, want)
+		}
+	}
+}
+
+// metadataKeys returns the key column of the user metadata table printed by
+// the verify handler. It fails the test when the table is missing so that an
+// empty result cannot be mistaken for sorted output.
+func metadataKeys(t *testing.T, out string) []string {
+	t.Helper()
+	if !strings.Contains(out, "Successfully verified signature for") {
+		t.Fatalf("verification success message missing from output: %q", out)
+	}
+	lines := strings.Split(out, "\n")
+	header := slices.IndexFunc(lines, func(line string) bool {
+		return strings.HasPrefix(line, "KEY")
+	})
+	if header == -1 {
+		t.Fatalf("user metadata table missing from output: %q", out)
+	}
+	var keys []string
+	for _, line := range lines[header+1:] {
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+		keys = append(keys, fields[0])
+	}
+	return keys
 }
