@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   build:
+    if: github.repository == 'notaryproject/notation' && github.actor != vars.MONTHLY_PATCH_ACTOR
     permissions:
       contents: write  # for goreleaser/goreleaser-action to create a GitHub release
     name: Release Notation Binaries

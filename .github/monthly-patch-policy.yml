@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "repositories": [
+    "notaryproject/notation-core-go",
+    "notaryproject/notation-go",
+    "notaryproject/notation"
+  ],
+  "dependency_versions": "same-major-minor-nondecreasing",
+  "producer_versions": "exact-planned-stable-patch",
+  "go_requirement": "unchanged-for-routine-updates",
+  "reachable_vulnerabilities": "block",
+  "optional_backports": "excluded",
+  "workflow_updates": "explicit-approval",
+  "maximum_assessment_age_hours": 24,
+  "plan_approval": "active-cli-maintainer-comment",
+  "publication": "maintainer-publishes-qualified-draft",
+  "release_votes": {
+    "notation-core-go": "branch-rules",
+    "notation-go": "repo-maintainer-majority",
+    "notation": "repo-maintainer-majority"
+  }
+}

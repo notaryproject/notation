@@ -1,0 +1,98 @@
+# Copyright The Notary Project Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Notation release automation checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/monthly-patch-release.yml'
+      - '.github/workflows/monthly-patch-worker.yml'
+      - '.github/monthly-patch-policy.yml'
+      - '.github/workflows/notation-release-*'
+      - '.github/licenserc.yml'
+      - '.gitattributes'
+  pull_request:
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/monthly-patch-release.yml'
+      - '.github/workflows/monthly-patch-worker.yml'
+      - '.github/monthly-patch-policy.yml'
+      - '.github/workflows/notation-release-*'
+      - '.github/licenserc.yml'
+      - '.gitattributes'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GOWORK: 'off'
+      GOTOOLCHAIN: local
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version: stable
+          check-latest: true
+      - name: Test release controller and worker regressions
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_*release*.py'
+          python3 -m unittest discover -s .github/scripts -p 'test_upstream_authorization.py'
+      - name: Lint the worker and validation workflow
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          actionlint .github/workflows/monthly-patch-release.yml \
+            .github/workflows/monthly-patch-worker.yml \
+            .github/workflows/notation-release-validation.yml
+      - name: Validate the compiled assessment workflow when present
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ -f .github/workflows/notation-release-agent.md ]]; then
+            gh extension install github/gh-aw --pin v0.89.21
+            gh aw compile notation-release-agent --strict --no-emit \
+              --gh-aw-ref c35393777e5604a63721d09512263b1383301d4f --no-check-update
+            actionlint .github/workflows/notation-release-controller.yml
+            # actionlint does not yet recognize gh-aw's generated job-level queue.
+            actionlint -ignore '^unexpected key "queue" for "concurrency" section\.' \
+              .github/workflows/notation-release-agent.lock.yml
+            gh aw list --json | jq -e 'all(.[]; .compiled == "Yes")'
+          fi
+      - name: Collect canonical evidence without AI or release credentials
+        if: github.repository == 'notaryproject/notation' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+          python3 .github/scripts/notation_release_controller.py collect \
+            --output "$RUNNER_TEMP/notation-release-evidence"
+      - name: Retain assessment evidence, including explicit setup blockers
+        if: always() && github.repository == 'notaryproject/notation'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: notation-release-evidence
+          path: ${{ runner.temp }}/notation-release-evidence/
+          if-no-files-found: warn
