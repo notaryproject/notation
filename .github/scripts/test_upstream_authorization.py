@@ -74,6 +74,14 @@ class UpstreamAPI(FakeGitHub):
             self.dispatched.append((repository, payload))
             self.writes.append((path, method, payload))
             return None
+        if method == "POST" and suffix.endswith("/comments"):
+            self.writes.append((path, method, payload))
+            identifier = len(self.comments) + 1
+            comment = {"id": identifier, "body": payload["body"],
+                       "user": {"login": "test-actor", "type": "User"},
+                       "issue_url": f"https://api.github.com/repos/{repository}/issues/{suffix.split('/')[1]}"}
+            self.comments[identifier] = comment
+            return comment
         if method != "GET":
             return super().request(path, method, payload)
 

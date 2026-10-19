@@ -98,6 +98,32 @@ or publication before qualification blocks the cycle. It then downloads public
 assets anonymously and repeats native package verification. Only those passing
 checks mark the producer published and unblock exact-version consumers.
 
+## Failure notifications
+
+The shared CLI release-plan issue is the notification thread for the cycle.
+When a worker fails, the controller posts a comment mentioning the active CLI
+repo-level maintainers. It includes the affected repo, failed stage when
+available, workflow-run/attempt link, retained evidence location, and blocked
+downstream releases. Source tests, scans, packaging, draft checks, and public
+verification remain blocking gates.
+
+Comments are deduplicated by plan, repo, run, and run attempt. Reconciliation
+does not repeat an alert, but a newly failed retry gets a new comment.
+Notifications do not rewrite the approved scope or count as approval.
+Controller validation/execution failures also post to the existing release
+issue. Notification errors fail visibly; they are not treated as delivery.
+
+Maintainers should subscribe to the release issue and configure GitHub
+notification/email preferences. Comments and mentions do not guarantee email
+delivery, particularly when the automation uses the recipient's own account.
+The issue and linked Actions run remain the audit trail.
+
+If no trusted cycle issue exists yet, or checkout/authentication prevents the
+notifier from running, GitHub's failed-workflow notification and logs are the
+fallback. Bootstrap failures before trusted worker setup are reported when the
+controller next reconciles. Neither notification nor retry bypasses a failed
+gate or publishes a draft.
+
 ## Repository setup
 
 The CLI owns `.github/workflows/monthly-patch-worker.yml`, all release scripts

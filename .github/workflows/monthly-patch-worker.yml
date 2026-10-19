@@ -587,6 +587,7 @@ jobs:
           MODE: ${{ needs.prepare.outputs.mode }}
           MONTH: ${{ needs.prepare.outputs.month }}
           CYCLE_ID: ${{ needs.prepare.outputs.cycle_id }}
+          MONTHLY_PATCH_JOB_RESULTS: ${{ toJSON(needs) }}
           FAILURE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 automation/.github/scripts/monthly_release.py failure \

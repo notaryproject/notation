@@ -75,6 +75,10 @@ An issue close, checklist, AI verdict, or unknown/comment-edited approval does
 not pass either gate. Replans require new exact plan approval. Tags are signed
 and public before draft review; draft visibility does not hide tags.
 
+Failures are reported as comments on the shared release-plan issue, mentioning
+maintainers and linking the failed stage/run and blocked downstream work.
+Repeated reconciliation does not duplicate the same failure alert.
+
 Producer failures block consumers. Callbacks and reconciliation resume the
 same cycle without duplicate releases. Later updates enter a new cycle.
 

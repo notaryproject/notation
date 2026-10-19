@@ -1168,6 +1168,21 @@ def announce(api, repository, mode, tag):
     return {"action": "notified", "repository": repository, "tag": tag, "notified": notified}
 
 
+def failure_details(environment):
+    outcomes = json.loads(environment.get("MONTHLY_PATCH_JOB_RESULTS", "{}"))
+    allowed = {"prepare", "qualify", "package", "publish", "verify", "complete"}
+    results = {"success", "failure", "cancelled", "skipped"}
+    if (not isinstance(outcomes, dict) or any(name not in allowed for name in outcomes)
+            or any(not isinstance(result, dict) or result.get("result") not in results
+                   for result in outcomes.values())):
+        raise ValueError("Invalid failed-stage evidence")
+    run_id, attempt = environment.get("GITHUB_RUN_ID", ""), environment.get("GITHUB_RUN_ATTEMPT", "1")
+    if not run_id.isdecimal() or int(run_id) <= 0 or not attempt.isdecimal() or int(attempt) <= 0:
+        raise ValueError("Failure evidence requires its workflow run and attempt")
+    return {"run_id": int(run_id), "run_attempt": int(attempt),
+            "stages": [name for name, result in outcomes.items() if result["result"] == "failure"]}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["prepare", "import", "stage-tag", "tag", "publish", "complete", "notify", "notify-controller", "announce", "failure"])
@@ -1195,6 +1210,7 @@ def main():
             if cycle.state and cycle.state["status"] not in FINAL:
                 coordinator_authorization(api, args.repository, args.mode, args.month, cycle.state)
                 cycle.state["reason"] = args.reason
+                cycle.state["failure_details"] = failure_details(os.environ)
                 cycle.save(cycle.state)
             return 0
         if args.command == "prepare":

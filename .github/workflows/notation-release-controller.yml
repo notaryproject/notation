@@ -102,6 +102,15 @@ jobs:
           if [[ "$RECOVER_PUBLIC_VERIFICATION" == true ]]; then args+=(--recover-public-verification); fi
           python3 .github/scripts/notation_release_controller.py control \
             --mode "$MODE" --output "$RUNNER_TEMP/controller" "${args[@]}"
+      - name: Report a controller failure on the release issue
+        if: failure() && (github.event_name != 'workflow_dispatch' || inputs.mode == 'execute')
+        env:
+          GH_TOKEN: ${{ secrets.MONTHLY_PATCH_TOKEN }}
+          MONTHLY_PATCH_TOKEN_READY: ${{ secrets.MONTHLY_PATCH_TOKEN != '' }}
+          MONTHLY_PATCH_ACTOR: ${{ vars.MONTHLY_PATCH_ACTOR }}
+        run: |
+          python3 .github/scripts/notation_release_controller.py notify-failure \
+            --mode execute --output "$RUNNER_TEMP/controller-notification"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:

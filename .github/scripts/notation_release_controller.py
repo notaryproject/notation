@@ -848,6 +848,74 @@ class Controller:
             raise ValueError("Duplicate or overlapping controller cycles require reconciliation")
         return records
 
+    def report_failure(self, issue, state, repository, run, reason, stages=()):
+        validate_state(state)
+        current = self.api.request(f"repos/{HOST}/issues/{positive_id(issue['number'])}")
+        if decode_issue(current, self.actor) != state or current.get("body") != controller_body(state):
+            raise ValueError("Release issue changed before failure notification")
+        release.trusted_editor(self.api, HOST, current)
+        if repository not in REPOSITORIES:
+            raise ValueError("Failure notification escapes the release repositories")
+        run_id = positive_id(run["id"])
+        attempt = positive_id(run.get("run_attempt", 1))
+        allowed = {"prepare", "qualify", "package", "publish", "verify", "complete", "controller"}
+        if (not isinstance(stages, (list, tuple)) or len(stages) > len(allowed)
+                or any(not isinstance(stage, str) or stage not in allowed for stage in stages)):
+            raise ValueError("Unexpected failure notification stage")
+        if not isinstance(reason, str) or not 1 <= len(reason) <= 500:
+            raise ValueError("Failure notifications need a bounded reason")
+        stages = list(dict.fromkeys(stages))
+        affected = set()
+        for target in REPOSITORIES:
+            if repository in [f"{OWNER}/{name}" for name in release.PROJECTS[target.split("/")[1]]] or any(
+                f"{OWNER}/{name}" in affected for name in release.PROJECTS[target.split("/")[1]]
+            ):
+                affected.add(target)
+        blocked = [
+            target for target in REPOSITORIES
+            if (target in affected or "controller" in stages)
+            and state["nodes"][target]["status"] not in TERMINAL
+        ]
+        main = self.api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+        if not release.SHA.fullmatch(main):
+            raise ValueError("Invalid maintainer notification roster revision")
+        from monthly_release_vote import parse_repo_maintainers
+        text = repository_content(self.api, HOST, "MAINTAINERS", main)
+        if text is None:
+            raise ValueError("Missing maintainer notification roster")
+        roster = parse_repo_maintainers(text)
+        marker = "<!-- notation-release-failure:" + digest({
+            "plan": state["plan"]["plan_id"], "repository": repository,
+            "run": run_id, "attempt": attempt,
+        }) + " -->"
+        body = (
+            f"{marker}\n"
+            + " ".join(f"@{login}" for login in sorted(roster))
+            + f"\n\nRelease cycle **{state['month']}** is blocked.\n\n"
+            + f"- Repository: `{repository}`\n"
+            + f"- Failed stage: {', '.join(stages) if stages else 'release worker'}\n"
+            + f"- Reason: {safe_title(reason)}\n"
+            + f"- Logs and retained evidence: https://github.com/{repository}/actions/runs/{run_id}/attempts/{attempt}\n"
+            + "- Blocked downstream work: " + (", ".join(f"`{target}`" for target in blocked) or "none") + "\n\n"
+            + "Review the linked logs and resolve the failed gate before requesting a retry. "
+            + "Do not approve past the failure or publish an unqualified draft. "
+            + "The approved scope has not changed."
+        )
+        matches = [
+            comment for comment in self.api.pages(f"repos/{HOST}/issues/{issue['number']}/comments")
+            if comment.get("user", {}).get("login") == self.actor and marker in (comment.get("body") or "")
+        ]
+        if len(matches) > 1:
+            raise ValueError("Duplicate release failure notifications require reconciliation")
+        if matches:
+            return matches[0]
+        comment = self.api.request(f"repos/{HOST}/issues/{issue['number']}/comments", "POST", {"body": body})
+        if (comment.get("user", {}).get("login") != self.actor
+                or comment.get("body") != body or type(comment.get("id")) is not int):
+            raise ValueError("Release failure notification was not confirmed")
+        positive_id(comment["id"])
+        return comment
+
     def save(self, issue, state):
         validate_state(state)
         body = controller_body(state)
@@ -1047,6 +1115,10 @@ class Controller:
             snapshot = state["plan"]["snapshots"][repository]
             if node["status"] == "failed":
                 if not retry_failed:
+                    run = {"id": node["run_id"], "run_attempt": node.get("failure_run_attempt", 1)}
+                    self.report_failure(
+                        issue, state, repository, run, node["reason"], node.get("failure_stages", ()),
+                    )
                     return issue, state
                 node.pop("run_id", None)
                 node["status"] = "pending"
@@ -1105,12 +1177,20 @@ class Controller:
             if run['status'] != 'completed':
                 return issue, state
             if run['status'] == 'completed' and run['conclusion'] != 'success':
-                node.update(status="failed", reason=f"Worker {node['run_id']} concluded {run['conclusion']}")
-                return self.save(issue, state), state
+                details = cycle.state.get("failure_details", {}) if cycle.state else {}
+                stages = details.get("stages", ()) if details.get("run_id") == run["id"] else ()
+                node.update(status="failed", reason=f"Worker {node['run_id']} concluded {run['conclusion']}",
+                            failure_stages=list(stages), failure_run_attempt=positive_id(run.get("run_attempt", 1)))
+                issue = self.save(issue, state)
+                self.report_failure(issue, state, repository, run, node["reason"], stages)
+                return issue, state
             if cycle.state is None:
                 # A blocked setup must never look like a successfully skipped patch.
-                node.update(status="failed", reason="Worker returned without a trusted release cycle")
-                return self.save(issue, state), state
+                node.update(status="failed", reason="Worker returned without a trusted release cycle",
+                            failure_stages=["prepare"], failure_run_attempt=positive_id(run.get("run_attempt", 1)))
+                issue = self.save(issue, state)
+                self.report_failure(issue, state, repository, run, node["reason"], node["failure_stages"])
+                return issue, state
             worker_plan = cycle.state
             if worker_plan.get("controller_plan_id") != state["plan"]["plan_id"] or worker_plan.get("controller_issue") != issue["number"]:
                 raise ValueError("Worker cycle belongs to a different approved plan")
@@ -1402,9 +1482,41 @@ def trusted_assessment(api, run_id, output):
     return expected
 
 
+def notify_controller_failure(api):
+    if (os.environ.get("GITHUB_REPOSITORY") != HOST or os.environ.get("GITHUB_REF") != "refs/heads/main"
+            or os.environ.get("MONTHLY_PATCH_TOKEN_READY") != "true"
+            or not os.environ.get("MONTHLY_PATCH_ACTOR")):
+        raise ValueError("Failure notification requires the trusted controller and its scoped credential")
+    actor = os.environ["MONTHLY_PATCH_ACTOR"]
+    if api.request("user")["login"] != actor:
+        raise ValueError("Failure notification credential belongs to another actor")
+    run_id = os.environ.get("GITHUB_RUN_ID", "")
+    if not run_id.isdecimal() or int(run_id) <= 0:
+        raise ValueError("Failure notification requires the actual controller run")
+    run = api.request(f"repos/{HOST}/actions/runs/{run_id}")
+    workflow = api.request(f"repos/{HOST}/actions/workflows/notation-release-controller.yml")
+    if (run.get("workflow_id") != workflow["id"]
+            or run.get("path") != ".github/workflows/notation-release-controller.yml"
+            or run.get("head_branch") != "main" or run.get("head_sha") != os.environ.get("GITHUB_SHA")
+            or run.get("repository", {}).get("full_name") != HOST
+            or run.get("event") != os.environ.get("GITHUB_EVENT_NAME")
+            or run.get("event") not in {"schedule", "repository_dispatch", "workflow_dispatch"}):
+        raise ValueError("Failure notification does not identify the trusted controller run")
+    controller = Controller(api, actor)
+    records = [(issue, state) for issue, state in controller.records() if state["status"] in {"active", "review"}]
+    if not records:
+        print("No trusted release issue exists; inspect the failed GitHub Actions run.", file=sys.stderr)
+        return {"action": "no-release-issue", "run_id": int(run_id)}
+    issue, state = records[0]
+    controller.report_failure(
+        issue, state, HOST, run, "Controller validation or execution failed; inspect the linked logs", ["controller"],
+    )
+    return {"action": "notified", "issue": issue["number"], "run_id": int(run_id)}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["collect", "validate", "control", "preview"])
+    parser.add_argument("command", choices=["collect", "validate", "control", "preview", "notify-failure"])
     parser.add_argument("--month", default=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m"))
     parser.add_argument("--inventory", type=pathlib.Path)
     parser.add_argument("--agent-output", type=pathlib.Path)
@@ -1423,6 +1535,10 @@ def main():
         api = release.GitHub()
         if args.command == "preview":
             result = preview_scope(api, args.output, args.inventory)
+        elif args.command == "notify-failure":
+            if args.mode != MODE:
+                raise ValueError("Read-only dry runs cannot write failure comments")
+            result = notify_controller_failure(api)
         elif args.command == "collect":
             inventory = collect(api, args.month, args.output / "scans")
             validate_inventory(inventory)

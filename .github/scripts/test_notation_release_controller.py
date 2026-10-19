@@ -179,6 +179,143 @@ class ReleaseAssessmentTests(unittest.TestCase):
             self.assertFalse(coordinator.installed_worker(api, CORE, AUTOMATION))
 
 
+class FailureNotificationTests(unittest.TestCase):
+    def setUp(self):
+        self.environment = patch.dict(os.environ, {"MONTHLY_PATCH_ACTOR": "test-actor"})
+        self.environment.start()
+        self.addCleanup(self.environment.stop)
+        self.api = ControllerAPI()
+        self.controller = ApprovedController(self.api, "test-actor")
+        evidence = inventory((CORE,))
+        plan = coordinator.validate_assessment(evidence, assessment(evidence, ("release", "release", "release")))
+        self.issue, self.state = self.controller.approve(plan, 22)
+        self.run = {"id": 900, "run_attempt": 1}
+
+    def notify(self, **kwargs):
+        return self.controller.report_failure(
+            self.issue, self.state, kwargs.get("repository", CORE),
+            kwargs.get("run", self.run), kwargs.get("reason", "Qualification failed"),
+            kwargs.get("stages", ["qualify"]),
+        )
+
+    def alerts(self):
+        return [comment for comment in self.api.comments.values()
+                if "<!-- notation-release-failure:" in comment["body"]]
+
+    def test_failure_comment_has_maintainers_stage_run_and_blocked_consumers(self):
+        body_before = self.issue["body"]
+        comment = self.notify()
+        for expected in ("@maintainer", CORE, "qualify", GO, CLI,
+                         f"https://github.com/{CORE}/actions/runs/900/attempts/1",
+                         "approved scope has not changed"):
+            self.assertIn(expected, comment["body"])
+        self.assertEqual(self.api.issues_by_repo[CLI][0]["body"], body_before)
+        self.assertEqual(self.api.dispatched, [])
+
+    def test_reconciliation_deduplicates_but_new_attempt_notifies(self):
+        first = self.notify()
+        self.assertEqual(self.notify(), first)
+        self.assertEqual(len(self.alerts()), 1)
+        self.notify(run={"id": 900, "run_attempt": 2})
+        self.assertEqual(len(self.alerts()), 2)
+
+    def test_external_comment_cannot_suppress_notification(self):
+        first = self.notify()
+        first["user"]["login"] = "another-user"
+        self.notify()
+        self.assertEqual(len(self.alerts()), 2)
+
+    def test_changed_issue_body_blocks_notification_without_overwriting_it(self):
+        self.api.issues_by_repo[CLI][0]["body"] += "\nUnexpected edit"
+        with self.assertRaisesRegex(ValueError, "issue changed"):
+            self.notify()
+        self.assertEqual(self.alerts(), [])
+
+    def test_failed_delivery_is_not_reported_as_success(self):
+        original = self.api.request
+        def request(path, method="GET", payload=None):
+            if method == "POST" and path.endswith("/comments"):
+                raise RuntimeError("Notification API unavailable")
+            return original(path, method, payload)
+        with patch.object(self.api, "request", side_effect=request), self.assertRaisesRegex(RuntimeError, "unavailable"):
+            self.notify()
+        self.assertEqual(self.alerts(), [])
+
+    def test_arbitrary_repository_stage_and_run_ids_are_rejected(self):
+        for kwargs in (
+            {"repository": "untrusted/notation"}, {"stages": ["unknown-stage"]},
+            {"run": {"id": 0}}, {"run": {"id": 900, "run_attempt": True}},
+        ):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                self.notify(**kwargs)
+
+    def test_worker_failure_reconciliation_does_not_dispatch_consumers_or_repeat_alert(self):
+        self.issue, self.state = self.controller.advance(self.issue, self.state)
+        self.api.worker(CORE, self.issue, self.state, "ready", "failure")
+        self.issue, self.state = self.controller.advance(self.issue, self.state)
+        self.assertEqual(self.state["nodes"][CORE]["status"], "failed")
+        self.controller.advance(self.issue, self.state)
+        self.assertEqual(len(self.alerts()), 1)
+        self.assertEqual([repo for repo, _ in self.api.dispatched], [CORE])
+
+    def controller_run(self):
+        return {
+            "id": 901, "run_attempt": 1, "workflow_id": 7,
+            "path": ".github/workflows/notation-release-controller.yml",
+            "head_branch": "main", "head_sha": AUTOMATION,
+            "repository": {"full_name": CLI}, "event": "workflow_dispatch",
+        }
+
+    def controller_environment(self):
+        return patch.dict(os.environ, {
+            "GITHUB_REPOSITORY": CLI, "GITHUB_REF": "refs/heads/main",
+            "GITHUB_SHA": AUTOMATION, "GITHUB_EVENT_NAME": "workflow_dispatch",
+            "GITHUB_RUN_ID": "901", "MONTHLY_PATCH_TOKEN_READY": "true",
+        })
+
+    def test_controller_failure_also_comments_on_the_existing_cycle(self):
+        original = self.api.request
+        def request(path, method="GET", payload=None):
+            if path == f"repos/{CLI}/actions/runs/901":
+                return self.controller_run()
+            if path == f"repos/{CLI}/actions/workflows/notation-release-controller.yml":
+                return {"id": 7}
+            return original(path, method, payload)
+        with self.controller_environment(), patch.object(self.api, "request", side_effect=request):
+            result = coordinator.notify_controller_failure(self.api)
+        self.assertEqual(result["action"], "notified")
+        self.assertEqual(len(self.alerts()), 1)
+        self.assertIn("controller", self.alerts()[0]["body"])
+
+    def test_a_different_workflow_cannot_impersonate_controller_failure(self):
+        original = self.api.request
+        def request(path, method="GET", payload=None):
+            if path == f"repos/{CLI}/actions/runs/901":
+                return {**self.controller_run(), "path": ".github/workflows/other.yml"}
+            if path == f"repos/{CLI}/actions/workflows/notation-release-controller.yml":
+                return {"id": 7}
+            return original(path, method, payload)
+        with self.controller_environment(), patch.object(self.api, "request", side_effect=request), \
+                self.assertRaisesRegex(ValueError, "trusted controller run"):
+            coordinator.notify_controller_failure(self.api)
+        self.assertEqual(self.alerts(), [])
+
+    def test_failure_details_validate_needs_payload(self):
+        environment = {
+            "GITHUB_RUN_ID": "900", "GITHUB_RUN_ATTEMPT": "2",
+            "MONTHLY_PATCH_JOB_RESULTS": json.dumps({
+                "prepare": {"result": "success"}, "qualify": {"result": "failure"},
+                "package": {"result": "skipped"},
+            }),
+        }
+        self.assertEqual(release.failure_details(environment),
+                         {"run_id": 900, "run_attempt": 2, "stages": ["qualify"]})
+        for outcomes in ([], {"unknown": {"result": "failure"}}, {"qualify": True},
+                         {"qualify": {"result": "unexpected"}}):
+            with self.subTest(outcomes=outcomes), self.assertRaises(ValueError):
+                release.failure_details({**environment, "MONTHLY_PATCH_JOB_RESULTS": json.dumps(outcomes)})
+
+
 class ReleaseControllerTests(unittest.TestCase):
     def setUp(self):
         self.environment = patch.dict(os.environ, {"MONTHLY_PATCH_ACTOR": "test-actor"})
