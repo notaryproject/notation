@@ -100,7 +100,7 @@ class FakeGitHub:
                 issues = self.issues_by_repo.get("/".join(path.split("/")[1:3]), self.issues)
                 number = int(path.rsplit("/", 1)[1]) if method == "PATCH" else len(issues) + 1
                 issue = {
-                    "number": number, "body": payload["body"], "state": payload["state"],
+                    "number": number, "body": payload["body"], "state": payload.get("state", "open"),
                     "user": {"login": "test-actor"},
                     "created_at": "2026-01-01T00:00:00Z",
                 }

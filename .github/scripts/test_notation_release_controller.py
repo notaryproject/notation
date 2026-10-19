@@ -166,6 +166,8 @@ class ReleaseAssessmentTests(unittest.TestCase):
             ".github/scripts/qualify_monthly_candidate.py": "def qualify(",
             ".github/scripts/build_monthly_assets.py": "def ",
             ".github/scripts/test_monthly_public_release.py": "def ",
+            ".github/scripts/release_issue_topology.py": "def scope_body(\ndef ensure(",
+            ".github/scripts/release_bugfix_proposals.py": "def collect(\ndef validate_proposals(",
         }
         def file(path):
             self.assertTrue(path.endswith("?ref=" + AUTOMATION))
@@ -686,7 +688,8 @@ class ReleaseControllerTests(unittest.TestCase):
         issue, state = self.approved()
         issue, state = self.controller.advance(issue, state)
         self.api.worker(CORE, issue, state)
-        self.api.issues_by_repo[CORE] = []
+        self.api.issues_by_repo[CORE] = [item for item in self.api.issues_by_repo[CORE]
+                                        if item["number"] == state["release_issues"][CORE]]
         issue, state = self.controller.advance(issue, state)
         self.assertEqual(state["nodes"][CORE]["status"], "failed")
         self.assertEqual(len(self.api.dispatched), 1)

@@ -14,21 +14,26 @@ or waive a finding. The controller authenticates the successful default-main
 agent run, revalidates its artifact, and checks the maintainer-owned
 `.github/monthly-patch-policy.yml`.
 
-The controller creates one shared, readable plan review issue in CLI after a
-validated assessment. Its scope table links Dependabot PRs, titles, every
-proposed commit and HEAD (not a fabricated merge), existing source merge
-receipts, reserved patch versions, and exact producer prerequisites. Metadata
-voting commits are separate from Dependabot source commits.
+The controller creates one release-scope issue per repository after assessment.
+Each issue shows its own versions and Dependabot source revisions. Go links the
+Core issue; CLI links Core and Go and shows overall status, without copying
+their change lists. Source details and the central technical state are collapsed.
+Metadata voting commits remain separate from Dependabot source commits.
+Creation starts with CLI, then Core and Go, then wires exact issue links.
+An interrupted creation resumes from authenticated placeholders. Duplicate,
+missing, or mismatched issue records fail closed before execution.
 
 An active CLI repo-level maintainer must post the exact, unedited command
-displayed in the issue: `/approve-plan <plan_id>`. The controller polls every
+displayed in the CLI issue: `/approve`. The controller polls every
 six hours or on manual resume. It checks the current `MAINTAINERS` roster,
 the issue's automation author/editor and exact rendered body, comment author,
 comment identity/body/edit timestamps, policy, source heads, and immutable
 worker pins before execution. It re-fetches the same approval on later writes.
 Editing/deleting the comment revokes remaining execution; retired maintainers,
 closing issues, checklists, unknown actors, and AI verdicts cannot approve.
-Reassessment produces a new plan ID requiring a fresh comment.
+Reassessment produces a new internal plan ID and review revision requiring a
+fresh comment. The receipt binds the comment ID, plan ID, and review revision;
+an older `/approve` cannot authorize a later plan.
 
 The implemented routine policy permits stable, nondecreasing Go dependency
 patches on the same major/minor, without changing module identities, dependency
@@ -38,6 +43,15 @@ require a manual controller dispatch by `MONTHLY_PATCH_ACTOR` with
 the maintainer comment gate. The policy does not authorize feature merges, source bug fixes,
 or CVE backports. Reachable source and binary `govulncheck` findings block
 canonical releases at every severity. Advisory dispositions cannot waive them.
+
+The read-only collector also compares `main` against the selected release line
+and supplies source/PR evidence for proposed bug-fix backports. The assessment
+must explain applicability, known cherry-pick provenance or reverts, and missing
+evidence. Titles or labels alone do not establish a bug fix. Candidates appear
+only in their repository's issue, separate from the included Dependabot scope.
+Proposal metadata cannot authorize a backport. Including one requires separately
+reviewed execution support and fresh scope approval; new `main` commits never
+silently join a frozen plan.
 
 Plan approval does not replace release voting. Go and CLI workers
 first open dependency-only backport PRs to the stable release branch. After
@@ -65,6 +79,9 @@ The isolated stager pushes the exact signed annotated tag with the existing
 branch/tag leases, then creates a real GitHub draft release (`draft=true`,
 `prerelease=false`) at that stable tag. The tag is already public. A draft does
 not hide the tag or prevent module consumers from observing it.
+For upstream use, a manual approval before the final stable tag remains required
+but unimplemented. The existing draft-publication gate does not provide that
+earlier boundary; this issue-topology change does not redesign publication.
 
 The stager records the release ID and exact qualified asset names, IDs, sizes,
 and SHA-256 hashes. Source, packaging, and native tests receive no release-write
@@ -79,8 +96,8 @@ Retries may upload only missing identical bytes; a different rebuild is blocked,
 never used to replace existing assets. Orphaned unrecorded drafts require
 explicit reconciliation rather than adoption.
 
-After every draft/native gate passes, the worker creates or reuses one
-automation-owned draft review issue in the target repository. It lists actual
+After every draft/native gate passes, the worker comments in the existing
+repository release-scope issue. It lists actual
 Dependabot source receipts, the backport candidate, signed voted HEAD and merge
 tip, release ID, asset IDs/hashes/sizes, and source/scan/native evidence. Failed
 drafts stay blocked and never receive a qualified-review request.
@@ -100,14 +117,17 @@ checks mark the producer published and unblock exact-version consumers.
 
 ## Failure notifications
 
-The shared CLI release-plan issue is the notification thread for the cycle.
-When a worker fails, the controller posts a comment mentioning the active CLI
-repo-level maintainers. It includes the affected repo, failed stage when
+Each repository's release issue is its human notification thread. When a worker
+fails, the controller comments only in that issue and mentions that repository's
+active repo-level maintainers. It includes the affected repo, failed stage when
 available, workflow-run/attempt link, retained evidence location, and blocked
-downstream releases. Source tests, scans, packaging, draft checks, and public
+downstream releases. Go and CLI receive only concise links when blocked by a
+dependency, not repeated dependency error details. Required check/review blockers
+and qualified draft-ready requests use the same thread. Routine progress does
+not send comments. Source tests, scans, packaging, draft checks, and public
 verification remain blocking gates.
 
-Comments are deduplicated by plan, repo, run, and run attempt. Reconciliation
+Comments are deduplicated by plan, repo, run, run attempt, and stage. Reconciliation
 does not repeat an alert, but a newly failed retry gets a new comment.
 Notifications do not rewrite the approved scope or count as approval.
 Controller validation/execution failures also post to the existing release
@@ -154,7 +174,7 @@ Resolving an unmerged commit through GitHub's fork network is not authorization.
 |---|---|
 | All repos, **Settings > General** | Enable issues for controller and worker cycle records. Enable **Allow merge commits** for backport and voting PRs. |
 | All repos, **Settings > Actions > General > Actions permissions** | Permit the pinned Actions and the public reusable workflow from `notaryproject/notation`. If an allow-list is configured, allow that repository's reusable workflow at the reviewed full SHA. Caller permissions include Contents, Actions, Issues, and Pull requests read; the called worker cannot elevate them. |
-| All repos, **Settings > Rules > Rulesets**, or **Settings > Branches** | Protect `main` and the latest stable `release-MAJOR.MINOR` branch with the normal required checks and reviews. Do not give the release actor bypass rights. |
+| All repos, **Settings > Rules > Rulesets**, or **Settings > Branches** | Protect `main` and the latest stable `release-MAJOR.MINOR` branch with the normal required checks and reviews. Ensure normal CI also targets stable-branch backport PRs. Missing checks block execution; do not give the release actor bypass rights. |
 | All repos, **Settings > Advanced Security** (or the repository's security settings) | Enable Dependabot alerts and security updates. Review `.github/dependabot.yml` for Go modules and GitHub Actions on `main`; CLI includes root, E2E, and plugin modules. |
 | All repos, **Settings > Secrets and variables > Actions > Secrets** | Add the same `MONTHLY_PATCH_TOKEN`, a dedicated authenticated-user token scoped to the three repositories with Contents, Pull requests, Issues, and Actions read/write. Explicitly approved workflow updates also need Workflows write permission. The token must resolve to `MONTHLY_PATCH_ACTOR` through `GET /user`; GitHub App installation tokens are not supported by this draft's credential check. |
 | All repos, **Settings > Secrets and variables > Actions > Secrets** | Add `MONTHLY_PATCH_SIGNING_KEY`, a dedicated unencrypted SSH private signing key. Register its public key under the signer account's **Settings > SSH and GPG keys > New SSH key > Signing key**. |

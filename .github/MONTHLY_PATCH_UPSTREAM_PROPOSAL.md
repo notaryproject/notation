@@ -19,7 +19,7 @@ The following scope applies to all three repos:
 |---|---|
 | Dependabot PRs | Included |
 | Additional CVE fixes | Optional, outside automatic authority in this draft |
-| Bug-fix backports | Optional, outside automatic authority in this draft |
+| Bug-fix backports | Proposed after read-only review of new `main` commits; inclusion remains optional and outside automatic execution |
 | Features and breaking changes | Excluded |
 | Older release lines | Excluded |
 
@@ -50,18 +50,20 @@ One monthly trigger starts a shared release plan.
 | Release controller | No | Opens the plan review issue, verifies maintainer approval, enforces order, and tracks progress |
 | Release workers | No | Merge reviewed updates, run checks, sign tags, stage draft assets, and verify publication |
 
-1. The agent assesses Dependabot PRs, stable baselines, manifests, and checks.
-2. The controller opens a CLI plan issue showing each repository's baseline,
-   proposed version, Dependabot PR/title, exact proposed HEAD and commits or
-   already-merged source commit, and producer prerequisites. An active CLI
-   repo-level maintainer reviews it and posts `/approve-plan <plan_id>`.
+1. The agent assesses Dependabot PRs, stable baselines, manifests, checks, and
+   evidence-backed bug-fix candidates from `main` against the selected release line.
+2. The controller opens one release-scope issue per repository. Each shows its
+   own baseline, proposed version, and exact Dependabot revisions. Go links Core;
+   CLI links Core and Go and shows overall status, without repeating their change
+   lists. An active CLI repo-level maintainer posts `/approve` on the CLI issue.
+   The controller binds it to the current immutable plan and rejects stale approvals.
 3. Workers prepare producers first. Consumers adopt the exact verified library
    versions through checked Dependabot PRs before releasing. Workers open
    dependency-only backport PRs to the stable release branch, then separate
    release-voting PRs where the repository checklist requires them.
 4. The worker stages a true draft release and verifies its downloaded assets
-   using read-only access. Only successful checks create a repository-local
-   draft review issue with the exact release ID, commits, asset IDs/hashes, and
+   using read-only access. Only successful checks add a draft-ready comment to
+   the same repository's release issue with exact release ID, commits, asset IDs/hashes, and
    evidence. A maintainer inspects it and uses GitHub's **Publish release**.
    The worker then verifies the same release and bytes anonymously before
    consumers proceed or the cycle closes.
@@ -69,15 +71,18 @@ One monthly trigger starts a shared release plan.
 | Gate | Maintainer action | What remains blocked |
 |---|---|---|
 | Shared plan issue | Post the exact approval command displayed in the issue | All worker execution until approval |
-| Qualified draft review issue | Inspect evidence and publish the exact draft through GitHub Releases | Official release and consumers until manual publication and public verification |
+| Qualified draft-ready comment in the repository's release issue | Inspect evidence and publish the exact draft through GitHub Releases | GitHub release publication and consumers until manual publication and public verification |
 
 An issue close, checklist, AI verdict, or unknown/comment-edited approval does
-not pass either gate. Replans require new exact plan approval. Tags are signed
-and public before draft review; draft visibility does not hide tags.
+not pass either gate. Replans require a fresh `/approve` for the new internal
+plan revision. Tags are signed and public before draft review, which already
+exposes Go modules. A separate manual gate before the final stable tag is
+required for upstream use and is not implemented by this issue-organization change.
 
-Failures are reported as comments on the shared release-plan issue, mentioning
-maintainers and linking the failed stage/run and blocked downstream work.
-Repeated reconciliation does not duplicate the same failure alert.
+Errors, blockers, and draft-ready notices go only to the affected repository's
+release issue and mention its maintainers. Consumers receive a concise dependency
+issue link, not repeated error details. Routine progress does not send comments.
+Repeated reconciliation does not duplicate a stage/run notification.
 
 Producer failures block consumers. Callbacks and reconciliation resume the
 same cycle without duplicate releases. Later updates enter a new cycle.
@@ -105,7 +110,7 @@ not qualify, and there is no fallback to `main`.
 | Step | Where | Configuration | Maintainer approval |
 |---|---|---|---|
 | 1. Merge automation | CLI first, then libraries | Merge the central worker/helpers into CLI `main`, initially disabled. Replace library draft pins with its final upstream SHA, then merge only the thin callers/local setup docs. Use canonical module requirements, not trial `replace` directives. In CLI, guard `release-github.yml` on `main` and the selected release branch so it does not publish monthly-worker tags. | Required for the PRs, final pin review, and release-branch changes |
-| 2. Configure repositories | All three repos | Enable Actions in **Settings > Actions > General**, allow the public `notaryproject/notation` reusable workflow at its reviewed SHA under **Actions permissions**, and enable issues in **Settings > General**. Maintain the latest stable `release-MAJOR.MINOR` branch and its required checks/reviews. Configure `.github/dependabot.yml` for Go modules and GitHub Actions on `main`; include CLI's root, E2E, and plugin modules. Enable Dependabot alerts and security updates in repository security settings. | Required for settings and configuration PRs |
+| 2. Configure repositories | All three repos | Enable Actions in **Settings > Actions > General**, allow the public `notaryproject/notation` reusable workflow at its reviewed SHA under **Actions permissions**, and enable issues in **Settings > General**. Maintain the latest stable `release-MAJOR.MINOR` branch and its required checks/reviews. Ensure normal CI runs on stable-branch backport PRs, not just `main`. Configure `.github/dependabot.yml` for Go modules and GitHub Actions on `main`; include CLI's root, E2E, and plugin modules. Enable Dependabot alerts and security updates in repository security settings. | Required for settings and configuration PRs |
 | 3. Provision release credentials | All three repos | In **Settings > Secrets and variables > Actions > Secrets**, add the same `MONTHLY_PATCH_TOKEN`, an authenticated user token for one common release actor. Scope it to these three repos with contents, PRs, issues, and Actions write permissions; include workflow-write permission for explicitly approved workflow dependency updates. The controller verifies the token with `GET /user`; installation-token rotation is not implemented. Do not grant protection bypass. | Required for credential provisioning |
 | 4. Configure signing and identity | All three repos | Add secret `MONTHLY_PATCH_SIGNING_KEY`. Register its public key as a GitHub signing key on the signer account. In the **Variables** tab, set `MONTHLY_PATCH_ACTOR`, `MONTHLY_PATCH_SIGNER_LOGIN`, and `MONTHLY_PATCH_SIGNER_EMAIL`; optionally set `MONTHLY_PATCH_SIGNER_NAME`. Use the same actor across all three repos. | Required for signer and actor setup |
 | 5. Configure AI access | CLI repo only | Add Actions secret `COPILOT_GITHUB_TOKEN` with **Copilot Requests: Read** permission and access to the selected Copilot engine. Keep it separate from release credentials. | Required for account access and secret provisioning |
@@ -116,13 +121,14 @@ During operation:
 
 | Step | Workflow action | Maintainer approval |
 |---|---|---|
-| Assess and review a cycle | Validate the shared plan and open its readable CLI issue | An active CLI repo-level maintainer must post the exact unedited `/approve-plan <plan_id>` command before execution |
+| Assess and review a cycle | Validate the shared plan and wire each repository's own release issue | An active CLI repo-level maintainer must post an unedited `/approve` after the current plan revision before execution |
 | Merge dependency or producer-update PRs | Require successful checks and satisfied branch rules | Required wherever normal PR reviews are required |
 | Merge release backport PRs | Require successful checks, satisfied branch rules, and exact candidate scope | Required wherever normal PR reviews are required |
 | Vote on Go and CLI releases | Update only `signingAgent` or CLI version metadata in a separate, signed, single-commit PR, require current-head approval from a strict majority of the repo-level maintainers pinned at assessed `main`, and use a normal merge commit | Required by each repository's existing release checklist |
-| Include optional CVE fixes or bug-fix backports | Keep these changes outside this draft's automatic authority | Separate reviewed implementation and scope approval are required |
+| Propose bug-fix backports | Review `main` ancestry, associated PR/diff evidence, release-line inclusion, cherry-pick provenance, reverts, and applicability; list candidates only in their own repository's issue | Proposals do not enter execution. Inclusion requires separate reviewed execution support and fresh scope approval; features remain excluded |
+| Include optional CVE fixes | Keep these changes outside this draft's automatic authority | Separate reviewed implementation and scope approval are required |
 | Handle a conflict, failed check, or blocking security finding | Stop the affected chain and record the blocker | Maintainer resolution and, where refs changed, explicit actor-approved reassessment before resuming; canonical advisory exceptions are not implemented |
-| Review qualified draft releases | Record successful draft/native checks and open each repository's review issue | A maintainer inspects assets/evidence and uses GitHub Publish release; automation never publishes |
+| Review qualified draft releases | Record successful draft/native checks and comment in the existing repository release issue | A maintainer inspects assets/evidence and uses GitHub Publish release; automation never publishes |
 | Verify public patches | Compare the recorded release ID, tag, asset IDs, hashes, and sizes, then run anonymous public-package checks | Consumers stay blocked until checks pass |
 
 The agent is read-only. Source tests and the agent receive no release secrets.

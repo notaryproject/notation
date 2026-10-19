@@ -165,7 +165,10 @@ class UpstreamAPI(FakeGitHub):
 
     def pages(self, path):
         if path.endswith("/comments"):
-            return iter(self.comments.values())
+            repository = "/".join(path.split("/")[1:3])
+            number = path.split("/issues/")[1].split("/")[0]
+            return iter(item for item in self.comments.values()
+                        if item.get("issue_url") == f"https://api.github.com/repos/{repository}/issues/{number}")
         return super().pages(path)
 
     def approve_comment(self, issue, state):

@@ -71,7 +71,7 @@ safe-outputs:
         actions: read
       inputs:
         assessment_json:
-          description: JSON object with schema, month, inventory_sha256 and decisions for all three repositories.
+          description: JSON object with schema, month, inventory_sha256, decisions and proposal-only bugfix_proposals for all three repositories.
           required: true
           type: string
       steps:
@@ -132,6 +132,36 @@ Explain compatibility concerns and relevant GO/CVE identifiers concisely.
 An informational-only vulnerability finding does not itself require a release.
 Never invent a PR, security finding, fixed version, branch, or missing evidence.
 
+Review every candidate in each repository's `bugfix_evidence`. The collector
+compares immutable `main` and selected release-line ancestry, captures canonical
+merged PRs and source/PR patches, and records known cherry-picks, reverts, and
+missing evidence. Follow each candidate's evidence IDs into its evidence map.
+Classify from implementation/diff evidence, never from titles or labels alone:
+`candidate_bugfix`, `feature`, `not_bugfix`, or `needs_review`.
+Explain release-line applicability and any conflicts or feature prerequisites.
+Use `needs_review` when evidence is incomplete or the collector has blockers.
+Already-included or reverted changes must not be proposed for inclusion.
+The collector cannot prove unmarked squash or textual equivalence, so do not
+claim that a missing provenance match proves absence from the release line.
+
+Bug-fix proposals are not included in the release decision or executable scope.
+Do not set `release` solely because a bug-fix candidate exists. Every candidate
+remains blocked pending maintainer applicability review, separately implemented
+backport gates, and fresh scope approval. Features remain excluded.
+For each repository, `bugfix_proposals` must contain an envelope
+`{"schema":1,"evidence_sha256":"<SHA-256 of canonical compact sorted JSON bugfix_evidence>","proposals":[...]}`.
+The collector supplies `bugfix_evidence_sha256` for that hash. Classify each
+candidate exactly once, retaining its repository/source SHA and evidence IDs.
+Each proposal has exactly these fields:
+`candidate_id`, `repository`, `source_sha`, `pr_number` (an observed canonical
+merged PR or null), `classification`, `evidence_ids`, `rationale`, and
+`applicability`. Applicability has `status`, `rationale`, and `prerequisite_shas`.
+Allowed statuses are `unverified`, `conflict`, `missing_prerequisite`, and
+`not_applicable`; no model verdict certifies applicability as verified.
+Only `missing_prerequisite` uses a nonempty list of other observed source SHAs.
+Both rationales must explain the evidence, not certify correctness.
+If branch evidence is unavailable, use null for that repository's envelope.
+
 Submit exactly once using the `submit_release_plan` safe-output tool. Its
 `assessment_json` string must encode this object, with no extra fields:
 
@@ -144,10 +174,16 @@ Submit exactly once using the `submit_release_plan` safe-output tool. Its
     "notaryproject/notation-core-go": {"decision": "<release|skip|defer>", "reason": "<rationale>", "evidence": ["<evidence ID>"]},
     "notaryproject/notation-go": {"decision": "<release|skip|defer>", "reason": "<rationale>", "evidence": ["<evidence ID>"]},
     "notaryproject/notation": {"decision": "<release|skip|defer>", "reason": "<rationale>", "evidence": ["<evidence ID>"]}
+  },
+  "bugfix_proposals": {
+    "notaryproject/notation-core-go": {"schema": 1, "evidence_sha256": "<bugfix_evidence_sha256>", "proposals": []},
+    "notaryproject/notation-go": {"schema": 1, "evidence_sha256": "<bugfix_evidence_sha256>", "proposals": []},
+    "notaryproject/notation": {"schema": 1, "evidence_sha256": "<bugfix_evidence_sha256>", "proposals": []}
   }
 }
 ```
 
+Empty proposal arrays above apply only when that repository has no candidates.
 For a complete no-change assessment, submit three `skip` decisions, not release
 requests. If tooling/data prevents meaningful assessment, use `missing_tool` or `missing_data`
 instead of submitting a success-shaped plan. The output artifact is assessment

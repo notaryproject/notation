@@ -534,6 +534,26 @@ def check_draft_review(api, plan):
     if type(number) is not int or number <= 0:
         raise ValueError("Missing qualified draft review issue")
     issue = api.request(f"repos/{plan['repository']}/issues/{number}")
+    if plan.get("draft_review_comment"):
+        import release_issue_topology as threads
+        from notation_release_controller import HOST, controller_body, decode_issue
+        actor = os.environ.get("MONTHLY_PATCH_ACTOR")
+        root = api.request(f"repos/{HOST}/issues/{plan['controller_issue']}")
+        state = decode_issue(root, actor)
+        if (state is None or root.get("body") != controller_body(state)
+                or state["plan"]["plan_id"] != plan["controller_plan_id"]
+                or state.get("release_issues", {}).get(plan["repository"]) != number):
+            raise ValueError("Qualified draft release issue route changed")
+        trusted_editor(api, HOST, root)
+        if plan["repository"] != HOST:
+            threads.checked_issue(api, actor, plan["repository"], number,
+                                  threads.scope_body(state["plan"], plan["repository"], state["release_issues"]))
+        comment = api.request(f"repos/{plan['repository']}/issues/comments/{plan['draft_review_comment']}")
+        if (comment.get("user", {}).get("login") != actor
+                or comment.get("body") != plan["draft_review_body"]
+                or comment.get("issue_url") != f"https://api.github.com/repos/{plan['repository']}/issues/{number}"):
+            raise ValueError("Qualified draft review comment changed")
+        return issue
     if ("pull_request" in issue or issue.get("user", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")
             or issue.get("body") != draft_review_body(plan)):
         raise ValueError("Qualified draft review issue changed or has an untrusted author")
@@ -749,6 +769,8 @@ def prepare(api, repository, mode, month, directory, output, start=False, reconc
         if any(state[key] != snapshot[key] for key in ("baseline", "main", "branch", "tag")):
             raise ValueError("Assessed release baseline or proposed patch version changed")
         state.update(controller_issue=authorization["issue"], controller_plan_id=authorization["plan_id"])
+        if authorization.get("release_issue"):
+            state["release_issue"] = authorization["release_issue"]
         if mode == "execute":
             state["maintainer_roster_sha"] = snapshot["automation_sha"]
     baseline_plan(api, repository, month, mode, state)
@@ -1088,6 +1110,35 @@ def complete(api, plan):
             }
             cycle.save(plan)
         body = draft_review_body(plan)
+        from notation_release_controller import HOST, controller_body, decode_issue
+        import release_issue_topology as threads
+        actor = os.environ.get("MONTHLY_PATCH_ACTOR")
+        root = (api.request(f"repos/{HOST}/issues/{plan['controller_issue']}")
+                if plan.get("release_issue") else None)
+        state = decode_issue(root, actor) if root else None
+        if plan.get("release_issue") and (state is None or not state.get("release_issues")):
+            raise ValueError("Qualified draft release issue topology is missing")
+        if state is not None and state.get("release_issues"):
+            if root.get("body") != controller_body(state) or state["plan"]["plan_id"] != plan["controller_plan_id"]:
+                raise ValueError("Qualified draft plan issue changed")
+            trusted_editor(api, HOST, root)
+            number = state["release_issues"][plan["repository"]]
+            if plan["repository"] != HOST:
+                threads.checked_issue(api, actor, plan["repository"], number,
+                                      threads.scope_body(state["plan"], plan["repository"], state["release_issues"]))
+            main = api.request(f"repos/{plan['repository']}/branches/main")["commit"]["sha"]
+            from notation_release_controller import repository_content
+            from monthly_release_vote import parse_repo_maintainers
+            roster = parse_repo_maintainers(repository_content(api, plan["repository"], "MAINTAINERS", main))
+            body = " ".join(f"@{login}" for login in sorted(roster)) + "\n\n" + body
+            identity = f"draft-ready-{plan['repository']}:{plan['tag']}:{plan['release_id']}"
+            comment = threads.comment_once(api, actor, plan["repository"], number, identity, body)
+            plan.update(draft_review_issue=number, draft_review_comment=comment["id"],
+                        draft_review_body=comment["body"], status="awaiting-publication",
+                        reason="Qualified draft awaits maintainer Publish release action")
+            cycle.save(plan)
+            check_draft_review(api, plan)
+            return {**plan, "action": "waiting"}
         marker = body.split("\n", 1)[0]
         reviews = [issue for issue in api.pages(f"repos/{plan['repository']}/issues?state=all")
                    if marker in (issue.get("body") or "")]

@@ -134,6 +134,8 @@ def installed_worker(api, repository, commit, binding=None):
         ".github/scripts/qualify_monthly_candidate.py": ("def qualify(",),
         ".github/scripts/build_monthly_assets.py": ("def ",),
         ".github/scripts/test_monthly_public_release.py": ("def ",),
+        ".github/scripts/release_issue_topology.py": ("def scope_body(", "def ensure("),
+        ".github/scripts/release_bugfix_proposals.py": ("def collect(", "def validate_proposals("),
     }
     for path, required in files.items():
         content = repository_content(api, HOST, path, binding["worker_sha"])
@@ -303,7 +305,7 @@ def authorize_routine(api, plan):
 
 
 def plan_comment(plan):
-    return f"/approve-plan {plan['plan_id']}"
+    return "/approve"
 
 
 def safe_title(value):
@@ -361,21 +363,29 @@ def release_scope(plan):
 
 
 def controller_body(state):
+    import release_issue_topology as threads
+    routes = state.get("release_issues")
+    scope = (threads.scope_body(state["plan"], HOST, routes) if routes else
+             "Release issue wiring is incomplete. Approval cannot authorize execution yet.\n")
     instructions = (
-        "# Maintainer plan review\n\n"
-        "No worker execution is authorized until an active CLI repo-level maintainer posts "
-        "the exact, unedited comment below in this issue. Closing the issue, editing a checklist, "
-        "the AI assessment, and the legacy automatic-approval flag do not approve this plan.\n\n"
+        "An active CLI repo-level maintainer must review this scope and linked dependency issues, "
+        "then post a new, unedited approval for this plan revision:\n\n"
         f"```text\n{plan_comment(state['plan'])}\n```\n\n"
         f"Assessment: https://github.com/{HOST}/actions/runs/{state['source_run']}\n\n"
-        "Review the complete decisions, source/dependency heads, worker pins, policy, and "
-        "reserved versions below. Reassessment requires a new approval. Editing or deleting "
-        "the approving comment revokes remaining execution. Publication is manual after "
-        "each repository's qualified draft review; this approval never publishes a release.\n\n"
+        "Reassessment requires fresh approval. Editing/deleting approval revokes execution. "
+        "Publication remains manual after qualified draft review.\n\n"
     )
     blocker = f"Execution blocker: {safe_title(state['review_blocker'])}\n\n" if state.get("review_blocker") else ""
-    return (f"{marker(state['month'])}\n{instructions}{release_scope(state['plan'])}\n{blocker}Outcome: **{state['status']}**.\n\n"
-            f"```json\n{json.dumps(state, indent=2)}\n```\n")
+    overview = ""
+    if routes:
+        overview = "\n## Overall status\n\n| Release issue | Status |\n|---|---|\n"
+        for repository in REPOSITORIES:
+            overview += (f"| [{repository}#{routes[repository]}]"
+                         f"({threads.issue_url(repository, routes[repository])}) | "
+                         f"{state['nodes'][repository]['status']} |\n")
+    return (f"{marker(state['month'])}\n{instructions}{scope}\n{blocker}Outcome: **{state['status']}**.\n{overview}\n"
+            "<details>\n<summary>Technical plan and controller state</summary>\n\n"
+            f"```json\n{json.dumps(state, indent=2)}\n```\n\n</details>\n")
 
 
 def pull_scope(api, repository, number):
@@ -383,9 +393,12 @@ def pull_scope(api, repository, number):
                for item in api.pages(f"repos/{repository}/pulls/{number}/commits")]
     if not commits or any(not release.SHA.fullmatch(item["sha"]) for item in commits):
         raise ValueError("Incomplete or invalid proposed PR commit list")
-    files = [item["filename"] for item in api.pages(f"repos/{repository}/pulls/{number}/files")]
+    from release_issue_topology import dependency_changes
+    file_records = list(api.pages(f"repos/{repository}/pulls/{number}/files"))
+    files = [item["filename"] for item in file_records]
     return {"commits": commits, "review_status": "Workflow changes need explicit actor review; CI/reviews must pass"
-            if any(path.startswith(".github/workflows/") for path in files) else "CI and required reviews must pass"}
+            if any(path.startswith(".github/workflows/") for path in files) else "CI and required reviews must pass",
+            "dependency_changes": dependency_changes(file_records)}
 
 
 def preview_scope(api, output, inventory_path=None):
@@ -453,6 +466,15 @@ def plan_roster(api, state):
 
 
 def approval_comment(api, issue, state, receipt=None):
+    import release_issue_topology as threads
+    if not state.get("release_issues") or not state.get("review_started_at"):
+        raise ValueError("Release issue wiring and review revision must be complete before approval")
+    threads.validate_routes(HOST, state["release_issues"])
+    for repository in REPOSITORIES:
+        if repository != HOST:
+            threads.checked_issue(api, os.environ.get("MONTHLY_PATCH_ACTOR"), repository,
+                                  state["release_issues"][repository],
+                                  threads.scope_body(state["plan"], repository, state["release_issues"]))
     roster = plan_roster(api, state)
     if (issue.get("state") != "open" or issue.get("body") != controller_body(state)
             or issue.get("user", {}).get("login") != os.environ.get("MONTHLY_PATCH_ACTOR")):
@@ -462,6 +484,7 @@ def approval_comment(api, issue, state, receipt=None):
                 if receipt else api.pages(f"repos/{HOST}/issues/{issue['number']}/comments"))
     for comment in comments:
         if (comment.get("body") != plan_comment(state["plan"])
+                or positive_id(comment["id"]) <= state.get("review_after_comment_id", 0)
                 or comment.get("user", {}).get("type") != "User"
                 or comment["user"].get("login", "").lower() not in roster
                 or not comment.get("created_at") or comment.get("updated_at") != comment["created_at"]
@@ -469,10 +492,14 @@ def approval_comment(api, issue, state, receipt=None):
             if receipt:
                 raise ValueError("Maintainer plan approval was edited, revoked or is no longer eligible")
             continue
-        if comment["created_at"] < issue["created_at"]:
-            raise ValueError("Plan approval predates the review issue")
+        if comment["created_at"] <= max(issue["created_at"], state["review_started_at"]):
+            if receipt:
+                raise ValueError("Plan approval predates the current review revision")
+            continue
         expected = {"kind": "maintainer", "comment_id": positive_id(comment["id"]),
                     "login": comment["user"]["login"], "created_at": comment["created_at"],
+                    "plan_id": state["plan"]["plan_id"], "review_started_at": state["review_started_at"],
+                    "release_issues_sha256": digest(state["release_issues"]),
                     "policy_sha256": state["authorization"]["policy_sha256"],
                     "policy_commit": state["authorization"]["policy_commit"]}
         if receipt is not None and receipt != expected:
@@ -614,7 +641,12 @@ def collect(api, month, output):
                     continue
                 release.check_files(api, repository, item["number"])
                 item["title"] = api.request(f"repos/{repository}/pulls/{item['number']}").get("title", "")[:400]
+                item["dependency_changes"] = pull_scope(api, repository, item["number"])["dependency_changes"]
                 merged.append(item)
+        bugfix_evidence = None
+        if main and branch:
+            from release_bugfix_proposals import collect as collect_bugfixes
+            bugfix_evidence = collect_bugfixes(api, repository, source_ref, commit)
         scans = scan_source(source, commit, release.modules(repository), output / repository.split("/")[1])
         manifests = {directory: api.manifest(source, commit, directory) for directory in release.modules(repository)}
         inventory["repositories"][repository] = {
@@ -627,6 +659,8 @@ def collect(api, month, output):
             **provenance,
             "source_repository": source, "source_commit": commit, "blockers": blockers,
             "pulls": pulls, "merged": merged, "manifests": manifests, "scans": scans,
+            "bugfix_evidence": bugfix_evidence,
+            "bugfix_evidence_sha256": digest(bugfix_evidence) if bugfix_evidence is not None else None,
         }
     return inventory
 
@@ -646,6 +680,18 @@ def validate_inventory(inventory):
     if when.tzinfo is None:
         raise ValueError("Assessment timestamp must be timezone-aware")
     for repository, node in inventory["repositories"].items():
+        bugfix = node.get("bugfix_evidence")
+        if bugfix is not None and (
+            bugfix.get("repository") != repository or bugfix.get("main_head") != node["main_head"]
+            or bugfix.get("release_head") != node["release_head"]
+            or bugfix.get("schema") != 1 or bugfix.get("authority") != "proposal_only"
+            or bugfix.get("automatic_inclusion") is not False
+        ):
+            raise ValueError("Bug-fix evidence is not bound to the assessed source/release line")
+        if "bugfix_evidence_sha256" in node and node["bugfix_evidence_sha256"] != (
+            digest(bugfix) if bugfix is not None else None
+        ):
+            raise ValueError("Bug-fix evidence digest changed")
         release.validate_plan({
             "schema": 1, "repository": repository, "month": inventory["month"], "mode": MODE,
             **{key: node[key] for key in ("baseline", "main", "branch", "tag")}, "status": "merging",
@@ -694,7 +740,8 @@ def validate_inventory(inventory):
 
 def validate_assessment(inventory, assessment):
     validate_inventory(inventory)
-    if set(assessment) != {"schema", "month", "inventory_sha256", "decisions"}:
+    required = {"schema", "month", "inventory_sha256", "decisions"}
+    if not required <= set(assessment) or set(assessment) - required - {"bugfix_proposals"}:
         raise ValueError("Unexpected assessment fields")
     if type(assessment["schema"]) is not int or assessment["schema"] != 1 or assessment["month"] != inventory["month"] or assessment["inventory_sha256"] != digest(inventory):
         raise ValueError("Assessment is not bound to the collected inventory")
@@ -745,10 +792,29 @@ def validate_assessment(inventory, assessment):
             for repo, node in inventory["repositories"].items()
         },
     }
+    has_bugfix_evidence = any(node.get("bugfix_evidence") is not None for node in inventory["repositories"].values())
+    if has_bugfix_evidence or "bugfix_proposals" in assessment:
+        proposals = assessment.get("bugfix_proposals")
+        if not isinstance(proposals, dict) or set(proposals) != set(REPOSITORIES):
+            raise ValueError("Assessment must review bug-fix evidence for all three repositories")
+        from release_bugfix_proposals import validate_proposals
+        plan["bugfix_proposals"] = {}
+        for repository, node in inventory["repositories"].items():
+            evidence = node.get("bugfix_evidence")
+            if evidence is None:
+                if proposals[repository] is not None:
+                    raise ValueError("Bug-fix proposal has no source/release evidence")
+                continue
+            validated = validate_proposals(evidence, proposals[repository])
+            if ({item["candidate_id"] for item in validated["proposals"]}
+                    != {item["candidate_id"] for item in evidence["candidates"]}):
+                raise ValueError("Assessment must classify every observed new main commit")
+            plan["bugfix_proposals"][repository] = validated
     # PR text helps the agent assess compatibility but is not executable authorization.
     for node in plan["snapshots"].values():
         node["pulls"] = [{"number": item["number"], "head": item["head"],
                           "title": item.get("title", "Dependabot dependency update"),
+                          "dependency_changes": item.get("dependency_changes", []),
                           "commits": item.get("commits", []), "review_status": item.get("review_status", "CI/reviews required")}
                          for item in node["pulls"]]
     plan["plan_id"] = digest(plan)
@@ -786,6 +852,13 @@ def validate_state(state):
         raise ValueError("Unreviewed plan cannot execute")
     if authorization["kind"] == "maintainer":
         positive_id(authorization.get("comment_id"))
+        if (authorization.get("plan_id") != plan["plan_id"]
+                or authorization.get("review_started_at") != state.get("review_started_at")
+                or authorization.get("release_issues_sha256") != digest(state.get("release_issues"))):
+            raise ValueError("Approval belongs to another plan review revision")
+    if "release_issues" in state:
+        from release_issue_topology import validate_routes
+        validate_routes(HOST, state["release_issues"])
     for repository, node in state["nodes"].items():
         decision = plan["decisions"][repository]["decision"]
         if decision not in DECISIONS or node["status"] not in NODE_STATUSES or type(node["attempt"]) is not int or node["attempt"] < 0:
@@ -849,6 +922,7 @@ class Controller:
         return records
 
     def report_failure(self, issue, state, repository, run, reason, stages=()):
+        import release_issue_topology as threads
         validate_state(state)
         current = self.api.request(f"repos/{HOST}/issues/{positive_id(issue['number'])}")
         if decode_issue(current, self.actor) != state or current.get("body") != controller_body(state):
@@ -876,11 +950,11 @@ class Controller:
             if (target in affected or "controller" in stages)
             and state["nodes"][target]["status"] not in TERMINAL
         ]
-        main = self.api.request(f"repos/{HOST}/branches/main")["commit"]["sha"]
+        main = self.api.request(f"repos/{repository}/branches/main")["commit"]["sha"]
         if not release.SHA.fullmatch(main):
             raise ValueError("Invalid maintainer notification roster revision")
         from monthly_release_vote import parse_repo_maintainers
-        text = repository_content(self.api, HOST, "MAINTAINERS", main)
+        text = repository_content(self.api, repository, "MAINTAINERS", main)
         if text is None:
             raise ValueError("Missing maintainer notification roster")
         roster = parse_repo_maintainers(text)
@@ -901,6 +975,27 @@ class Controller:
             + "Do not approve past the failure or publish an unqualified draft. "
             + "The approved scope has not changed."
         )
+        if state.get("release_issues"):
+            routes = state["release_issues"]
+            if repository != HOST:
+                threads.checked_issue(self.api, self.actor, repository, routes[repository],
+                                      threads.scope_body(state["plan"], repository, routes))
+            identity = digest({"plan": state["plan"]["plan_id"], "repository": repository,
+                               "run": run_id, "attempt": attempt, "stages": stages})
+            comment = threads.comment_once(self.api, self.actor, repository, routes[repository], identity, body)
+            for target in REPOSITORIES:
+                if (repository.split("/")[1] in release.PROJECTS[target.split("/")[1]]
+                        and state["nodes"][target]["status"] not in TERMINAL):
+                    if target != HOST:
+                        threads.checked_issue(self.api, self.actor, target, routes[target],
+                                              threads.scope_body(state["plan"], target, routes))
+                    threads.comment_once(
+                        self.api, self.actor, target, routes[target], f"dependency-{identity}",
+                        f"Blocked by [{repository}#{routes[repository]}]"
+                        f"({threads.issue_url(repository, routes[repository])}). "
+                        "Review the dependency's release issue for the blocker.",
+                    )
+            return comment
         matches = [
             comment for comment in self.api.pages(f"repos/{HOST}/issues/{issue['number']}/comments")
             if comment.get("user", {}).get("login") == self.actor and marker in (comment.get("body") or "")
@@ -916,8 +1011,59 @@ class Controller:
         positive_id(comment["id"])
         return comment
 
+    def report_blocker(self, issue, state, repository, run, reason):
+        import release_issue_topology as threads
+        routes = state.get("release_issues")
+        if not routes or repository not in REPOSITORIES or not isinstance(reason, str) or not 1 <= len(reason) <= 2000:
+            raise ValueError("Invalid release blocker notification")
+        current = self.api.request(f"repos/{HOST}/issues/{issue['number']}")
+        if current.get("body") != controller_body(state):
+            raise ValueError("Release issue changed before blocker notification")
+        release.trusted_editor(self.api, HOST, current)
+        if repository != HOST:
+            threads.checked_issue(self.api, self.actor, repository, routes[repository],
+                                  threads.scope_body(state["plan"], repository, routes))
+        main = self.api.request(f"repos/{repository}/branches/main")["commit"]["sha"]
+        from monthly_release_vote import parse_repo_maintainers
+        roster = parse_repo_maintainers(repository_content(self.api, repository, "MAINTAINERS", main))
+        identity = "blocker-" + digest({"plan": state["plan"]["plan_id"], "repository": repository,
+                                       "reason": reason, "run": positive_id(run["id"])})
+        comment = threads.comment_once(
+            self.api, self.actor, repository, routes[repository], identity,
+            " ".join(f"@{login}" for login in sorted(roster)) + "\n\n"
+            f"Release blocked: {safe_title(reason)}\n\n"
+            f"Evidence: https://github.com/{repository}/actions/runs/{positive_id(run['id'])}\n\n"
+            "Resolve the required check or review before resuming. This notice does not waive a gate or change scope.",
+        )
+        for target in REPOSITORIES:
+            if repository.split("/")[1] in release.PROJECTS[target.split("/")[1]]:
+                if target != HOST:
+                    threads.checked_issue(self.api, self.actor, target, routes[target],
+                                          threads.scope_body(state["plan"], target, routes))
+                threads.comment_once(self.api, self.actor, target, routes[target], "dependency-" + identity,
+                                     f"Blocked by [{repository}#{routes[repository]}]"
+                                     f"({threads.issue_url(repository, routes[repository])}).")
+        return comment
+
     def save(self, issue, state):
         validate_state(state)
+        import release_issue_topology as threads
+        if issue:
+            current = self.api.request(f"repos/{HOST}/issues/{issue['number']}")
+            previous = decode_issue(current, self.actor)
+            if previous is None or current.get("body") != controller_body(previous):
+                raise ValueError("Controller issue changed before state write")
+            release.trusted_editor(self.api, HOST, current)
+            had_routes = bool(state.get("release_issues"))
+            routes, hashes = threads.ensure(self.api, self.actor, state["plan"], issue["number"],
+                                            state.get("release_issues"), state.get("release_issue_hashes"))
+            state.update(release_issues=routes, release_issue_hashes=hashes)
+            if not had_routes and state["status"] == "review":
+                state["review_started_at"] = utc_now()
+                state["review_after_comment_id"] = max(
+                    (positive_id(item["id"]) for item in self.api.pages(f"repos/{HOST}/issues/{issue['number']}/comments")),
+                    default=0,
+                )
         body = controller_body(state)
         if len(body.encode()) > 60000:
             raise ValueError("Controller record is too large")
@@ -929,6 +1075,8 @@ class Controller:
             result = self.api.request(f"repos/{HOST}/issues", "POST", payload)
         if decode_issue(result, self.actor) != state:
             raise ValueError("Controller state write was not confirmed by the trusted actor")
+        if not issue:
+            return self.save(result, state)
         return result
 
     def approve(self, plan, source_run, replan=False, recover_public_verification=False, authorization=None):
@@ -943,7 +1091,7 @@ class Controller:
                     return self.replan(issue, state, plan, source_run, recover_public_verification)
                 if recover_public_verification:
                     raise ValueError("Verification recovery requires a fresh changed assessment")
-                return issue, state
+                return self.save(issue, state), state
             if state["status"] in {"active", "review"}:
                 raise ValueError("Finish the active cycle before approving another month")
         if recover_public_verification:
@@ -973,6 +1121,8 @@ class Controller:
                              "attempt": 0}
                       for repo, item in plan["decisions"].items()},
         }
+        state["review_started_at"] = utc_now()
+        state["review_after_comment_id"] = 0
         if authorization and authorization.get("blocker"):
             state["review_blocker"] = authorization["blocker"]
         return self.save(None, state), state
@@ -1053,6 +1203,11 @@ class Controller:
                 node["status"] = "pending"
                 node.pop("run_id", None)
         state.update(plan=updated, source_run=source_run)
+        state["review_started_at"] = utc_now()
+        state["review_after_comment_id"] = max(
+            (positive_id(item["id"]) for item in self.api.pages(f"repos/{HOST}/issues/{issue['number']}/comments")),
+            default=0,
+        )
         state.pop("review_blocker", None)
         state["status"] = "review"
         state["authorization"] = {"kind": "pending", "policy_commit": updated["snapshots"][HOST]["automation_sha"],
@@ -1197,7 +1352,10 @@ class Controller:
             if worker_plan["status"] not in release.FINAL:
                 node.update(status="pending", reason=worker_plan.get("reason", "Worker is waiting for dependency checks"))
                 node.pop("run_id", None)
-                return self.save(issue, state), state
+                issue = self.save(issue, state)
+                if worker_plan["status"] in {"waiting", "voting"} and worker_plan.get("reason"):
+                    self.report_blocker(issue, state, repository, run, worker_plan["reason"])
+                return issue, state
             if worker_plan["tag"] != snapshot["tag"]:
                 raise ValueError("Worker changed its approved patch version")
             if worker_plan["status"] == "published":
@@ -1328,7 +1486,8 @@ def worker_authorization(api, repository, month, plan=None, allow_previous=False
         if plan.get('status') != 'verifying' and plan.get('controller_plan_id') == plan_id:
             if plan.get("maintainer_roster_sha") != snapshot["automation_sha"]:
                 raise ValueError("Worker maintainer roster does not match the assessed main")
-    return {"issue": int(issue_number), "plan_id": plan_id, "snapshot": snapshot, "producers": producers}
+    return {"issue": int(issue_number), "plan_id": plan_id, "snapshot": snapshot, "producers": producers,
+            "release_issue": state.get("release_issues", {}).get(repository)}
 
 
 def module_version(value):
