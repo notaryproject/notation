@@ -14,9 +14,13 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 )
 
@@ -100,5 +104,60 @@ func TestLoginCommand_MissingArgs(t *testing.T) {
 	}
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err == nil {
 		t.Fatal("Parse Args expected error, but ok")
+	}
+}
+
+// setTestConfigDir points the notation config directory to a temporary directory
+// with the given config.json content.
+func setTestConfigDir(t *testing.T, config string) {
+	t.Helper()
+	oldConfigDir := dir.UserConfigDir
+	t.Cleanup(func() { dir.UserConfigDir = oldConfigDir })
+	dir.UserConfigDir = t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir.UserConfigDir, dir.PathConfigFile), []byte(config), 0o600); err != nil {
+		t.Fatalf("failed to write config file: %v", err)
+	}
+}
+
+// The errors returned by runLogin have to wrap the underlying error so that
+// callers can inspect it with errors.Is and errors.As.
+func TestRunLogin_WrapsErrors(t *testing.T) {
+	tests := []struct {
+		name   string
+		config string
+		server string
+	}{
+		{
+			name:   "invalid credentials store config",
+			config: "{",
+			server: "registry.example.com",
+		},
+		{
+			name:   "invalid registry",
+			config: "{}",
+			server: "invalid host name",
+		},
+		{
+			// nothing listens on port 1, so the connection is refused
+			name:   "registry not reachable",
+			config: "{}",
+			server: "localhost:1",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			setTestConfigDir(t, tt.config)
+			opts := &loginOpts{server: tt.server}
+			opts.Username = "user"
+			opts.Password = "password"
+
+			err := runLogin(context.Background(), opts)
+			if err == nil {
+				t.Fatal("runLogin() expected an error, but got nil")
+			}
+			if errors.Unwrap(err) == nil {
+				t.Fatalf("runLogin() error does not wrap the underlying error: %v", err)
+			}
+		})
 	}
 }

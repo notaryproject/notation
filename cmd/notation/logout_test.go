@@ -13,7 +13,11 @@
 
 package main
 
-import "testing"
+import (
+	"context"
+	"errors"
+	"testing"
+)
 
 func TestLogoutCommand_BasicArgs(t *testing.T) {
 	opts := &logoutOpts{}
@@ -42,4 +46,32 @@ func TestLogOutCommand_MissingArgs(t *testing.T) {
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err == nil {
 		t.Fatal("Parse Args expected error, but ok")
 	}
+}
+
+// The errors returned by runLogout have to wrap the underlying error so that
+// callers can inspect it with errors.Is and errors.As.
+func TestRunLogout_WrapsErrors(t *testing.T) {
+	t.Run("invalid credentials store config", func(t *testing.T) {
+		setTestConfigDir(t, "{")
+
+		err := runLogout(context.Background(), &logoutOpts{server: "registry.example.com"})
+		if err == nil {
+			t.Fatal("runLogout() expected an error, but got nil")
+		}
+		if errors.Unwrap(err) == nil {
+			t.Fatalf("runLogout() error does not wrap the underlying error: %v", err)
+		}
+	})
+
+	t.Run("credentials not found", func(t *testing.T) {
+		setTestConfigDir(t, "{}")
+
+		err := runLogout(context.Background(), &logoutOpts{server: "registry.example.com"})
+		if err == nil {
+			t.Skip("logging out of an unknown registry does not fail on this platform")
+		}
+		if errors.Unwrap(err) == nil {
+			t.Fatalf("runLogout() error does not wrap the underlying error: %v", err)
+		}
+	})
 }
