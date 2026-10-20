@@ -90,16 +90,17 @@ func newSignature(digest, signatureMediaType string, envelope coresignature.Enve
 }
 
 func getSignedAttributes(envelopeContent *coresignature.EnvelopeContent) map[string]any {
-	signedAttributes := map[string]any{
-		"contentType":   envelopeContent.Payload.ContentType,
-		"signingScheme": string(envelopeContent.SignerInfo.SignedAttributes.SigningScheme),
-		"signingTime":   envelopeContent.SignerInfo.SignedAttributes.SigningTime,
-	}
-	if expiry := envelopeContent.SignerInfo.SignedAttributes.Expiry; !expiry.IsZero() {
-		signedAttributes["expiry"] = expiry
-	}
+	// Extended attributes go in first so that an extended attribute keyed on
+	// one of the well-known names below cannot displace the authentic value.
+	signedAttributes := make(map[string]any)
 	for _, attribute := range envelopeContent.SignerInfo.SignedAttributes.ExtendedAttributes {
 		signedAttributes[fmt.Sprint(attribute.Key)] = fmt.Sprint(attribute.Value)
+	}
+	signedAttributes["contentType"] = envelopeContent.Payload.ContentType
+	signedAttributes["signingScheme"] = string(envelopeContent.SignerInfo.SignedAttributes.SigningScheme)
+	signedAttributes["signingTime"] = envelopeContent.SignerInfo.SignedAttributes.SigningTime
+	if expiry := envelopeContent.SignerInfo.SignedAttributes.Expiry; !expiry.IsZero() {
+		signedAttributes["expiry"] = expiry
 	}
 	return signedAttributes
 }

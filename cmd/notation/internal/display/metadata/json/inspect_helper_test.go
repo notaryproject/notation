@@ -128,3 +128,44 @@ func TestInspectSignature_NewSignatureError(t *testing.T) {
 		t.Fatalf("expected error 'mock content error', got %v", err)
 	}
 }
+
+func TestGetSignedAttributesCollision(t *testing.T) {
+	signingTime := time.Unix(1700000000, 0)
+	expiry := time.Unix(1800000000, 0)
+	envContent := &coresignature.EnvelopeContent{
+		Payload: coresignature.Payload{
+			ContentType: "application/vnd.cncf.notary.payload.v1+json",
+		},
+		SignerInfo: coresignature.SignerInfo{
+			SignedAttributes: coresignature.SignedAttributes{
+				SigningScheme: "notary.x509",
+				SigningTime:   signingTime,
+				Expiry:        expiry,
+				ExtendedAttributes: []coresignature.Attribute{
+					{Key: "signingTime", Value: "1970-01-01T00:00:00Z"},
+					{Key: "expiry", Value: "nope"},
+					{Key: "contentType", Value: "nope"},
+					{Key: "signingScheme", Value: "nope"},
+					{Key: "keyName", Value: "value"},
+				},
+			},
+		},
+	}
+	signedAttr := getSignedAttributes(envContent)
+
+	if signedAttr["signingTime"] != signingTime {
+		t.Errorf("expected signingTime %s, but got %v", signingTime, signedAttr["signingTime"])
+	}
+	if signedAttr["expiry"] != expiry {
+		t.Errorf("expected expiry %s, but got %v", expiry, signedAttr["expiry"])
+	}
+	if signedAttr["contentType"] != "application/vnd.cncf.notary.payload.v1+json" {
+		t.Errorf("expected contentType %s, but got %v", "application/vnd.cncf.notary.payload.v1+json", signedAttr["contentType"])
+	}
+	if signedAttr["signingScheme"] != "notary.x509" {
+		t.Errorf("expected signingScheme notary.x509, but got %v", signedAttr["signingScheme"])
+	}
+	if signedAttr["keyName"] != "value" {
+		t.Errorf("expected keyName value, but got %v", signedAttr["keyName"])
+	}
+}
