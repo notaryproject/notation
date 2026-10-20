@@ -115,7 +115,7 @@ func parseOCILayoutReference(raw string) (string, string, error) {
 	} else {
 		// find `tag`
 		idx := strings.LastIndex(raw, ":")
-		if idx == -1 || (idx == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && raw[2] == '\\') {
+		if idx == -1 || (idx == 1 && len(raw) > 2 && unicode.IsLetter(rune(raw[0])) && (raw[2] == '\\' || raw[2] == '/')) {
 			return "", "", notationerrors.ErrorOCILayoutMissingReference{Msg: fmt.Sprintf("%q: invalid reference: missing tag or digest. Expecting <file_path>:<tag> or <file_path>@<digest>", raw)}
 		} else {
 			path, ref = raw[:idx], raw[idx+1:]
