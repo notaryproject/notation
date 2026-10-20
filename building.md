@@ -6,6 +6,8 @@ The notation repo contains the following:
 
 Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.24`.
 
+> For a map of the codebase and how the CLI relates to the Notary Project libraries and specifications, see [ARCHITECTURE.md](/ARCHITECTURE.md).
+
 ## Windows with WSL or Linux
 
 - Build the binaries, installing them to:
