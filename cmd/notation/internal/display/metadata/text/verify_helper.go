@@ -17,7 +17,9 @@ package text
 
 import (
 	"fmt"
+	"maps"
 	"reflect"
+	"slices"
 	"text/tabwriter"
 
 	"github.com/notaryproject/notation-go"
@@ -66,8 +68,8 @@ func printUserMetadataIfPresent(printer *output.Printer, outcome *notation.Verif
 func printUserMetadataMap(printer *output.Printer, metadata map[string]string) error {
 	tw := tabwriter.NewWriter(printer, 0, 0, 3, ' ', 0)
 	fmt.Fprintln(tw, "\nKEY\tVALUE\t")
-	for k, v := range metadata {
-		fmt.Fprintf(tw, "%v\t%v\t\n", k, v)
+	for _, k := range slices.Sorted(maps.Keys(metadata)) {
+		fmt.Fprintf(tw, "%v\t%v\t\n", k, metadata[k])
 	}
 	return tw.Flush()
 }
