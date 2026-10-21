@@ -16,6 +16,8 @@ package blob
 import (
 	"reflect"
 	"testing"
+
+	clirev "github.com/notaryproject/notation/v2/internal/revocation"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -24,6 +26,7 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 	expected := &blobVerifyOpts{
 		blobPath:      "blob_path",
 		signaturePath: "sig_path",
+		ocspTimeout:   clirev.DefaultOCSPTimeout,
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,
@@ -45,6 +48,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 		blobPath:      "blob_path",
 		signaturePath: "sig_path",
 		pluginConfig:  []string{"key1=val1", "key2=val2"},
+		ocspTimeout:   clirev.DefaultOCSPTimeout,
 	}
 	if err := command.ParseFlags([]string{
 		expected.blobPath,

@@ -23,6 +23,7 @@ import (
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation-go/verifier/trustpolicy"
+	clirev "github.com/notaryproject/notation/v2/internal/revocation"
 )
 
 func TestGetVerifier(t *testing.T) {
@@ -41,7 +42,7 @@ func TestGetVerifier(t *testing.T) {
 		}
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
-		_, err := GetVerifier(context.Background())
+		_, err := GetVerifier(context.Background(), clirev.DefaultOCSPTimeout)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -50,7 +51,7 @@ func TestGetVerifier(t *testing.T) {
 	t.Run("non-existing oci trust policy", func(t *testing.T) {
 		dir.UserConfigDir = "/"
 		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
-		_, err := GetVerifier(context.Background())
+		_, err := GetVerifier(context.Background(), clirev.DefaultOCSPTimeout)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -67,7 +68,7 @@ func TestGetVerifier(t *testing.T) {
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
 		expectedErrMsg := "oci trust policy document has empty version, version must be specified"
-		_, err := GetVerifier(context.Background())
+		_, err := GetVerifier(context.Background(), clirev.DefaultOCSPTimeout)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -90,7 +91,7 @@ func TestGetBlobVerifier(t *testing.T) {
 		}
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
-		_, err := GetBlobVerifier(context.Background())
+		_, err := GetBlobVerifier(context.Background(), clirev.DefaultOCSPTimeout)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -99,7 +100,7 @@ func TestGetBlobVerifier(t *testing.T) {
 	t.Run("non-existing blob trust policy", func(t *testing.T) {
 		dir.UserConfigDir = "/"
 		expectedErrMsg := "trust policy is not present. To create a trust policy, see: https://notaryproject.dev/docs/quickstart/#create-a-trust-policy"
-		_, err := GetBlobVerifier(context.Background())
+		_, err := GetBlobVerifier(context.Background(), clirev.DefaultOCSPTimeout)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}
@@ -116,7 +117,7 @@ func TestGetBlobVerifier(t *testing.T) {
 		t.Cleanup(func() { os.RemoveAll(tempRoot) })
 
 		expectedErrMsg := "blob trust policy document has empty version, version must be specified"
-		_, err := GetBlobVerifier(context.Background())
+		_, err := GetBlobVerifier(context.Background(), clirev.DefaultOCSPTimeout)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected %s, but got %s", expectedErrMsg, err)
 		}

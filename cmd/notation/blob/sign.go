@@ -239,7 +239,7 @@ func prepareBlobSigningOpts(ctx context.Context, opts *blobSignOpts) (notation.S
 		if err != nil {
 			return notation.SignBlobOptions{}, err
 		}
-		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+		tsaRevocationValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping, clirev.DefaultOCSPTimeout)
 		if err != nil {
 			return notation.SignBlobOptions{}, fmt.Errorf("failed to create timestamping revocation validator: %w", err)
 		}

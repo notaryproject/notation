@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
+	clirev "github.com/notaryproject/notation/v2/internal/revocation"
 )
 
 func TestVerifyCommand_BasicArgs(t *testing.T) {
@@ -31,6 +32,7 @@ func TestVerifyCommand_BasicArgs(t *testing.T) {
 		},
 		pluginConfig:         []string{"key1=val1"},
 		maxSignatureAttempts: 100,
+		ocspTimeout:          clirev.DefaultOCSPTimeout,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,
@@ -57,6 +59,7 @@ func TestVerifyCommand_MoreArgs(t *testing.T) {
 		},
 		pluginConfig:         []string{"key1=val1", "key2=val2"},
 		maxSignatureAttempts: 100,
+		ocspTimeout:          clirev.DefaultOCSPTimeout,
 	}
 	if err := command.ParseFlags([]string{
 		expected.reference,

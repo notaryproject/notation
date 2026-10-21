@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/notaryproject/notation-go"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/display"
@@ -26,6 +27,7 @@ import (
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/verify"
 	"github.com/notaryproject/notation/v2/internal/envelope"
+	clirev "github.com/notaryproject/notation/v2/internal/revocation"
 	"github.com/spf13/cobra"
 )
 
@@ -38,6 +40,7 @@ type blobVerifyOpts struct {
 	userMetadata        []string
 	policyStatementName string
 	blobMediaType       string
+	ocspTimeout         time.Duration
 }
 
 func verifyCommand(opts *blobVerifyOpts) *cobra.Command {
@@ -90,6 +93,7 @@ Example - Verify the signature on a blob artifact using a policy statement name:
 	command.Flags().StringArrayVar(&opts.pluginConfig, "plugin-config", nil, "{key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values")
 	command.Flags().StringVar(&opts.blobMediaType, "media-type", "", "media type of the blob to verify")
 	command.Flags().StringVar(&opts.policyStatementName, "policy-name", "", "policy name to verify against. If not provided, the global policy is used if exists")
+	command.Flags().DurationVar(&opts.ocspTimeout, "ocsp-timeout", clirev.DefaultOCSPTimeout, "timeout for OCSP requests during certificate revocation checking")
 	flag.SetPflagUserMetadata(command.Flags(), &opts.userMetadata, flag.PflagUserMetadataVerifyUsage)
 	command.MarkFlagRequired("signature")
 	return command
@@ -111,7 +115,7 @@ func runVerify(command *cobra.Command, cmdOpts *blobVerifyOpts) error {
 	if err != nil {
 		return err
 	}
-	blobVerifier, err := verify.GetBlobVerifier(ctx)
+	blobVerifier, err := verify.GetBlobVerifier(ctx, cmdOpts.ocspTimeout)
 	if err != nil {
 		return err
 	}

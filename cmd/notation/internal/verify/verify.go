@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"time"
 
 	"github.com/notaryproject/notation-core-go/revocation/purpose"
 	"github.com/notaryproject/notation-go"
@@ -38,8 +39,8 @@ type Verifier interface {
 }
 
 // GetVerifier creates a Verifier.
-func GetVerifier(ctx context.Context) (Verifier, error) {
-	verifierOptions, err := newVerifierOptions(ctx)
+func GetVerifier(ctx context.Context, ocspTimeout time.Duration) (Verifier, error) {
+	verifierOptions, err := newVerifierOptions(ctx, ocspTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +56,8 @@ func GetVerifier(ctx context.Context) (Verifier, error) {
 }
 
 // GetBlobVerifier creates a BlobVerifier.
-func GetBlobVerifier(ctx context.Context) (Verifier, error) {
-	verifierOptions, err := newVerifierOptions(ctx)
+func GetBlobVerifier(ctx context.Context, ocspTimeout time.Duration) (Verifier, error) {
+	verifierOptions, err := newVerifierOptions(ctx, ocspTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -72,12 +73,12 @@ func GetBlobVerifier(ctx context.Context) (Verifier, error) {
 }
 
 // newVerifierOptions creates a verifier.VerifierOptions.
-func newVerifierOptions(ctx context.Context) (verifier.VerifierOptions, error) {
-	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning)
+func newVerifierOptions(ctx context.Context, ocspTimeout time.Duration) (verifier.VerifierOptions, error) {
+	revocationCodeSigningValidator, err := clirev.NewRevocationValidator(ctx, purpose.CodeSigning, ocspTimeout)
 	if err != nil {
 		return verifier.VerifierOptions{}, err
 	}
-	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping)
+	revocationTimestampingValidator, err := clirev.NewRevocationValidator(ctx, purpose.Timestamping, ocspTimeout)
 	if err != nil {
 		return verifier.VerifierOptions{}, err
 	}

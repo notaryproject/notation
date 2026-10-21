@@ -43,6 +43,7 @@ Flags:
        --insecure-registry           use HTTP protocol while connecting to registries. Should be used only for testing
        --max-signatures int          maximum number of signatures to evaluate or examine (default 100)
        --oci-layout                  [Experimental] verify the artifact stored as OCI image layout
+       --ocsp-timeout duration       timeout for OCSP requests during certificate revocation checking (default 2s)
   -p,  --password string             password for registry operations (default to $NOTATION_PASSWORD if not specified)
        --plugin-config stringArray   {key}={value} pairs that are passed as it is to a plugin, if the verification is associated with a verification plugin, refer plugin documentation to set appropriate values
        --scope string                [Experimental] set trust policy scope for artifact verification, required and can only be used when flag "--oci-layout" is set
