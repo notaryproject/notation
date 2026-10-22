@@ -25,7 +25,12 @@ func versionCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Show the notation version information",
-		Args:  cobra.NoArgs,
+		Long: `Show the notation version information
+
+Example - Show notation version:
+  notation version
+`,
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			runVersion()
 		},
