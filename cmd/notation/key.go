@@ -89,6 +89,14 @@ func keyAddCommand(opts *keyAddOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "add --plugin <plugin_name> [flags] <key_name>",
 		Short: "Add key to Notation signing key list",
+		Long: `Add a key to Notation signing key list. The key must be managed by a signing plugin.
+
+Example - Add a key with a signing plugin:
+  notation key add --plugin <plugin_name> --id <key_id> <key_name>
+
+Example - Add a key and set it as the default signing key:
+  notation key add --plugin <plugin_name> --id <key_id> --default <key_name>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return errors.New("either missing key name or unnecessary parameters passed")
@@ -120,6 +128,11 @@ func keyUpdateCommand(opts *keyUpdateOpts) *cobra.Command {
 		Use:     "update [flags] <key_name>",
 		Aliases: []string{"set"},
 		Short:   "Update key in Notation signing key list",
+		Long: `Update a key in Notation signing key list.
+
+Example - Set a key as the default signing key:
+  notation key update --default <key_name>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key name")
@@ -143,6 +156,14 @@ func keyListCommand() *cobra.Command {
 		Use:     "list [flags]",
 		Aliases: []string{"ls"},
 		Short:   "List keys used for signing",
+		Long: `List keys used for signing.
+
+Example - List all signing keys:
+  notation key list
+
+Example - List all signing keys (short alias):
+  notation key ls
+`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return listKeys()
 		},
@@ -157,6 +178,14 @@ func keyDeleteCommand(opts *keyDeleteOpts) *cobra.Command {
 	command := &cobra.Command{
 		Use:   "delete [flags] <key_name>...",
 		Short: "Remove key from Notation signing key list",
+		Long: `Remove one or more keys from Notation signing key list.
+
+Example - Remove a signing key:
+  notation key delete <key_name>
+
+Example - Remove multiple signing keys:
+  notation key delete <key_name_1> <key_name_2>
+`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return errors.New("missing key names")
