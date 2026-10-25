@@ -226,7 +226,11 @@ func IsValidStoreType(storeType string) bool {
 	return false
 }
 
-// IsValidFileName checks if a file name is cross-platform compatible
+var validFileName = regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`)
+
+// IsValidFileName checks if a file name is cross-platform compatible.
+// "." and ".." are rejected, because they refer to a directory and not to a
+// file name inside of one.
 func IsValidFileName(fileName string) bool {
-	return regexp.MustCompile(`^[a-zA-Z0-9_.-]+$`).MatchString(fileName)
+	return fileName != "." && fileName != ".." && validFileName.MatchString(fileName)
 }

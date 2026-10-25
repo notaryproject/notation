@@ -119,3 +119,28 @@ func TestDeleteAllCerts(t *testing.T) {
 		}
 	})
 }
+
+func TestIsValidFileName(t *testing.T) {
+	tests := []struct {
+		name     string
+		fileName string
+		want     bool
+	}{
+		{"letters, digits and separators", "ok-1_.x", true},
+		{"hidden style name", ".hidden", true},
+		{"two dots inside a name", "a..b", true},
+		{"empty", "", false},
+		{"current directory", ".", false},
+		{"parent directory", "..", false},
+		{"slash", "a/b", false},
+		{"backslash", `a\b`, false},
+		{"space", "a b", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsValidFileName(tt.fileName); got != tt.want {
+				t.Fatalf("IsValidFileName(%q) = %v, want %v", tt.fileName, got, tt.want)
+			}
+		})
+	}
+}
