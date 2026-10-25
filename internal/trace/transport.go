@@ -75,7 +75,7 @@ func (t *Transport) RoundTrip(req *http.Request) (resp *http.Response, err error
 	// log the response
 	resp, err = t.RoundTripper.RoundTrip(req)
 	if err != nil {
-		e.Errorf("Error in getting response: %w", err)
+		e.Errorf("Error in getting response: %v", err)
 	} else if resp == nil {
 		e.Errorf("No response obtained for request %s %q", req.Method, req.URL)
 	} else {

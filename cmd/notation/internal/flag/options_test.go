@@ -14,10 +14,18 @@
 package flag
 
 import (
+	"bytes"
+	"context"
+	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"oras.land/oras-go/v2/registry/remote/auth"
+	credentialstrace "oras.land/oras-go/v2/registry/remote/credentials/trace"
+
+	"github.com/notaryproject/notation-go/log"
 )
 
 func TestSecureFlagOpts_Credential(t *testing.T) {
@@ -70,5 +78,23 @@ func TestSecureFlagOpts_Credential(t *testing.T) {
 				t.Errorf("SecureFlagOpts.Credential() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestWithExecutableTrace_ExecuteDoneLogsError(t *testing.T) {
+	var out bytes.Buffer
+	logger := logrus.New()
+	logger.SetOutput(&out)
+	logger.SetLevel(logrus.DebugLevel)
+
+	ctx := withExecutableTrace(log.WithLogger(context.Background(), logger))
+	credentialstrace.ContextExecutableTrace(ctx).ExecuteDone("docker-credential-test", "get", errors.New("boom"))
+
+	got := out.String()
+	if !strings.Contains(got, "and got error boom") {
+		t.Errorf("the logged error is missing the error message, got %q", got)
+	}
+	if strings.Contains(got, "%!") {
+		t.Errorf("the logged error contains a formatting error, got %q", got)
 	}
 }

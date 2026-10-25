@@ -30,9 +30,16 @@ limitations under the License.
 package trace
 
 import (
+	"bytes"
+	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/notaryproject/notation-go/log"
 )
 
 type TransportMock struct {
@@ -86,4 +93,32 @@ func TestTransport_RoundTrip(t *testing.T) {
 			t.Fatal("should have no error")
 		}
 	})
+}
+
+func TestTransport_RoundTrip_LogsResponseError(t *testing.T) {
+	var out bytes.Buffer
+	logger := logrus.New()
+	logger.SetOutput(&out)
+	logger.SetLevel(logrus.DebugLevel)
+
+	ctx := log.WithLogger(context.Background(), logger)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://example.com", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	transport := NewTransport(&TransportMock{respErr: errors.New("boom")})
+	resp, err := transport.RoundTrip(req)
+	if resp != nil {
+		resp.Body.Close()
+	}
+	if err == nil {
+		t.Fatal("expected an error")
+	}
+
+	if got := out.String(); !strings.Contains(got, "Error in getting response: boom") {
+		t.Errorf("the logged error is missing the error message, got %q", got)
+	}
+	if got := out.String(); strings.Contains(got, "%!") {
+		t.Errorf("the logged error contains a formatting error, got %q", got)
+	}
 }
