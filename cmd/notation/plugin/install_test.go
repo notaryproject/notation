@@ -33,10 +33,49 @@ func TestInstall(t *testing.T) {
 			inputChecksum:    "dummy",
 			pluginSource:     "http://[::1]/%",
 		}
-		expectedErrMsg := `failed to parse plugin download URL http://[::1]/% with error: parse "http://[::1]/%": invalid URL escape "%"`
+		expectedErrMsg := `failed to parse plugin download URL with error: invalid URL escape "%"`
 		err := install(&cobra.Command{}, opts)
 		if err == nil || err.Error() != expectedErrMsg {
 			t.Fatalf("expected error %s, but got %s", expectedErrMsg, err)
+		}
+	})
+
+	t.Run("invalid plugin source url with credentials", func(t *testing.T) {
+		opts := &pluginInstallOpts{
+			pluginSourceType: notationplugin.PluginSourceTypeURL,
+			inputChecksum:    "dummy",
+			pluginSource:     "https://user:s3cret@localhost:badport/plugin.tar.gz",
+		}
+		err := install(&cobra.Command{}, opts)
+		if err == nil {
+			t.Fatal("install() expected an error, but got nil")
+		}
+		if !strings.Contains(err.Error(), "failed to parse plugin download URL") {
+			t.Errorf("install() error = %q, want a parse error", err)
+		}
+		if strings.Contains(err.Error(), "s3cret") {
+			t.Errorf("install() error contains the password: %q", err)
+		}
+	})
+
+	t.Run("failed download with credentials in the url", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		cmd.SetContext(context.Background())
+		// nothing listens on port 1, so the connection is refused
+		opts := &pluginInstallOpts{
+			pluginSourceType: notationplugin.PluginSourceTypeURL,
+			inputChecksum:    "dummy",
+			pluginSource:     "https://user:s3cret@127.0.0.1:1/plugin.tar.gz",
+		}
+		err := install(cmd, opts)
+		if err == nil {
+			t.Fatal("install() expected an error, but got nil")
+		}
+		if want := "failed to download plugin from URL https://user:xxxxx@127.0.0.1:1/plugin.tar.gz"; !strings.Contains(err.Error(), want) {
+			t.Errorf("install() error = %q, want it to contain %q", err, want)
+		}
+		if strings.Contains(err.Error(), "s3cret") {
+			t.Errorf("install() error contains the password: %q", err)
 		}
 	})
 

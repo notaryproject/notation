@@ -68,7 +68,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 	defer resp.Body.Close()
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL, resp.Status)
+		return fmt.Errorf("%s %q: https response bad status: %s", resp.Request.Method, resp.Request.URL.Redacted(), resp.Status)
 	}
 	// Write the body to file
 	lr := &io.LimitedReader{
@@ -80,7 +80,7 @@ func DownloadPluginFromURL(ctx context.Context, pluginURL string, tmpFile io.Wri
 		return err
 	}
 	if lr.N == 0 {
-		return fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL, MaxPluginSourceBytes/1024/1024)
+		return fmt.Errorf("%s %q: https response reached the %d MiB size limit", resp.Request.Method, resp.Request.URL.Redacted(), MaxPluginSourceBytes/1024/1024)
 	}
 	return nil
 }

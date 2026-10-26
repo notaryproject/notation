@@ -132,7 +132,12 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 		pluginURL, err := url.Parse(opts.pluginSource)
 		if err != nil {
-			return fmt.Errorf("failed to parse plugin download URL %s with error: %w", opts.pluginSource, err)
+			// the error of url.Parse contains the URL, which can have credentials
+			var urlErr *url.Error
+			if errors.As(err, &urlErr) {
+				err = urlErr.Err
+			}
+			return fmt.Errorf("failed to parse plugin download URL with error: %w", err)
 		}
 		if pluginURL.Scheme != "https" {
 			return fmt.Errorf("failed to download plugin from URL: only the HTTPS scheme is supported, but got %s", pluginURL.Scheme)
@@ -143,10 +148,12 @@ func install(command *cobra.Command, opts *pluginInstallOpts) error {
 		}
 		defer os.Remove(tmpFile.Name())
 		defer tmpFile.Close()
-		fmt.Printf("Downloading plugin from %s\n", opts.pluginSource)
+		// do not show the password of the URL in the output
+		redactedURL := pluginURL.Redacted()
+		fmt.Printf("Downloading plugin from %s\n", redactedURL)
 		err = notationplugin.DownloadPluginFromURL(ctx, opts.pluginSource, tmpFile)
 		if err != nil {
-			return fmt.Errorf("failed to download plugin from URL %s with error: %w", opts.pluginSource, err)
+			return fmt.Errorf("failed to download plugin from URL %s with error: %w", redactedURL, err)
 		}
 		fmt.Println("Download completed")
 		if err := installPlugin(ctx, tmpFile.Name(), opts.inputChecksum, opts.force); err != nil {
