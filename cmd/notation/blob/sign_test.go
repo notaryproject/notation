@@ -14,11 +14,20 @@
 package blob
 
 import (
+	"context"
+	"crypto/x509"
+	"encoding/json"
+	"encoding/pem"
 	"fmt"
+	"os"
+	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/notaryproject/notation-core-go/testhelper"
+	"github.com/notaryproject/notation-go/dir"
 	"github.com/notaryproject/notation/v2/cmd/notation/internal/flag"
 	"github.com/notaryproject/notation/v2/internal/envelope"
 )
@@ -303,4 +312,108 @@ func TestBlobSignCommand_MissingArgs(t *testing.T) {
 	if err := cmd.Args(cmd, cmd.Flags().Args()); err == nil {
 		t.Fatal("Parse Args expected error, but ok")
 	}
+}
+
+func TestBlobSignCommand_ForceOutput(t *testing.T) {
+	defer func(oldConfigDir string) {
+		dir.UserConfigDir = oldConfigDir
+	}(dir.UserConfigDir)
+	dir.UserConfigDir = setUpSigningKey(t)
+
+	blobDir := t.TempDir()
+	blobPath := filepath.Join(blobDir, "blob.txt")
+	if err := os.WriteFile(blobPath, []byte("test blob"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	signaturePath := filepath.Join(blobDir, "blob.txt.jws.sig")
+	expectedStdout := fmt.Sprintf("Successfully signed %s\nSignature file written to %s\n", blobPath, signaturePath)
+	const warning = "Warning: existing signature file will be overwritten"
+
+	// no signature file exists yet
+	stdout, stderr := runBlobSignCommand(t, "--force", blobPath)
+	if stdout != expectedStdout {
+		t.Fatalf("expected stdout %q, but got %q", expectedStdout, stdout)
+	}
+	if strings.Contains(stderr, warning) {
+		t.Fatalf("expected no overwrite warning when the signature file does not exist, but got stderr %q", stderr)
+	}
+
+	// signature file exists
+	stdout, stderr = runBlobSignCommand(t, "--force", blobPath)
+	if stdout != expectedStdout {
+		t.Fatalf("expected stdout %q, but got %q", expectedStdout, stdout)
+	}
+	if !strings.Contains(stderr, warning) {
+		t.Fatalf("expected overwrite warning when the signature file exists, but got stderr %q", stderr)
+	}
+}
+
+// setUpSigningKey creates a config directory with a default signing key and
+// returns its path.
+func setUpSigningKey(t *testing.T) string {
+	t.Helper()
+	configDir := t.TempDir()
+	certTuple := testhelper.GetRSASelfSignedSigningCertTuple("test")
+	keyBytes, err := x509.MarshalPKCS8PrivateKey(certTuple.PrivateKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keyPath := filepath.Join(configDir, "test.key")
+	if err := os.WriteFile(keyPath, pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyBytes}), 0600); err != nil {
+		t.Fatal(err)
+	}
+	certPath := filepath.Join(configDir, "test.crt")
+	if err := os.WriteFile(certPath, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certTuple.Cert.Raw}), 0600); err != nil {
+		t.Fatal(err)
+	}
+	signingKeys, err := json.Marshal(map[string]any{
+		"default": "test",
+		"keys": []map[string]string{
+			{"name": "test", "keyPath": keyPath, "certPath": certPath},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, dir.PathSigningKeys), signingKeys, 0600); err != nil {
+		t.Fatal(err)
+	}
+	return configDir
+}
+
+// runBlobSignCommand runs the blob sign command with args and returns its
+// stdout and stderr.
+func runBlobSignCommand(t *testing.T, args ...string) (string, string) {
+	t.Helper()
+	outDir := t.TempDir()
+	stdoutFile, err := os.Create(filepath.Join(outDir, "stdout"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer stdoutFile.Close()
+	stderrFile, err := os.Create(filepath.Join(outDir, "stderr"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer stderrFile.Close()
+
+	oldStdout, oldStderr := os.Stdout, os.Stderr
+	os.Stdout, os.Stderr = stdoutFile, stderrFile
+	command := signCommand(nil)
+	command.SetArgs(args)
+	err = command.ExecuteContext(context.Background())
+	os.Stdout, os.Stderr = oldStdout, oldStderr
+	if err != nil {
+		t.Fatalf("blob sign failed: %v", err)
+	}
+
+	stdout, err := os.ReadFile(stdoutFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	stderr, err := os.ReadFile(stderrFile.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(stdout), string(stderr)
 }

@@ -181,8 +181,8 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 	logger.Infof("Writing signature to file %s", signaturePath)
 
 	// optional confirmation
-	if !cmdOpts.force {
-		if _, err := os.Stat(signaturePath); err == nil {
+	if _, err := os.Stat(signaturePath); err == nil {
+		if !cmdOpts.force {
 			confirmed, err := display.AskForConfirmation(os.Stdin, "The signature file already exists, do you want to overwrite it?", cmdOpts.force)
 			if err != nil {
 				return err
@@ -190,16 +190,16 @@ func runBlobSign(command *cobra.Command, cmdOpts *blobSignOpts) error {
 			if !confirmed {
 				return nil
 			}
+		} else {
+			fmt.Fprintln(os.Stderr, "Warning: existing signature file will be overwritten")
 		}
-	} else {
-		fmt.Fprintln(os.Stderr, "Warning: existing signature file will be overwritten")
 	}
 
 	// write signature to file
 	if err := osutil.WriteFile(signaturePath, sig); err != nil {
 		return fmt.Errorf("failed to write signature to file: %w", err)
 	}
-	fmt.Printf("Successfully signed %s\n ", cmdOpts.blobPath)
+	fmt.Printf("Successfully signed %s\n", cmdOpts.blobPath)
 	fmt.Printf("Signature file written to %s\n", signaturePath)
 	return nil
 }
