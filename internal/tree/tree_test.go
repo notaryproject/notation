@@ -47,7 +47,7 @@ func TestNodeAddPair(t *testing.T) {
 	}
 }
 
-func ExampleRootPrint() {
+func ExampleNode_Print_root() {
 	root := New("root")
 	root.Print()
 
@@ -55,7 +55,7 @@ func ExampleRootPrint() {
 	// root
 }
 
-func ExampleSingleLayerPrint() {
+func ExampleNode_Print_singleLayer() {
 	root := New("root")
 	root.Add("child1")
 	root.Add("child2")
@@ -67,7 +67,7 @@ func ExampleSingleLayerPrint() {
 	// └── child2
 }
 
-func ExampleMultiLayerPrint() {
+func ExampleNode_Print_multiLayer() {
 	root := New("root")
 	child1 := root.Add("child1")
 	child1.AddPair("key", "value")

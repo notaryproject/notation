@@ -1,6 +1,6 @@
 module github.com/notaryproject/notation/test/e2e
 
-go 1.23.0
+go 1.26.0
 
 require (
 	github.com/notaryproject/notation-core-go v1.3.0
@@ -8,7 +8,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
 	github.com/opencontainers/image-spec v1.1.1
-	oras.land/oras-go/v2 v2.5.0
+	oras.land/oras-go/v2 v2.6.2
 )
 
 require (
@@ -22,12 +22,12 @@ require (
 	github.com/veraison/go-cose v1.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
-	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/tools v0.31.0 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
+	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
