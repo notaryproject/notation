@@ -4,7 +4,7 @@ The notation repo contains the following:
 
 - `notation` - A CLI for signing and verifying artifacts with Notation
 
-Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.24`.
+Building above binaries require [golang](https://golang.org/dl/) with version `>= 1.26`.
 
 ## Windows with WSL or Linux
 
