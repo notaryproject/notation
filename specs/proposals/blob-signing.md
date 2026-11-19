@@ -6,7 +6,7 @@ A **blob**, short for [Binary Large Object](https://wikipedia.org/wiki/Binary_la
 
 ## Problem Statement & Motivation 
 
-Signing container images alone is not enough to secure the software supply chain for containers. In addtion to images, SBOMs, configuration files, release binaries or other artifacts must also be signed and verified to ensure their integrity and authenticity. With the increasing use of AI model files and WebAssembly files, securing these artifacts is equally critical. By adding blob signing, Notation can extend its capabilities to handle a broader range of artifacts across various scenarios, enhancing its versatility while leveraging its existing key management and trust policy framework.
+Signing container images alone is not enough to secure the software supply chain for containers. In addition to images, SBOMs, configuration files, release binaries or other artifacts must also be signed and verified to ensure their integrity and authenticity. With the increasing use of AI model files and WebAssembly files, securing these artifacts is equally critical. By adding blob signing, Notation can extend its capabilities to handle a broader range of artifacts across various scenarios, enhancing its versatility while leveraging its existing key management and trust policy framework.
 
 ## Scenarios 
 
@@ -49,7 +49,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
     ```
     This command generates a signature file named `sbom.json.cose.sig` in the same directory as `sbom.json` by default. The file name follows the [Notary Project specification](https://github.com/notaryproject/specifications/blob/main/specs/signature-specification.md#blob-signatures). The signature format is **COSE**, as specified by the `--signature-format` flag. The default format is **JWS**. The `--media-type` flag specifies the **media type** of the blob. In this example, the content of `sbom.json` is in the format `application/spdx+json`. This flag is **optional**. If omitted, the default media type **`application/octet-stream`** is used.  
 
-2. Publish both the file and corresponding signature using any file transfering mechanism. Both the file and its signature can be packaged into one file (e.g., a tarball) for transferring.
+2. Publish both the file and corresponding signature using any file transferring mechanism. Both the file and its signature can be packaged into one file (e.g., a tarball) for transferring.
 
 3. Download or fetch both the file and signature. If they are packaged into one file, for example, a tarball, unpackage the file to get separate file and signature.
 
@@ -94,7 +94,7 @@ For file-based distribution, such as SBOMs or release artifacts shared via a web
 
 ### Blob Sign and verify with registry-based distribution
 
-For registry-based distribution, such as using an OCI-compliant container registry, the process is similar but includes additional steps for pushing blobs and sigantures to the registry.
+For registry-based distribution, such as using an OCI-compliant container registry, the process is similar but includes additional steps for pushing blobs and signatures to the registry.
 
 **Prerequisites:**
 - SBOMs, release artifacts or other files are created and ready for publishing.
@@ -248,7 +248,7 @@ For registry-based distribution, such as using an OCI-compliant container regist
 
     - Download the blob and signature using ORAS tool:
 
-      Follow the previous section to discover blog signatures, and get the digest of the siganture that you want to pull, and use the following command to pull the signature and the blob:
+      Follow the previous section to discover blob signatures, and get the digest of the signature that you want to pull, and use the following command to pull the signature and the blob:
 
         ```shell
         oras pull --include-subject myregistry/myapp/sbom@sha256:e8c3567e1f679dfd372ab97635329e404c5182864e29abd96acf852b1ac1ef6b

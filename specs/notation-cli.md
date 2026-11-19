@@ -6,7 +6,7 @@ This spec contains reference information on using notation commands. Each comman
 
 | Command                                     | Description                                                                   |
 | ------------------------------------------- | ----------------------------------------------------------------------------- |
-| [blob](./commandline/blob.md)               | Sign, verify and inspect singatures associated with blobs                     |
+| [blob](./commandline/blob.md)               | Sign, verify and inspect signatures associated with blobs                     |
 | [certificate](./commandline/certificate.md) | Manage certificates in trust store                                            |
 | [inspect](./commandline/inspect.md)         | Inspect OCI signatures                                                        |
 | [key](./commandline/key.md)                 | Manage keys used for signing                                                  |
