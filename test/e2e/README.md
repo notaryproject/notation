@@ -14,7 +14,7 @@ Using [Gomega](https://onsi.github.io/gomega/) as the matching library.
 - *Test registry*: a test registry started before running tests.
 - *Config isolation*: notation needs a few configuration files in user level directory, which can be isolated by modify `XDG_CONFIG_HOME` environment variable. In Notation E2E test framework, a VirtualHost abstraction is designed for isolating user level configuration.
 - *Parallelization*: In order to speed up testing, Ginkgo will launch several processes to run e2e test cases. 
-- *Randomization*: By default, Ginkgo will run specs in a suite in random order. Please make sure the test cases can be runned independently. If the test cases depend on the execution order, consider using [Ordered Containers](https://onsi.github.io/ginkgo/#ordered-containers).
+- *Randomization*: By default, Ginkgo will run specs in a suite in random order. Please make sure the test cases can be run independently. If the test cases depend on the execution order, consider using [Ordered Containers](https://onsi.github.io/ginkgo/#ordered-containers).
 
 
 ## Setting up
