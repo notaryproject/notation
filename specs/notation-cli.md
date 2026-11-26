@@ -6,18 +6,18 @@ This spec contains reference information on using notation commands. Each comman
 
 | Command                                     | Description                                                                   |
 | ------------------------------------------- | ----------------------------------------------------------------------------- |
-| [blob](./commandline/blob.md)               | Sign, verify and inspect singatures associated with blobs                     |
-| [certificate](./commandline/certificate.md) | Manage certificates in trust store                                            |
-| [inspect](./commandline/inspect.md)         | Inspect OCI signatures                                                        |
-| [key](./commandline/key.md)                 | Manage keys used for signing                                                  |
-| [list](./commandline/list.md)               | List signatures of a signed OCI artifact                                      |
-| [login](./commandline/login.md)             | Log into OCI registries                                                       |
-| [logout](./commandline/logout.md)           | Log out from the logged in OCI registries                                     |
-| [plugin](./commandline/plugin.md)           | Manage plugins                                                                |
-| [policy](./commandline/policy.md)           | Manage OCI trust policy configuration for OCI artifact signature verification |
-| [sign](./commandline/sign.md)               | Sign OCI artifacts                                                            |
-| [verify](./commandline/verify.md)           | Verify OCI artifacts                                                          |
-| [version](./commandline/version.md)         | Print the version of notation CLI                                             |
+| [blob](./cmd/blob.md)               | Sign, verify and inspect signatures associated with blobs                     |
+| [certificate](./cmd/certificate.md) | Manage certificates in trust store                                            |
+| [inspect](./cmd/inspect.md)         | Inspect OCI signatures                                                        |
+| [key](./cmd/key.md)                 | Manage keys used for signing                                                  |
+| [list](./cmd/list.md)               | List signatures of a signed OCI artifact                                      |
+| [login](./cmd/login.md)             | Log into OCI registries                                                       |
+| [logout](./cmd/logout.md)           | Log out from the logged in OCI registries                                     |
+| [plugin](./cmd/plugin.md)           | Manage plugins                                                                |
+| [policy](./cmd/policy.md)           | Manage OCI trust policy configuration for OCI artifact signature verification |
+| [sign](./cmd/sign.md)               | Sign OCI artifacts                                                            |
+| [verify](./cmd/verify.md)           | Verify OCI artifacts                                                          |
+| [version](./cmd/version.md)         | Print the version of notation CLI                                             |
 
 ## Notation Outline
 
